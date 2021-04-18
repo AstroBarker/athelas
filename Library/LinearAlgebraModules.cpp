@@ -124,7 +124,7 @@ void Tri_Sym_Diag( int n, double* d, double* e, double* array )
   double k = array[0];
   for ( int i = 0; i < n; i++ )
   {
-    array[i] = k * ev[i];
+    array[i] = k * ev[n*i];
   }
 
   delete [] work;

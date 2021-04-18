@@ -76,16 +76,14 @@ void LG_Quadrature( int m, double* nodes, double* weights )
   //
   Tri_Sym_Diag( m, nodes, bj, weights ); //imtqlx
 
-  const float a = -0.5;
-  const float b = +0.5;
   for ( int i = 0; i < m; i++ )
   {
     weights[i] = weights[i] * weights[i];
     // std::cout << weights[i] << " ";
 
     // Shift to interval [-0.5, 0.5]
-    weights[i] *= 0.5 * (b - a);
-    nodes[i] = 0.5 * ( (b - a) * nodes[i] + (b + a) );
+    weights[i] *= 0.5;
+    nodes[i]   *= 0.5;
   }
 
   delete [] aj;
@@ -97,7 +95,7 @@ int main( int argc, char* argv[] )
 {
   //testing
 //   std::cout << "asfasf";
-  int order = 3;
+  int order = 11;
 
   double* weights = new double[order];
   double* nodes = new double[order];
