@@ -90,27 +90,3 @@ void LG_Quadrature( int m, double* nodes, double* weights )
   delete [] bj;
 
 }
-
-int main( int argc, char* argv[] )
-{
-  //testing
-//   std::cout << "asfasf";
-  int order = 11;
-
-  double* weights = new double[order];
-  double* nodes = new double[order];
-  
-  LG_Quadrature( order, nodes, weights );
-  
-  for ( int i = 0; i < order; i++)
-  {
-      std::cout << weights[i] << " ";
-  }
-  std::cout << std::endl;
-  for ( int i = 0; i < order; i++)
-  {
-      std::cout << nodes[i] << " ";
-  }
-
-  return 0;
-}

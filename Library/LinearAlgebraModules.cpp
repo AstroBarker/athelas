@@ -70,19 +70,19 @@ double** matmul( double** A, double** B,
 
   // #pragma omp parallel for
   for (int i = 0; i < rows_A; i++)
+  // {
+  for (int j = 0; j < cols_B; j++)
   {
-    for (int j = 0; j < cols_B; j++)
+    mult[i][j] = 0;
+    c = mult[i][j];
+    for (int k = 0; k < cols_A; k++)
     {
-      mult[i][j] = 0;
-      c = mult[i][j];
-      for (int k = 0; k < cols_A; k++)
-      {
-          c += A[i][k] * B[k][j];
-      }
-      mult[i][j] = c;
-    // printf("%f \n", mult[i][j]);
+        c += A[i][k] * B[k][j];
     }
-  }   
+    mult[i][j] = c;
+  // printf("%f \n", mult[i][j]);
+  }
+  // }   
 
   return mult;
 }
