@@ -1,0 +1,27 @@
+Cpp_barker = g++
+Cpp        = $(C_$(MACHINE))
+
+FLAGS_DEBUG  = $(DEBUG)
+DEBUG_barker = -g -Og -ggdb -ftrapv -fcheck=bounds,do,mem,pointer -ffpe-trap=invalid,zero,overflow -fbacktrace
+DEBUG        = $(DEBUG_$(MACHINE))
+
+FLAGS_OPTIMIZE  = $(OPTIMIZE)
+OPTIMIZE_barker = -O3
+OPTIMIZE        = $(OPTIMIZE_$(MACHINE))
+
+#include HDF5
+
+INCLUDE_HDF5_barker = 
+INCLUDE_HDF5        = $(INCLUDE_HDF5_$(MACHINE))
+
+#include LAPACK
+
+#libraries HDF5
+LIBRARIES_HDF5_barker = 
+LIBRARIES_HDF5        = $(LIBRARIES_HDF5_$(MACHINE))
+
+#libraries LAPACK
+LIBRARIES_barker = -llapack 
+LIBRARIES_LAPACK = $(LIBRARIES_LAPACK_$(MACHINE))
+
+LIBRARIES = $(LIBRARIES_HDF5) $(LIBRARIES_LAPACK)

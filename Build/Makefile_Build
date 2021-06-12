@@ -1,0 +1,5 @@
+include $(SPLODE_DIR)/Build/Makefile_Path
+#include $(SPLODE_DIR)/Build/Makefile_Thornado_ObjectFiles
+include $(SPLODE_DIR)/Build/Makefile_Compilers
+include $(SPLODE_DIR)/Build/Makefile_Defines
+#include $(SPLODE_DIR)/Build/Makefile_Suffixes

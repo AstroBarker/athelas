@@ -1,0 +1,3 @@
+VPATH += \
+$(SPLODE_DIR)/Library: \
+..
