@@ -1,0 +1,3 @@
+include $(SPLODE_DIR)/Library/Makefile_Libraries_Objects
+
+splode = $(LIBRARIES)

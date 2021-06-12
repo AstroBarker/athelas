@@ -1,5 +1,5 @@
-Cpp_barker = g++
-Cpp        = $(C_$(MACHINE))
+CC_barker = g++
+CC        = $(CC_$(MACHINE))
 
 FLAGS_DEBUG  = $(DEBUG)
 DEBUG_barker = -g -Og -ggdb -ftrapv -fcheck=bounds,do,mem,pointer -ffpe-trap=invalid,zero,overflow -fbacktrace

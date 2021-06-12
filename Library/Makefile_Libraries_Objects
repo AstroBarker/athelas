@@ -1,0 +1,4 @@
+LIBRARIES = \
+	LinearAlgebra.o \
+	QuadratureLibrary.o \
+	PolynomialBasis.o

@@ -1,0 +1,8 @@
+LinearAlgebraModule.o: LinearAlgebraModule.h
+
+DataStructures.o: DataStructures.h
+
+QuadratureLibrary.o: QuadratureLibrary.h LinearAlgebraModule.h
+
+PolynomialBasis.o: PolynomialBasis.o QuadratureLibrary.o LinearAlgebraModule.o
+
