@@ -2,7 +2,7 @@
  * Functions for polynomial basis
  **/
 
- #include <iostream>
+#include <iostream>
 
 #include "PolynomialBasis.h"
 #include "LinearAlgebraModules.h"
@@ -105,30 +105,30 @@ double Poly_Eval( unsigned int nNodes, double* nodes, double* data, double point
 }
 
 
-int main( int argc, char* argv[] )
-{
-  //testing 
+//int main( int argc, char* argv[] )
+//{
+//  //testing 
 
-  unsigned int nNodes = 2;
-  double* nodes = new double[nNodes];
-  double* weights = new double[nNodes];
-
-  LG_Quadrature( nNodes, nodes, weights );
-
-  // std::cout << Lagrange( nNodes, nodes[1], nodes );
-
-  // double** node_mat = AllocateMatrix( nNodes, nNodes );
-  // SetNodes( nNodes, nodes, node_mat );
-
-  // PolynomialBasis Lx{ nNodes, nodes };
-  // std::cout << Lagrange( nNodes, nodes[0], node_mat[1] );
-
-  double* data = new double[nNodes];
-  data[0] = 0.5;
-  data[1] = 0.9;
-
-  std::cout << dLegendre( 3, 0.5 );
-  // std::cout << Lagrange( nNodes, nodes[0], 0, nodes );
-  // std::cout << Poly_Eval( nNodes, nodes, data, +0.5 ) << std::endl;
-  return 0;
-}
+//  unsigned int nNodes = 2;
+//  double* nodes = new double[nNodes];
+//  double* weights = new double[nNodes];
+//
+//  LG_Quadrature( nNodes, nodes, weights );
+//
+//  // std::cout << Lagrange( nNodes, nodes[1], nodes );
+//
+//  // double** node_mat = AllocateMatrix( nNodes, nNodes );
+//  // SetNodes( nNodes, nodes, node_mat );
+//
+//  // PolynomialBasis Lx{ nNodes, nodes };
+//  // std::cout << Lagrange( nNodes, nodes[0], node_mat[1] );
+//
+//  double* data = new double[nNodes];
+//  data[0] = 0.5;
+//  data[1] = 0.9;
+//
+//  std::cout << Legendre( 3, 0.5 );
+//  // std::cout << Lagrange( nNodes, nodes[0], 0, nodes );
+//  // std::cout << Poly_Eval( nNodes, nodes, data, +0.5 ) << std::endl;
+//  return 0;
+//}

@@ -8,7 +8,7 @@
 
 // extern "C" {
 extern "C" int dstev_(char* job, int* N, double* D, double* OFFD, double* EV, int* VDIM, double* WORK, int* INFO);
-// extern "C" void dsyev_(char* job, int* N, double* D, double* OFFD, double** EV, int* VDIM, double* WORK, int* INFO);
+//extern "C" void dsyev_(char* job, int* N, double* D, double* OFFD, double** EV, int* VDIM, double* WORK, int* INFO);
 // }
 
 /**

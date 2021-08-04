@@ -2,6 +2,7 @@
  * Classes for holding multidimensional data
  **/
 
+#include "DataStructures.h"
 
 class DataStructure2D
 {
