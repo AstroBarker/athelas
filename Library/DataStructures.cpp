@@ -2,6 +2,7 @@
  * Classes for holding multidimensional data
  **/
 
+#include <iostream>
 #include "DataStructures.h"
 
 class DataStructure2D
@@ -49,7 +50,7 @@ public:
   DataStructure3D( unsigned int N1, unsigned int N2, unsigned int N3 );
   double& operator()( unsigned int i, unsigned int j, unsigned int k );
   double operator()( unsigned int i, unsigned int j, unsigned int k ) const;
-
+// 
   ~DataStructure3D()
   {
     delete [] Data;
@@ -83,3 +84,16 @@ double DataStructure3D::operator()( unsigned int i, unsigned int j, unsigned int
   return Data[i + Size2*j + Size2*Size3*k];      
 }
 
+// int main( int argc, char* argv[] )
+// {
+//   unsigned int rows = 5;
+//   unsigned int cols = 5;
+
+//   DataStructure2D test_data(rows, cols);
+
+//   for ( unsigned int i = 0; i < rows; i++ )
+//   for ( unsigned int j = 0; j < cols; j++ )
+//   {
+//     test_data(i,j) = 5.0;
+//   }
+// }
