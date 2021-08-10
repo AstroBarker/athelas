@@ -23,7 +23,7 @@ public:
 
   ~GridStructure()
   {
-    delete [] Grid; // Get rid of?
+    delete [] Grid;
     delete [] Centers;
     delete [] Widths;
     delete [] Nodes;
@@ -87,10 +87,6 @@ void GridStructure::CreateGrid( )
   {
     Centers[i] = Centers[i-1] + Widths[i-1];
   }
-  //TODO: Fix this mess.
-  // Centers[nElements + 2*nGhost] = Centers[0] - Widths[0];
-  // Centers[nElements + 2*nGhost -1] = 
-  //   Centers[nElements + 2*nGhost -2] - Widths[nElements + 2*nGhost -2];
 
   for (int i = ilo-1; i >= 0; i--)
   {
@@ -101,8 +97,17 @@ void GridStructure::CreateGrid( )
     Centers[i] = Centers[i-1] + Widths[i-1];
   }
 
+  for (unsigned int iC = ilo; iC <= ihi; iC++)
+  {
+    for (unsigned int iN = 0; iN < nNodes; iN++)
+    {
+      Grid[iN * nElements + iC] = NodeCoordinate( iC, iN );
+    }
+  }
+
 }
 
+// Access by (node, element)
 double& GridStructure::operator()( unsigned int i, unsigned int j )
 {
   return Grid[i * nElements + j];
@@ -111,28 +116,4 @@ double& GridStructure::operator()( unsigned int i, unsigned int j )
 double GridStructure::operator()( unsigned int i, unsigned int j ) const
 {
   return Grid[i * nElements + j];
-}
-
-int main( int argc, char* argv[] )
-{
-  std::cout << "fuck boi" << std::endl;
-
-  //TODO: We have centers. Make a NodeCoordinate function
-  // Use that to contruct the actual nodal grid.
-
-  const unsigned int nX = 10;
-  const unsigned int nNodes = 2;
-  const unsigned int nG = 1;
-
-  double left = 0.0;
-  double right = 1.0;
-  GridStructure test_grid( nNodes, nX, nG, left, right );
-
-  // for ( unsigned int i = 0; i < nX + 2*nG; i++ )
-  // {
-  //   for ( unsigned int nN = 0; nN < nNodes; nN ++ )
-  //   {
-  //     std::cout << test_grid(nN,i) << std::endl;
-  //   }
-  // }
 }
