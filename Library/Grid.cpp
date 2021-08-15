@@ -96,8 +96,11 @@ public:
   }
 
   GridStructure( unsigned int nX, unsigned int nN, unsigned int nG, 
-  double left, double right );
+    double left, double right );
   double NodeCoordinate( unsigned int iC, unsigned int iN );
+  double GetNodes( unsigned int nN );
+  double GetWeights( unsigned int nN ); 
+
   double& operator()( unsigned int i, unsigned int j );
   double operator()( unsigned int i, unsigned int j ) const;
   void CreateGrid( );
@@ -155,6 +158,18 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
 double GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN )
 {
   return Centers[iC] + Widths[iC] * Nodes[iN];
+}
+
+// Return given quadrature node
+double GridStructure::GetNodes( unsigned int nN )
+{
+  return Nodes[nN];
+}
+
+// Return given quadrature weight
+double GridStructure::GetWeights( unsigned int nN )
+{
+  return Weights[nN];
 }
 
 // Equidistant mesh
