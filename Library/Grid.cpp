@@ -98,11 +98,12 @@ public:
   GridStructure( unsigned int nX, unsigned int nN, unsigned int nG, 
     double left, double right );
   double NodeCoordinate( unsigned int iC, unsigned int iN );
-  double GetNodes( unsigned int nN );
-  double GetWeights( unsigned int nN ); 
-  int GetGuard( );
+  double Get_Nodes( unsigned int nN );
+  double Get_Weights( unsigned int nN ); 
+  int Get_Guard( );
   int Get_ilo( );
   int Get_ihi( );
+  int Get_nNodes( );
 
   double& operator()( unsigned int i, unsigned int j );
   double operator()( unsigned int i, unsigned int j ) const;
@@ -164,19 +165,25 @@ double GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN )
 }
 
 // Return given quadrature node
-double GridStructure::GetNodes( unsigned int nN )
+double GridStructure::Get_Nodes( unsigned int nN )
 {
   return Nodes[nN];
 }
 
 // Return given quadrature weight
-double GridStructure::GetWeights( unsigned int nN )
+double GridStructure::Get_Weights( unsigned int nN )
 {
   return Weights[nN];
 }
 
+// Return last physical zone
+int GridStructure::Get_nNodes( )
+{
+  return nNodes;
+}
+
 // Return number of guard zones
-int GridStructure::GetGuard( )
+int GridStructure::Get_Guard( )
 {
   return nGhost;
 }
