@@ -100,6 +100,9 @@ public:
   double NodeCoordinate( unsigned int iC, unsigned int iN );
   double GetNodes( unsigned int nN );
   double GetWeights( unsigned int nN ); 
+  int GetGuard( );
+  int Get_ilo( );
+  int Get_ihi( );
 
   double& operator()( unsigned int i, unsigned int j );
   double operator()( unsigned int i, unsigned int j ) const;
@@ -172,12 +175,30 @@ double GridStructure::GetWeights( unsigned int nN )
   return Weights[nN];
 }
 
+// Return number of guard zones
+int GridStructure::GetGuard( )
+{
+  return nGhost;
+}
+
+// Return first physical zone
+int GridStructure::Get_ilo( )
+{
+  return nGhost;
+}
+
+// Return last physical zone
+int GridStructure::Get_ihi( )
+{
+  return nElements - nGhost + 1;
+}
+
 // Equidistant mesh
 void GridStructure::CreateGrid( )
 {
 
-  unsigned int ilo = nGhost; // first real zone
-  unsigned int ihi = nElements - nGhost + 1; // last real zone
+  const unsigned int ilo = nGhost; // first real zone
+  const unsigned int ihi = nElements - nGhost + 1; // last real zone
 
   for (unsigned int i = 0; i < nElements + 2 * nGhost; i++)
   {
