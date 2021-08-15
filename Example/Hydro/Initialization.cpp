@@ -36,10 +36,10 @@ int main( int argc, char* argv[] )
   // We may need more allocations later. Put them here.
 
   // Initialize fields
-  InitializeFields( uCF, ProblemName );
+  InitializeFields( uCF, Grid, ProblemName );
 }
 
-void InitializeFields( DataStructure3D& uCF, const std::string ProblemName )
+void InitializeFields( DataStructure3D& uCF, GridStructure& Grid, const std::string ProblemName )
 {
   std::cout << ProblemName << std::endl;
 

@@ -84,12 +84,12 @@ public:
   }
 
   friend void swap(DataStructure3D& first, DataStructure3D& second) // nothrow
-    {
-        // by swapping the members of two objects,
-        // the two objects are effectively swapped
-        std::swap( first.mSize, second.mSize );
-        std::swap( first.Data, second.Data );
-    }
+  {
+      // by swapping the members of two objects,
+      // the two objects are effectively swapped
+      std::swap( first.mSize, second.mSize );
+      std::swap( first.Data, second.Data );
+  }
 
   // assignment
   DataStructure3D& operator=(DataStructure3D other) 
