@@ -85,15 +85,15 @@ int GridStructure::Get_ihi( )
 void GridStructure::copy( double* dest )
 {
 
-  // for ( unsigned int i = 0; i < mSize*nNodes; i++ )
-  // {
-    // dest[i] = Grid[i];
-  // }
-  for ( unsigned int ix = 0; ix < mSize; ix++ )
-  for ( unsigned int in = 0; in < nNodes; in++ )
+  for ( unsigned int i = 0; i < mSize*nNodes; i++ )
   {
-    dest[in * nElements + ix] = Grid[in * nElements + ix];
+    dest[i] = Grid[i];
   }
+  // for ( unsigned int ix = 0; ix < mSize; ix++ )
+  // for ( unsigned int in = 0; in < nNodes; in++ )
+  // {
+  //   dest[in * nElements + ix] = Grid[in * nElements + ix];
+  // }
 }
 
 // Equidistant mesh
@@ -127,19 +127,19 @@ void GridStructure::CreateGrid( )
   {
     for (unsigned int iN = 0; iN < nNodes; iN++)
     {
-      Grid[iN * nElements + iC] = NodeCoordinate( iC, iN );
+      Grid[iC * nNodes + iN] = NodeCoordinate( iC, iN );
     }
   }
 
 }
 
-// Access by (node, element)
+// Access by (element, node)
 double& GridStructure::operator()( unsigned int i, unsigned int j )
 {
-  return Grid[i * nElements + j];
+  return Grid[i * nNodes + j];
 }
 
 double GridStructure::operator()( unsigned int i, unsigned int j ) const
 {
-  return Grid[i * nElements + j];
+  return Grid[i * nNodes + j];
 }
