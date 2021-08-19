@@ -1,1 +1,1 @@
-g++ -Wall -I../../../Library/ ../../../Library/LinearAlgebraModules.cpp -llapack ../../../Library/QuadratureLibrary.cpp ../../../Library/PolynomialBasis.cpp ../Initialization.cpp -o main
+h5c++ -Wall -lm -lhdf5 -lhdf5_hl -I../../../Library/ ../../../Library/LinearAlgebraModules.cpp -llapack ../../../Library/QuadratureLibrary.cpp ../../../Library/PolynomialBasis.cpp ../../../Library/DataStructures.cpp ../../../Library/Grid.cpp ../../../Library/IOLibrary.cpp ../Initialization.cpp ../Driver.cpp -o main
