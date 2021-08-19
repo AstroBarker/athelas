@@ -12,6 +12,7 @@ DataStructure2D::DataStructure2D(unsigned int rows, unsigned int cols)
   Data = new double[rows * cols];
 }
 
+//TODO: When we use this, make sure it is accessing data efficiently.
 double& DataStructure2D::operator()(unsigned int i, unsigned int j)
 {
   return Data[i * Cols + j];

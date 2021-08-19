@@ -5,15 +5,13 @@
 #include <iostream>
 #include <string>
 
-#include "DataStructures.cpp"
-#include "Grid.cpp"
+#include "DataStructures.h"
+#include "Grid.h"
 #include "Initialization.h"
+#include "IOLibrary.h"
 
 int main( int argc, char* argv[] )
 {
-  // Make datta structures (uCF, uPF, Grid)
-  // WRite InitializeFields to initialize them
-
   // Problem Parameters
   const std::string ProblemName = "Sod";
 
@@ -37,8 +35,12 @@ int main( int argc, char* argv[] )
 
   // Initialize fields
   InitializeFields( uCF, uPF, Grid, ProblemName );
+  WriteState( uCF, uPF, uAF, Grid, ProblemName );
 }
 
+/**
+ * Initialize the conserved Fields for various problems
+ **/
 void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF, GridStructure& Grid, const std::string ProblemName )
 {
   std::cout << " === Initializing: " << ProblemName << std::endl;
@@ -69,15 +71,15 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF, GridStructure
 
       if ( X1 <= 0.5 )
       {
-        uCF(iNodeX, iX, iCF_Tau) = 1.0 / D_L;
-        uCF(iNodeX, iX, iCF_V)   = V0;
-        uCF(iNodeX, iX, iCF_E)   = (P_L / 0.4) * uCF(iNodeX, iX, iCF_Tau);
-        uPF(iNodeX, iX, iPF_D)   = D_L;
+        uCF(iCF_Tau, iX, iNodeX) = 1.0 / D_L;
+        uCF(iCF_V, iX, iNodeX)   = V0;
+        uCF(iCF_E, iX, iNodeX)   = (P_L / 0.4) * uCF(iCF_Tau, iX, iNodeX);
+        uPF(iPF_D, iX, iNodeX)   = D_L;
       }else{
-        uCF(iNodeX, iX, iCF_Tau) = 1.0 / D_R;
-        uCF(iNodeX, iX, iCF_V)   = V0;
-        uCF(iNodeX, iX, iCF_E)   = (P_R / 0.4) * uCF(iNodeX, iX, iCF_Tau);
-        uPF(iNodeX, iX, iPF_D)   = D_R;
+        uCF(iCF_Tau, iX, iNodeX) = 1.0 / D_R;
+        uCF(iCF_V, iX, iNodeX)   = V0;
+        uCF(iCF_E, iX, iNodeX)   = (P_R / 0.4) * uCF(iCF_Tau, iX, iNodeX);
+        uPF(iPF_D, iX, iNodeX)   = D_R;
       }
     }
   }
