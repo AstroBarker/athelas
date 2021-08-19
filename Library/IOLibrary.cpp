@@ -80,7 +80,7 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
 
 
 
-  delete [] tmp;
+  delete [] tmp1;
   delete [] tmp2;
   delete [] tmp3;
 }
