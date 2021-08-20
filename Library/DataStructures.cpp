@@ -9,6 +9,8 @@ DataStructure2D::DataStructure2D(unsigned int rows, unsigned int cols)
   Rows = rows;
   Cols = cols;
 
+  mSize = rows * cols;
+
   Data = new double[rows * cols];
 }
 
@@ -49,6 +51,8 @@ double DataStructure3D::operator()
 }
 
 // Copy Grid contents into new array
+// TODO: Fix DataStructure Copy routines 
+// (look at grid -- don't include Guard cells)
 void DataStructure3D::copy( double* dest )
 {
 

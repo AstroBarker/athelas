@@ -10,15 +10,52 @@
 class DataStructure2D
 {
 public:
+
+  // default constructor - for move constructur
+  DataStructure2D()
+  {
+    Rows = 1;
+    Cols = 1;
+
+    mSize = Rows * Cols;
+
+    Data = new double[mSize];
+  }
   DataStructure2D(unsigned int rows, unsigned int cols);
 
-  // copy constructor
-  DataStructure2D(const DataStructure2D &old_obj)
+  // copy-constructor
+  //https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
+  DataStructure2D(const DataStructure2D& other)
+      : mSize(other.mSize),
+        Data(mSize ? new double[mSize] : nullptr)
   {
-  Rows = old_obj.Rows;
-  Cols = old_obj.Cols;
+      // note that this is non-throwing, because of the data
+      // types being used; more attention to detail with regards
+      // to exceptions must be given in a more general case, however
+      std::copy(other.Data, other.Data + mSize, Data);
+  }
 
-  Data = old_obj.Data;
+  friend void swap(DataStructure2D& first, DataStructure2D& second) // nothrow
+  {
+      // by swapping the members of two objects,
+      // the two objects are effectively swapped
+      std::swap( first.mSize, second.mSize );
+      std::swap( first.Data, second.Data );
+  }
+
+  // assignment
+  DataStructure2D& operator=(DataStructure2D other) 
+  {
+      swap(*this, other);
+
+      return *this;
+  }
+
+  // move constructor
+  DataStructure2D(DataStructure2D&& other) noexcept
+      : DataStructure2D() // initialize via default constructor, C++11 only
+  {
+      swap(*this, other);
   }
 
   double& operator()(unsigned int i, unsigned int j);
@@ -32,6 +69,7 @@ public:
 private:
   unsigned int Rows;
   unsigned int Cols;
+  unsigned int mSize;
   double* Data;
 };
 
