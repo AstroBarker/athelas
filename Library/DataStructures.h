@@ -6,71 +6,62 @@
  **/
 
 #include <algorithm>    // std::copy
+#include <vector>
 
 class DataStructure2D
 {
 public:
 
-  // default constructor - for move constructur
-  DataStructure2D()
-  {
-    Rows = 1;
-    Cols = 1;
+  DataStructure2D( unsigned int rows, unsigned int cols );
 
-    mSize = Rows * Cols;
+  // // copy-constructor
+  // //https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
+  // DataStructure2D(const DataStructure2D& other)
+  //     : mSize(other.mSize),
+  //       Data(mSize ? new double[mSize] : nullptr)
+  // {
+  //     // note that this is non-throwing, because of the data
+  //     // types being used; more attention to detail with regards
+  //     // to exceptions must be given in a more general case, however
+  //     std::copy(other.Data, other.Data + mSize, Data);
+  // }
 
-    Data = new double[mSize];
-  }
-  DataStructure2D(unsigned int rows, unsigned int cols);
+  // friend void swap(DataStructure2D& first, DataStructure2D& second) // nothrow
+  // {
+  //     // by swapping the members of two objects,
+  //     // the two objects are effectively swapped
+  //     std::swap( first.mSize, second.mSize );
+  //     std::swap( first.Data, second.Data );
+  // }
 
-  // copy-constructor
-  //https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
-  DataStructure2D(const DataStructure2D& other)
-      : mSize(other.mSize),
-        Data(mSize ? new double[mSize] : nullptr)
-  {
-      // note that this is non-throwing, because of the data
-      // types being used; more attention to detail with regards
-      // to exceptions must be given in a more general case, however
-      std::copy(other.Data, other.Data + mSize, Data);
-  }
+  // // assignment
+  // DataStructure2D& operator=(DataStructure2D other) 
+  // {
+  //     swap(*this, other);
 
-  friend void swap(DataStructure2D& first, DataStructure2D& second) // nothrow
-  {
-      // by swapping the members of two objects,
-      // the two objects are effectively swapped
-      std::swap( first.mSize, second.mSize );
-      std::swap( first.Data, second.Data );
-  }
+  //     return *this;
+  // }
 
-  // assignment
-  DataStructure2D& operator=(DataStructure2D other) 
-  {
-      swap(*this, other);
-
-      return *this;
-  }
-
-  // move constructor
-  DataStructure2D(DataStructure2D&& other) noexcept
-      : DataStructure2D() // initialize via default constructor, C++11 only
-  {
-      swap(*this, other);
-  }
+  // // move constructor
+  // DataStructure2D(DataStructure2D&& other) noexcept
+  //     : DataStructure2D() // initialize via default constructor, C++11 only
+  // {
+  //     swap(*this, other);
+  // }
 
   double& operator()(unsigned int i, unsigned int j);
   double operator()(unsigned int i, unsigned int j) const;
 
-  ~DataStructure2D()
-  {
-    delete [] Data;
-  }
+  // ~DataStructure2D()
+  // {
+  //   delete [] Data;
+  // }
 
 private:
   unsigned int Rows;
   unsigned int Cols;
   unsigned int mSize;
-  double* Data;
+  std::vector<double> Data;
 };
 
 
@@ -80,63 +71,54 @@ class DataStructure3D
 
 public:
 
-  // default constructor - for move constructur
-  DataStructure3D()
-  {
-    Size1 = 1;
-    Size2 = 1;
-    Size3 = 1;
-
-    mSize = Size1 * Size2 * Size3;
-
-    Data = new double[mSize];
-  }
   DataStructure3D( unsigned int N1, unsigned int N2, unsigned int N3 );
 
-  // copy-constructor
-  //https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
-  DataStructure3D(const DataStructure3D& other)
-      : mSize(other.mSize),
-        Data(mSize ? new double[mSize] : nullptr)
-  {
-      // note that this is non-throwing, because of the data
-      // types being used; more attention to detail with regards
-      // to exceptions must be given in a more general case, however
-      std::copy(other.Data, other.Data + mSize, Data);
-  }
+  // // copy-constructor
+  // //https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
+  // DataStructure3D(const DataStructure3D& other)
+  //     : mSize(other.mSize),
+  //       Data(mSize ? new double[mSize] : nullptr)
+  // {
+  //     // note that this is non-throwing, because of the data
+  //     // types being used; more attention to detail with regards
+  //     // to exceptions must be given in a more general case, however
+  //     std::copy(other.Data, other.Data + mSize, Data);
+  // }
 
-  friend void swap(DataStructure3D& first, DataStructure3D& second) // nothrow
-  {
-      // by swapping the members of two objects,
-      // the two objects are effectively swapped
-      std::swap( first.mSize, second.mSize );
-      std::swap( first.Data, second.Data );
-  }
+  // friend void swap(DataStructure3D& first, DataStructure3D& second) // nothrow
+  // {
+  //     // by swapping the members of two objects,
+  //     // the two objects are effectively swapped
+  //     std::swap( first.mSize, second.mSize );
+  //     std::swap( first.Data, second.Data );
+  // }
 
-  // assignment
-  DataStructure3D& operator=(DataStructure3D other) 
-  {
-      swap(*this, other);
+  // // assignment
+  // DataStructure3D& operator=(DataStructure3D other) 
+  // {
+  //     swap(*this, other);
 
-      return *this;
-  }
+  //     return *this;
+  // }
 
-  // move constructor
-  DataStructure3D(DataStructure3D&& other) noexcept
-      : DataStructure3D() // initialize via default constructor, C++11 only
-  {
-      swap(*this, other);
-  }
+  // // move constructor
+  // DataStructure3D(DataStructure3D&& other) noexcept
+  //     : DataStructure3D() // initialize via default constructor, C++11 only
+  // {
+  //     swap(*this, other);
+  // }
 
   double& operator()( unsigned int i, unsigned int j, unsigned int k );
   double operator()( unsigned int i, unsigned int j, unsigned int k ) const;
 
-  void copy( double* dest );
+  void copy( std::vector<double> dest );
+  void mult( double scalar );
+  void add( DataStructure3D other );
 
-  ~DataStructure3D()
-  {
-    delete [] Data;
-  }
+  // ~DataStructure3D()
+  // {
+  //   delete [] Data;
+  // }
 
 private:
   unsigned int Size1;
@@ -144,7 +126,7 @@ private:
   unsigned int Size3;
   unsigned int mSize;
 
-  double* Data;
+  std::vector<double> Data;
 
 };
 

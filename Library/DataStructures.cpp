@@ -2,62 +2,76 @@
  * Classes for holding multidimensional data
  **/
 
+#include <vector>
 #include "DataStructures.h"
 
-DataStructure2D::DataStructure2D(unsigned int rows, unsigned int cols)
+DataStructure2D::DataStructure2D( unsigned int rows, unsigned int cols )
+  : Rows(rows),
+    Cols(cols),
+    mSize(Rows * Cols),
+    Data(mSize, 0.0)
 {
-  Rows = rows;
-  Cols = cols;
-
-  mSize = rows * cols;
-
-  Data = new double[rows * cols];
 }
 
 //TODO: When we use this, make sure it is accessing data efficiently.
-double& DataStructure2D::operator()(unsigned int i, unsigned int j)
+double& DataStructure2D::operator()( unsigned int i, unsigned int j )
 {
   return Data[i * Cols + j];
 }
 
-double DataStructure2D::operator()(unsigned int i, unsigned int j) const
+double DataStructure2D::operator()( unsigned int i, unsigned int j ) const
 {
   return Data[i * Cols + j];
 }
 
 // init as {nCF, nX, nNodes}
 DataStructure3D::DataStructure3D( unsigned int N1, unsigned int N2, unsigned int N3 )
+  : Size1(N1),
+    Size2(N2),
+    Size3(N3),
+    mSize(Size1*Size2*Size2),
+    Data(mSize, 0.0)
 {
-  Size1 = N1; // nCF
-  Size2 = N2; // nX
-  Size3 = N3; // nNodes
-
-  mSize = Size1 * Size2 * Size3;
-
-  Data = new double[mSize];
 }
 
 // access (iCF, iX, iN)
+//TODO: DataStructures not accessing memory correctly?
 double& DataStructure3D::operator()
   ( unsigned int i, unsigned int j, unsigned int k )
 {
-  return Data[k + j*Size3 + i * Size3 * Size2];
+  return Data[(i * Size2 + j) * Size3 + k];
 }
 
 double DataStructure3D::operator()
   ( unsigned int i, unsigned int j, unsigned int k ) const
 {                                                
-  return Data[k + j*Size3 + i * Size3 * Size2];      
+  return Data[(i * Size2 + j) * Size3 + k];      
 }
 
 // Copy Grid contents into new array
 // TODO: Fix DataStructure Copy routines 
 // (look at grid -- don't include Guard cells)
-void DataStructure3D::copy( double* dest )
+void DataStructure3D::copy( std::vector<double> dest )
 {
 
   for ( unsigned int i = 0; i < mSize; i++ )
   {
     dest[i] = Data[i];
+  }
+}
+
+// Scalar multiplication
+void DataStructure3D::mult( double scalar )
+{
+  for ( unsigned int i = 0; i < mSize; i++ )
+  {
+    Data[i] *= scalar;
+  }
+}
+void DataStructure3D::add( DataStructure3D other )
+{
+  for ( unsigned int i = 0; i < mSize; i++ )
+  {
+    Data[i] += other.Data[i];
   }
 }

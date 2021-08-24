@@ -39,6 +39,12 @@ double GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN )
   return Centers[iC] + Widths[iC] * Nodes[iN];
 }
 
+// Return cell width
+double GridStructure::Get_Widths( unsigned int iC )
+{
+  return Widths[iC];
+}
+
 // Return given quadrature node
 double GridStructure::Get_Nodes( unsigned int nN )
 {
@@ -78,22 +84,21 @@ int GridStructure::Get_ilo( )
 // Return last physical zone
 int GridStructure::Get_ihi( )
 {
-  return nElements - nGhost + 1;
+  return nElements + nGhost - 1;
 }
 
 // Copy Grid contents into new array
-void GridStructure::copy( double* dest )
+// Not elegant.. as the copy shouldn't include guard cells.
+void GridStructure::copy( std::vector<double> dest )
 {
 
-  for ( unsigned int i = 0; i < mSize*nNodes; i++ )
+  unsigned int j;
+  for ( unsigned int i = nGhost*nNodes; i <= (nElements + nGhost - 1)*nNodes + 1; i++ )
   {
-    dest[i] = Grid[i];
+    j = i - nGhost*nNodes;
+    dest[j] = Grid[i];
   }
-  // for ( unsigned int ix = 0; ix < mSize; ix++ )
-  // for ( unsigned int in = 0; in < nNodes; in++ )
-  // {
-  //   dest[in * nElements + ix] = Grid[in * nElements + ix];
-  // }
+
 }
 
 // Equidistant mesh

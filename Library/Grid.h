@@ -12,6 +12,7 @@
 
 #include "QuadratureLibrary.h"
 #include <algorithm>    // std::copy
+#include <vector>
 
 class GridStructure
 {
@@ -101,6 +102,7 @@ public:
   GridStructure( unsigned int nX, unsigned int nN, unsigned int nG, 
     double left, double right );
   double NodeCoordinate( unsigned int iC, unsigned int iN );
+  double Get_Widths( unsigned int iC );
   double Get_Nodes( unsigned int nN );
   double Get_Weights( unsigned int nN ); 
   int Get_Guard( );
@@ -111,7 +113,7 @@ public:
 
   double& operator()( unsigned int i, unsigned int j );
   double operator()( unsigned int i, unsigned int j ) const;
-  void copy( double* dest );
+  void copy( std::vector<double> dest );
   void CreateGrid( );
 
   ~GridStructure()
