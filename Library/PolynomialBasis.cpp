@@ -2,6 +2,8 @@
  * Functions for polynomial basis
  **/
 
+#include <iostream>
+
 #include "PolynomialBasis.h"
 #include "LinearAlgebraModules.h"
 #include "QuadratureLibrary.h"
