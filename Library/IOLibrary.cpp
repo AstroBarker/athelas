@@ -4,26 +4,14 @@
 
 #include <iostream>
 #include <string>
-#include <cstdlib>
-#include <stdlib.h>
-#include <stdio.h>
-// #include <assert.h>
+#include <vector>
 
 #include "hdf5.h"
 #include "H5Cpp.h"
-// #include <hdf5.h>
-// #include <hdf5_hl.h>
 #include "DataStructures.h"
 #include "Grid.h"
 
 #include "IOLibrary.h"
-
-// using namespace H5;
-
-// Okay... need a way to do this.
-// Need to unfurl my uCF etc DataStructure3D and write out individual arrays.
-// I'd like to not allocate temporary arrays for this.
-// But perhaps it is not so much of an issue.
 
 //TODO: add Time
 void WriteState( DataStructure3D& uCF, DataStructure3D& uPF, 
@@ -37,50 +25,56 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
   const int nX     = Grid.Get_nElements();
   const int nNodes = Grid.Get_nNodes();
   const int nGuard = Grid.Get_Guard();
+  const int ihi = Grid.Get_ihi();
 
   const H5std_string FILE_NAME( fn );
   const H5std_string DATASET_NAME("Grid");
-  const int size = (nX + 2*nGuard) * nNodes; // dataset dimensions
+  const int size = (nX + 0*nGuard) * nNodes; // dataset dimensions
 
-  double* tmp1 = new double[size];
-  double* tmp2 = new double[size];
-  double* tmp3 = new double[size];
-  Grid.copy( tmp1 );
+  std::vector<DataType> tau(size);
+  std::vector<DataType> vel(size);
+  std::vector<DataType> eint(size);
+  std::vector<DataType> grid(size);
 
-  // Create HDF5 file and dataset
-  H5::H5File file( FILE_NAME, H5F_ACC_TRUNC );
-  hsize_t dimsf[1] = {static_cast<hsize_t>( size )};
-  H5::DataSpace dataspace(1, dimsf);
-  H5::DataSet dataset = file.createDataSet( DATASET_NAME, 
-    H5::PredType::NATIVE_DOUBLE, dataspace );
-  // data to HDF5 file
-  dataset.write( tmp1, H5::PredType::NATIVE_DOUBLE );
-
-  // === Grid writen ===
-  // may need better long term solution here.
-
-  // double* tmp_big = new double[size * 3];
-  H5::DataSet ds_tau = file.createDataSet( "Specific Volume", 
-    H5::PredType::NATIVE_DOUBLE, dataspace );
-  H5::DataSet ds_vel = file.createDataSet( "Velocity", 
-    H5::PredType::NATIVE_DOUBLE, dataspace );
-  H5::DataSet ds_int = file.createDataSet( "Specific Internal Energy", 
-    H5::PredType::NATIVE_DOUBLE, dataspace );
-
-  for ( unsigned int iX = nGuard; iX <= nX - nGuard + 1; iX++)
+  for ( unsigned int iX = nGuard; iX <= ihi; iX++ )
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
-    tmp1[iX * nNodes + iN] = uCF( 0, iX, iN );
-    tmp2[iX * nNodes + iN] = uCF( 1, iX, iN );
-    tmp3[iX * nNodes + iN] = uCF( 2, iX, iN );
+    grid[(iX-nGuard) * nNodes + iN].x = Grid(iX, iN);
+    tau[(iX-nGuard) * nNodes + iN].x  = uCF(0, iX, iN);
+    vel[(iX-nGuard) * nNodes + iN].x  = uCF(1, iX, iN);
+    eint[(iX-nGuard) * nNodes + iN].x = uCF(2, iX, iN);
   }
-  ds_tau.write( tmp1, H5::PredType::NATIVE_DOUBLE );
-  ds_vel.write( tmp2, H5::PredType::NATIVE_DOUBLE );
-  ds_int.write( tmp3, H5::PredType::NATIVE_DOUBLE );
 
+  // Tell HDF5 how to use my datatype
+  // H5::CompType mtype_CF(sizeof(DataType));
 
+  // Define the datatype to pass HDF5
+  // mtype_grid.insertMember( "Grid", HOFFSET(DataType, x), H5::PredType::NATIVE_DOUBLE );
+  // mtype_CF.insertMember( "Specific Volume", HOFFSET(DataType, x), H5::PredType::NATIVE_DOUBLE );
+  // mtype_CF.insertMember( "Velocity", HOFFSET(DataType, y), H5::PredType::NATIVE_DOUBLE );
+  // mtype_CF.insertMember( "Specific Internal Energy", HOFFSET(DataType, z), H5::PredType::NATIVE_DOUBLE );
 
-  delete [] tmp1;
-  delete [] tmp2;
-  delete [] tmp3;
+  // preparation of a dataset and a file.
+  hsize_t dim[1];
+  dim[0] = tau.size();                   // using vector::size()
+  const int rank = sizeof(dim) / sizeof(hsize_t);
+  H5::DataSpace space(rank, dim);
+
+  H5::H5File file( fn, H5F_ACC_TRUNC );
+  // Groups
+  H5::Group group_grid = file.createGroup("/Spatial Grid");
+  H5::Group group_CF = file.createGroup("/Conserved Fields");
+
+  //DataSets
+  H5::DataSet dataset_grid( file.createDataSet("/Spatial Grid/Grid", H5::PredType::NATIVE_DOUBLE, space) );
+  H5::DataSet dataset_tau( file.createDataSet("/Conserved Fields/Specific Volume", H5::PredType::NATIVE_DOUBLE, space) );
+  H5::DataSet dataset_vel( file.createDataSet("/Conserved Fields/Velocity", H5::PredType::NATIVE_DOUBLE, space) );
+  H5::DataSet dataset_eint( file.createDataSet("/Conserved Fields/Specific Internal Energy", H5::PredType::NATIVE_DOUBLE, space) );
+
+  dataset_grid.write( grid.data(), H5::PredType::NATIVE_DOUBLE );
+  dataset_tau.write( tau.data(), H5::PredType::NATIVE_DOUBLE );
+  dataset_vel.write( vel.data(), H5::PredType::NATIVE_DOUBLE );
+  dataset_eint.write( eint.data(), H5::PredType::NATIVE_DOUBLE );
+  
+  
 }
