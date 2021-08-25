@@ -102,6 +102,7 @@ public:
   GridStructure( unsigned int nX, unsigned int nN, unsigned int nG, 
     double left, double right );
   double NodeCoordinate( unsigned int iC, unsigned int iN );
+  double Get_Centers( unsigned int iC );
   double Get_Widths( unsigned int iC );
   double Get_Nodes( unsigned int nN );
   double Get_Weights( unsigned int nN ); 

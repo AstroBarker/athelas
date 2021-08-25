@@ -39,6 +39,12 @@ double GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN )
   return Centers[iC] + Widths[iC] * Nodes[iN];
 }
 
+// Return cell center
+double GridStructure::Get_Centers( unsigned int iC )
+{
+  return Centers[iC];
+}
+
 // Return cell width
 double GridStructure::Get_Widths( unsigned int iC )
 {
