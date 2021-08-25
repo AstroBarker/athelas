@@ -48,6 +48,21 @@ double DataStructure3D::operator()
   return Data[(i * Size2 + j) * Size3 + k];      
 }
 
+
+double DataStructure3D::CellAverage( unsigned int iCF, unsigned int iX, unsigned int nNodes, 
+  std::vector<double> Weights )
+{
+
+  double avg = 0.0;
+
+  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  {
+    avg += Weights[iN] * Data[(iCF * Size2 + iX) * Size3 + iN];
+  }
+
+  return avg;
+}
+
 // Copy Grid contents into new array
 // TODO: Fix DataStructure Copy routines 
 // (look at grid -- don't include Guard cells)
