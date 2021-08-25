@@ -4,5 +4,7 @@
 double Flux_Fluid( double V, double P, unsigned int iCF );
 void NumericalFlux_Gudonov( double vL, double vR, double pL, double pR, 
      double zL, double zR, double& Flux_U, double& Flux_P  );
+double ComputeTimestep_Fluid( DataStructure3D& U, 
+     GridStructure& Grid, const double CFL );
 
 #endif
