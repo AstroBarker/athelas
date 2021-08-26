@@ -1,4 +1,10 @@
-/* Functions for computing necessary quadrature rules */
+/**
+ * File     :  QuadratureLibrary.cpp
+ * --------------
+ *
+ * Author   : Brandon L. Barker
+ * Purpose  : Functions necessary for computing quadrature rules
+**/ 
 
 #include <math.h>
 #include <iostream>

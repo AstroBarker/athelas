@@ -1,7 +1,10 @@
 /**
- * Utility routines for fluid fields.
- * Riemann Solvers are here.
-**/
+ * File     :  FluidUtilities.cpp
+ * --------------
+ *
+ * Author   : Brandon L. Barker
+ * Purpose  : Utility routines for fluid fields. Includes Riemann solvers.
+**/ 
 
 #include <iostream>
 #include <vector>

@@ -1,6 +1,10 @@
 /**
- * Setup for initial conditions.
- **/
+ * File    :  Initialization.cpp
+ * --------------
+ *
+ * Author  : Brandon L. Barker
+ * Purpose : Initialize conserved fields for given problem
+**/  
 
 #include <iostream>
 #include <string>

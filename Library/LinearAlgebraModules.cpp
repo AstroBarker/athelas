@@ -1,6 +1,11 @@
-/** 
- * Linear algebra routines
- **/
+/**
+ * File     :  LinearAlgebraMOdules.cpp
+ * --------------
+ *
+ * Author   : Brandon L. Barker
+ * Purpose  : Linear algebra routines needed for quadrature,
+ *  Calls LAPACK routine dstev
+**/ 
 
 #include <iostream>
 

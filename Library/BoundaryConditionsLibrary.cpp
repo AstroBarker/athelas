@@ -1,4 +1,10 @@
-// Apply Boundary Conditions
+/**
+ * File    :  BoundaryConditions.cpp
+ * --------------
+ *
+ * Author  : Brandon L. Barker
+ * Purpose : Apply boundary conditions
+**/  
 
 #include <iostream>
 #include <string>

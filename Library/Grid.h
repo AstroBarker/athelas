@@ -2,13 +2,17 @@
 #define GRID_H
 
 /**
- * Class for holding the grid data.
- * For a loop over real zones, loop from ilo to ihi (inclusive).
- * ilo = nGhost
- * ihi = nElements - nGhost + 1
-
- TODO: Write GetNodes, GetWeights(nN) functions
-**/
+ * File     :  Grid.h
+ * --------------
+ *
+ * Author   : Brandon L. Barker
+ * Purpose  : Class for holding the grid data.
+ *  For a loop over real zones, loop from ilo to ihi (inclusive).
+ *  ilo = nGhost
+ *  ihi = nElements - nGhost + 1
+ *
+ * TODO: Convert Grid to vectors.
+**/ 
 
 #include "QuadratureLibrary.h"
 #include <algorithm>    // std::copy

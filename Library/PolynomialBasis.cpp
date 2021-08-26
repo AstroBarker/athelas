@@ -1,6 +1,13 @@
 /**
- * Functions for polynomial basis
- **/
+ * File     :  PolynomialBasis.cpp
+ * --------------
+ *
+ * Author   : Brandon L. Barker
+ * Purpose  : Functions for polynomial basis
+ *  Contains Lagrange and Legendre polynomials, arbitrary degree.
+ *
+ * TODO: Poly_Eval needs generalizing. 
+**/ 
 
 #include <iostream>
 

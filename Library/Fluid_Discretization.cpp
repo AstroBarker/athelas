@@ -1,6 +1,11 @@
 /**
- * The main spatial discretization and update routines go here.
-***/
+ * File     :  Fluid_Discretization.cpp
+ * --------------
+ *
+ * Author   : Brandon L. Barker
+ * Purpose  : The main spatial discretization and update routines go here.
+ *  Compute divergence term.
+**/ 
 
 #include <iostream>
 
@@ -99,6 +104,7 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
     
     dU(iCF,iX,iN) += - ( + dFlux_num(iCF,iX+1) * Poly_R 
                          - dFlux_num(iCF,iX+0) * Poly_L );
+    
     // Compute Flux_q everywhere for the Volume term
 
     P = ComputePressureFromConserved_IDEAL( U(0,iX,iN), U(1,iX,iN), U(2,iX,iN) );
@@ -111,7 +117,7 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   // double X1 = 0.0;
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   for ( unsigned int iX  = ilo-0; iX <= ihi+0; iX++ )
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  for ( unsigned int iN  = 0; iN < nNodes; iN++ )
   {
     local_sum = 0.0;
     for ( unsigned int i = 0; i < nNodes; i++ )
@@ -145,7 +151,7 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
 void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid, 
   DataStructure3D& dU, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 
   DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<double> Flux_U, 
-  std::vector<double> Flux_R, std::vector<double> uCF_L, std::vector<double> uCF_R,
+  std::vector<double> Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R,
   const std::string BC )
 {
 
@@ -160,13 +166,12 @@ void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid,
   //TODO: Code up a shock detector...
 
   // --- Compute Increment for new solution ---
-  // for ( unsigned int iX  = ilo-0; iX <= ihi+0; iX++ )
-  // for ( unsigned int iN = 0; iN < nNodes; iN++ ){
-  //   std::cout << dU(0,iX,iN) << std::endl;
-  // }
+
+  // --- First: Zero out dU. It is reused storage and we only increment it ---
+  dU.zero();
 
   ComputeIncrement_Fluid_Divergence( U, Grid, dU, Flux_q, dFlux_num, 
-    uCF_F_L, uCF_F_R, Flux_U, Flux_R, uCF_L, uCF_R );
+    uCF_F_L, uCF_F_R, Flux_U, Flux_P, uCF_L, uCF_R );
 
   // ---
 

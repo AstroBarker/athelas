@@ -1,6 +1,14 @@
 /**
- * Classes for holding multidimensional data
- **/
+ * File     :  DataStructures.h
+ * --------------
+ *
+ * Author   : Brandon L. Barker
+ * Purpose  : Classes for holding multidimensional data.
+ *  Multi-D structures are wrapped around 1D vectors to conveniently and 
+ *  efficiently access data. For conserved variables data structure, 
+ *  initialize/acces as DataStructures3D uCF(nCF,nX,nNodes)
+ * Contains : DataStructures2D, DataStructures3D
+**/ 
 
 #include <vector>
 #include "DataStructures.h"
@@ -75,18 +83,11 @@ void DataStructure3D::copy( std::vector<double> dest )
   }
 }
 
-// Scalar multiplication
-void DataStructure3D::mult( double scalar )
+// zero out structure
+void DataStructure3D::zero( )
 {
-  for ( unsigned int i = 0; i < mSize; i++ )
+  for ( unsigned int i = 0; i <= mSize; i++ )
   {
-    Data[i] *= scalar;
-  }
-}
-void DataStructure3D::add( DataStructure3D other )
-{
-  for ( unsigned int i = 0; i < mSize; i++ )
-  {
-    Data[i] += other.Data[i];
+    Data[i] = 0.0;
   }
 }
