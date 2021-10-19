@@ -13,6 +13,8 @@
 
 #include "QuadratureLibrary.h"
 #include "Grid.h"
+#include "Error.h"
+#include  <iostream>
 
 GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG, double left, double right )
 {
@@ -42,6 +44,9 @@ double GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN )
 {
   return Centers[iC] + Widths[iC] * Nodes[iN];
 }
+
+// Update nodal coordinates with nodal velocities
+// void GridStructure::UpdateGrid( double vel )
 
 // Return cell center
 double GridStructure::Get_Centers( unsigned int iC )
@@ -146,6 +151,83 @@ void GridStructure::CreateGrid( )
     }
   }
 
+}
+
+// Return center of given cell
+double GridStructure::CellAverage( unsigned int iX )
+{
+
+  double avg = 0.0;
+
+  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  {
+    avg += Weights[iN] * Grid[iX * nNodes + iN];
+  }
+
+  return avg;
+}
+
+/**
+ * Update grid coordinates using interface and nodal velocities.
+**/
+void GridStructure::UpdateGrid( DataStructure3D& U,
+                 std::vector<double>& Flux_U, double dt )
+{
+
+  const unsigned int nNodes = Get_nNodes();
+  const unsigned int ilo    = Get_ilo();
+  const unsigned int ihi    = Get_ihi();
+
+  double dx_L = 0.0; // Left interfact of element
+  double dx_R = 0.0; // Right interface of element
+  double dx   = 0.0; // Cumulative change
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  {
+    dx_L = Flux_U[iX] * dt;
+    dx_R = Flux_U[iX+1] * dt; // TODO: Make sure this isn't accessing bad data
+
+    // Combine the changes in interface coordinates
+    // Left compression, right expansion
+    if ( dx_L >= 0.0 && dx_R >= 0.0 )
+    {
+      dx = dx_R - std::abs(dx_L);
+    }
+    // Left expasion, right compression
+    else if ( dx_L <= 0.0 && dx_R <= 0.0 )
+    {
+      dx = dx_L - std::abs(dx_R);
+    }
+    // dual expansion
+    else if ( dx_L <= 0.0 && dx_R >= 0.0 )
+    {
+      dx = std::abs(dx_L) + dx_R;
+    }
+    // dual compression
+    else if ( dx_L >= 0.0 && dx_R <= 0.0 )
+    {
+      dx = dx_R - dx_L;
+    }
+    // Unknown behavior, throw an error. Shouldn't occur.
+    else
+    {
+      std::printf(" V_L, V_R, dx_L, dx_R: %.5e %.5e %.5e %.5e\n", 
+        Flux_U[iX], Flux_U[iX+1], dx_L, dx_R);
+      throw Error("Unknown behavior encountered in Grid Update.");
+    }
+
+    // Given dx, update the current cell width.
+    Widths[iX] += dx;
+    // std::cout << Flux_U[iX] << std::endl;
+
+    for ( unsigned int iN = 0; iN < nNodes; iN++ )
+    {
+      
+      // grid update -- nodal
+      Grid[iX * nNodes + iN] += U(1,iX,iN) * dt;
+      //
+      
+    }
+  }
 }
 
 // Access by (element, node)

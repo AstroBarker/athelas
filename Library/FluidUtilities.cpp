@@ -11,6 +11,7 @@
 #include <cstdlib>     /* abs */
 #include <algorithm>    // std::min, std::max
 
+#include "Error.h"
 #include "DataStructures.h"
 #include "Grid.h"
 #include "EquationOfStateLibrary_IDEAL.h"
@@ -34,10 +35,8 @@ double Flux_Fluid( double V, double P, unsigned int iCF )
     return P * V;
   }
   else{ // Error case. Shouldn't ever trigger.
-    std::cout << "Please input a valid iCF! (0,1,2). " << std::endl;
-    std::cerr << "Please input a valid iCF! (0,1,2). " << std::endl;
-    exit(-1);
-    return -1;
+    throw Error("Please input a valid iCF! (0,1,2). ");
+    return -1; // just a formality.
   }
 }
 
@@ -65,9 +64,9 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
   const double MIN_DT = 0.000000001;
   double dt_old = 10000.0;
 
-  const int ilo    = Grid.Get_ilo();
-  const int ihi    = Grid.Get_ihi();
-  const int nNodes = Grid.Get_nNodes();
+  const unsigned int ilo    = Grid.Get_ilo();
+  const unsigned int ihi    = Grid.Get_ihi();
+  const unsigned int nNodes = Grid.Get_nNodes();
 
   // Store Weights - for cell averages
   std::vector<double> Weights(nNodes);
@@ -76,7 +75,7 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
     Weights[iN] = Grid.Get_Weights( iN );
   }
 
-  double Cs = 0.0;
+  double Cs     = 0.0;
   double eigval = 0.0;
 
   // hold cell averages
@@ -84,27 +83,41 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
   double vel_x  = 0.0;
   double eint_x = 0.0;
 
-  double dt = 0.0;
+  // Hold cell centers (not updated with grid)
+  double r_np1 = 0.0; // r_{n+1}
+  double r_n   = 0.0; // r_{n}
+
+  double dt1 = 0.0;
+  double dt2 = 0.0;
+  double dt  = 0.0;
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
 
+    // === Compute Cell Averages ===
     tau_x  = U.CellAverage( 0, iX, nNodes, Weights );
     vel_x  = U.CellAverage( 1, iX, nNodes, Weights );
     eint_x = U.CellAverage( 2, iX, nNodes, Weights );
+
+    r_n   = Grid.CellAverage( iX );
+    r_np1 = Grid.CellAverage( iX + 1 );
 
     Cs     = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
     eigval = Cs;
 
     // put (eigval - 0*U[iNode,iX,1]) in denom
-    dt = CFL * std::abs( Grid.Get_Centers(iX+1) - Grid.Get_Centers(iX) ) / ( eigval );
+    // dt1 = std::abs( Grid.Get_Centers(iX+1) - Grid.Get_Centers(iX) ) / std::abs( eigval - vel_x );
+    // dt2 = std::abs( Grid.Get_Centers(iX+1) - Grid.Get_Centers(iX) ) / std::abs( eigval + vel_x );
+    dt1 = std::abs( r_np1 - r_n ) / std::abs( eigval - vel_x );
+    dt2 = std::abs( r_np1 - r_n ) / std::abs( eigval + vel_x );
+
+    dt = std::min( dt1, dt2 );
 
     dt     = std::min( dt, dt_old );
     dt_old = dt;
   }
 
-  dt = std::max( dt, MIN_DT );
+  dt = CFL * std::max( dt, MIN_DT );
 
   return dt;
 

@@ -15,6 +15,7 @@
 **/ 
 
 #include "QuadratureLibrary.h"
+#include "DataStructures.h"
 #include <algorithm>    // std::copy
 #include <vector>
 
@@ -120,6 +121,9 @@ public:
   double operator()( unsigned int i, unsigned int j ) const;
   void copy( std::vector<double> dest );
   void CreateGrid( );
+  double CellAverage( unsigned int iX );
+  void UpdateGrid( DataStructure3D& U,
+                   std::vector<double>& Flux_U, double dt );
 
   ~GridStructure()
   {

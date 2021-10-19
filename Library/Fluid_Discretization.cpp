@@ -8,6 +8,9 @@
 **/ 
 
 #include <iostream>
+#include <algorithm>
+
+#include "omp.h"
 
 #include "PolynomialBasis.h"
 #include "DataStructures.h"
@@ -20,8 +23,8 @@
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid, 
   DataStructure3D& dU, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 
-  DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<double> Flux_U, 
-  std::vector<double> Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R )
+  DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<double>& Flux_U, 
+  std::vector<double>& Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R )
 {
   // const unsigned int nX     = Grid.Get_nElements();
   const unsigned int nNodes = Grid.Get_nNodes();
@@ -39,10 +42,13 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
 
   // TODO: Is there a way to simplify the below?
 
-  double* Nodes   = new double[nNodes];
+  double* Nodes    = new double[nNodes];
+  double* Nodes2   = new double[nNodes]; // copy...
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     Nodes[iN]   = Grid.Get_Nodes( iN );
+    // We have a copy, Nodes2, which is permuted in the Volume term
+    Nodes2[iN]  = Nodes[iN];
   }
   
   // These hold data on an element, for passing to the basis interpolation
@@ -53,20 +59,22 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   
   // Left/Right face states
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-  for ( unsigned int iX  = ilo-0; iX <= ihi+1; iX++ ) //TODO: Check that these bounds are correct
+  for ( unsigned int iX  = ilo; iX <= ihi+1; iX++ ) //TODO: Check that these bounds are correct
   {
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     { 
       tmp_L[iN] = U(iCF, iX-1, iN);
       tmp_R[iN] = U(iCF, iX-0, iN);
+      // if( iCF == 1 ) std::cout << iN << " " << tmp_L[iN] << " " << U(1, iX-1, iN) << std::endl;
     }
-    // std::cout << Poly_Eval( nNodes, Nodes, tmp_L, +0.5 ) << std::endl;
+
     uCF_F_L(iCF, iX) = Poly_Eval( nNodes, Nodes, tmp_L, +0.5 );
     uCF_F_R(iCF, iX) = Poly_Eval( nNodes, Nodes, tmp_R, -0.5 );
   }
 
   // --- Calc numerical flux at all faces
-  for ( unsigned int iX = ilo-1; iX <= ihi+1; iX++ ) //TODO: Bounds correct?
+  // #pragma omp parallel for simd
+  for ( unsigned int iX = ilo; iX <= ihi+1; iX++ ) //TODO: Bounds correct?
   {
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
@@ -96,15 +104,16 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   // --- Surface Term ---
 
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  // #pragma omp parallel for simd collapse(2)
   for ( unsigned int iX  = ilo-0; iX <= ihi+0; iX++ )
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     Poly_L = Lagrange( nNodes, - 0.5, iN, Nodes );
-    Poly_R = Lagrange( nNodes, + 0.5, iN, Nodes ); // TODO: Broken?
+    Poly_R = Lagrange( nNodes, + 0.5, iN, Nodes );
     
     dU(iCF,iX,iN) += - ( + dFlux_num(iCF,iX+1) * Poly_R 
                          - dFlux_num(iCF,iX+0) * Poly_L );
-    
+  
     // Compute Flux_q everywhere for the Volume term
 
     P = ComputePressureFromConserved_IDEAL( U(0,iX,iN), U(1,iX,iN), U(2,iX,iN) );
@@ -116,20 +125,26 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   double local_sum = 0.0;
   // double X1 = 0.0;
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  // #pragma omp parallel for simd collapse(2)
   for ( unsigned int iX  = ilo-0; iX <= ihi+0; iX++ )
   for ( unsigned int iN  = 0; iN < nNodes; iN++ )
   {
     local_sum = 0.0;
+    PermuteNodes(nNodes, iN, Nodes);
     for ( unsigned int i = 0; i < nNodes; i++ )
     {
       // X1 = Grid.NodeCoordinate(...)
-      local_sum += Grid.Get_Weights(i) * Flux_q(iCF,iX,i) * dLagrange( nNodes, iN, Nodes );
+      local_sum += Grid.Get_Weights(i) * Flux_q(iCF,iX,i) 
+                * dLagrange( nNodes, Nodes2[i], Nodes );
     }
+    std::sort(Nodes, Nodes + nNodes);
+
     dU(iCF,iX,iN) += local_sum;
   }
 
   // --- Deallocate ---
   delete [] Nodes;
+  delete [] Nodes2;
   delete [] tmp_L;
   delete [] tmp_R;
 }
@@ -150,8 +165,8 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
 **/
 void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid, 
   DataStructure3D& dU, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 
-  DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<double> Flux_U, 
-  std::vector<double> Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R,
+  DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<double>& Flux_U, 
+  std::vector<double>& Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R,
   const std::string BC )
 {
 
@@ -177,11 +192,13 @@ void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid,
 
   // double X;
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  // #pragma omp parallel for simd collapse(2)
   for ( unsigned int iX  = ilo-0; iX <= ihi+0; iX++ )
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     // X = Grid.NodeCoordinate(iX,iN);
     dU(iCF,iX,iN) /= ( Grid.Get_Weights(iN) * Grid.Get_Widths(iX) / U(0,iX,iN) );
+    // std::printf( "%.2f %.3f %.5f \n", Grid.Get_Weights(iN), Grid.Get_Widths(iX), U(1,iX,iN)  );
   }
 
   // --- Increment Gravity --- ?

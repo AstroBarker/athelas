@@ -1,6 +1,10 @@
 /**
- * Ideal Equation of State Routines
-**/
+ * File     :  EquationOfStateLibrary_IDEAL.cpp
+ * --------------
+ *
+ * Author   : Brandon L. Barker
+ * Purpose  : Ideal equation of state routines
+**/ 
 
 #include <math.h>       /* sqrt */
 

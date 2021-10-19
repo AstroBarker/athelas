@@ -2,7 +2,14 @@
 (for now) DG Lagrangian hydro
 
 * TODO: Everything
- - [ ] Start with Lagrange and Legendre polynomial bases
-    - [ ] We need to put in LG (and LGL) quadratures.
-- [ ] Make directory for test problem and setup
+ - [x] Start with Lagrange and Legendre polynomial bases
+    - [x] We need to put in LG (and LGL) quadratures.
+- [x] Make directory for test problem and setup
 - [ ] Use LAPACKE for lapack calls (more portable)
+- [ ] Add UpdateGrid()
+- [ ] Add SlopeLimiter
+- [ ] Add TroubledCellIndicator
+
+* BROKEN: 
+- [ ] Timestepper (nStages > 1)
+- [ ] Likely more

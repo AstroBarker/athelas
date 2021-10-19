@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-#include "hdf5.h"
 #include "H5Cpp.h"
 #include "DataStructures.h"
 #include "Grid.h"
@@ -26,10 +25,12 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
   fn.append( ProblemName );
   fn.append( ".h5" );
 
-  const int nX     = Grid.Get_nElements();
-  const int nNodes = Grid.Get_nNodes();
-  const int nGuard = Grid.Get_Guard();
-  const int ihi = Grid.Get_ihi();
+  const char * fn2 = fn.c_str();
+
+  const unsigned int nX     = Grid.Get_nElements();
+  const unsigned int nNodes = Grid.Get_nNodes();
+  const unsigned int nGuard = Grid.Get_Guard();
+  const unsigned int ihi = Grid.Get_ihi();
 
   const H5std_string FILE_NAME( fn );
   const H5std_string DATASET_NAME("Grid");
@@ -64,7 +65,7 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
   const int rank = sizeof(dim) / sizeof(hsize_t);
   H5::DataSpace space(rank, dim);
 
-  H5::H5File file( fn, H5F_ACC_TRUNC );
+  H5::H5File file( fn2, H5F_ACC_TRUNC );
   // Groups
   H5::Group group_grid = file.createGroup("/Spatial Grid");
   H5::Group group_CF = file.createGroup("/Conserved Fields");

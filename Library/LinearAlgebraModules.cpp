@@ -52,6 +52,10 @@ void DeallocateMatrix( double** A, int rows )
 
 /**
  * This function multiplies two matrices. 
+ *
+ * Author : Brandon L. Barker
+
+ * [UNUSED]
  * 
  * Parameters:
  * 

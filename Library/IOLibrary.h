@@ -8,11 +8,7 @@ struct GridType
 
 struct DataType
 {
-    // double grid{};
     double x{};
-    // double y{};
-    // double z{};
-    // put in uPF, uAF
 };
 
 void WriteState( DataStructure3D& uCF, DataStructure3D& uPF, 

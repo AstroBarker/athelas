@@ -10,10 +10,37 @@
 **/ 
 
 #include <iostream>
+#include <algorithm> // std::sort
 
 #include "PolynomialBasis.h"
 #include "LinearAlgebraModules.h"
 #include "QuadratureLibrary.h"
+
+/**
+ * Permute node array. Used for passing to dLagrange.
+ * Maybe not the best solution.
+**/
+void PermuteNodes( unsigned int nNodes, unsigned int iN, double* nodes )
+{
+
+  // First, swap last and iN-th values
+  if ( iN < nNodes - 1)
+  {
+    double tmp1 = nodes[iN];
+    double tmp2 = nodes[nNodes-1];
+
+    nodes[nNodes-1] = tmp1;
+    nodes[iN]       = tmp2;
+    // std::cout << iN << ": " << tmp1 << " " << tmp2 << std::endl;
+    // std::cout << iN << ": " << nodes[0] << " " << nodes[1] << " " << nodes[2] << std::endl;
+
+    // Now, sort all but last value
+    std::sort(nodes, nodes + nNodes-1);
+  }
+
+  // std::sort(nodes, nodes + nNodes-1);
+}
+
 
 double Lagrange
        ( unsigned int nNodes, double x, unsigned int p, double* nodes )
@@ -21,12 +48,10 @@ double Lagrange
   double result = 1.0;
   for ( unsigned int i = 0; i < nNodes - 0; i++ )
   {
-    if ( i == p )
-    {
-      continue;
-    }else{
+    if ( i == p ) continue;
+
     result *= ( x - nodes[i] ) / ( nodes[p] - nodes[i] );
-    }
+    
   }
   return result;
 }
@@ -36,8 +61,10 @@ double dLagrange
        ( unsigned int nNodes, double x, double* nodes )
 {
   double denominator = 1.0;
+  
   for ( unsigned int i = 0; i < nNodes - 1; i++ )
   {
+
     denominator *= ( nodes[nNodes-1] - nodes[i] );
   }
 

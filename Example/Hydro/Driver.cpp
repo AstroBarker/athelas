@@ -20,12 +20,12 @@
 
 int main( int argc, char* argv[] )
 {
-  // Problem Parameters
+  // --- Problem Parameters ---
   const std::string ProblemName = "Sod";
 
-  const unsigned int nX     = 1000;
-  const unsigned int nNodes = 2;
-  const unsigned short int nStages = 2;
+  const unsigned int nX            = 512;
+  const unsigned int nNodes        = 2;
+  const unsigned short int nStages = 3;
 
   const unsigned int nGuard = 1;
 
@@ -33,8 +33,8 @@ int main( int argc, char* argv[] )
   const double xR = 1.0;
 
   double t           = 0.0;
-  double dt          = -1.0;
-  const double t_end = 0.075;
+  double dt          = 0.0;
+  const double t_end = 0.2;
 
   const double CFL = 0.15 / ( 1.0 * ( 2.0 * ( nNodes ) - 1.0 ) );
 
@@ -71,6 +71,7 @@ int main( int argc, char* argv[] )
   DataStructure2D b_jk(nStages, nStages);
 
   // Inter-stage data structures
+  DataStructure3D SumVar( 3, nX + 2*nGuard + 1, nNodes ); // Used in Integrator...
   std::vector<DataStructure3D> U_s(nStages+1, DataStructure3D( 3, nX + 2*nGuard, nNodes ));
   std::vector<DataStructure3D> dU_s(nStages, DataStructure3D( 3, nX + 2*nGuard, nNodes ));
 
@@ -86,26 +87,25 @@ int main( int argc, char* argv[] )
   // ApplySlopeLimiter( Mesh, uCF, D, SL )
 
   unsigned int iStep = 0;
-  // Evolution loop
+  // --- Evolution loop ---
   std::cout << "Step\tt\tdt" << std::endl;
-  while( t < t_end )
+  while( t < t_end && iStep >=0 )//25
   {
 
     dt = ComputeTimestep_Fluid( uCF, Grid, CFL ); // Next: ComputeTimestep
-    std::cout << iStep << "\t" << t << "\t" << dt << std::endl;
+    // dt = 0.00001;
+    // std::cout << iStep << "\t" << t << "\t" << dt << std::endl;
 
     if ( t + dt > t_end )
     {
       dt = t_end - t;
     }
 
-    // Compute_Increment_Explicit( uCF, Grid, dU, Flux_q, dFlux_num, uCF_F_L, uCF_F_R, Flux_U, Flux_P, uCF_L, uCF_R, "Homogenous" );
-    UpdateFluid( Compute_Increment_Explicit, dt, uCF,  Grid, a_jk,  b_jk,
-                 U_s,  dU_s, dU,  Flux_q,  dFlux_num, uCF_F_L,  uCF_F_R,  
-                 Flux_U, Flux_P,  uCF_L,  uCF_R, nStages,  "Homogenous" );
+    std::printf( "%d \t %.5e \t %.5e\n", iStep, t, dt );
 
-    // dU.mult(dt);
-    // uCF.add(dU);
+    UpdateFluid( Compute_Increment_Explicit, dt, uCF,  Grid, a_jk,  b_jk,
+                 U_s,  dU_s, dU,  SumVar, Flux_q,  dFlux_num, uCF_F_L,  uCF_F_R,  
+                 Flux_U, Flux_P,  uCF_L,  uCF_R, nStages,  "Homogenous" );
 
     t += dt;
 
