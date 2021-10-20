@@ -9,12 +9,8 @@
 
 #include <iostream>
 
+#include "lapacke.h"
 #include "LinearAlgebraModules.h"
-
-// extern "C" {
-extern "C" int dstev_(char* job, int* N, double* D, double* OFFD, double* EV, int* VDIM, double* WORK, int* INFO);
-//extern "C" void dsyev_(char* job, int* N, double* D, double* OFFD, double** EV, int* VDIM, double* WORK, int* INFO);
-// }
 
 /**
  * Construct an n by m matrix allocated on the heap.
@@ -111,10 +107,12 @@ void Tri_Sym_Diag( int n, double* d, double* e, double* array )
 {
 
   // Parameters for LaPack
+  lapack_int m, ldz, info, work_dim;
+  m = n;
   char job = 'V';
-  int info;
-  int ldz = n;
-  int work_dim;
+  // int info;
+  ldz = n;
+  // int work_dim;
 
   if ( n == 1 )
   {
@@ -126,10 +124,10 @@ void Tri_Sym_Diag( int n, double* d, double* e, double* array )
   double* ev = new double[n*n];
   double* work = new double[work_dim];
   
-  dstev_(&job, &n, d, e, &*ev, &ldz, work, &info);
+  info = LAPACKE_dstev( LAPACK_COL_MAJOR, job, m, d, e, ev, ldz );
   
 
-  // Matrix mu;tiply ev' * array. Only Array[0] is nonzero.
+  // Matrix multiply ev' * array. Only Array[0] is nonzero.
   double k = array[0];
   for ( int i = 0; i < n; i++ )
   {
