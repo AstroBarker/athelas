@@ -87,22 +87,36 @@ double dLagrange
 
 double Legendre( unsigned int nNodes, double x )
 {
-  x *= 2.0; // This maps to intercal [-0.5, 0.5]
 
-  double Pn, Pnm1; // P_n, P_{n-1}
-  double Pnp1 = 0.0;
-
-  Pnm1 = 1.0; // P_0
-  Pn = x;    //  P_1
-  for ( unsigned int i = 0; i < nNodes; i++ )
+  if ( nNodes == 0 )
   {
-    Pnp1 = 2.0 * x * Pn - Pnm1 - ( x * Pn - Pnm1) / (i+1);
-
-    Pnm1 = Pn;
-    Pn = Pnp1;
+    return 1.0;
   }
+  else if ( nNodes == 1 )
+  {
+    return 2.0 * x;
+  }
+  else
+  {
 
-  return Pn;
+    x *= 2.0; // This maps to intercal [-0.5, 0.5]
+
+    double Pn, Pnm1; // P_n, P_{n-1}
+    double Pnp1 = 0.0;
+
+    Pnm1 = 1.0; // P_0
+    Pn = x;    //  P_1
+    for ( unsigned int i = 1; i < nNodes; i++ )
+    {
+      Pnp1 = 2.0 * x * Pn - Pnm1 - ( x * Pn - Pnm1) / (i+1);
+      // Pnp1 = ( (2*i + 1) * x * Pn - i * Pnm1 ) / (i + 1);
+
+      Pnm1 = Pn;
+      Pn = Pnp1;
+    }
+
+    return Pn;
+  }
 }
 
 
