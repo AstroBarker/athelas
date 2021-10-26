@@ -19,6 +19,7 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
   DataStructure3D& dU, DataStructure3D& SumVar, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 
   DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<double>& Flux_U, 
   std::vector<double>& Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R,
-  const short unsigned int nStages, const std::string BC );
+  const short unsigned int nStages, DataStructure3D& D, SlopeLimiter& S_Limiter, 
+  const std::string BC );
 
 #endif

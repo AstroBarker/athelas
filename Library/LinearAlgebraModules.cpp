@@ -8,9 +8,12 @@
 **/ 
 
 #include <iostream>
+#include <vector>
 
 #include "lapacke.h"
+#include <cblas.h>
 #include "LinearAlgebraModules.h"
+#include "Error.h"
 
 /**
  * Construct an n by m matrix allocated on the heap.
@@ -46,55 +49,26 @@ void DeallocateMatrix( double** A, int rows )
 }
 
 
-/**
- * This function multiplies two matrices. 
- *
- * Author : Brandon L. Barker
-
- * [UNUSED]
- * 
- * Parameters:
- * 
- *   double** A, B      : arrays to multiply
- *   int rows_A, cols_A : dimensions of A
- *   int rows_B, cols_B : dimensions of B
- */
-double** matmul( double** A, double** B,
-    int rows_A, int cols_A, int rows_B, int cols_B )
+// Fill identity matrix
+void IdentityMatrix( double* Mat, unsigned int n )
 {
-  // Make sure that the dimensions are okay!
-  // Otherwise return error_mat() to indicate the error.
-  if (cols_A != rows_B)
+  for ( unsigned int i = 0; i < n; i++ )
+  for ( unsigned int j = 0; j < n; j++ )
   {
-      return A;
-  }
-
-  // Construct a new matrix to hold the product
-  double** mult = AllocateMatrix( rows_A, cols_B );
-  double c; // holds mult[i][j]
-
-  // #pragma omp parallel for
-  for (int i = 0; i < rows_A; i++)
-  // {
-  for (int j = 0; j < cols_B; j++)
-  {
-    mult[i][j] = 0;
-    c = mult[i][j];
-    for (int k = 0; k < cols_A; k++)
+    if ( i == j )
     {
-        c += A[i][k] * B[k][j];
+      Mat[i + n*j] = 1.0;
     }
-    mult[i][j] = c;
-  // printf("%f \n", mult[i][j]);
+    else
+    {
+      Mat[i + n*j] = 0.0;
+    }
   }
-  // }   
-
-  return mult;
 }
 
 
 /**
- * Use LaPack to diagonalize symmetric tridiagonal matrix with DSTEV
+ * Use LAPACKE to diagonalize symmetric tridiagonal matrix with DSTEV
  * 
  * Parameters:
  *
@@ -126,6 +100,10 @@ void Tri_Sym_Diag( int n, double* d, double* e, double* array )
   
   info = LAPACKE_dstev( LAPACK_COL_MAJOR, job, m, d, e, ev, ldz );
   
+  if ( info != 0 )
+  {
+    throw Error("Issue occured in initializing quadrature in Tri_Sym_Diag.");
+  }
 
   // Matrix multiply ev' * array. Only Array[0] is nonzero.
   double k = array[0];
@@ -136,4 +114,44 @@ void Tri_Sym_Diag( int n, double* d, double* e, double* array )
 
   delete [] work;
   delete [] ev;
+}
+
+
+/**
+ * Use LAPACKE to invert a matrix M using LU factorization.
+ * Used in SlopeLimiter to invert the nodal to modal mapping matrix K.
+**/
+void InvertMatrix( double* M, unsigned int n )
+{
+  lapack_int info1, info2;
+
+  int* IPIV = new int[n];
+
+  info1 = LAPACKE_dgetrf( LAPACK_COL_MAJOR, n, n, M, n, IPIV );
+  info2 = LAPACKE_dgetri( LAPACK_COL_MAJOR, n, M, n, IPIV );
+
+  delete [] IPIV;
+
+  if ( info1 != 0 || info2 != 0 )
+  {
+    throw Error("Issue occured in matrix inversion \
+      (likely in initializing slope limiter, inverting K).");
+  }
+
+}
+
+
+/**
+ * Matrix multiplication using cBLAS.
+ *
+ * Parameters:
+ * -----------
+ * 
+**/
+void MatMul( int m, int n, int k, double alpha, double* A, 
+  int lda, double* B, int ldb, double beta, double* C, int ldc )
+{
+  // Calculate A*B=C
+  cblas_dgemm( CblasRowMajor, CblasNoTrans, CblasNoTrans,
+           m, n, k, alpha, A, lda, B, ldb, beta, C, ldc );
 }

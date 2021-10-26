@@ -12,11 +12,14 @@
 
 #include "DataStructures.h"
 #include "Grid.h"
+#include "BoundaryConditionsLibrary.h"
+#include "SlopeLimiter.h"
 #include "Initialization.h"
 #include "IOLibrary.h"
 #include "Fluid_Discretization.h"
 #include "FluidUtilities.h"
 #include "Timestepper.h"
+#include "Error.h"
 
 int main( int argc, char* argv[] )
 {
@@ -25,7 +28,7 @@ int main( int argc, char* argv[] )
 
   const unsigned int nX            = 512;
   const unsigned int nNodes        = 2;
-  const unsigned short int nStages = 3;
+  const unsigned short int nStages = 2;
 
   const unsigned int nGuard = 1;
 
@@ -36,7 +39,7 @@ int main( int argc, char* argv[] )
   double dt          = 0.0;
   const double t_end = 0.2;
 
-  const double CFL = 0.15 / ( 1.0 * ( 2.0 * ( nNodes ) - 1.0 ) );
+  const double CFL = 0.45 / ( 1.0 * ( 2.0 * ( nNodes ) - 1.0 ) );
 
   // --- Create the Grid object ---
   GridStructure Grid( nNodes, nX, nGuard, xL, xR );
@@ -45,6 +48,7 @@ int main( int argc, char* argv[] )
   DataStructure3D uCF( 3, nX + 2*nGuard, nNodes );
   DataStructure3D uPF( 3, nX + 2*nGuard, nNodes );
   DataStructure3D uAF( 3, nX + 2*nGuard, nNodes );
+  DataStructure3D D( 2, nX + 2*nGuard, nNodes );
 
   // --- Data Structures needed for update step ---
 
@@ -66,6 +70,8 @@ int main( int argc, char* argv[] )
   InitializeFields( uCF, uPF, Grid, ProblemName );
   // WriteState( uCF, uPF, uAF, Grid, ProblemName );
 
+  ApplyBC_Fluid( uCF, Grid, "Homogenous" );
+
   // --- Initialize timestepper ---
   DataStructure2D a_jk(nStages, nStages);
   DataStructure2D b_jk(nStages, nStages);
@@ -81,15 +87,23 @@ int main( int argc, char* argv[] )
   // Slope limiter things
   const double Beta_TVD = 1.0;
   const double Beta_TVB = 0.0;
+  const double SlopeLimiter_Threshold = 1e-6;
+  const double TCI_Threshold = 0.05;
+  const bool CharacteristicLimiting_Option = false;
+  const bool TCI_Option = false;
   // --- Initialize Slope Limiter ---
 
+  SlopeLimiter S_Limiter( Grid, nNodes, SlopeLimiter_Threshold, Beta_TVD, Beta_TVB,
+    CharacteristicLimiting_Option, TCI_Option, TCI_Threshold );
+
   // Limit the initial conditions
-  // ApplySlopeLimiter( Mesh, uCF, D, SL )
+  S_Limiter.ApplySlopeLimiter( uCF, Grid, D );
+  // throw Error("stop!\n");
 
   unsigned int iStep = 0;
   // --- Evolution loop ---
   std::cout << "Step\tt\tdt" << std::endl;
-  while( t < t_end && iStep >=0 )//25
+  while( t < t_end && iStep >= 0 )//25
   {
 
     dt = ComputeTimestep_Fluid( uCF, Grid, CFL ); // Next: ComputeTimestep
@@ -105,7 +119,7 @@ int main( int argc, char* argv[] )
 
     UpdateFluid( Compute_Increment_Explicit, dt, uCF,  Grid, a_jk,  b_jk,
                  U_s,  dU_s, dU,  SumVar, Flux_q,  dFlux_num, uCF_F_L,  uCF_F_R,  
-                 Flux_U, Flux_P,  uCF_L,  uCF_R, nStages,  "Homogenous" );
+                 Flux_U, Flux_P,  uCF_L,  uCF_R, nStages, D, S_Limiter, "Homogenous" );
 
     t += dt;
 

@@ -14,6 +14,7 @@
 #include "Error.h"
 #include "Grid.h"
 #include "DataStructures.h"
+#include "SlopeLimiter.h"
 #include "Timestepper.h"
 #include "Fluid_Discretization.h"
 #include "PolynomialBasis.h"
@@ -78,7 +79,8 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
   DataStructure3D& dU, DataStructure3D& SumVar, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 
   DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<double>& Flux_U, 
   std::vector<double>& Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R,
-  const short unsigned int nStages, const std::string BC )
+  const short unsigned int nStages, DataStructure3D& D, SlopeLimiter& S_Limiter,
+  const std::string BC )
 {
 
   const unsigned int nNodes = Grid.Get_nNodes();
@@ -116,13 +118,17 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
       
     }
     U_s[iS] = SumVar;
-    // Grid.UpdateGrid( U_s[iS], Flux_U, a_jk(nStages-1,i) * dt ); // ... works?
+  
+    S_Limiter.ApplySlopeLimiter( U_s[iS], Grid, D );
     Grid.UpdateGrid( U_s[iS], Flux_U, frac * dt );
-    // TODO: ApplySlopeLimiter
+    // S_Limiter.ApplySlopeLimiter( U_s[iS], Grid, D );
+    
   }
   
   U = U_s[nStages-0];
 
-  // Grid.UpdateGrid( U, Flux_U, dt ); // Might switch to this
+  S_Limiter.ApplySlopeLimiter( U, Grid, D );
+
+  // Grid.UpdateGrid( U, Flux_U, dt ); // Might switch to this, but not both
 
 }
