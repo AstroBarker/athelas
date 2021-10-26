@@ -61,7 +61,7 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
        GridStructure& Grid, const double CFL )
 {
 
-  const double MIN_DT = 0.000000001;
+  const double MIN_DT = 0.000001;
   double dt_old = 10000.0;
 
   const unsigned int ilo    = Grid.Get_ilo();
@@ -94,20 +94,17 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
 
-    // === Compute Cell Averages ===
+    // --- Compute Cell Averages ---
     tau_x  = U.CellAverage( 0, iX, nNodes, Weights );
     vel_x  = U.CellAverage( 1, iX, nNodes, Weights );
     eint_x = U.CellAverage( 2, iX, nNodes, Weights );
 
-    r_n   = Grid.CellAverage( iX );
-    r_np1 = Grid.CellAverage( iX + 1 );
+    r_n   = Grid.Get_Centers( iX );
+    r_np1 = Grid.Get_Centers( iX + 1 );
 
     Cs     = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
     eigval = Cs;
 
-    // put (eigval - 0*U[iNode,iX,1]) in denom
-    // dt1 = std::abs( Grid.Get_Centers(iX+1) - Grid.Get_Centers(iX) ) / std::abs( eigval - vel_x );
-    // dt2 = std::abs( Grid.Get_Centers(iX+1) - Grid.Get_Centers(iX) ) / std::abs( eigval + vel_x );
     dt1 = std::abs( r_np1 - r_n ) / std::abs( eigval - vel_x );
     dt2 = std::abs( r_np1 - r_n ) / std::abs( eigval + vel_x );
 
@@ -117,7 +114,7 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
     dt_old = dt;
   }
 
-  dt = CFL * std::max( dt, MIN_DT );
+  dt = std::max( CFL * dt, MIN_DT );
 
   return dt;
 

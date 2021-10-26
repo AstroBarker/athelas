@@ -212,6 +212,7 @@ void GridStructure::UpdateGrid( DataStructure3D& U,
     {
       std::printf(" V_L, V_R, dx_L, dx_R: %.5e %.5e %.5e %.5e\n", 
         Flux_U[iX], Flux_U[iX+1], dx_L, dx_R);
+      std::printf("Cell: %d\n", iX);
       throw Error("Unknown behavior encountered in Grid Update.");
     }
 
@@ -221,12 +222,13 @@ void GridStructure::UpdateGrid( DataStructure3D& U,
 
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      
       // grid update -- nodal
-      Grid[iX * nNodes + iN] += U(1,iX,iN) * dt;
-      //
-      
+      Grid[iX * nNodes + iN] += U(1,iX,iN) * dt;      
     }
+
+    // --- Update cell centers ---
+    Centers[iX] = CellAverage( iX );
+
   }
 }
 
