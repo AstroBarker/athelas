@@ -31,8 +31,6 @@ void PermuteNodes( unsigned int nNodes, unsigned int iN, double* nodes )
 
     nodes[nNodes-1] = tmp1;
     nodes[iN]       = tmp2;
-    // std::cout << iN << ": " << tmp1 << " " << tmp2 << std::endl;
-    // std::cout << iN << ": " << nodes[0] << " " << nodes[1] << " " << nodes[2] << std::endl;
 
     // Now, sort all but last value
     std::sort(nodes, nodes + nNodes-1);
@@ -42,6 +40,7 @@ void PermuteNodes( unsigned int nNodes, unsigned int iN, double* nodes )
 }
 
 
+// Lagrange interpolating polynomial
 double Lagrange
        ( unsigned int nNodes, double x, unsigned int p, double* nodes )
 {
@@ -57,6 +56,7 @@ double Lagrange
 }
 
 
+// Derivative of Lagrange polynomial
 double dLagrange
        ( unsigned int nNodes, double x, double* nodes )
 {
@@ -85,6 +85,7 @@ double dLagrange
 }
 
 
+// Legendre polynomials
 double Legendre( unsigned int nNodes, double x )
 {
 
@@ -120,6 +121,7 @@ double Legendre( unsigned int nNodes, double x )
 }
 
 
+// Derivative of Legendre polynomials
 double dLegendre( unsigned int nNodes, double x )
 {
 
@@ -136,11 +138,12 @@ double dLegendre( unsigned int nNodes, double x )
 }
 
 
+// Evaluate interpolating polynomial at a point
 double Poly_Eval( unsigned int nNodes, double* nodes, double* data, double point )
 {
 
   // TODO: Generalize this a bit in terms of a given basis, not just Lagrange
-  double s = 0.0;
+  long double s = 0.0;
 
   for ( unsigned int i = 0; i < nNodes; i++ )
   {
