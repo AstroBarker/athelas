@@ -20,7 +20,7 @@
  **/
 void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF, GridStructure& Grid, const std::string ProblemName )
 {
-  std::cout << " === Initializing: " << ProblemName << std::endl;
+  std::cout << " --- Initializing: " << ProblemName << " ---" << std::endl;
 
   const unsigned int ilo    = Grid.Get_ilo();
   const unsigned int ihi    = Grid.Get_ihi();
@@ -67,7 +67,7 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF, GridStructure
     const double D_L = 1.4;
     const double D_R = 1.0;
     const double P_L = 1.0;
-    const double P_R = 0.1;
+    const double P_R = 1.0;
 
     double X1 = 0.0;
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )

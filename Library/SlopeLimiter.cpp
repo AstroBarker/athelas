@@ -307,7 +307,7 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       for ( unsigned int iCF = 0; iCF < 3; iCF++ )
       {
         c[iCF] = 0.0;
-        Vals[iCF] = U_M(iCF, 2, 0) - U_M(iCF, 0, 0);
+        Vals[iCF] = Beta_TVD * U_M(iCF, 2, 0) - U_M(iCF, 0, 0);
       }
 
       MatMul( 3, 1, 3, 1.0, R_inv, 
@@ -323,7 +323,7 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       for ( unsigned int iCF = 0; iCF < 3; iCF++ )
       {
         b[iCF] = 0.0;
-        Vals[iCF] = U_M(iCF, 0, 0) - U_M(iCF, 1, 0);
+        Vals[iCF] = Beta_TVD * U_M(iCF, 0, 0) - U_M(iCF, 1, 0);
       }
 
       MatMul( 3, 1, 3, 1.0, R_inv, 
@@ -339,7 +339,7 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       for ( unsigned int iCF = 0; iCF < 3; iCF++ )
       {
         b[iCF] = 0.0;
-        Vals[iCF] = U_M(iCF, 0, 0) - U_M(iCF, 1, 0);
+        Vals[iCF] = Beta_TVD * U_M(iCF, 0, 0) - U_M(iCF, 1, 0);
       }
 
       MatMul( 3, 1, 3, 1.0, R_inv, 
@@ -348,7 +348,7 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       for ( unsigned int iCF = 0; iCF < 3; iCF++ )
       {
         c[iCF] = 0.0; // reset c storage
-        Vals[iCF] = U_M(iCF, 2, 0) - U_M(iCF, 0, 0);
+        Vals[iCF] = Beta_TVD * U_M(iCF, 2, 0) - U_M(iCF, 0, 0);
         // std::printf("%d %d %.5f\n", iCF, iX, Vals[iCF]);
       }
 

@@ -16,6 +16,27 @@
 #include "Grid.h"
 #include "EquationOfStateLibrary_IDEAL.h"
 
+
+double Fluid( double Tau, double V, double Em_T, int iCF )
+{
+  if ( iCF == 0 )
+  {
+    return Tau;
+  }
+  else if ( iCF == 1 )
+  {
+    return V;
+  }
+  else if ( iCF == 2 )
+  {
+    return Em_T;
+  }
+  else{ // Error case. Shouldn't ever trigger.
+    throw Error("Please input a valid iCF! (0,1,2). ");
+    return -1; // just a formality.
+  }
+}
+
 /**
  * Return a component iCF of the flux vector.
  * TODO: Flux_Fluid needs streamlining
@@ -51,8 +72,25 @@ void NumericalFlux_Gudonov( double vL, double vR, double pL, double pR,
   Flux_P = ( zR*pL + zL*pR + zL*zR * (vL - vR) ) / ( zR + zL );
 }
 
-// HLL
+void NumericalFlux_HLL( double tauL, double tauR, double vL, double vR, 
+  double eL, double eR, double pL, double pR, double zL, double zR, 
+  int iCF, double& out )
+{
 
+  double uL = Fluid( tauL, vL, eL, iCF );
+  double uR = Fluid( tauR, vR, eR, iCF );
+
+    // zL += vL / tauL;
+    // zR += vR / tauR;
+
+    double am = std::max( std::max( 0.0, - zL ), - zR );
+    double ap = std::max( std::max( 0.0, + zL ), + zR );
+
+    // f = (zR * Flux_Fluid( vL, pL) + zL * Flux_Fluid( vR, pR) - zL*zR \
+    //   * ( uR - uL ) ) / (zL + zR)
+
+    out = (ap * Flux_Fluid( vL, pL, iCF ) + am * Flux_Fluid( vR, pR, iCF ) - am*ap * (uR-uL) ) / ( am + ap );
+}
 // ComputePrimitive
 
 //Compute Auxilliary
@@ -61,7 +99,8 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
        GridStructure& Grid, const double CFL )
 {
 
-  const double MIN_DT = 0.000001;
+  const double MIN_DT = 0.000000005;
+  const double MAX_DT = 1.0;
   double dt_old = 10000.0;
 
   const unsigned int ilo    = Grid.Get_ilo();
@@ -115,6 +154,7 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
   }
 
   dt = std::max( CFL * dt, MIN_DT );
+  dt = std::min( dt, MAX_DT );
 
   return dt;
 

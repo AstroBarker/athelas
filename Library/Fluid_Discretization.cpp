@@ -12,6 +12,7 @@
 
 #include "omp.h"
 
+#include "Error.h"
 #include "PolynomialBasis.h"
 #include "DataStructures.h"
 #include "Grid.h"
@@ -65,15 +66,17 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
     { 
       tmp_L[iN] = U(iCF, iX-1, iN);
       tmp_R[iN] = U(iCF, iX-0, iN);
-      // if( iCF == 1 ) std::cout << iN << " " << tmp_L[iN] << " " << U(1, iX-1, iN) << std::endl;
+      // if( iCF == 2 ) std::cout << iN << " " << tmp_L[iN] << " " << U(iCF, iX-1, iN) << std::endl;
     }
 
     uCF_F_L(iCF, iX) = Poly_Eval( nNodes, Nodes, tmp_L, +0.5 );
     uCF_F_R(iCF, iX) = Poly_Eval( nNodes, Nodes, tmp_R, -0.5 );
+    // if ( iCF == 0) std::printf("%d %.18f %.18f %.18f %.18f %.18f\n", iX, uCF_F_L(iCF, iX), uCF_F_L(iCF, iX), tmp_L[0], tmp_L[1], tmp_L[2] );
   }
+  
 
   // --- Calc numerical flux at all faces
-  // #pragma omp parallel for simd
+  // #pragma omp parallel for
   for ( unsigned int iX = ilo; iX <= ihi+1; iX++ ) //TODO: Bounds correct?
   {
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
@@ -94,11 +97,13 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
 
     // Riemann Problem
     NumericalFlux_Gudonov( uCF_L[1], uCF_R[1], P_L, P_R, lam_L, lam_R, Flux_U[iX], Flux_P[iX] );
+    // std::printf("%d %.18f %.18f %.18f\n", iX, uCF_L[0], Flux_U[iX], uCF_R[0] );
     
     // TODO: Clean This Up
     dFlux_num(0, iX) = - Flux_U[iX];
     dFlux_num(1, iX) = + Flux_P[iX];
     dFlux_num(2, iX) = + Flux_U[iX] * Flux_P[iX];
+    
   }
   
   // --- Surface Term ---
@@ -141,6 +146,38 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
 
     dU(iCF,iX,iN) += local_sum;
   }
+
+  // // TODO: Testing. 
+  // // --- Calculate interface velocities using cell averaged velocities 
+  // // Attempt use for Grid Update.
+  // std::vector<double> Weights(nNodes);
+  // for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  // {
+  //   Weights[iN]   = Grid.Get_Weights( iN );
+  // }
+  // // --- Calc numerical flux at all faces
+  // for ( unsigned int iX = ilo; iX <= ihi+1; iX++ ) //TODO: Bounds correct?
+  // {
+  //   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  //   {
+  //     uCF_L[iCF] = U.CellAverage( iCF, iX-1, nNodes, Weights );
+  //     uCF_R[iCF] = U.CellAverage( iCF, iX-0, nNodes, Weights );
+  //   }
+
+  //   P_L   = ComputePressureFromConserved_IDEAL( uCF_L[0], uCF_L[1], uCF_L[2] );
+  //   Cs_L  = ComputeSoundSpeedFromConserved_IDEAL( uCF_L[0], uCF_L[1], uCF_L[2] );
+  //   lam_L = Cs_L / uCF_L[0];
+
+  //   P_R   = ComputePressureFromConserved_IDEAL( uCF_R[0], uCF_R[1], uCF_R[2] );
+  //   Cs_R  = ComputeSoundSpeedFromConserved_IDEAL( uCF_R[0], uCF_R[1], uCF_R[2] );
+  //   lam_R = Cs_R / uCF_R[0];
+
+  //   // --- Numerical Fluxes ---
+
+  //   // Riemann Problem
+  //   NumericalFlux_Gudonov( uCF_L[1], uCF_R[1], P_L, P_R, lam_L, lam_R, Flux_U[iX], Flux_P[iX] );
+  // }
+
 
   // --- Deallocate ---
   delete [] Nodes;

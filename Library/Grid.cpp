@@ -181,21 +181,31 @@ void GridStructure::UpdateGrid( DataStructure3D& U,
   double dx_L = 0.0; // Left interfact of element
   double dx_R = 0.0; // Right interface of element
   double dx   = 0.0; // Cumulative change
+
+  double Vel_Avg = 0.0;
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
-    dx_L = Flux_U[iX] * dt;
-    dx_R = Flux_U[iX+1] * dt; // TODO: Make sure this isn't accessing bad data
 
+    // --- Update Cell Widths ---
+
+    if ( Flux_U[iX]+1.0 == 1.0 && Flux_U[iX+1]+1.0 == 1.0 ) 
+    {
+      continue;
+    }
+
+    dx_L = + Flux_U[iX] * dt;
+    dx_R = + Flux_U[iX+1] * dt; // TODO: Make sure this isn't accessing bad data
+    // std::printf("%d %.25f %.25f %.7f %.7f \n", iX, Flux_U[iX]+0.0, Flux_U[iX+1]+0.0, dx_L, dx_R);
     // Combine the changes in interface coordinates
     // Left compression, right expansion
     if ( dx_L >= 0.0 && dx_R >= 0.0 )
     {
-      dx = dx_R - std::abs(dx_L);
+      dx = dx_R - dx_L;
     }
     // Left expasion, right compression
     else if ( dx_L <= 0.0 && dx_R <= 0.0 )
     {
-      dx = dx_L - std::abs(dx_R);
+      dx = std::abs(dx_L) - std::abs(dx_R);
     }
     // dual expansion
     else if ( dx_L <= 0.0 && dx_R >= 0.0 )
@@ -218,16 +228,26 @@ void GridStructure::UpdateGrid( DataStructure3D& U,
 
     // Given dx, update the current cell width.
     Widths[iX] += dx;
-    // std::cout << Flux_U[iX] << std::endl;
+
+    // --- Update Nodal Values ---
+
+    std::vector<double> Weights(nNodes);
+    for ( unsigned int iN = 0; iN < nNodes; iN++ )
+    {
+      Weights[iN] = Get_Weights( iN );
+    }
+
+    Vel_Avg = U.CellAverage( 1, iX, nNodes, Weights );
 
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
       // grid update -- nodal
-      Grid[iX * nNodes + iN] += U(1,iX,iN) * dt;      
+      // Grid[iX * nNodes + iN] += Vel_Avg * dt;     
+      Grid[iX * nNodes + iN] += Vel_Avg * dt;      
     }
 
     // --- Update cell centers ---
-    Centers[iX] = CellAverage( iX );
+    Centers[iX] += Vel_Avg * dt; // = CellAverage( iX );
 
   }
 }

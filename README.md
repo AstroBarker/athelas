@@ -7,9 +7,13 @@
 - [x] Make directory for test problem and setup
 - [x] Use LAPACKE for lapack calls (more portable)
 - [x] Add UpdateGrid()
-- [ ] Add SlopeLimiter
+- [x] Add SlopeLimiter
 - [ ] Add TroubledCellIndicator
 
 * BROKEN: 
 - [x] Timestepper (nStages > 1)
 - [ ] Likely more
+
+# Dependencies
+LAPACKE
+cBLAS
