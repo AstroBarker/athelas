@@ -17,26 +17,60 @@
 #include  <iostream>
 
 GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG, double left, double right )
+  : nElements(nX),
+    nNodes(nN),
+    nGhost(nG),
+    mSize(nElements + 2 * nGhost),
+    xL(left),
+    xR(right),
+    Nodes(nNodes),
+    Weights(nNodes),
+    Centers(mSize),
+    Widths(mSize),
+    Mass(mSize, 0.0),
+    Volume(mSize, 0.0),
+    CenterOfMass(mSize, 0.0),
+    Grid(mSize*nNodes, 0.0)
 {
-  nElements = nX;
-  nNodes = nN;
-  nGhost = nG;
+  // nElements = nX;
+  // nNodes = nN;
+  // nGhost = nG;
 
-  mSize = nElements + 2 * nGhost;
+  // mSize = nElements + 2 * nGhost;
 
-  xL = left;
-  xR = right;
+  // xL = left;
+  // xR = right;
 
   // Compute quadrature weights and nodes
-  Nodes   = new double[ nNodes ];
-  Weights = new double[ nNodes ];
+  // Nodes   = new double[ nNodes ];
+  // Weights = new double[ nNodes ];
+  // Right now LG_Quadrature expects an array, not vector... 
+  double* tmp_nodes   = new double[nNodes];
+  double* tmp_weights = new double[nNodes];
+  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  {
+    tmp_nodes[iN]   = 0.0;
+    tmp_weights[iN] = 0.0;
+  }
+  LG_Quadrature( nNodes, tmp_nodes, tmp_weights );
+  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  {
+    Nodes[iN]   = tmp_nodes[iN];
+    Weights[iN] = tmp_weights[iN];
+  }
 
-  LG_Quadrature( nNodes, Nodes, Weights );
+  // Centers = new double[mSize];
+  // Widths  = new double[mSize];
 
-  Centers = new double[mSize];
-  Widths  = new double[mSize];
-  Grid = new double[(mSize) * nNodes];
+  // Volume        = new double[mSize];
+  // Mass          = new double[mSize];
+  // CenterOfMass  = new double[mSize];
+
+  // Grid = new double[(mSize) * nNodes];
   CreateGrid();
+
+  delete [] tmp_nodes;
+  delete [] tmp_weights;
 }
 
 
