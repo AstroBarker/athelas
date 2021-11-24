@@ -39,14 +39,17 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
   CreateGrid();
 }
 
+
 // Give physical grid coordinate from a node.
 double GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN )
 {
   return Centers[iC] + Widths[iC] * Nodes[iN];
 }
 
+
 // Update nodal coordinates with nodal velocities
 // void GridStructure::UpdateGrid( double vel )
+
 
 // Return cell center
 double GridStructure::Get_Centers( unsigned int iC )
@@ -54,11 +57,34 @@ double GridStructure::Get_Centers( unsigned int iC )
   return Centers[iC];
 }
 
+
 // Return cell width
 double GridStructure::Get_Widths( unsigned int iC )
 {
   return Widths[iC];
 }
+
+
+// Return cell Volume
+double GridStructure::Get_Volume( unsigned int iX )
+{
+  return Volume[iX];
+}
+
+
+// Return cell mass
+double GridStructure::Get_Mass( unsigned int iX )
+{
+  return Mass[iX];
+}
+
+
+// Return cell Volume
+double GridStructure::Get_CenterOfMass( unsigned int iX )
+{
+  return CenterOfMass[iX];
+}
+
 
 // Return given quadrature node
 double GridStructure::Get_Nodes( unsigned int nN )
@@ -66,11 +92,13 @@ double GridStructure::Get_Nodes( unsigned int nN )
   return Nodes[nN];
 }
 
+
 // Return given quadrature weight
 double GridStructure::Get_Weights( unsigned int nN )
 {
   return Weights[nN];
 }
+
 
 // Return nNodes
 int GridStructure::Get_nNodes( )
@@ -78,11 +106,13 @@ int GridStructure::Get_nNodes( )
   return nNodes;
 }
 
+
 // Return nElements
 int GridStructure::Get_nElements( )
 {
   return nElements;
 }
+
 
 // Return number of guard zones
 int GridStructure::Get_Guard( )
@@ -90,17 +120,20 @@ int GridStructure::Get_Guard( )
   return nGhost;
 }
 
+
 // Return first physical zone
 int GridStructure::Get_ilo( )
 {
   return nGhost;
 }
 
+
 // Return last physical zone
 int GridStructure::Get_ihi( )
 {
   return nElements + nGhost - 1;
 }
+
 
 // Copy Grid contents into new array
 // Not elegant.. as the copy shouldn't include guard cells.
@@ -115,6 +148,7 @@ void GridStructure::copy( std::vector<double> dest )
   }
 
 }
+
 
 // Equidistant mesh
 void GridStructure::CreateGrid( )
@@ -166,6 +200,77 @@ double GridStructure::CellAverage( unsigned int iX )
 
   return avg;
 }
+
+
+/**
+ * Compute cell volumes element (e.g., 4 pi r^2 dr)
+**/
+void GridStructure::ComputeVolume(  )
+{
+  const unsigned int nNodes = Get_nNodes();
+  const unsigned int ilo    = Get_ilo();
+  const unsigned int ihi    = Get_ihi();
+
+  double geom = 1.0; // Temporary
+  double vol;
+
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  {
+    vol = 0.0;
+    for ( unsigned int iN = 0; iN < nNodes; iN++ )
+    {
+      vol += geom * Get_Widths(iX) * Weights[iN];
+    }
+    Volume[iX] = vol;
+  }
+}
+
+
+/**
+ * Compute cell masses
+**/
+void GridStructure::ComputeMass( DataStructure3D& uPF )
+{
+  const unsigned int nNodes = Get_nNodes();
+  const unsigned int ilo    = Get_ilo();
+  const unsigned int ihi    = Get_ihi();
+
+  double mass;
+
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  {
+    mass = 0.0;
+    for ( unsigned int iN = 0; iN < nNodes; iN++ )
+    {
+      mass += uPF(0,iX,iN) * Volume[iX] * Weights[iN];
+    }
+    Mass[iX] = mass;
+  }
+}
+
+
+/**
+ * Compute cell centers of masses
+**/
+void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
+{
+  const unsigned int nNodes = Get_nNodes();
+  const unsigned int ilo    = Get_ilo();
+  const unsigned int ihi    = Get_ihi();
+
+  double com;
+
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  {
+    com = 0.0;
+    for ( unsigned int iN = 0; iN < nNodes; iN++ )
+    {
+      com += uPF(0,iX,iN) * Volume[iX] * Nodes[iN] * Weights[iN];
+    }
+    CenterOfMass[iX] = com / Mass[iX];
+  }
+}
+
 
 /**
  * Update grid coordinates using interface and nodal velocities.

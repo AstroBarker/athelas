@@ -62,7 +62,10 @@ public:
         Weights(nNodes ? new double[nNodes] : nullptr),
         Centers(mSize ? new double[mSize] : nullptr),
         Widths(mSize ? new double[mSize] : nullptr),
-        Grid(mSize&&nNodes ? new double[mSize*nNodes] : nullptr)
+        Grid(mSize&&nNodes ? new double[mSize*nNodes] : nullptr),
+        Mass(mSize),
+        Volume(mSize),
+        CenterOfMass(mSize)
   {
       // note that this is non-throwing, because of the data
       // types being used; more attention to detail with regards
@@ -106,11 +109,14 @@ public:
 
   GridStructure( unsigned int nX, unsigned int nN, unsigned int nG, 
     double left, double right );
-  double NodeCoordinate( unsigned int iC, unsigned int iN );
+  double NodeCoordinate( unsigned int iC, unsigned int iN ); // TODO: NodeCoordinate needs updating for modal
   double Get_Centers( unsigned int iC );
   double Get_Widths( unsigned int iC );
   double Get_Nodes( unsigned int nN );
   double Get_Weights( unsigned int nN ); 
+  double Get_Volume( unsigned int iX );
+  double Get_Mass( unsigned int iX );
+  double Get_CenterOfMass( unsigned int iX );
   int Get_Guard( );
   int Get_ilo( );
   int Get_ihi( );
@@ -124,6 +130,9 @@ public:
   double CellAverage( unsigned int iX );
   void UpdateGrid( DataStructure3D& U,
                    std::vector<double>& Flux_U, double dt );
+  void ComputeMass( DataStructure3D& uPF );
+  void ComputeVolume(  );
+  void ComputeCenterOfMass( DataStructure3D& uPF );
 
   ~GridStructure()
   {
@@ -149,6 +158,10 @@ private:
   double* Centers;
   double* Widths;
   double* Grid;
+
+  std::vector<double> Mass;
+  std::vector<double> Volume;
+  std::vector<double> CenterOfMass;
 };
 
 #endif
