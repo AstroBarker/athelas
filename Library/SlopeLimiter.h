@@ -13,9 +13,9 @@
 #include <vector>
 #include <iostream>
 #include "Error.h"
-#include "PolynomialBasis.h"
-#include "Grid.h"
 #include "DataStructures.h"
+#include "Grid.h"
+#include "PolynomialBasis.h"
 
 
 // This will be e.g., conserved variables
