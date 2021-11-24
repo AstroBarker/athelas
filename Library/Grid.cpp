@@ -376,7 +376,7 @@ void GridStructure::UpdateGrid( DataStructure3D& U,
       Weights[iN] = Get_Weights( iN );
     }
 
-    Vel_Avg = U.CellAverage( 1, iX, nNodes, Weights );
+    Vel_Avg = U( 1, iX, 0 );
 
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
