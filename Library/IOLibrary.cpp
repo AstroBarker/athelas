@@ -28,13 +28,13 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
   const char * fn2 = fn.c_str();
 
   const unsigned int nX     = Grid.Get_nElements();
-  const unsigned int nNodes = Grid.Get_nNodes();
+  // const unsigned int nNodes = Grid.Get_nNodes();
   const unsigned int nGuard = Grid.Get_Guard();
   const unsigned int ihi = Grid.Get_ihi();
 
   const H5std_string FILE_NAME( fn );
   const H5std_string DATASET_NAME("Grid");
-  const int size = (nX + 0*nGuard) * nNodes; // dataset dimensions
+  const int size = (nX + 0*nGuard);// * nNodes; // dataset dimensions
 
   std::vector<DataType> tau(size);
   std::vector<DataType> vel(size);
@@ -42,14 +42,14 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
   std::vector<DataType> grid(size);
 
   for ( unsigned int iX = nGuard; iX <= ihi; iX++ )
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  // for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
-    grid[(iX-nGuard) * nNodes + iN].x = Grid(iX, iN);
-    tau[(iX-nGuard) * nNodes + iN].x  = uCF(0, iX, iN);
-    vel[(iX-nGuard) * nNodes + iN].x  = uCF(1, iX, iN);
-    eint[(iX-nGuard) * nNodes + iN].x = uCF(2, iX, iN);
+    grid[(iX-nGuard)].x = Grid.Get_Centers(iX);
+    tau[(iX-nGuard)].x  = uCF(0, iX, 0);
+    vel[(iX-nGuard)].x  = uCF(1, iX, 0);
+    eint[(iX-nGuard)].x = uCF(2, iX, 0);
   }
-
+  
   // Tell HDF5 how to use my datatype
   // H5::CompType mtype_CF(sizeof(DataType));
 
@@ -80,6 +80,5 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
   dataset_tau.write( tau.data(), H5::PredType::NATIVE_DOUBLE );
   dataset_vel.write( vel.data(), H5::PredType::NATIVE_DOUBLE );
   dataset_eint.write( eint.data(), H5::PredType::NATIVE_DOUBLE );
-  
   
 }
