@@ -134,9 +134,9 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
   {
 
     // --- Compute Cell Averages ---
-    tau_x  = U.CellAverage( 0, iX, nNodes, Weights );
-    vel_x  = U.CellAverage( 1, iX, nNodes, Weights );
-    eint_x = U.CellAverage( 2, iX, nNodes, Weights );
+    tau_x  = U( 0, iX, 0 );
+    vel_x  = U( 1, iX, 0 );
+    eint_x = U( 2, iX, 0 );
 
     r_n   = Grid.Get_Centers( iX );
     r_np1 = Grid.Get_Centers( iX + 1 );
