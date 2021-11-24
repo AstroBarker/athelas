@@ -14,6 +14,8 @@ double InnerProduct( BasisFuncType f, DataStructure3D& Phi,
   double eta_c, DataStructure3D& uPF, GridStructure& Grid );
 void InitializeTaylorBasis( DataStructure3D& Phi, DataStructure3D& U, 
   GridStructure& Grid, unsigned int order, unsigned int nNodes );
+void CheckOrthogonality( DataStructure3D& Phi, DataStructure3D& uPF,
+  GridStructure& Grid, unsigned int order, unsigned int nNodes );
 void PermuteNodes( unsigned int nNodes, unsigned int iN, double* nodes );
 double Lagrange ( unsigned int nNodes, double x, unsigned int p, double* nodes );
 double dLagrange( unsigned int nNodes, double x, double* nodes );

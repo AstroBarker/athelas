@@ -7,6 +7,7 @@
  *  Contains Lagrange and Legendre polynomials, arbitrary degree.
  *
  * TODO: Poly_Eval needs generalizing. 
+ * TODO: Should we make a class out of this?
 **/ 
 
 #include <iostream>
@@ -56,7 +57,6 @@ double Taylor( unsigned int order, double eta, double eta_c )
  * Used in orthogonalization.
  * Computes < Psi_m, Phi_n >
  * <f,g> = \sum_q \rho_q f_Q g_q j^0 w_q
- * TODO: FINISH
 **/
 double InnerProduct( BasisFuncType f, DataStructure3D& Phi, 
   unsigned int m, unsigned int n, unsigned int iX, unsigned int nNodes, 
@@ -67,9 +67,9 @@ double InnerProduct( BasisFuncType f, DataStructure3D& Phi,
 
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
-    eta_q = Grid.Get_Nodes(iN); // TODO: Grid needs "ComputeMass" and "ComputeCenterOfMass"
+    eta_q = Grid.Get_Nodes(iN);
     result += f( m, eta_q, eta_c ) * Phi( iX, iN+1, n )
-           * Grid.Get_Weights(iN) * 1.0; // Density, volume
+           * Grid.Get_Weights(iN) * uPF(0,iX,iN) * Grid.Get_Volume(iX);
   }
 
   return result;
@@ -80,9 +80,8 @@ double InnerProduct( BasisFuncType f, DataStructure3D& Phi,
 /**
  * Lagrangian inner product of functions f and g
  * Used in orthogonalization.
- * Computes < Psi_m, Phi_n >
+ * Computes < Phi_m, Phi_n >
  * <f,g> = \sum_q \rho_q f_Q g_q j^0 w_q
- * TODO: FINISH
 **/
 double InnerProduct( DataStructure3D& Phi, 
   unsigned int n, unsigned int iX, unsigned int nNodes, double eta_c,
@@ -93,7 +92,7 @@ double InnerProduct( DataStructure3D& Phi,
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     result += Phi( iX, iN+1, n )  * Phi( iX, iN+1, n ) 
-           * Grid.Get_Weights(iN) * uPF(0,iX,iN); // Density, volume
+           * Grid.Get_Weights(iN) * uPF(0,iX,iN) * Grid.Get_Volume(iX);
   }
 
   return result;
@@ -102,7 +101,6 @@ double InnerProduct( DataStructure3D& Phi,
 
 
 // Gram-Schmidt orthogonalization to Taylor basis
-// TODO: FINISH
 double OrthoTaylor( unsigned int order, unsigned int iX, double eta, double eta_c, DataStructure3D& Phi,
   DataStructure3D& uPF, GridStructure& Grid )
 {
@@ -154,30 +152,68 @@ void InitializeTaylorBasis( DataStructure3D& Phi, DataStructure3D& uPF,
   const unsigned int ilo   = Grid.Get_ilo();
   const unsigned int ihi   = Grid.Get_ihi();
 
-  double eta_c = -1.0;
-
-  // Compute eta_c
+  double eta_c;
 
   double eta = 0.5;
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-  for ( unsigned int i_eta = 0; i_eta < n_eta; i_eta++ )
-  for ( unsigned int k = 0; k < order; k++ )
   {
+    eta_c = Grid.Get_CenterOfMass(iX);
+    for ( unsigned int k = 0; k < order; k++ )
+    for ( unsigned int i_eta = 0; i_eta < n_eta; i_eta++ )
+    {
 
-    if ( i_eta == 0 )
-    {
-      eta = -0.5;
-    }
-    else if ( i_eta == nNodes + 1 )
-    {
-      eta = +0.5;
-    }
-    else
-    {
-      eta = Grid.Get_Nodes(i_eta-1);
-    }
+      if ( i_eta == 0 )
+      {
+        eta = -0.5;
+      }
+      else if ( i_eta == nNodes + 1 )
+      {
+        eta = +0.5;
+      }
+      else
+      {
+        eta = Grid.Get_Nodes(i_eta-1);
+      }
 
-    Phi(iX, i_eta, k) = OrthoTaylor( k, iX, eta, eta_c, Phi, uPF, Grid );
+      Phi(iX, i_eta, k) = OrthoTaylor( k, iX, eta, eta_c, Phi, uPF, Grid );
+    }
+  }
+  CheckOrthogonality( Phi, uPF, Grid, order, nNodes );
+}
+
+
+/**
+ * The following checks orthogonality of basis functions on each cell. 
+ * Returns error if orthogonality is not met.
+**/
+void CheckOrthogonality( DataStructure3D& Phi, DataStructure3D& uPF,
+  GridStructure& Grid, unsigned int order, unsigned int nNodes )
+{
+
+  const unsigned int n_eta = order + 2;
+  const unsigned int ilo   = Grid.Get_ilo();
+  const unsigned int ihi   = Grid.Get_ihi();
+
+  double result = 0.0;
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( unsigned int k1 = 0; k1 < order; k1++ )
+  for ( unsigned int k2 = 0; k2 < order; k2++ )
+  {
+    result = 0.0;
+    for ( unsigned int i_eta = 1; i_eta <= nNodes; i_eta++ )
+    {
+      result += Phi( iX, i_eta, k1 ) * Phi( iX, i_eta, k2 ) 
+             * uPF(0,iX,i_eta-1) * Grid.Get_Weights(i_eta-1) 
+             * Grid.Get_Volume(iX);
+    }
+    if ( k1 == k2 && result == 0.0 )
+    { 
+      throw Error("Basis not orthogonal: Diagonal term equal to zero.\n");
+    }
+    if ( k1 != k2 && result != 0.0 )
+    {
+      throw Error("Basis not orthogonal: Off diagonal term non-zero.\n");
+    }
   }
 }
 
