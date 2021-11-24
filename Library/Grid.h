@@ -23,30 +23,6 @@ class GridStructure
 {
 public:
 
-  // default constructor - for move constructur
-  // GridStructure()
-  // {
-  // nElements = 1;
-  // nNodes    = 1;
-  // nGhost    = 1;
-
-  // mSize = nElements + 2 * nGhost;
-
-  // xL = 0.0;
-  // xR = 1.0;
-
-  // // Compute quadrature weights and nodes
-  // Nodes   = new double[ nNodes ];
-  // Weights = new double[ nNodes ];
-
-  // LG_Quadrature( nNodes, Nodes, Weights );
-
-  // Centers = new double[mSize];
-  // Widths  = new double[mSize];
-  // Grid    = new double[(mSize) * nNodes];
-  // CreateGrid();
-  // }
-
   GridStructure( unsigned int nX, unsigned int nN, unsigned int nG, 
     double left, double right );
   double NodeCoordinate( unsigned int iC, unsigned int iN ); // TODO: NodeCoordinate needs updating for modal
@@ -65,7 +41,6 @@ public:
 
   double& operator()( unsigned int i, unsigned int j );
   double operator()( unsigned int i, unsigned int j ) const;
-  void copy( std::vector<double> dest );
   void CreateGrid( );
   double CellAverage( unsigned int iX );
   void UpdateGrid( DataStructure3D& U,

@@ -32,19 +32,6 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
     CenterOfMass(mSize, 0.0),
     Grid(mSize*nNodes, 0.0)
 {
-  // nElements = nX;
-  // nNodes = nN;
-  // nGhost = nG;
-
-  // mSize = nElements + 2 * nGhost;
-
-  // xL = left;
-  // xR = right;
-
-  // Compute quadrature weights and nodes
-  // Nodes   = new double[ nNodes ];
-  // Weights = new double[ nNodes ];
-  // Right now LG_Quadrature expects an array, not vector... 
   double* tmp_nodes   = new double[nNodes];
   double* tmp_weights = new double[nNodes];
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
@@ -59,14 +46,6 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
     Weights[iN] = tmp_weights[iN];
   }
 
-  // Centers = new double[mSize];
-  // Widths  = new double[mSize];
-
-  // Volume        = new double[mSize];
-  // Mass          = new double[mSize];
-  // CenterOfMass  = new double[mSize];
-
-  // Grid = new double[(mSize) * nNodes];
   CreateGrid();
 
   delete [] tmp_nodes;
@@ -79,10 +58,6 @@ double GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN )
 {
   return Centers[iC] + Widths[iC] * Nodes[iN];
 }
-
-
-// Update nodal coordinates with nodal velocities
-// void GridStructure::UpdateGrid( double vel )
 
 
 // Return cell center
@@ -166,21 +141,6 @@ int GridStructure::Get_ilo( )
 int GridStructure::Get_ihi( )
 {
   return nElements + nGhost - 1;
-}
-
-
-// Copy Grid contents into new array
-// Not elegant.. as the copy shouldn't include guard cells.
-void GridStructure::copy( std::vector<double> dest )
-{
-
-  unsigned int j;
-  for ( unsigned int i = nGhost*nNodes; i <= (nElements + nGhost - 1)*nNodes + 1; i++ )
-  {
-    j = i - nGhost*nNodes;
-    dest[j] = Grid[i];
-  }
-
 }
 
 
@@ -334,7 +294,6 @@ void GridStructure::UpdateGrid( DataStructure3D& U,
 
     dx_L = + Flux_U[iX] * dt;
     dx_R = + Flux_U[iX+1] * dt; // TODO: Make sure this isn't accessing bad data
-    // std::printf("%d %.25f %.25f %.7f %.7f \n", iX, Flux_U[iX]+0.0, Flux_U[iX+1]+0.0, dx_L, dx_R);
     // Combine the changes in interface coordinates
     // Left compression, right expansion
     if ( dx_L >= 0.0 && dx_R >= 0.0 )
