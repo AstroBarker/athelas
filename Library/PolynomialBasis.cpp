@@ -57,6 +57,7 @@ double Taylor( unsigned int order, double eta, double eta_c )
  * Used in orthogonalization.
  * Computes < Psi_m, Phi_n >
  * <f,g> = \sum_q \rho_q f_Q g_q j^0 w_q
+ * TODO: Make InnerProduct functions cleaner????
 **/
 double InnerProduct( BasisFuncType f, DataStructure3D& Phi, 
   unsigned int m, unsigned int n, unsigned int iX, unsigned int nNodes, 
@@ -73,7 +74,6 @@ double InnerProduct( BasisFuncType f, DataStructure3D& Phi,
   }
 
   return result;
-
 }
 
 
@@ -96,7 +96,6 @@ double InnerProduct( DataStructure3D& Phi,
   }
 
   return result;
-
 }
 
 
@@ -136,7 +135,6 @@ double OrthoTaylor( unsigned int order, unsigned int iX, double eta, double eta_
   delete [] denominator;
 
   return result;
-
 }
 
 
@@ -190,7 +188,6 @@ void CheckOrthogonality( DataStructure3D& Phi, DataStructure3D& uPF,
   GridStructure& Grid, unsigned int order, unsigned int nNodes )
 {
 
-  const unsigned int n_eta = order + 2;
   const unsigned int ilo   = Grid.Get_ilo();
   const unsigned int ihi   = Grid.Get_ihi();
 
@@ -200,8 +197,9 @@ void CheckOrthogonality( DataStructure3D& Phi, DataStructure3D& uPF,
   for ( unsigned int k2 = 0; k2 < order; k2++ )
   {
     result = 0.0;
-    for ( unsigned int i_eta = 1; i_eta <= nNodes; i_eta++ )
+    for ( unsigned int i_eta = 1; i_eta <= nNodes; i_eta++ ) // loop over quadratures
     {
+      // Not using an InnerProduct function because their API is odd.. 
       result += Phi( iX, i_eta, k1 ) * Phi( iX, i_eta, k2 ) 
              * uPF(0,iX,i_eta-1) * Grid.Get_Weights(i_eta-1) 
              * Grid.Get_Volume(iX);
@@ -215,6 +213,21 @@ void CheckOrthogonality( DataStructure3D& Phi, DataStructure3D& uPF,
       throw Error("Basis not orthogonal: Off diagonal term non-zero.\n");
     }
   }
+}
+
+
+/**
+ * Evaluate (modal) basis on element iX for quantity iCF
+**/
+double BasisEval( DataStructure3D& U, DataStructure3D& Phi, 
+  unsigned int iX, unsigned int iCF, unsigned int i_eta, unsigned int order )
+{
+  double result = 0.0;
+  for ( unsigned int k = 0; k < order; k++ )
+  {
+    result += Phi(iX,i_eta,k) * U(iCF,iX,k);
+  }
+  return result;
 }
 
 // *** Lagrange Methods ***
@@ -239,7 +252,6 @@ void PermuteNodes( unsigned int nNodes, unsigned int iN, double* nodes )
     std::sort(nodes, nodes + nNodes-1);
   }
 
-  // std::sort(nodes, nodes + nNodes-1);
 }
 
 

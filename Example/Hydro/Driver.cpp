@@ -26,9 +26,10 @@ int main( int argc, char* argv[] )
   // --- Problem Parameters ---
   const std::string ProblemName = "Sod";
 
-  const unsigned int nX            = 512;
-  const unsigned int nNodes        = 2;
-  const unsigned short int nStages = 2;
+  const unsigned int nX            = 200;
+  const unsigned int order         = 2;
+  const unsigned int nNodes        = order;
+  const unsigned short int nStages = 3;
 
   const unsigned int nGuard = 1;
 
@@ -39,7 +40,7 @@ int main( int argc, char* argv[] )
   double dt          = 0.0;
   const double t_end = 0.2;
 
-  const double CFL = 0.45 / ( 1.0 * ( 2.0 * ( nNodes ) - 1.0 ) );
+  const double CFL = 0.4 / ( 1.0 * ( 2.0 * ( nNodes ) - 1.0 ) );
 
   // --- Create the Grid object ---
   GridStructure Grid( nNodes, nX, nGuard, xL, xR );
@@ -50,6 +51,8 @@ int main( int argc, char* argv[] )
   DataStructure3D uAF( 3, nX + 2*nGuard, nNodes );
   DataStructure3D D( 2, nX + 2*nGuard, nNodes );
 
+  // --- Datastructure for modal basis ---
+  DataStructure3D BasisPhi( nX, nNodes + 2, order ); // TODO: Do  I swap the first two dims?
   // --- Data Structures needed for update step ---
 
   DataStructure3D dU( 3, nX + 2*nGuard, nNodes );
@@ -72,6 +75,15 @@ int main( int argc, char* argv[] )
 
   ApplyBC_Fluid( uCF, Grid, "Homogenous" );
 
+  // --- Compute grid quantities ---
+  // TODO: Bundle this in an InitializeGrid?
+  Grid.ComputeVolume( );
+  Grid.ComputeMass( uPF );
+  Grid.ComputeCenterOfMass( uPF );
+
+  // --- Initialize the modal basis ---
+  InitializeTaylorBasis( BasisPhi, uPF, Grid, order, nNodes );
+
   // --- Initialize timestepper ---
   DataStructure2D a_jk(nStages, nStages);
   DataStructure2D b_jk(nStages, nStages);
@@ -86,24 +98,23 @@ int main( int argc, char* argv[] )
   
   // Slope limiter things
   const double Beta_TVD = 1.0;
-  const double Beta_TVB = 0.0;
+  const double Beta_TVB = 1.0;
   const double SlopeLimiter_Threshold = 1e-6;
   const double TCI_Threshold = 0.05;
-  const bool CharacteristicLimiting_Option = false;
+  const bool CharacteristicLimiting_Option = true;
   const bool TCI_Option = false;
   // --- Initialize Slope Limiter ---
-
+  
   SlopeLimiter S_Limiter( Grid, nNodes, SlopeLimiter_Threshold, Beta_TVD, Beta_TVB,
     CharacteristicLimiting_Option, TCI_Option, TCI_Threshold );
 
   // Limit the initial conditions
-  S_Limiter.ApplySlopeLimiter( uCF, Grid, D );
-  // throw Error("stop!\n");
+  // S_Limiter.ApplySlopeLimiter( uCF, Grid, D );
 
-  unsigned int iStep = 0;
   // --- Evolution loop ---
+  unsigned int iStep = 0;
   std::cout << "Step\tt\tdt" << std::endl;
-  while( t < t_end && iStep >= 0 )//25
+  while( t < t_end && iStep  >=0 && false )//25
   {
 
     dt = ComputeTimestep_Fluid( uCF, Grid, CFL ); // Next: ComputeTimestep
