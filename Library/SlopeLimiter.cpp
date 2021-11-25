@@ -136,21 +136,13 @@ void SlopeLimiter::ModalToNodal( double* Um, double* result, int nNodes )
     tmp[i]    = 0.0;
     result[i] = 0.0;
   }
-  //K_inv @ (P @ Um)
-  // for ( int i = 0; i < nNodes; i++ )
-  // {
-  //   std::printf("%.5f\n", Um[i]);
-  // }
+
   MatMul( nNodes, 1, nNodes, 1.0, P, 
     nNodes, Um, 1, 1.0, tmp, 1 );
 
   MatMul( nNodes, 1, nNodes, 1.0, K_inv, 
     nNodes, tmp, 1, 1.0, result, 1 );
-  // for ( int i = 0; i < nNodes; i++ )
-  // {
-  //   std::printf("%.5f\n", result[i]);
-  // }
-  // throw Error("First Mult Modal to Nodal\n");
+
   delete [] tmp;
 
 }
