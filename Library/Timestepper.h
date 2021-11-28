@@ -1,7 +1,7 @@
 #ifndef TIMESTEPPER_H
 #define TIMESTEPPER_H
 
-typedef void myFuncType (DataStructure3D&, GridStructure&, 
+typedef void myFuncType (DataStructure3D&, GridStructure&, ModalBasis&,
   DataStructure3D&, DataStructure3D&, DataStructure2D&, 
   DataStructure2D&, DataStructure2D&, std::vector<double>&, 
   std::vector<double>&, std::vector<double>, std::vector<double>,
@@ -13,7 +13,7 @@ void InitializeTimestepper( const unsigned short int nStages,
   std::vector<DataStructure3D>& U_s, std::vector<DataStructure3D>& dU_s );
 
 void UpdateFluid( myFuncType ComputeIncrement, double dt, 
-  DataStructure3D& U, GridStructure& Grid, 
+  DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
   DataStructure2D& a_jk, DataStructure2D& b_jk,
   std::vector<DataStructure3D>& U_s, std::vector<DataStructure3D>& dU_s,
   DataStructure3D& dU, DataStructure3D& SumVar, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 

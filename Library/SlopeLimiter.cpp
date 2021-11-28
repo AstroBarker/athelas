@@ -5,6 +5,7 @@
  * Author   : Brandon L. Barker
  * Purpose  : Classes for slope limters
  * Contains : SlopeLimiter
+ * TODO: Properly switch to purely modal basis.
 **/ 
 
 #include <iostream>
@@ -69,11 +70,11 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int numNodes, double S
 
   // Mass matrix and inverse
 
-  for ( unsigned int i = 0; i < nNodes; i++ )
-  {
-    P[i+nNodes*i] = 1.0 / ( 2.0*i + 1 );
-    P_inv[i+nNodes*i] = ( 2.0*i + 1 );  
-  }
+  // for ( unsigned int i = 0; i < nNodes; i++ )
+  // {
+  //   P[i+nNodes*i] = 1.0 / ( 2.0*i + 1 );
+  //   P_inv[i+nNodes*i] = ( 2.0*i + 1 );  
+  // }
 
   // Hold nodes
   double* Nodes     = new double[nNodes];
@@ -83,20 +84,20 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int numNodes, double S
   }
   
   // Mapping matrix K = \int \ell(x) P(x)
-  double x = 0.0;
-  for ( unsigned int i = 0; i < nNodes; i++ )
-  for ( unsigned int j = 0; j < nNodes; j++ )
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
-  {
-    x = Grid.Get_Nodes( iN );
-    K[i+nNodes*j]     += Grid.Get_Weights( iN ) * Legendre( j, x )
-                      * Lagrange( nNodes, x, i, Nodes ); 
-    K_inv[i+nNodes*j] += Grid.Get_Weights( iN ) * Legendre( j, x ) 
-                      * Lagrange( nNodes, x, i, Nodes );
-  }
+  // double x = 0.0;
+  // for ( unsigned int i = 0; i < nNodes; i++ )
+  // for ( unsigned int j = 0; j < nNodes; j++ )
+  // for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  // {
+  //   x = Grid.Get_Nodes( iN );
+  //   K[i+nNodes*j]     += Grid.Get_Weights( iN ) * Legendre( j, x )
+  //                     * Lagrange( nNodes, x, i, Nodes ); 
+  //   K_inv[i+nNodes*j] += Grid.Get_Weights( iN ) * Legendre( j, x ) 
+  //                     * Lagrange( nNodes, x, i, Nodes );
+  // }
 
   // Invert K
-  InvertMatrix( K_inv, nNodes );
+  // InvertMatrix( K_inv, nNodes );
 
   // -- Free Memory ---
   delete [] Nodes;

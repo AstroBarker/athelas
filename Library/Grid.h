@@ -14,10 +14,13 @@
  * TODO: Convert Grid to vectors.
 **/ 
 
-#include "QuadratureLibrary.h"
-#include "DataStructures.h"
+#include <iostream>
 #include <algorithm>    // std::copy
 #include <vector>
+
+#include "QuadratureLibrary.h"
+#include "DataStructures.h"
+#include "Error.h"
 
 class GridStructure
 {

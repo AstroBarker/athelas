@@ -3,7 +3,7 @@
  * --------------
  *
  * Author  : Brandon L. Barker
- * Purpose : Primary driver routine
+ * Purpose : Main driver routine
 **/  
 
 #include <iostream>
@@ -51,8 +51,6 @@ int main( int argc, char* argv[] )
   DataStructure3D uAF( 3, nX + 2*nGuard, nNodes );
   DataStructure3D D( 2, nX + 2*nGuard, nNodes );
 
-  // --- Datastructure for modal basis ---
-  DataStructure3D BasisPhi( nX, nNodes + 2, order ); // TODO: Do  I swap the first two dims?
   // --- Data Structures needed for update step ---
 
   DataStructure3D dU( 3, nX + 2*nGuard, nNodes );
@@ -81,8 +79,8 @@ int main( int argc, char* argv[] )
   Grid.ComputeMass( uPF );
   Grid.ComputeCenterOfMass( uPF );
 
-  // --- Initialize the modal basis ---
-  InitializeTaylorBasis( BasisPhi, uPF, Grid, order, nNodes );
+  // --- Datastructure for modal basis ---
+  ModalBasis Basis( uPF, Grid, order, nNodes, nX, nGuard );
 
   // --- Initialize timestepper ---
   DataStructure2D a_jk(nStages, nStages);
@@ -114,7 +112,7 @@ int main( int argc, char* argv[] )
   // --- Evolution loop ---
   unsigned int iStep = 0;
   std::cout << "Step\tt\tdt" << std::endl;
-  while( t < t_end && iStep  >=0 && false )//25
+  while( t < t_end && iStep  < 1 )//25
   {
 
     dt = ComputeTimestep_Fluid( uCF, Grid, CFL ); // Next: ComputeTimestep
@@ -128,7 +126,7 @@ int main( int argc, char* argv[] )
 
     std::printf( "%d \t %.5e \t %.5e\n", iStep, t, dt );
 
-    UpdateFluid( Compute_Increment_Explicit, dt, uCF,  Grid, a_jk,  b_jk,
+    UpdateFluid( Compute_Increment_Explicit, dt, uCF,  Grid, Basis, a_jk,  b_jk,
                  U_s,  dU_s, dU,  SumVar, Flux_q,  dFlux_num, uCF_F_L,  uCF_F_R,  
                  Flux_U, Flux_P,  uCF_L,  uCF_R, nStages, D, S_Limiter, "Homogenous" );
 

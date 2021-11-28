@@ -73,7 +73,7 @@ void InitializeTimestepper( const unsigned short int nStages,
 **/
 
 void UpdateFluid( myFuncType ComputeIncrement, double dt, 
-  DataStructure3D& U, GridStructure& Grid, 
+  DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
   DataStructure2D& a_jk, DataStructure2D& b_jk,
   std::vector<DataStructure3D>& U_s, std::vector<DataStructure3D>& dU_s,
   DataStructure3D& dU, DataStructure3D& SumVar, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 
@@ -103,7 +103,7 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
     
     for ( unsigned int j = 0; j < iS; j++ )
     {
-      ComputeIncrement( U_s[j], Grid, dU_s[j], Flux_q, dFlux_num, uCF_F_L, uCF_F_R, 
+      ComputeIncrement( U_s[j], Grid, Basis, dU_s[j], Flux_q, dFlux_num, uCF_F_L, uCF_F_R, 
                         Flux_U, Flux_P, uCF_L, uCF_R, BC );
 
       
@@ -119,15 +119,14 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
     }
     U_s[iS] = SumVar;
   
-    S_Limiter.ApplySlopeLimiter( U_s[iS], Grid, D );
-    Grid.UpdateGrid( U_s[iS], Flux_U, frac * dt );
     // S_Limiter.ApplySlopeLimiter( U_s[iS], Grid, D );
+    // Grid.UpdateGrid( U_s[iS], Flux_U, frac * dt );
     
   }
   
   U = U_s[nStages-0];
 
-  S_Limiter.ApplySlopeLimiter( U, Grid, D );
+  // S_Limiter.ApplySlopeLimiter( U, Grid, D );
 
   // Grid.UpdateGrid( U, Flux_U, dt ); // Might switch to this, but not both
 

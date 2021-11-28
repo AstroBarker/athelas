@@ -4,10 +4,10 @@
  *
  * Author   : Brandon L. Barker
  * Purpose  : Functions for polynomial basis
- *  Contains Lagrange and Legendre polynomials, arbitrary degree.
+ * Contains : Class for Taylor basis.
+ * Also  Lagrange, Legendre polynomials, arbitrary degree.
  *
- * TODO: Poly_Eval needs generalizing. 
- * TODO: Should we make a class out of this?
+ * TODO: Plenty of cleanup to be done. OrthoTaylor, handling of derivatives, and inner products.
 **/ 
 
 #include <iostream>
@@ -21,6 +21,25 @@
 #include "PolynomialBasis.h"
 #include "Error.h"
 
+
+/**
+ * Constructor creates necessary matrices and bases, etc.
+ * This has to be called after the problem is initialized.
+**/
+ModalBasis::ModalBasis( DataStructure3D& uPF, GridStructure& Grid, 
+  unsigned int nOrder, unsigned int nN, 
+  unsigned int nElements, unsigned int nGuard )
+  : nX(nElements), 
+    order(nN), 
+    nNodes(nN),
+    mSize( (nN)*(nN+2)*(nElements+2*nGuard) ),
+    MassMatrix(nN),
+    Phi( nElements + 2*nGuard, nN + 2, order ),
+    dPhi( nElements + 2*nGuard, nN + 2, order )
+{
+  InitializeTaylorBasis( uPF, Grid );
+}
+
 // *** Taylor Methods ***
 
 /** 
@@ -31,7 +50,7 @@
  * eta : coordinate
  * eta_c: center of mass
  **/
-double Taylor( unsigned int order, double eta, double eta_c )
+double ModalBasis::Taylor( unsigned int order, double eta, double eta_c )
 {
 
   if ( order < 0 ) throw Error("Please enter a valid polynomial order.\n");
@@ -52,6 +71,35 @@ double Taylor( unsigned int order, double eta, double eta_c )
 }
 
 
+/** 
+ * Return derivative of Taylor polynomial of given order
+ *
+ * Parameters:
+ * -----------
+ * eta : coordinate
+ * eta_c: center of mass
+ **/
+double ModalBasis::dTaylor( unsigned int order, double eta, double eta_c )
+{
+
+  if ( order < 0 ) throw Error("Please enter a valid polynomial order.\n");
+
+  // Handle constant and linear terms separately -- no need to exponentiate.
+  if ( order == 0 )
+  {
+    return 0.0;
+  }
+  else if ( order == 1 )
+  {
+    return 1.0;
+  }
+  else
+  {
+    return (order) * std::pow( eta - eta_c, order - 1 );
+  }
+}
+
+
 /**
  * Lagrangian inner product of functions f and g
  * Used in orthogonalization.
@@ -59,9 +107,8 @@ double Taylor( unsigned int order, double eta, double eta_c )
  * <f,g> = \sum_q \rho_q f_Q g_q j^0 w_q
  * TODO: Make InnerProduct functions cleaner????
 **/
-double InnerProduct( BasisFuncType f, DataStructure3D& Phi, 
-  unsigned int m, unsigned int n, unsigned int iX, unsigned int nNodes, 
-  double eta_c, DataStructure3D& uPF, GridStructure& Grid )
+double ModalBasis::InnerProduct( unsigned int m, unsigned int n, 
+  unsigned int iX, double eta_c, DataStructure3D& uPF, GridStructure& Grid )
 {
   double result = 0.0;
   double eta_q = 0.0;
@@ -69,7 +116,7 @@ double InnerProduct( BasisFuncType f, DataStructure3D& Phi,
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     eta_q = Grid.Get_Nodes(iN);
-    result += f( m, eta_q, eta_c ) * Phi( iX, iN+1, n )
+    result += Taylor( m, eta_q, eta_c ) * Phi( iX, iN+1, n )
            * Grid.Get_Weights(iN) * uPF(0,iX,iN) * Grid.Get_Volume(iX);
   }
 
@@ -83,9 +130,8 @@ double InnerProduct( BasisFuncType f, DataStructure3D& Phi,
  * Computes < Phi_m, Phi_n >
  * <f,g> = \sum_q \rho_q f_Q g_q j^0 w_q
 **/
-double InnerProduct( DataStructure3D& Phi, 
-  unsigned int n, unsigned int iX, unsigned int nNodes, double eta_c,
-  DataStructure3D& uPF, GridStructure& Grid )
+double ModalBasis::InnerProduct( unsigned int n, unsigned int iX, 
+  double eta_c, DataStructure3D& uPF, GridStructure& Grid )
 {
   double result = 0.0;
 
@@ -100,18 +146,27 @@ double InnerProduct( DataStructure3D& Phi,
 
 
 // Gram-Schmidt orthogonalization to Taylor basis
-double OrthoTaylor( unsigned int order, unsigned int iX, double eta, double eta_c, DataStructure3D& Phi,
-  DataStructure3D& uPF, GridStructure& Grid )
+// TODO: OrthoTaylor: Clean up derivative options?
+double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX, 
+  double eta, double eta_c, DataStructure3D& uPF, GridStructure& Grid, 
+  bool derivative_option )
 {
 
   double result      = 0.0;
   double phi_n       = 0.0;
   double numerator   = 0.0;
 
-  double* denominator= new double[order]; // hold normalizations
+  double* denominator = new double[order]; // hold normalizations
 
-
-  result = Taylor( order, eta, eta_c );
+  // TODO: Can this be cleaned up?
+  if ( not derivative_option )
+  {
+    result = Taylor( order, eta, eta_c );
+  }
+  else
+  {
+    result = dTaylor( order, eta, eta_c );
+  }
 
   if ( order == 0 )
   {
@@ -125,9 +180,18 @@ double OrthoTaylor( unsigned int order, unsigned int iX, double eta, double eta_
   {
     for ( unsigned int i = 0; i < order; i++ )
     {
-      numerator   = InnerProduct( Taylor, Phi, order-i, order, iX, order, eta_c, uPF, Grid); // TODO: make sure order-i is correct for GS
-      denominator[i] = InnerProduct( Phi, i, iX, order, eta_c, uPF, Grid );
-      phi_n = Taylor( i, eta, eta_c );
+      numerator      = InnerProduct( order-i, order, iX, eta_c, uPF, Grid); // TODO: make sure order-i is correct for GS
+      denominator[i] = InnerProduct( i, iX, eta_c, uPF, Grid );
+      // TODO: Can this be cleaned up?
+      if ( not derivative_option )
+      {
+        phi_n = Taylor( i, eta, eta_c );
+      }
+      else
+      {
+        phi_n = dTaylor( order, eta, eta_c );
+      }
+      // phi_n   = Taylor( i, eta, eta_c );
       result -= ( numerator / denominator[i] ) * phi_n;
     }
   }
@@ -143,8 +207,9 @@ double OrthoTaylor( unsigned int order, unsigned int iX, double eta, double eta_
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
 **/
-void InitializeTaylorBasis( DataStructure3D& Phi, DataStructure3D& uPF,
-  GridStructure& Grid, unsigned int order, unsigned int nNodes )
+// TODO: Construct MassMatrix
+void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
+  GridStructure& Grid )
 {
   const unsigned int n_eta = order + 2;
   const unsigned int ilo   = Grid.Get_ilo();
@@ -159,7 +224,7 @@ void InitializeTaylorBasis( DataStructure3D& Phi, DataStructure3D& uPF,
     for ( unsigned int k = 0; k < order; k++ )
     for ( unsigned int i_eta = 0; i_eta < n_eta; i_eta++ )
     {
-
+      // face values
       if ( i_eta == 0 )
       {
         eta = -0.5;
@@ -168,15 +233,16 @@ void InitializeTaylorBasis( DataStructure3D& Phi, DataStructure3D& uPF,
       {
         eta = +0.5;
       }
-      else
+      else // GL nodes
       {
         eta = Grid.Get_Nodes(i_eta-1);
       }
 
-      Phi(iX, i_eta, k) = OrthoTaylor( k, iX, eta, eta_c, Phi, uPF, Grid );
+      Phi(iX, i_eta, k)  = OrthoTaylor( k, iX, eta, eta_c, uPF, Grid, false );
+      dPhi(iX, i_eta, k) = OrthoTaylor( k, iX, eta, eta_c, uPF, Grid, true );
     }
   }
-  CheckOrthogonality( Phi, uPF, Grid, order, nNodes );
+  CheckOrthogonality( uPF, Grid );
 }
 
 
@@ -184,8 +250,8 @@ void InitializeTaylorBasis( DataStructure3D& Phi, DataStructure3D& uPF,
  * The following checks orthogonality of basis functions on each cell. 
  * Returns error if orthogonality is not met.
 **/
-void CheckOrthogonality( DataStructure3D& Phi, DataStructure3D& uPF,
-  GridStructure& Grid, unsigned int order, unsigned int nNodes )
+void ModalBasis::CheckOrthogonality( DataStructure3D& uPF,
+  GridStructure& Grid )
 {
 
   const unsigned int ilo   = Grid.Get_ilo();
@@ -219,8 +285,8 @@ void CheckOrthogonality( DataStructure3D& Phi, DataStructure3D& uPF,
 /**
  * Evaluate (modal) basis on element iX for quantity iCF
 **/
-double BasisEval( DataStructure3D& U, DataStructure3D& Phi, 
-  unsigned int iX, unsigned int iCF, unsigned int i_eta, unsigned int order )
+double ModalBasis::BasisEval( DataStructure3D& U, 
+  unsigned int iX, unsigned int iCF, unsigned int i_eta )
 {
   double result = 0.0;
   for ( unsigned int k = 0; k < order; k++ )
@@ -230,13 +296,28 @@ double BasisEval( DataStructure3D& U, DataStructure3D& Phi,
   return result;
 }
 
-// *** Lagrange Methods ***
+
+// Accessor for Phi
+double ModalBasis::Get_Phi( unsigned int iX, unsigned int i_eta, unsigned int k )
+{
+  return Phi( iX, i_eta, k );
+}
+
+
+// Accessor for dPhi
+double ModalBasis::Get_dPhi( unsigned int iX, unsigned int i_eta, unsigned int k )
+{
+  return dPhi( iX, i_eta, k );
+}
+
+
+// *** Lagrange Methods *** [DEPRECIATED]
 
 /**
  * Permute node array. Used for passing to dLagrange.
  * Maybe not the best solution.
 **/
-void PermuteNodes( unsigned int nNodes, unsigned int iN, double* nodes )
+void ModalBasis::PermuteNodes( unsigned int nNodes, unsigned int iN, double* nodes )
 {
 
   // First, swap last and iN-th values
@@ -256,7 +337,7 @@ void PermuteNodes( unsigned int nNodes, unsigned int iN, double* nodes )
 
 
 // Lagrange interpolating polynomial
-double Lagrange
+double ModalBasis::Lagrange
        ( unsigned int nNodes, double x, unsigned int p, double* nodes )
 {
   double result = 1.0;
@@ -272,7 +353,7 @@ double Lagrange
 
 
 // Derivative of Lagrange polynomial
-double dLagrange
+double ModalBasis::dLagrange
        ( unsigned int nNodes, double x, double* nodes )
 {
   double denominator = 1.0;
@@ -303,7 +384,7 @@ double dLagrange
 
 
 // Legendre polynomials
-double Legendre( unsigned int nNodes, double x )
+double ModalBasis::Legendre( unsigned int nNodes, double x )
 {
 
   if ( nNodes == 0 )
@@ -339,7 +420,7 @@ double Legendre( unsigned int nNodes, double x )
 
 
 // Derivative of Legendre polynomials
-double dLegendre( unsigned int nNodes, double x )
+double ModalBasis::dLegendre( unsigned int nNodes, double x )
 {
 
   double dPn; // P_n
@@ -356,7 +437,7 @@ double dLegendre( unsigned int nNodes, double x )
 
 
 // Evaluate interpolating polynomial at a point
-double Poly_Eval( unsigned int nNodes, double* nodes, double* data, double point )
+double ModalBasis::Poly_Eval( unsigned int nNodes, double* nodes, double* data, double point )
 {
 
   // TODO: Generalize this a bit in terms of a given basis, not just Lagrange

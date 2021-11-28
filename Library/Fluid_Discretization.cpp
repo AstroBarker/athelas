@@ -13,9 +13,9 @@
 #include "omp.h"
 
 #include "Error.h"
-#include "PolynomialBasis.h"
 #include "DataStructures.h"
 #include "Grid.h"
+#include "PolynomialBasis.h"
 #include "Fluid_Discretization.h"
 #include "BoundaryConditionsLibrary.h"
 #include "EquationOfStateLibrary_IDEAL.h"
@@ -23,8 +23,9 @@
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid, 
-  DataStructure3D& dU, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 
-  DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<double>& Flux_U, 
+  ModalBasis& Basis, DataStructure3D& dU, DataStructure3D& Flux_q, 
+  DataStructure2D& dFlux_num, DataStructure2D& uCF_F_L, 
+  DataStructure2D& uCF_F_R, std::vector<double>& Flux_U, 
   std::vector<double>& Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R )
 {
   // const unsigned int nX     = Grid.Get_nElements();
@@ -69,8 +70,8 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
       // if( iCF == 2 ) std::cout << iN << " " << tmp_L[iN] << " " << U(iCF, iX-1, iN) << std::endl;
     }
 
-    uCF_F_L(iCF, iX) = Poly_Eval( nNodes, Nodes, tmp_L, +0.5 );
-    uCF_F_R(iCF, iX) = Poly_Eval( nNodes, Nodes, tmp_R, -0.5 );
+    uCF_F_L(iCF, iX) = Basis.BasisEval( U, iX, iCF, nNodes + 1 );//Poly_Eval( nNodes, Nodes, tmp_L, +0.5 );
+    uCF_F_R(iCF, iX) = Basis.BasisEval( U, iX, iCF, 0 );
     // if ( iCF == 0) std::printf("%d %.18f %.18f %.18f %.18f %.18f\n", iX, uCF_F_L(iCF, iX), uCF_F_L(iCF, iX), tmp_L[0], tmp_L[1], tmp_L[2] );
   }
   
@@ -113,8 +114,9 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   for ( unsigned int iX  = ilo-0; iX <= ihi+0; iX++ )
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
-    Poly_L = Lagrange( nNodes, - 0.5, iN, Nodes );
-    Poly_R = Lagrange( nNodes, + 0.5, iN, Nodes );
+    // TODO: MODAL CHANGE - FIX HERE?
+    Poly_L = Basis.Get_Phi(iX, 0, iN);//Lagrange( nNodes, - 0.5, iN, Nodes );
+    Poly_R = Basis.Get_Phi(iX, nNodes+1, iN);
     
     dU(iCF,iX,iN) += - ( + dFlux_num(iCF,iX+1) * Poly_R 
                          - dFlux_num(iCF,iX+0) * Poly_L );
@@ -135,42 +137,19 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   for ( unsigned int iN  = 0; iN < nNodes; iN++ )
   {
     local_sum = 0.0;
-    PermuteNodes(nNodes, iN, Nodes);
+    // PermuteNodes(nNodes, iN, Nodes);
     for ( unsigned int i = 0; i < nNodes; i++ )
     {
       // X1 = Grid.NodeCoordinate(...)
+      // TODO: MODAL CHANGE - dPHI HERE
       local_sum += Grid.Get_Weights(i) * Flux_q(iCF,iX,i) 
-                * dLagrange( nNodes, Nodes2[i], Nodes );
+                * Basis.Get_dPhi( iX, iN+1, iN );
+                // * dLagrange( nNodes, Nodes2[i], Nodes );
     }
-    std::sort(Nodes, Nodes + nNodes);
+    // std::sort(Nodes, Nodes + nNodes);
 
     dU(iCF,iX,iN) += local_sum;
   }
-
-  // // TODO: Testing. 
-  // // --- Calculate interface velocities using cell averaged velocities 
-  // // Attempt use for Grid Update.
-  // std::vector<double> Weights(nNodes);
-  // for ( unsigned int iN = 0; iN < nNodes; iN++ )
-  // {
-  //   Weights[iN]   = Grid.Get_Weights( iN );
-  // }
-  // // --- Calc numerical flux at all faces
-  // for ( unsigned int iX = ilo; iX <= ihi+1; iX++ ) //TODO: Bounds correct?
-  // {
-  //   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-  //   {
-  //     uCF_L[iCF] = U.CellAverage( iCF, iX-1, nNodes, Weights );
-  //     uCF_R[iCF] = U.CellAverage( iCF, iX-0, nNodes, Weights );
-  //   }
-
-  //   P_L   = ComputePressureFromConserved_IDEAL( uCF_L[0], uCF_L[1], uCF_L[2] );
-  //   Cs_L  = ComputeSoundSpeedFromConserved_IDEAL( uCF_L[0], uCF_L[1], uCF_L[2] );
-  //   lam_L = Cs_L / uCF_L[0];
-
-  //   P_R   = ComputePressureFromConserved_IDEAL( uCF_R[0], uCF_R[1], uCF_R[2] );
-  //   Cs_R  = ComputeSoundSpeedFromConserved_IDEAL( uCF_R[0], uCF_R[1], uCF_R[2] );
-  //   lam_R = Cs_R / uCF_R[0];
 
   //   // --- Numerical Fluxes ---
 
@@ -201,10 +180,11 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
  * BC : (string) boundary condition type
 **/
 void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid, 
-  DataStructure3D& dU, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 
-  DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<double>& Flux_U, 
-  std::vector<double>& Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R,
-  const std::string BC )
+  ModalBasis& Basis, DataStructure3D& dU, DataStructure3D& Flux_q, 
+  DataStructure2D& dFlux_num, DataStructure2D& uCF_F_L, 
+  DataStructure2D& uCF_F_R, std::vector<double>& Flux_U, 
+  std::vector<double>& Flux_P, std::vector<double> uCF_L, 
+  std::vector<double> uCF_R, const std::string BC )
 {
 
   const unsigned int nNodes = Grid.Get_nNodes();
@@ -222,7 +202,7 @@ void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid,
   // --- First: Zero out dU. It is reused storage and we only increment it ---
   dU.zero();
 
-  ComputeIncrement_Fluid_Divergence( U, Grid, dU, Flux_q, dFlux_num, 
+  ComputeIncrement_Fluid_Divergence( U, Grid, Basis, dU, Flux_q, dFlux_num, 
     uCF_F_L, uCF_F_R, Flux_U, Flux_P, uCF_L, uCF_R );
 
   // ---
