@@ -214,6 +214,14 @@ void GridStructure::ComputeVolume(  )
     }
     Volume[iX] = vol;
   }
+
+  // Guard cells
+  for ( unsigned int iX = 0; iX < ilo; iX ++ )
+  {
+    Volume[ilo-1-iX] = Volume[ilo+iX];
+    Volume[ihi+1+iX] = Volume[ihi-iX];
+  }
+
 }
 
 
@@ -237,6 +245,13 @@ void GridStructure::ComputeMass( DataStructure3D& uPF )
     }
     Mass[iX] = mass;
   }
+
+  // Guard cells
+  for ( unsigned int iX = 0; iX < ilo; iX ++ )
+  {
+    Mass[ilo-1-iX] = Mass[ilo+iX];
+    Mass[ihi+1+iX] = Mass[ihi-iX];
+  }
 }
 
 
@@ -259,6 +274,13 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
       com += uPF(0,iX,iN) * Volume[iX] * Nodes[iN] * Weights[iN];
     }
     CenterOfMass[iX] = com / Mass[iX];
+  }
+
+  // Guard cells
+  for ( unsigned int iX = 0; iX < ilo; iX ++ )
+  {
+    CenterOfMass[ilo-1-iX] = CenterOfMass[ilo+iX];
+    CenterOfMass[ihi+1+iX] = CenterOfMass[ihi-iX];
   }
 }
 

@@ -50,7 +50,7 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF, GridStructure
       uCF(iCF_Tau, iX, iNodeX) = 0.0;
       uCF(iCF_V, iX, iNodeX)   = 0.0;
       uCF(iCF_E, iX, iNodeX)   = 0.0;
-
+      
       if ( X1 <= 0.5 )
       {
         if ( iNodeX == 0 )
@@ -61,7 +61,7 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF, GridStructure
         }
 
         uPF(iPF_D, iX, iNodeX) = D_L;
-      }else{
+      }else{ // right domain
         if ( iNodeX == 0 )
         {
           uCF(iCF_Tau, iX, 0) = 1.0 / D_R;
@@ -71,6 +71,12 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF, GridStructure
 
         uPF(iPF_D, iX, iNodeX) = D_R;
       }
+    }
+    // Fill density in guard cells
+    for ( unsigned int iX = 0; iX < ilo; iX++ )
+    {
+      uPF(0, ilo-1-iX, 0) = uPF(0, ilo+iX, 0);
+      uPF(0, ihi+1+iX, 0) = uPF(0, ihi-iX, 0);
     }
   }
   else if ( ProblemName == "MovingContact" )

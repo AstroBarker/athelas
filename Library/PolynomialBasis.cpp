@@ -33,7 +33,7 @@ ModalBasis::ModalBasis( DataStructure3D& uPF, GridStructure& Grid,
     order(nN), 
     nNodes(nN),
     mSize( (nN)*(nN+2)*(nElements+2*nGuard) ),
-    MassMatrix(nN),
+    MassMatrix( nElements + 2*nGuard, nN ),
     Phi( nElements + 2*nGuard, nN + 2, order ),
     dPhi( nElements + 2*nGuard, nN + 2, order )
 {
@@ -168,32 +168,21 @@ double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
     result = dTaylor( order, eta, eta_c );
   }
 
-  if ( order == 0 )
+  for ( unsigned int i = 0; i < order; i++ )
   {
-    result = 1.0;
-  }
-  else if ( order == 1 )
-  {
-    result = eta - eta_c;
-  }
-  else
-  {
-    for ( unsigned int i = 0; i < order; i++ )
+    numerator      = InnerProduct( order-i, order, iX, eta_c, uPF, Grid); // TODO: make sure order-i is correct for GS
+    denominator[i] = InnerProduct( i, iX, eta_c, uPF, Grid );
+    // ? Can this be cleaned up?
+    if ( not derivative_option )
     {
-      numerator      = InnerProduct( order-i, order, iX, eta_c, uPF, Grid); // TODO: make sure order-i is correct for GS
-      denominator[i] = InnerProduct( i, iX, eta_c, uPF, Grid );
-      // TODO: Can this be cleaned up?
-      if ( not derivative_option )
-      {
-        phi_n = Taylor( i, eta, eta_c );
-      }
-      else
-      {
-        phi_n = dTaylor( order, eta, eta_c );
-      }
-      // phi_n   = Taylor( i, eta, eta_c );
-      result -= ( numerator / denominator[i] ) * phi_n;
+      phi_n = Taylor( i, eta, eta_c );
     }
+    else
+    {
+      phi_n = dTaylor( order, eta, eta_c );
+    }
+    // phi_n   = Taylor( i, eta, eta_c );
+    result -= ( numerator / denominator[i] ) * phi_n;
   }
 
   delete [] denominator;
@@ -207,7 +196,6 @@ double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
 **/
-// TODO: Construct MassMatrix
 void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
   GridStructure& Grid )
 {
@@ -243,6 +231,28 @@ void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
     }
   }
   CheckOrthogonality( uPF, Grid );
+  ComputeMassMatrix( uPF, Grid );
+
+  // === Fill Guard cells ===
+
+  // ? Using identical basis in guard cells as boundaries ?
+  for ( unsigned int iX = 0; iX < ilo; iX ++ )
+  for ( unsigned int i_eta = 0; i_eta < n_eta; i_eta++)
+  for ( unsigned int k = 0; k < order; k++ )
+  {
+    Phi(ilo-1-iX, i_eta, k) = Phi(ilo+iX, i_eta, k);
+    Phi(ihi+1+iX, i_eta, k) = Phi(ihi-iX, i_eta, k);
+
+    dPhi(ilo-1-iX, i_eta, k) = dPhi(ilo+iX, i_eta, k);
+    dPhi(ihi+1+iX, i_eta, k) = dPhi(ihi-iX, i_eta, k);
+  }
+
+  for ( unsigned int iX = 0; iX < ilo; iX ++ )
+  for ( unsigned int k = 0; k < order; k++ )
+  {
+    MassMatrix(ilo-1-iX, k) = MassMatrix(ilo+iX, k);
+    MassMatrix(ihi+1+iX, k) = MassMatrix(ihi-iX, k);
+  }
 }
 
 
@@ -283,6 +293,40 @@ void ModalBasis::CheckOrthogonality( DataStructure3D& uPF,
 
 
 /**
+ * Computes \int \rho \phi_m \phi_m dw on each cell
+ * TODO: Extend mass matrix to more nodes
+ * ? Do I need more integration nodes for the mass matrix? ?
+ * ? If so, how do I expand this ?
+ * ? I would need to compute and store more GL nodes, weights ?
+**/
+void ModalBasis::ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid )
+{
+  const unsigned int ilo = Grid.Get_ilo();
+  const unsigned int ihi = Grid.Get_ihi();
+  const unsigned int nNodes = Grid.Get_nNodes();
+
+  // double eta_c = 0.0;
+
+  double result = 0.0;
+
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  {
+    // eta_c  = Grid.Get_CenterOfMass( iX );
+    for ( unsigned int k = 0; k < order; k++ )
+    {
+      result = 0.0;
+      for ( unsigned int iN = 0; iN < nNodes; iN++ )
+      {
+        result += uPF(0,iX,iN) * Phi( iX, iN+1, k ) * Phi( iX, iN+1, k ) 
+               * Grid.Get_Volume(iX);
+      }
+      MassMatrix(iX,k) = result;
+    }
+  }
+}
+
+
+/**
  * Evaluate (modal) basis on element iX for quantity iCF
 **/
 double ModalBasis::BasisEval( DataStructure3D& U, 
@@ -308,6 +352,13 @@ double ModalBasis::Get_Phi( unsigned int iX, unsigned int i_eta, unsigned int k 
 double ModalBasis::Get_dPhi( unsigned int iX, unsigned int i_eta, unsigned int k )
 {
   return dPhi( iX, i_eta, k );
+}
+
+
+// Accessor for mass matrix
+double ModalBasis::Get_MassMatrix( unsigned int iX, unsigned int k )
+{
+  return MassMatrix( iX, k );
 }
 
 

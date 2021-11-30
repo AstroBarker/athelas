@@ -120,7 +120,7 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
     U_s[iS] = SumVar;
   
     // S_Limiter.ApplySlopeLimiter( U_s[iS], Grid, D );
-    // Grid.UpdateGrid( U_s[iS], Flux_U, frac * dt );
+    Grid.UpdateGrid( U_s[iS], Flux_U, frac * dt );
     
   }
   

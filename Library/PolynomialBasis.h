@@ -39,9 +39,11 @@ class ModalBasis
   void CheckOrthogonality( DataStructure3D& uPF, GridStructure& Grid );
   double BasisEval( DataStructure3D& U, unsigned int iX, unsigned int iCF, 
     unsigned int i_eta );
+  void ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid );
 
   double Get_Phi( unsigned int iX, unsigned int i_eta, unsigned int k );
   double Get_dPhi( unsigned int iX, unsigned int i_eta, unsigned int k );
+  double Get_MassMatrix( unsigned int iX, unsigned int k );
 
   void PermuteNodes( unsigned int nNodes, unsigned int iN, double* nodes );
   double Lagrange ( unsigned int nNodes, double x, unsigned int p, double* nodes );
@@ -57,7 +59,7 @@ private:
   unsigned int nNodes;
   unsigned int mSize;
 
-  std::vector<double> MassMatrix;
+  DataStructure2D MassMatrix;
 
   DataStructure3D Phi;
   DataStructure3D dPhi;

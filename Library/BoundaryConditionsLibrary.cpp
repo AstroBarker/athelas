@@ -59,7 +59,7 @@ void ApplyBC_Fluid( DataStructure3D& uCF, GridStructure& Grid, const std::string
   }
   else if ( BC == "Periodic" )
   {
-    // put this in
+    // TODO: Implement periodic BCs
   }
   else
   {
@@ -67,8 +67,8 @@ void ApplyBC_Fluid( DataStructure3D& uCF, GridStructure& Grid, const std::string
     for ( unsigned int iX = 0; iX < ilo; iX ++ )
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      uCF(iCF, ilo-1-iX, nNodes - iN - 1) = uCF(iCF, ilo+iX, iN);
-      uCF(iCF, ihi+1+iX, nNodes - iN - 1) = uCF(iCF, ihi-iX, iN);
+      uCF(iCF, ilo-1-iX, iN) = uCF(iCF, ilo+iX, iN);
+      uCF(iCF, ihi+1+iX, iN) = uCF(iCF, ihi-iX, iN);
     }
 
   }

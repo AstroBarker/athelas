@@ -27,7 +27,7 @@ int main( int argc, char* argv[] )
   const std::string ProblemName = "Sod";
 
   const unsigned int nX            = 200;
-  const unsigned int order         = 2;
+  const unsigned int order         = 1;
   const unsigned int nNodes        = order;
   const unsigned short int nStages = 3;
 
@@ -112,12 +112,10 @@ int main( int argc, char* argv[] )
   // --- Evolution loop ---
   unsigned int iStep = 0;
   std::cout << "Step\tt\tdt" << std::endl;
-  while( t < t_end && iStep  < 1 )//25
+  while( t < t_end  )//25
   {
 
     dt = ComputeTimestep_Fluid( uCF, Grid, CFL ); // Next: ComputeTimestep
-    // dt = 0.00001;
-    // std::cout << iStep << "\t" << t << "\t" << dt << std::endl;
 
     if ( t + dt > t_end )
     {
