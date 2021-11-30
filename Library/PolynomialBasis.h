@@ -29,8 +29,8 @@ class ModalBasis
   double Taylor( unsigned int order, double eta, double eta_c );
   double dTaylor( unsigned int order, double eta, double eta_c );
   double OrthoTaylor( unsigned int order, unsigned int iX, 
-    double eta, double eta_c, DataStructure3D& uPF, GridStructure& Grid, 
-    bool derivative_option );
+    unsigned int i_eta, double eta, double eta_c, DataStructure3D& uPF, 
+    GridStructure& Grid, bool derivative_option );
   double InnerProduct( unsigned int n, unsigned int iX, 
     double eta_c, DataStructure3D& uPF, GridStructure& Grid );
   double InnerProduct( unsigned int m, unsigned int n, 

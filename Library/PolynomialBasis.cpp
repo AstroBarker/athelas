@@ -116,7 +116,7 @@ double ModalBasis::InnerProduct( unsigned int m, unsigned int n,
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     eta_q = Grid.Get_Nodes(iN);
-    result += Taylor( m, eta_q, eta_c ) * Phi( iX, iN+1, n )
+    result += Taylor( n, eta_q, eta_c ) * Phi( iX, iN+1, m )
            * Grid.Get_Weights(iN) * uPF(0,iX,iN) * Grid.Get_Volume(iX);
   }
 
@@ -148,8 +148,8 @@ double ModalBasis::InnerProduct( unsigned int n, unsigned int iX,
 // Gram-Schmidt orthogonalization to Taylor basis
 // TODO: OrthoTaylor: Clean up derivative options?
 double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX, 
-  double eta, double eta_c, DataStructure3D& uPF, GridStructure& Grid, 
-  bool derivative_option )
+  unsigned int i_eta, double eta, double eta_c, DataStructure3D& uPF, 
+  GridStructure& Grid, bool derivative_option )
 {
 
   double result      = 0.0;
@@ -170,16 +170,16 @@ double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
 
   for ( unsigned int i = 0; i < order; i++ )
   {
-    numerator      = InnerProduct( order-i, order, iX, eta_c, uPF, Grid); // TODO: make sure order-i is correct for GS
+    numerator      = InnerProduct( order-i-1, order, iX, eta_c, uPF, Grid); // TODO: make sure order-i is correct for GS
     denominator[i] = InnerProduct( i, iX, eta_c, uPF, Grid );
     // ? Can this be cleaned up?
     if ( not derivative_option )
     {
-      phi_n = Taylor( i, eta, eta_c );
+      phi_n = Phi(iX, i_eta, i);//Taylor( i, eta, eta_c );
     }
     else
     {
-      phi_n = dTaylor( order, eta, eta_c );
+      phi_n = dPhi(iX, i_eta, i);//dTaylor( order, eta, eta_c );
     }
     // phi_n   = Taylor( i, eta, eta_c );
     result -= ( numerator / denominator[i] ) * phi_n;
@@ -226,8 +226,8 @@ void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
         eta = Grid.Get_Nodes(i_eta-1);
       }
 
-      Phi(iX, i_eta, k)  = OrthoTaylor( k, iX, eta, eta_c, uPF, Grid, false );
-      dPhi(iX, i_eta, k) = OrthoTaylor( k, iX, eta, eta_c, uPF, Grid, true );
+      Phi(iX, i_eta, k)  = OrthoTaylor( k, iX, i_eta, eta, eta_c, uPF, Grid, false );
+      dPhi(iX, i_eta, k) = OrthoTaylor( k, iX, i_eta, eta, eta_c, uPF, Grid, true );
     }
   }
   CheckOrthogonality( uPF, Grid );
