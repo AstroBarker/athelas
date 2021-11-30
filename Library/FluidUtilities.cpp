@@ -86,8 +86,7 @@ void NumericalFlux_HLL( double tauL, double tauR, double vL, double vR,
     double am = std::max( std::max( 0.0, - zL ), - zR );
     double ap = std::max( std::max( 0.0, + zL ), + zR );
 
-    // f = (zR * Flux_Fluid( vL, pL) + zL * Flux_Fluid( vR, pR) - zL*zR \
-    //   * ( uR - uL ) ) / (zL + zR)
+    // f = (zR * Flux_Fluid( vL, pL) + zL * Flux_Fluid( vR, pR) - zL*zR * ( uR - uL ) ) / (zL + zR)
 
     out = (ap * Flux_Fluid( vL, pL, iCF ) + am * Flux_Fluid( vR, pR, iCF ) - am*ap * (uR-uL) ) / ( am + ap );
 }
