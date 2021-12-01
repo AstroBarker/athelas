@@ -1,6 +1,8 @@
 #ifndef FLUIDUTILITIES_H
 #define FLUIDUTILITIES_H
 
+void ComputePrimitiveFromConserved( DataStructure3D& uCF, 
+  DataStructure3D& uPF, ModalBasis& Basis, GridStructure& Grid );
 double Flux_Fluid( double V, double P, unsigned int iCF );
 double Fluid( double Tau, double V, double Em_T, int iCF );
 void NumericalFlux_Gudonov( double vL, double vR, double pL, double pR, 

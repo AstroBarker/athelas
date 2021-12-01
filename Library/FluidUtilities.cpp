@@ -12,11 +12,50 @@
 #include <algorithm>    // std::min, std::max
 
 #include "Error.h"
-#include "DataStructures.h"
 #include "Grid.h"
+#include "PolynomialBasis.h"
+#include "DataStructures.h"
 #include "EquationOfStateLibrary_IDEAL.h"
+#include "FluidUtilities.h"
+
+/**
+ * Compute the primitive quantities (density, momemtum, energy density)
+ * from conserved quantities. Primitive quantities are stored at Gauss-Legendre
+ * nodes.
+**/
+void ComputePrimitiveFromConserved( DataStructure3D& uCF, 
+  DataStructure3D& uPF, ModalBasis& Basis, GridStructure& Grid )
+{
+  const unsigned int nNodes = Grid.Get_nNodes();
+  const unsigned int ilo    = Grid.Get_ilo();
+  const unsigned int ihi    = Grid.Get_ihi();
+
+  double Tau = 0.0;
+  double Vel = 0.0;
+  double EmT = 0.0;
+
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  {
+    // Density
+    Tau = Basis.BasisEval( uCF, 0, iX, iN+1 );
+    uPF(0,iX,iN) = 1.0 / Tau;
+
+    // Momentum
+    Vel = Basis.BasisEval( uCF, 1, iX, iN+1 );
+    uPF(1,iX,iN) = uPF(0,iX,iN) * Vel;
+
+    // Specific Total Energy
+    EmT = Basis.BasisEval( uCF, 2, iX, iN+1 );
+    uPF(2,iX,iN) = EmT / Tau;
+  }
 
 
+}
+
+
+// Fluid vector. 
+// * [UNUSED] *
 double Fluid( double Tau, double V, double Em_T, int iCF )
 {
   if ( iCF == 0 )
@@ -57,7 +96,7 @@ double Flux_Fluid( double V, double P, unsigned int iCF )
   }
   else{ // Error case. Shouldn't ever trigger.
     throw Error("Please input a valid iCF! (0,1,2). ");
-    return -1; // just a formality.
+    return -1.0; // just a formality.
   }
 }
 
