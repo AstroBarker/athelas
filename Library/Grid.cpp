@@ -13,7 +13,8 @@
 
 #include "Grid.h"
 
-GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG, double left, double right )
+GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nS,
+  unsigned int nG, double left, double right )
   : nElements(nX),
     nNodes(nN),
     nGhost(nG),
@@ -22,11 +23,13 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
     xR(right),
     Nodes(nNodes),
     Weights(nNodes),
-    Centers(mSize),
-    Widths(mSize),
+    Centers(mSize, 0.0),
+    Widths(mSize, 0.0),
+    Work(mSize, 0.0),
     Mass(mSize, 0.0),
     Volume(mSize, 0.0),
     CenterOfMass(mSize, 0.0),
+    StageData(nS + 1, std::vector<double>(nX + 2*nG + 1,0.0)),
     Grid(mSize*nNodes, 0.0)
 {
   double* tmp_nodes   = new double[nNodes];
@@ -241,8 +244,9 @@ void GridStructure::ComputeMass( DataStructure3D& uPF )
     mass = 0.0;
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      mass += uPF(0,iX,iN) * Volume[iX] * Weights[iN];
+      mass += uPF(0,iX,0) * Weights[iN]; // TODO: Density in Compute Mass
     }
+    mass *= Volume[iX];
     Mass[iX] = mass;
   }
 
@@ -271,8 +275,9 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
     com = 0.0;
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      com += uPF(0,iX,iN) * Volume[iX] * Nodes[iN] * Weights[iN];
+      com += uPF(0,iX,0) * Nodes[iN] * Weights[iN]; // TODO: Density in COM
     }
+    com *= Volume[iX];
     CenterOfMass[iX] = com / Mass[iX];
   }
 
@@ -288,83 +293,72 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
 /**
  * Update grid coordinates using interface and nodal velocities.
 **/
-void GridStructure::UpdateGrid( DataStructure3D& U,
-                 std::vector<double>& Flux_U, double dt )
+void GridStructure::UpdateGrid( unsigned int nStages, unsigned int iS,
+  DataStructure2D& a_jk, DataStructure2D& b_jk,
+  std::vector<std::vector<double>>& Flux_U, double dt )
 {
 
-  const unsigned int nNodes = Get_nNodes();
+  // const unsigned int nNodes = Get_nNodes();
   const unsigned int ilo    = Get_ilo();
   const unsigned int ihi    = Get_ihi();
 
-  double dx_L = 0.0; // Left interfact of element
-  double dx_R = 0.0; // Right interface of element
-  double dx   = 0.0; // Cumulative change
+  unsigned short int i = iS - 1;
 
-  double Vel_Avg = 0.0;
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  // Clear sum variable
+  for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
   {
+    Work[iX] = 0.0;
+  }
 
-    // --- Update Cell Widths ---
-
-    if ( Flux_U[iX]+1.0 == 1.0 && Flux_U[iX+1]+1.0 == 1.0 ) 
+  if ( iS == 1 )
+  {
+    // StageData holds left interface positions
+    for ( unsigned int iX = ilo; iX <= ihi+1; iX++ )
     {
-      continue;
+      StageData[0][iX] = Centers[iX] - Widths[iX] / 2.0;
+    }
+  }
+
+  for ( unsigned int j = 0; j < iS; j++ )
+  {
+    for ( unsigned int iX = ilo; iX <= ihi+1; iX++ )
+    {
+      Work[iX] += a_jk(i,j) * StageData[j][iX]
+               + dt * b_jk(i,j) * Flux_U[j][iX];
+      // std::printf("%d %f \n", iS, Flux_U[j][iX]);
+    }
+  }
+  StageData[iS] = Work;
+  // Update Volume 
+
+  if ( iS == nStages )
+  {
+    // Data = StageData[iS]
+    xR = StageData[iS][nElements + 2*nGhost];
+    xL = StageData[iS][ilo];
+    
+    for ( unsigned int iX = 0; iX <= ihi; iX++ )
+    {
+      Widths[iX]  = StageData[iS][iX+1] - StageData[iS][iX];
     }
 
-    dx_L = + Flux_U[iX] * dt;
-    dx_R = + Flux_U[iX+1] * dt; // TODO: Make sure this isn't accessing bad data
-    // Combine the changes in interface coordinates
-    // Left compression, right expansion
-    if ( dx_L >= 0.0 && dx_R >= 0.0 )
+    Centers[ilo] = xL + 0.5 * Widths[ilo];
+    for ( unsigned int iX = ilo+1; iX <= ihi; iX++ )
     {
-      dx = dx_R - dx_L;
-    }
-    // Left expasion, right compression
-    else if ( dx_L <= 0.0 && dx_R <= 0.0 )
-    {
-      dx = std::abs(dx_L) - std::abs(dx_R);
-    }
-    // dual expansion
-    else if ( dx_L <= 0.0 && dx_R >= 0.0 )
-    {
-      dx = std::abs(dx_L) + dx_R;
-    }
-    // dual compression
-    else if ( dx_L >= 0.0 && dx_R <= 0.0 )
-    {
-      dx = dx_R - dx_L;
-    }
-    // Unknown behavior, throw an error. Shouldn't occur.
-    else
-    {
-      std::printf(" V_L, V_R, dx_L, dx_R: %.5e %.5e %.5e %.5e\n", 
-        Flux_U[iX], Flux_U[iX+1], dx_L, dx_R);
-      std::printf("Cell: %d\n", iX);
-      throw Error("Unknown behavior encountered in Grid Update.");
+      Centers[iX] = Centers[iX-1] + Widths[iX-1];
+      // std::printf("%d %f \n", iS, Centers[iX]);
     }
 
-    // Given dx, update the current cell width.
-    Widths[iX] += dx;
-
-    // --- Update Nodal Values ---
-
-    std::vector<double> Weights(nNodes);
-    for ( unsigned int iN = 0; iN < nNodes; iN++ )
+    for ( int iX = ilo-1; iX >= 0; iX-- )
     {
-      Weights[iN] = Get_Weights( iN );
+      Centers[iX] = Centers[iX+1] - Widths[iX+1];
+    }
+    for ( unsigned int iX = ihi+1; iX < nElements + nGhost + 1; iX++ )
+    {
+      Centers[iX] = Centers[iX-1] + Widths[iX-1];
     }
 
-    Vel_Avg = U( 1, iX, 0 );
-
-    for ( unsigned int iN = 0; iN < nNodes; iN++ )
-    {
-      // grid update -- nodal
-      // Grid[iX * nNodes + iN] += Vel_Avg * dt;     
-      Grid[iX * nNodes + iN] += Vel_Avg * dt;      
-    }
-
-    // --- Update cell centers ---
-    Centers[iX] += Vel_Avg * dt; // = CellAverage( iX );
+    // TODO: Update Nodal Positions.
 
   }
 }

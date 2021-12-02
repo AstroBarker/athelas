@@ -40,10 +40,10 @@ int main( int argc, char* argv[] )
   double dt          = 0.0;
   const double t_end = 0.2;
 
-  const double CFL = 0.4 / ( 1.0 * ( 2.0 * ( nNodes ) - 1.0 ) );
+  const double CFL = 0.35 / ( 1.0 * ( 2.0 * ( nNodes ) - 1.0 ) );
 
   // --- Create the Grid object ---
-  GridStructure Grid( nNodes, nX, nGuard, xL, xR );
+  GridStructure Grid( nNodes, nX, nStages, nGuard, xL, xR );
 
   // --- Create the data structures ---
   DataStructure3D uCF( 3, nX + 2*nGuard, nNodes );
@@ -60,7 +60,9 @@ int main( int argc, char* argv[] )
   DataStructure2D uCF_F_L( 3, nX + 2*nGuard );
   DataStructure2D uCF_F_R( 3, nX + 2*nGuard );
 
-  std::vector<double> Flux_U(nX + 2*nGuard + 1, 0.0);
+  // std::vector<double> Flux_U(nX + 2*nGuard + 1, 0.0);
+  std::vector<std::vector<double>> Flux_U(nStages + 1, 
+    std::vector<double>(nX + 2*nGuard + 1,0.0));
   std::vector<double> Flux_P(nX + 2*nGuard + 1, 0.0);
   std::vector<double> uCF_L(3, 0.0);
   std::vector<double> uCF_R(3, 0.0);
@@ -96,10 +98,10 @@ int main( int argc, char* argv[] )
   
   // Slope limiter things
   const double Beta_TVD = 1.0;
-  const double Beta_TVB = 1.0;
+  const double Beta_TVB = 0.0;
   const double SlopeLimiter_Threshold = 1e-6;
   const double TCI_Threshold = 0.05;
-  const bool CharacteristicLimiting_Option = true;
+  const bool CharacteristicLimiting_Option = false;
   const bool TCI_Option = false;
   // --- Initialize Slope Limiter ---
   
@@ -107,15 +109,16 @@ int main( int argc, char* argv[] )
     CharacteristicLimiting_Option, TCI_Option, TCI_Threshold );
 
   // Limit the initial conditions
-  // S_Limiter.ApplySlopeLimiter( uCF, Grid, D );
+  S_Limiter.ApplySlopeLimiter( uCF, Grid, D );
 
   // --- Evolution loop ---
   unsigned int iStep = 0;
   std::cout << "Step\tt\tdt" << std::endl;
-  while( t < t_end  )//25
+  while( t < t_end && iStep < 100 )
   {
 
     dt = ComputeTimestep_Fluid( uCF, Grid, CFL ); // Next: ComputeTimestep
+    // dt = 0.0000005;
 
     if ( t + dt > t_end )
     {

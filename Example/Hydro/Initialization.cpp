@@ -14,13 +14,15 @@
 #include "DataStructures.h"
 #include "Grid.h"
 #include "Constants.h"
+#include "Initialization.h"
 
 /**
  * Initialize the conserved Fields for various problems.
  * Weird because of the modal basis for the conserved fields. 
  * TODO: For now I initialize constant on each cell. Is there a better way?
  **/
-void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF, GridStructure& Grid, const std::string ProblemName )
+void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF, 
+  GridStructure& Grid, const std::string ProblemName )
 {
   std::cout << " --- Initializing: " << ProblemName << " ---" << std::endl;
 
@@ -141,11 +143,11 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF, GridStructure
       }
       else
       {
-        uCF(iCF_Tau, iX, iNodeX) = 1.0 / (2.0 + Amp * sin( 2.0 * PI * X1 ));
+        uCF(iCF_Tau, iX, iNodeX) = 1.0 / (2.0 + Amp * sin( 2.0 * pi() * X1 ));
         uCF(iCF_V, iX, iNodeX)   = V0;
         uCF(iCF_E, iX, iNodeX)   = (P0 / 0.4) * uCF(iCF_Tau, iX, iNodeX) + 0.5 * V0*V0;
       }
-      uPF(iPF_D, iX, iNodeX) = (2.0 + Amp * sin( 2.0 * PI * X1 ));
+      uPF(iPF_D, iX, iNodeX) = (2.0 + Amp * sin( 2.0 * pi() * X1 ));
 
     }    
   }

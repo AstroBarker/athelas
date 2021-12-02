@@ -161,8 +161,9 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
   double eint_x = 0.0;
 
   // Hold cell centers (not updated with grid)
-  double r_np1 = 0.0; // r_{n+1}
-  double r_n   = 0.0; // r_{n}
+  // double r_np1 = 0.0; // r_{n+1}
+  // double r_n   = 0.0; // r_{n}
+  double dr    = 0.0;
 
   double dt1 = 0.0;
   double dt2 = 0.0;
@@ -176,14 +177,15 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
     vel_x  = U( 1, iX, 0 );
     eint_x = U( 2, iX, 0 );
 
-    r_n   = Grid.Get_Centers( iX );
-    r_np1 = Grid.Get_Centers( iX + 1 );
+    // r_n   = Grid.Get_Centers( iX );
+    // r_np1 = Grid.Get_Centers( iX + 1 );
+    dr    = Grid.Get_Widths( iX );
 
     Cs     = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
     eigval = Cs;
 
-    dt1 = std::abs( r_np1 - r_n ) / std::abs( eigval - vel_x );
-    dt2 = std::abs( r_np1 - r_n ) / std::abs( eigval + vel_x );
+    dt1 = std::abs( dr ) / std::abs( eigval - vel_x );
+    dt2 = std::abs( dr ) / std::abs( eigval + vel_x );
 
     dt = std::min( dt1, dt2 );
 

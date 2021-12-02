@@ -91,7 +91,7 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
     
     Poly_L = Basis.Get_Phi(iX, 0, iN);
     Poly_R = Basis.Get_Phi(iX, nNodes+1, iN);
-    
+    // std::printf("%d %f %f\n", iN, Poly_L, Poly_R);
     dU(iCF,iX,iN) += - ( + dFlux_num(iCF,iX+1) * Poly_R 
                          - dFlux_num(iCF,iX+0) * Poly_L );
     
@@ -110,8 +110,8 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   // double X1 = 0.0;
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   // #pragma omp parallel for simd collapse(2)
-  for ( unsigned int iX  = ilo-0; iX <= ihi+0; iX++ )
-  for ( unsigned int iN  = 0; iN < nNodes; iN++ )
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     local_sum = 0.0;
     // PermuteNodes(nNodes, iN, Nodes);
@@ -120,8 +120,8 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
       // X1 = Grid.NodeCoordinate(...)
       local_sum += Grid.Get_Weights(i) * Flux_q(iCF,iX,i) 
                 * Basis.Get_dPhi( iX, i+1, iN );
-                // * dLagrange( nNodes, Nodes2[i], Nodes );
     }
+    // std::printf("%d %d %f\n", iX, iN, local_sum);
     // std::sort(Nodes, Nodes + nNodes);
 
     dU(iCF,iX,iN) += local_sum;

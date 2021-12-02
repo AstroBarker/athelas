@@ -117,7 +117,7 @@ double ModalBasis::InnerProduct( unsigned int m, unsigned int n,
   {
     eta_q = Grid.Get_Nodes(iN);
     result += Taylor( n, eta_q, eta_c ) * Phi( iX, iN+1, m )
-           * Grid.Get_Weights(iN) * uPF(0,iX,iN) * Grid.Get_Volume(iX);
+           * Grid.Get_Weights(iN) * uPF(0,iX,0) * Grid.Get_Volume(iX);
   }
 
   return result;
@@ -138,7 +138,7 @@ double ModalBasis::InnerProduct( unsigned int n, unsigned int iX,
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     result += Phi( iX, iN+1, n )  * Phi( iX, iN+1, n ) 
-           * Grid.Get_Weights(iN) * uPF(0,iX,iN) * Grid.Get_Volume(iX);
+           * Grid.Get_Weights(iN) * uPF(0,iX,0) * Grid.Get_Volume(iX);
   }
 
   return result;
@@ -155,8 +155,7 @@ double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
   double result      = 0.0;
   double phi_n       = 0.0;
   double numerator   = 0.0;
-
-  double* denominator = new double[order]; // hold normalizations
+  double denominator = 0.0;
 
   // TODO: Can this be cleaned up?
   if ( not derivative_option )
@@ -168,24 +167,24 @@ double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
     result = dTaylor( order, eta, eta_c );
   }
 
+  if ( order == 0 || order == 1 ) return result;
+
   for ( unsigned int i = 0; i < order; i++ )
   {
-    numerator      = InnerProduct( order-i-1, order, iX, eta_c, uPF, Grid); // TODO: make sure order-i is correct for GS
-    denominator[i] = InnerProduct( i, iX, eta_c, uPF, Grid );
+    // std::printf("%d \n", order-i-1);
+    numerator   = InnerProduct( order-i-1, order, iX, eta_c, uPF, Grid); // TODO: make sure order-i is correct for GS
+    denominator = InnerProduct( order-i-1, iX, eta_c, uPF, Grid );
     // ? Can this be cleaned up?
     if ( not derivative_option )
     {
-      phi_n = Phi(iX, i_eta, i);//Taylor( i, eta, eta_c );
+      phi_n = Phi(iX, i_eta, order-i-1);//Taylor( i, eta, eta_c );
     }
     else
     {
-      phi_n = dPhi(iX, i_eta, i);//dTaylor( order, eta, eta_c );
+      phi_n = dPhi(iX, i_eta, order-i-1);//dTaylor( order, eta, eta_c );
     }
-    // phi_n   = Taylor( i, eta, eta_c );
-    result -= ( numerator / denominator[i] ) * phi_n;
+    result -= ( numerator / denominator ) * phi_n;
   }
-
-  delete [] denominator;
 
   return result;
 }
@@ -264,8 +263,8 @@ void ModalBasis::CheckOrthogonality( DataStructure3D& uPF,
   GridStructure& Grid )
 {
 
-  const unsigned int ilo   = Grid.Get_ilo();
-  const unsigned int ihi   = Grid.Get_ihi();
+  const unsigned int ilo = Grid.Get_ilo();
+  const unsigned int ihi = Grid.Get_ihi();
 
   double result = 0.0;
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
@@ -277,7 +276,7 @@ void ModalBasis::CheckOrthogonality( DataStructure3D& uPF,
     {
       // Not using an InnerProduct function because their API is odd.. 
       result += Phi( iX, i_eta, k1 ) * Phi( iX, i_eta, k2 ) 
-             * uPF(0,iX,i_eta-1) * Grid.Get_Weights(i_eta-1) 
+             * uPF(0,iX,0) * Grid.Get_Weights(i_eta-1)  // uPF( , , i_eta-1)
              * Grid.Get_Volume(iX);
     }
     if ( k1 == k2 && result == 0.0 )
@@ -301,8 +300,8 @@ void ModalBasis::CheckOrthogonality( DataStructure3D& uPF,
 **/
 void ModalBasis::ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid )
 {
-  const unsigned int ilo = Grid.Get_ilo();
-  const unsigned int ihi = Grid.Get_ihi();
+  const unsigned int ilo    = Grid.Get_ilo();
+  const unsigned int ihi    = Grid.Get_ihi();
   const unsigned int nNodes = Grid.Get_nNodes();
 
   // double eta_c = 0.0;
@@ -317,7 +316,7 @@ void ModalBasis::ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid )
       result = 0.0;
       for ( unsigned int iN = 0; iN < nNodes; iN++ )
       {
-        result += uPF(0,iX,iN) * Phi( iX, iN+1, k ) * Phi( iX, iN+1, k ) 
+        result += uPF(0,iX,0) * Phi( iX, iN+1, k ) * Phi( iX, iN+1, k ) 
                * Grid.Get_Volume(iX);
       }
       MassMatrix(iX,k) = result;

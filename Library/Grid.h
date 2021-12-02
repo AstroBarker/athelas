@@ -26,8 +26,8 @@ class GridStructure
 {
 public:
 
-  GridStructure( unsigned int nX, unsigned int nN, unsigned int nG, 
-    double left, double right );
+  GridStructure( unsigned int nX, unsigned int nN, unsigned int nS,
+    unsigned int nG, double left, double right );
   double NodeCoordinate( unsigned int iC, unsigned int iN ); // TODO: NodeCoordinate needs updating for modal
   double Get_Centers( unsigned int iC );
   double Get_Widths( unsigned int iC );
@@ -36,6 +36,7 @@ public:
   double Get_Volume( unsigned int iX );
   double Get_Mass( unsigned int iX );
   double Get_CenterOfMass( unsigned int iX );
+  
   int Get_Guard( );
   int Get_ilo( );
   int Get_ihi( );
@@ -46,8 +47,9 @@ public:
   double operator()( unsigned int i, unsigned int j ) const;
   void CreateGrid( );
   double CellAverage( unsigned int iX );
-  void UpdateGrid( DataStructure3D& U,
-                   std::vector<double>& Flux_U, double dt );
+  void UpdateGrid( unsigned int nStages, unsigned int iS, 
+    DataStructure2D& a_jk, DataStructure2D& b_jk,
+    std::vector<std::vector<double>>& Flux_U, double dt );
   void ComputeMass( DataStructure3D& uPF );
   void ComputeVolume(  );
   void ComputeCenterOfMass( DataStructure3D& uPF );
@@ -66,10 +68,13 @@ private:
 
   std::vector<double> Centers;
   std::vector<double> Widths;
+  std::vector<double> Work;
 
   std::vector<double> Mass;
   std::vector<double> Volume;
   std::vector<double> CenterOfMass;
+
+  std::vector<std::vector<double>> StageData;
 
   std::vector<double> Grid;
 

@@ -77,7 +77,7 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
   DataStructure2D& a_jk, DataStructure2D& b_jk,
   std::vector<DataStructure3D>& U_s, std::vector<DataStructure3D>& dU_s,
   DataStructure3D& dU, DataStructure3D& SumVar, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 
-  DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<double>& Flux_U, 
+  DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<std::vector<double>>& Flux_U, 
   std::vector<double>& Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R,
   const short unsigned int nStages, DataStructure3D& D, SlopeLimiter& S_Limiter,
   const std::string BC )
@@ -86,8 +86,8 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
   const unsigned int nNodes = Grid.Get_nNodes();
   const unsigned int ilo    = Grid.Get_ilo();
   const unsigned int ihi    = Grid.Get_ihi();
-
-  const double frac = 1.0 / nStages;
+ 
+  // double sum_x = 0.0;
 
   unsigned short int i;
 
@@ -104,7 +104,7 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
     for ( unsigned int j = 0; j < iS; j++ )
     {
       ComputeIncrement( U_s[j], Grid, Basis, dU_s[j], Flux_q, dFlux_num, uCF_F_L, uCF_F_R, 
-                        Flux_U, Flux_P, uCF_L, uCF_R, BC );
+                        Flux_U[j], Flux_P, uCF_L, uCF_R, BC );
 
       
       // inner sum
@@ -112,6 +112,7 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
       for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int iN = 0; iN < nNodes; iN++ )
       {
+        // TODO: Can I just replace SumVar += with U_s[iS](...) += ????
         SumVar(iCF,iX,iN) += a_jk(i,j) * U_s[j](iCF,iX,iN) 
                         + dt * b_jk(i,j) * dU_s[j](iCF,iX,iN);
       }
@@ -119,14 +120,14 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
     }
     U_s[iS] = SumVar;
   
-    // S_Limiter.ApplySlopeLimiter( U_s[iS], Grid, D );
-    Grid.UpdateGrid( U_s[iS], Flux_U, frac * dt );
+    S_Limiter.ApplySlopeLimiter( U_s[iS], Grid, D );
+    Grid.UpdateGrid( nStages, iS, a_jk, b_jk, Flux_U, dt );
     
   }
   
   U = U_s[nStages-0];
 
-  // S_Limiter.ApplySlopeLimiter( U, Grid, D );
+  S_Limiter.ApplySlopeLimiter( U, Grid, D );
 
   // Grid.UpdateGrid( U, Flux_U, dt ); // Might switch to this, but not both
 
