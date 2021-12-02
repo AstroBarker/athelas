@@ -26,9 +26,9 @@ int main( int argc, char* argv[] )
   // --- Problem Parameters ---
   const std::string ProblemName = "Sod";
 
-  const unsigned int nX            = 512;
-  const unsigned int nNodes        = 2;
-  const unsigned short int nStages = 2;
+  const unsigned int nX            = 200;
+  const unsigned int nNodes        = 1;
+  const unsigned short int nStages = 1;
 
   const unsigned int nGuard = 1;
 
@@ -39,10 +39,10 @@ int main( int argc, char* argv[] )
   double dt          = 0.0;
   const double t_end = 0.2;
 
-  const double CFL = 0.45 / ( 1.0 * ( 2.0 * ( nNodes ) - 1.0 ) );
+  const double CFL = 0.35 / ( 1.0 * ( 2.0 * ( nNodes ) - 1.0 ) );
 
   // --- Create the Grid object ---
-  GridStructure Grid( nNodes, nX, nGuard, xL, xR );
+  GridStructure Grid( nNodes, nX, nStages, nGuard, xL, xR );
 
   // --- Create the data structures ---
   DataStructure3D uCF( 3, nX + 2*nGuard, nNodes );
@@ -59,7 +59,8 @@ int main( int argc, char* argv[] )
   DataStructure2D uCF_F_L( 3, nX + 2*nGuard );
   DataStructure2D uCF_F_R( 3, nX + 2*nGuard );
 
-  std::vector<double> Flux_U(nX + 2*nGuard + 1, 0.0);
+  std::vector<std::vector<double>> Flux_U(nStages + 1, 
+    std::vector<double>(nX + 2*nGuard + 1,0.0));
   std::vector<double> Flux_P(nX + 2*nGuard + 1, 0.0);
   std::vector<double> uCF_L(3, 0.0);
   std::vector<double> uCF_R(3, 0.0);
@@ -79,6 +80,7 @@ int main( int argc, char* argv[] )
   // Inter-stage data structures
   DataStructure3D SumVar( 3, nX + 2*nGuard + 1, nNodes ); // Used in Integrator...
   std::vector<DataStructure3D> U_s(nStages+1, DataStructure3D( 3, nX + 2*nGuard, nNodes ));
+  std::vector<GridStructure> Grid_s(nStages+1, GridStructure( nNodes, nX, nStages, nGuard, xL, xR ));
   std::vector<DataStructure3D> dU_s(nStages, DataStructure3D( 3, nX + 2*nGuard, nNodes ));
 
   InitializeTimestepper( nStages, nX + 2*nGuard, nNodes, 
@@ -118,7 +120,7 @@ int main( int argc, char* argv[] )
     std::printf( "%d \t %.5e \t %.5e\n", iStep, t, dt );
 
     UpdateFluid( Compute_Increment_Explicit, dt, uCF,  Grid, a_jk,  b_jk,
-                 U_s,  dU_s, dU,  SumVar, Flux_q,  dFlux_num, uCF_F_L,  uCF_F_R,  
+                 U_s,  dU_s, Grid_s, dU,  SumVar, Flux_q,  dFlux_num, uCF_F_L,  uCF_F_R,  
                  Flux_U, Flux_P,  uCF_L,  uCF_R, nStages, D, S_Limiter, "Homogenous" );
 
     t += dt;

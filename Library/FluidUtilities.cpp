@@ -86,8 +86,7 @@ void NumericalFlux_HLL( double tauL, double tauR, double vL, double vR,
     double am = std::max( std::max( 0.0, - zL ), - zR );
     double ap = std::max( std::max( 0.0, + zL ), + zR );
 
-    // f = (zR * Flux_Fluid( vL, pL) + zL * Flux_Fluid( vR, pR) - zL*zR \
-    //   * ( uR - uL ) ) / (zL + zR)
+    // f = (zR * Flux_Fluid( vL, pL) + zL * Flux_Fluid( vR, pR) - zL*zR * ( uR - uL ) ) / (zL + zR)
 
     out = (ap * Flux_Fluid( vL, pL, iCF ) + am * Flux_Fluid( vR, pR, iCF ) - am*ap * (uR-uL) ) / ( am + ap );
 }
@@ -125,6 +124,7 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
   // Hold cell centers (not updated with grid)
   double r_np1 = 0.0; // r_{n+1}
   double r_n   = 0.0; // r_{n}
+  double dr    = 0.0;
 
   double dt1 = 0.0;
   double dt2 = 0.0;
@@ -140,12 +140,13 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
 
     r_n   = Grid.Get_Centers( iX );
     r_np1 = Grid.Get_Centers( iX + 1 );
+    dr = Grid.Get_Widths( iX );
 
     Cs     = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
     eigval = Cs;
-
-    dt1 = std::abs( r_np1 - r_n ) / std::abs( eigval - vel_x );
-    dt2 = std::abs( r_np1 - r_n ) / std::abs( eigval + vel_x );
+    
+    dt1 = std::abs( dr ) / std::abs( eigval - vel_x );
+    dt2 = std::abs( dr ) / std::abs( eigval + vel_x );
 
     dt = std::min( dt1, dt2 );
 
@@ -156,6 +157,11 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
   dt = std::max( CFL * dt, MIN_DT );
   dt = std::min( dt, MAX_DT );
 
+  if ( dt != dt )
+  {
+    throw Error("nan encountered in ComputeTimestep.\n");
+  }
+  
   return dt;
 
 }

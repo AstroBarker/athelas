@@ -73,11 +73,11 @@ void InitializeTimestepper( const unsigned short int nStages,
 **/
 
 void UpdateFluid( myFuncType ComputeIncrement, double dt, 
-  DataStructure3D& U, GridStructure& Grid, 
+  DataStructure3D& U, GridStructure& Grid,
   DataStructure2D& a_jk, DataStructure2D& b_jk,
-  std::vector<DataStructure3D>& U_s, std::vector<DataStructure3D>& dU_s,
+  std::vector<DataStructure3D>& U_s, std::vector<DataStructure3D>& dU_s, std::vector<GridStructure>& Grid_s,
   DataStructure3D& dU, DataStructure3D& SumVar, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 
-  DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<double>& Flux_U, 
+  DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<std::vector<double>>& Flux_U, 
   std::vector<double>& Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R,
   const short unsigned int nStages, DataStructure3D& D, SlopeLimiter& S_Limiter,
   const std::string BC )
@@ -87,24 +87,36 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
   const unsigned int ilo    = Grid.Get_ilo();
   const unsigned int ihi    = Grid.Get_ihi();
 
-  const double frac = 1.0 / nStages;
-
   unsigned short int i;
 
+  // GridStructure SumVar_X( nNodes, nX, nStages, nGuard, xL, xR );
+  std::vector<double> SumVar_X(ihi + 2, 0.0);
+  std::vector<std::vector<double>> StageData(nStages + 1, 
+    std::vector<double>(ihi + 2, 0.0));
+
   U_s[0] = U;
+  // StageData holds left interface positions
+  for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
+  {
+    StageData[0][iX] = Grid.Get_Centers(iX) - Grid.Get_Widths(iX) / 2.0;
+  }
   
   for ( unsigned short int iS = 1; iS <= nStages; iS++ )
   {
     i = iS - 1;
     // re-zero the summation variable `SumVar`
     SumVar.zero();
+    for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
+    {
+      SumVar_X[iX] = 0.0;
+    }
 
     // --- Inner update loop ---
     
     for ( unsigned int j = 0; j < iS; j++ )
     {
-      ComputeIncrement( U_s[j], Grid, dU_s[j], Flux_q, dFlux_num, uCF_F_L, uCF_F_R, 
-                        Flux_U, Flux_P, uCF_L, uCF_R, BC );
+      ComputeIncrement( U_s[j], Grid_s[j], dU_s[j], Flux_q, dFlux_num, uCF_F_L, uCF_F_R, 
+                        Flux_U[j], Flux_P, uCF_L, uCF_R, BC );
 
       
       // inner sum
@@ -115,17 +127,27 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
         SumVar(iCF,iX,iN) += a_jk(i,j) * U_s[j](iCF,iX,iN) 
                         + dt * b_jk(i,j) * dU_s[j](iCF,iX,iN);
       }
+
+      for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
+      {
+        SumVar_X[iX] += a_jk(i,j) * StageData[j][iX]
+                     + dt * b_jk(i,j) * Flux_U[j][iX];
+      }
       
     }
     U_s[iS] = SumVar;
+    StageData[iS] = SumVar_X;
+    Grid_s[iS].UpdateGrid( StageData[iS] );
   
     S_Limiter.ApplySlopeLimiter( U_s[iS], Grid, D );
-    Grid.UpdateGrid( U_s[iS], Flux_U, frac * dt );
+    // Grid.UpdateGrid( StageData, nStages, iS, a_jk, b_jk, Flux_U, dt );
     // S_Limiter.ApplySlopeLimiter( U_s[iS], Grid, D );
     
   }
   
   U = U_s[nStages-0];
+  // Grid = Grid_s[nStages];
+  Grid.UpdateGrid( StageData[nStages] );
 
   S_Limiter.ApplySlopeLimiter( U, Grid, D );
 

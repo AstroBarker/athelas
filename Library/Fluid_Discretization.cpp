@@ -60,7 +60,7 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   
   // Left/Right face states
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-  for ( unsigned int iX  = ilo; iX <= ihi+1; iX++ ) //TODO: Check that these bounds are correct
+  for ( unsigned int iX = ilo; iX <= ihi+1; iX++ ) //TODO: Check that these bounds are correct
   {
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     { 
@@ -97,7 +97,7 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
 
     // Riemann Problem
     NumericalFlux_Gudonov( uCF_L[1], uCF_R[1], P_L, P_R, lam_L, lam_R, Flux_U[iX], Flux_P[iX] );
-    // std::printf("%d %.18f %.18f %.18f\n", iX, uCF_L[0], Flux_U[iX], uCF_R[0] );
+    // std::printf("%f %f %.18f %.18f %.18f\n", P_L, P_R, uCF_L[1], Flux_U[iX], uCF_R[1] );
     
     // TODO: Clean This Up
     dFlux_num(0, iX) = - Flux_U[iX];
@@ -221,6 +221,10 @@ void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid,
 
   // --- First: Zero out dU. It is reused storage and we only increment it ---
   dU.zero();
+  for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
+  {
+    Flux_U[iX] = 0.0;
+  }
 
   ComputeIncrement_Fluid_Divergence( U, Grid, dU, Flux_q, dFlux_num, 
     uCF_F_L, uCF_F_R, Flux_U, Flux_P, uCF_L, uCF_R );
@@ -235,7 +239,6 @@ void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid,
   {
     // X = Grid.NodeCoordinate(iX,iN);
     dU(iCF,iX,iN) /= ( Grid.Get_Weights(iN) * Grid.Get_Widths(iX) / U(0,iX,iN) );
-    // std::printf( "%.2f %.3f %.5f \n", Grid.Get_Weights(iN), Grid.Get_Widths(iX), U(1,iX,iN)  );
   }
 
   // --- Increment Gravity --- ?
