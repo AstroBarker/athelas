@@ -10,6 +10,8 @@
 * TODO: Transitioning to modal basis
  - [x] Write Taylor functions
  - [x] Write functions to orthogonalize them
+ - [ ] Output overhaul - write basis terms and all coefficients
+ - [ ] Separate out nNodes from order where they should be distinct.
  - [ ] We need to replace instances of Lagrange with Taylor, etc
     - [ ] SlopeLimiter needs changes, FluidDiscretization... 
     - [x] Initialization?
