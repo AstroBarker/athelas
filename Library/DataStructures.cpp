@@ -6,7 +6,7 @@
  * Purpose  : Classes for holding multidimensional data.
  *  Multi-D structures are wrapped around 1D vectors to conveniently and 
  *  efficiently access data. For conserved variables data structure, 
- *  initialize/acces as DataStructures3D uCF(nCF,nX,nNodes)
+ *  initialize/acces as DataStructures3D uCF(nCF,nX,order)
  * Contains : DataStructures2D, DataStructures3D
 **/ 
 
@@ -32,7 +32,7 @@ double DataStructure2D::operator()( unsigned int i, unsigned int j ) const
   return Data[i * Cols + j];
 }
 
-// init as {nCF, nX, nNodes}
+// init as {nCF, nX, order}
 DataStructure3D::DataStructure3D( unsigned int N1, unsigned int N2, unsigned int N3 )
   : Size1(N1),
     Size2(N2),

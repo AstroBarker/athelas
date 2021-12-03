@@ -25,21 +25,23 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nS,
     Weights(nNodes),
     Centers(mSize, 0.0),
     Widths(mSize, 0.0),
-    Work(mSize, 0.0),
     Mass(mSize, 0.0),
     Volume(mSize, 0.0),
     CenterOfMass(mSize, 0.0),
-    StageData(nS + 1, std::vector<double>(nX + 2*nG + 1,0.0)),
     Grid(mSize*nNodes, 0.0)
 {
+  // TODO: Allow LG_Quadrature to take in vectors.
   double* tmp_nodes   = new double[nNodes];
   double* tmp_weights = new double[nNodes];
+
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     tmp_nodes[iN]   = 0.0;
-    tmp_weights[iN] = 0.0;
+    tmp_weights[iN] = 
+    0.0;
   }
   LG_Quadrature( nNodes, tmp_nodes, tmp_weights );
+  
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     Nodes[iN]   = tmp_nodes[iN];
@@ -293,74 +295,35 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
 /**
  * Update grid coordinates using interface and nodal velocities.
 **/
-void GridStructure::UpdateGrid( unsigned int nStages, unsigned int iS,
-  DataStructure2D& a_jk, DataStructure2D& b_jk,
-  std::vector<std::vector<double>>& Flux_U, double dt )
+void GridStructure::UpdateGrid( std::vector<double>& SData )
 {
 
   // const unsigned int nNodes = Get_nNodes();
   const unsigned int ilo    = Get_ilo();
   const unsigned int ihi    = Get_ihi();
 
-  unsigned short int i = iS - 1;
-
-  // Clear sum variable
-  for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
+  xR = SData[ihi + 1];
+  xL = SData[ilo];
+  
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
-    Work[iX] = 0.0;
+    Widths[iX]   = SData[iX+1] - SData[iX];
+    Centers[iX]  = 0.5 * (SData[iX+1] + SData[iX]);
   }
 
-  if ( iS == 1 )
+  // for ( unsigned int iX = ilo; iX < ihi; iX++ )
+  // {
+  //   std::printf("%f\n", Centers[iX+1] - Centers[iX]);
+  // }
+
+  for (unsigned int iC = ilo; iC <= ihi; iC++)
   {
-    // StageData holds left interface positions
-    for ( unsigned int iX = ilo; iX <= ihi+1; iX++ )
+    for (unsigned int iN = 0; iN < nNodes; iN++)
     {
-      StageData[0][iX] = Centers[iX] - Widths[iX] / 2.0;
+      Grid[iC * nNodes + iN] = NodeCoordinate( iC, iN );
     }
   }
 
-  for ( unsigned int j = 0; j < iS; j++ )
-  {
-    for ( unsigned int iX = ilo; iX <= ihi+1; iX++ )
-    {
-      Work[iX] += a_jk(i,j) * StageData[j][iX]
-               + dt * b_jk(i,j) * Flux_U[j][iX];
-      // std::printf("%d %f \n", iS, Flux_U[j][iX]);
-    }
-  }
-  StageData[iS] = Work;
-  // Update Volume 
-
-  if ( iS == nStages )
-  {
-    // Data = StageData[iS]
-    xR = StageData[iS][nElements + 2*nGhost];
-    xL = StageData[iS][ilo];
-    
-    for ( unsigned int iX = 0; iX <= ihi; iX++ )
-    {
-      Widths[iX]  = StageData[iS][iX+1] - StageData[iS][iX];
-    }
-
-    Centers[ilo] = xL + 0.5 * Widths[ilo];
-    for ( unsigned int iX = ilo+1; iX <= ihi; iX++ )
-    {
-      Centers[iX] = Centers[iX-1] + Widths[iX-1];
-      // std::printf("%d %f \n", iS, Centers[iX]);
-    }
-
-    for ( int iX = ilo-1; iX >= 0; iX-- )
-    {
-      Centers[iX] = Centers[iX+1] - Widths[iX+1];
-    }
-    for ( unsigned int iX = ihi+1; iX < nElements + nGhost + 1; iX++ )
-    {
-      Centers[iX] = Centers[iX-1] + Widths[iX-1];
-    }
-
-    // TODO: Update Nodal Positions.
-
-  }
 }
 
 // Access by (element, node)

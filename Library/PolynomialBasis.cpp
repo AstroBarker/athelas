@@ -27,15 +27,15 @@
  * This has to be called after the problem is initialized.
 **/
 ModalBasis::ModalBasis( DataStructure3D& uPF, GridStructure& Grid, 
-  unsigned int nOrder, unsigned int nN, 
+  unsigned int pOrder, unsigned int nN,
   unsigned int nElements, unsigned int nGuard )
   : nX(nElements), 
-    order(nN), 
+    order(pOrder), 
     nNodes(nN),
     mSize( (nN)*(nN+2)*(nElements+2*nGuard) ),
-    MassMatrix( nElements + 2*nGuard, nN ),
-    Phi( nElements + 2*nGuard, nN + 2, order ),
-    dPhi( nElements + 2*nGuard, nN + 2, order )
+    MassMatrix( nElements + 2*nGuard, pOrder ),
+    Phi( nElements + 2*nGuard, nN + 2, pOrder ),
+    dPhi( nElements + 2*nGuard, nN + 2, pOrder )
 {
   InitializeTaylorBasis( uPF, Grid );
 }
@@ -47,8 +47,8 @@ ModalBasis::ModalBasis( DataStructure3D& uPF, GridStructure& Grid,
  *
  * Parameters:
  * -----------
- * eta : coordinate
- * eta_c: center of mass
+ * eta   : coordinate
+ * eta_c : center of mass
  **/
 double ModalBasis::Taylor( unsigned int order, double eta, double eta_c )
 {
@@ -128,7 +128,7 @@ double ModalBasis::InnerProduct( unsigned int m, unsigned int n,
  * Lagrangian inner product of functions f and g
  * Used in orthogonalization.
  * Computes < Phi_m, Phi_n >
- * <f,g> = \sum_q \rho_q f_Q g_q j^0 w_q
+ * <f,g> = \sum_q \rho_q f_q g_q j^0 w_q
 **/
 double ModalBasis::InnerProduct( unsigned int n, unsigned int iX, 
   double eta_c, DataStructure3D& uPF, GridStructure& Grid )
@@ -167,21 +167,20 @@ double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
     result = dTaylor( order, eta, eta_c );
   }
 
-  if ( order == 0 || order == 1 ) return result;
+  if ( order == 0 ) return result;
 
   for ( unsigned int i = 0; i < order; i++ )
   {
-    // std::printf("%d \n", order-i-1);
     numerator   = InnerProduct( order-i-1, order, iX, eta_c, uPF, Grid); // TODO: make sure order-i is correct for GS
     denominator = InnerProduct( order-i-1, iX, eta_c, uPF, Grid );
     // ? Can this be cleaned up?
     if ( not derivative_option )
     {
-      phi_n = Phi(iX, i_eta, order-i-1);//Taylor( i, eta, eta_c );
+      phi_n = Phi(iX, i_eta, order-i-1);
     }
     else
     {
-      phi_n = dPhi(iX, i_eta, order-i-1);//dTaylor( order, eta, eta_c );
+      phi_n = dPhi(iX, i_eta, order-i-1);
     }
     result -= ( numerator / denominator ) * phi_n;
   }
@@ -198,7 +197,7 @@ double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
 void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
   GridStructure& Grid )
 {
-  const unsigned int n_eta = order + 2;
+  const unsigned int n_eta = nNodes + 2;
   const unsigned int ilo   = Grid.Get_ilo();
   const unsigned int ihi   = Grid.Get_ihi();
 
@@ -276,15 +275,17 @@ void ModalBasis::CheckOrthogonality( DataStructure3D& uPF,
     {
       // Not using an InnerProduct function because their API is odd.. 
       result += Phi( iX, i_eta, k1 ) * Phi( iX, i_eta, k2 ) 
-             * uPF(0,iX,0) * Grid.Get_Weights(i_eta-1)  // uPF( , , i_eta-1)
+             * uPF(0,iX,0) * Grid.Get_Weights(i_eta-1)  
              * Grid.Get_Volume(iX);
     }
+    
     if ( k1 == k2 && result == 0.0 )
     { 
       throw Error("Basis not orthogonal: Diagonal term equal to zero.\n");
     }
-    if ( k1 != k2 && result != 0.0 )
+    if ( k1 != k2 && result + 1.0 != 1.0 )
     {
+      std::printf("%d %d %f \n", k1, k2, result);
       throw Error("Basis not orthogonal: Off diagonal term non-zero.\n");
     }
   }
@@ -317,7 +318,7 @@ void ModalBasis::ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid )
       for ( unsigned int iN = 0; iN < nNodes; iN++ )
       {
         result += uPF(0,iX,0) * Phi( iX, iN+1, k ) * Phi( iX, iN+1, k ) 
-               * Grid.Get_Volume(iX);
+               * Grid.Get_Volume(iX) * Grid.Get_Weights(iN);
       }
       MassMatrix(iX,k) = result;
     }
@@ -358,6 +359,13 @@ double ModalBasis::Get_dPhi( unsigned int iX, unsigned int i_eta, unsigned int k
 double ModalBasis::Get_MassMatrix( unsigned int iX, unsigned int k )
 {
   return MassMatrix( iX, k );
+}
+
+
+// Accessor for Order
+int ModalBasis::Get_Order( )
+{
+  return order;
 }
 
 

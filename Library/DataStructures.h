@@ -9,7 +9,7 @@
  * Purpose  : Classes for holding multidimensional data.
  *  Multi-D structures are wrapped around 1D vectors to conveniently and 
  *  efficiently access data. For conserved variables data structure, 
- *  initialize/acces as DataStructures3D uCF(nCF,nX,nNodes)
+ *  initialize/acces as DataStructures3D uCF(nCF,nX,order)
  * Contains : DataStructures2D, DataStructures3D
 **/ 
 

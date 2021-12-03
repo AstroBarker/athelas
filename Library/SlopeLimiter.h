@@ -18,13 +18,12 @@
 #include "PolynomialBasis.h"
 
 
-// This will be e.g., conserved variables
 class SlopeLimiter
 {
 
 public:
 
-  SlopeLimiter( GridStructure& Grid, unsigned int numNodes, 
+  SlopeLimiter( GridStructure& Grid, unsigned int pOrder, 
     double SlopeLimiterThreshold, unsigned int Beta_TVD_val, 
     unsigned int Beta_TVB_val, bool CharacteristicLimitingOption, 
     bool TCIOption, double TCI_Threshold_val );
@@ -42,7 +41,7 @@ public:
 
 private:
 
-  unsigned int nNodes;
+  unsigned int order;
   double SlopeLimiter_Threshold;
   unsigned int Beta_TVD, Beta_TVB;
   bool CharacteristicLimiting_Option;

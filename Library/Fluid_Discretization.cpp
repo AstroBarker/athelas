@@ -29,6 +29,7 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   std::vector<double>& Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R )
 {
   const unsigned int nNodes = Grid.Get_nNodes();
+  const unsigned int order  = Basis.Get_Order();
   const unsigned int ilo    = Grid.Get_ilo();
   const unsigned int ihi    = Grid.Get_ihi();
 
@@ -75,9 +76,9 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
     NumericalFlux_Gudonov( uCF_L[1], uCF_R[1], P_L, P_R, lam_L, lam_R, Flux_U[iX], Flux_P[iX] );
     
     // TODO: Clean This Up
-    dFlux_num(0, iX) = - Flux_U[iX];
-    dFlux_num(1, iX) = + Flux_P[iX];
-    dFlux_num(2, iX) = + Flux_U[iX] * Flux_P[iX];
+    dFlux_num(0, iX) = + Flux_U[iX];
+    dFlux_num(1, iX) = - Flux_P[iX];
+    dFlux_num(2, iX) = - Flux_U[iX] * Flux_P[iX];
     
   }
   
@@ -86,19 +87,22 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   // #pragma omp parallel for simd collapse(2)
   for ( unsigned int iX = ilo-0; iX <= ihi+0; iX++ )
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  for ( unsigned int k = 0; k < order; k++ )
   {
     
-    Poly_L = Basis.Get_Phi(iX, 0, iN);
-    Poly_R = Basis.Get_Phi(iX, nNodes+1, iN);
-    // std::printf("%d %f %f\n", iN, Poly_L, Poly_R);
-    dU(iCF,iX,iN) += - ( + dFlux_num(iCF,iX+1) * Poly_R 
-                         - dFlux_num(iCF,iX+0) * Poly_L );
+    Poly_L = Basis.Get_Phi(iX, 0, k);
+    Poly_R = Basis.Get_Phi(iX, nNodes+1, k);
     
-    // Compute Flux_q everywhere for the Volume term
+    dU(iCF,iX,k) += + ( + dFlux_num(iCF,iX+1) * Poly_R 
+                         - dFlux_num(iCF,iX+0) * Poly_L );
+  
+  }
 
-    // TODO: Lookie here. What is Flux_q (_,_,:)? 
-    // TODO: HERE: This integral needs GL quadrature - need to evaluate U at GL nodes and pass to Flux_q
+  // --- Compute Flux_q everywhere for the Volume term ---
+  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  for ( unsigned int iX = ilo-0; iX <= ihi+0; iX++ )
+  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  {
     P = ComputePressureFromConserved_IDEAL( Basis.BasisEval( U, iX, 0, iN+1 ), 
       Basis.BasisEval( U, iX, 1, iN+1 ), Basis.BasisEval( U, iX, 2, iN+1 ) );
     Flux_q(iCF,iX,iN) = Flux_Fluid( Basis.BasisEval( U, iX, 1, iN+1 ), P, iCF ); // Basis.BasisEval( U, iX, iCF, 0 )
@@ -111,20 +115,19 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   // #pragma omp parallel for simd collapse(2)
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  for ( unsigned int k = 0; k < order; k++ )
   {
     local_sum = 0.0;
     // PermuteNodes(nNodes, iN, Nodes);
-    for ( unsigned int i = 0; i < nNodes; i++ )
+    for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
       // X1 = Grid.NodeCoordinate(...)
-      local_sum += Grid.Get_Weights(i) * Flux_q(iCF,iX,i) 
-                * Basis.Get_dPhi( iX, i+1, iN );
+      local_sum += Grid.Get_Weights(iN) * Flux_q(iCF,iX,iN) 
+                * Basis.Get_dPhi( iX, iN+1, k );
     }
-    // std::printf("%d %d %f\n", iX, iN, local_sum);
     // std::sort(Nodes, Nodes + nNodes);
 
-    dU(iCF,iX,iN) += local_sum;
+    dU(iCF,iX,k) -= local_sum;
   }
 
 }
@@ -151,12 +154,12 @@ void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid,
   std::vector<double> uCF_R, const std::string BC )
 {
 
-  const unsigned int nNodes = Grid.Get_nNodes();
-  const unsigned int ilo    = Grid.Get_ilo();
-  const unsigned int ihi    = Grid.Get_ihi();
+  const unsigned int order = Basis.Get_Order();
+  const unsigned int ilo   = Grid.Get_ilo();
+  const unsigned int ihi   = Grid.Get_ihi();
 
   // --- Apply BC ---
-  ApplyBC_Fluid( U, Grid, BC );
+  ApplyBC_Fluid( U, Grid, order, BC );
 
   // --- Detect Shocks ---
   //TODO: Code up a shock detector...
@@ -174,10 +177,10 @@ void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid,
   // double X;
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   for ( unsigned int iX  = ilo-0; iX <= ihi+0; iX++ )
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  for ( unsigned int k = 0; k < order; k++ )
   {
     // X = Grid.NodeCoordinate(iX,iN);
-    dU(iCF,iX,iN) /= Basis.Get_MassMatrix( iX, iN );
+    dU(iCF,iX,k) /= Basis.Get_MassMatrix( iX, k );
   }
 
   // --- Increment Gravity --- ?

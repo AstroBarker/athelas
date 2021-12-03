@@ -24,7 +24,7 @@ class ModalBasis
   public:
 
   ModalBasis( DataStructure3D& uPF, GridStructure& Grid, 
-    unsigned int nOrder, unsigned int nN, 
+    unsigned int pOrder, unsigned int nN,
     unsigned int nElements, unsigned int nGuard );
   double Taylor( unsigned int order, double eta, double eta_c );
   double dTaylor( unsigned int order, double eta, double eta_c );
@@ -44,6 +44,8 @@ class ModalBasis
   double Get_Phi( unsigned int iX, unsigned int i_eta, unsigned int k );
   double Get_dPhi( unsigned int iX, unsigned int i_eta, unsigned int k );
   double Get_MassMatrix( unsigned int iX, unsigned int k );
+
+  int Get_Order( );
 
   void PermuteNodes( unsigned int nNodes, unsigned int iN, double* nodes );
   double Lagrange ( unsigned int nNodes, double x, unsigned int p, double* nodes );

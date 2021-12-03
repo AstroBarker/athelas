@@ -47,9 +47,7 @@ public:
   double operator()( unsigned int i, unsigned int j ) const;
   void CreateGrid( );
   double CellAverage( unsigned int iX );
-  void UpdateGrid( unsigned int nStages, unsigned int iS, 
-    DataStructure2D& a_jk, DataStructure2D& b_jk,
-    std::vector<std::vector<double>>& Flux_U, double dt );
+  void UpdateGrid( std::vector<double>& SData );
   void ComputeMass( DataStructure3D& uPF );
   void ComputeVolume(  );
   void ComputeCenterOfMass( DataStructure3D& uPF );
@@ -68,13 +66,10 @@ private:
 
   std::vector<double> Centers;
   std::vector<double> Widths;
-  std::vector<double> Work;
 
   std::vector<double> Mass;
   std::vector<double> Volume;
   std::vector<double> CenterOfMass;
-
-  std::vector<std::vector<double>> StageData;
 
   std::vector<double> Grid;
 

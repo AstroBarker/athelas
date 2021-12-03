@@ -84,15 +84,15 @@ double Flux_Fluid( double V, double P, unsigned int iCF )
 {
   if ( iCF == 0 )
   {
-    return - V;
+    return + V;
   }
   else if ( iCF == 1 )
   {
-    return + P;
+    return - P;
   }
   else if ( iCF == 2 )
   {
-    return P * V;
+    return - P * V;
   }
   else{ // Error case. Shouldn't ever trigger.
     throw Error("Please input a valid iCF! (0,1,2). ");
@@ -143,14 +143,6 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
 
   const unsigned int ilo    = Grid.Get_ilo();
   const unsigned int ihi    = Grid.Get_ihi();
-  const unsigned int nNodes = Grid.Get_nNodes();
-
-  // Store Weights - for cell averages
-  std::vector<double> Weights(nNodes);
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
-  {
-    Weights[iN] = Grid.Get_Weights( iN );
-  }
 
   double Cs     = 0.0;
   double eigval = 0.0;

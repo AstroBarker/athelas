@@ -20,14 +20,13 @@
 
 
 /**
- * The constructor creates the matrices necessary for nodal/modal conversion
- * and structures for applying the slope limiter
+ * The constructor creates the matrices structures for applying the slope limiter
 **/
-SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int numNodes, double SlopeLimiterThreshold, 
+SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder, double SlopeLimiterThreshold, 
     unsigned int Beta_TVD_val, unsigned int Beta_TVB_val, 
     bool CharacteristicLimitingOption, bool TCIOption, 
     double TCI_Threshold_val )
-    : nNodes(numNodes),
+    : order(pOrder),
     SlopeLimiter_Threshold(SlopeLimiterThreshold),
     Beta_TVD(Beta_TVD_val),
     Beta_TVB(Beta_TVB_val),
@@ -37,11 +36,8 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int numNodes, double S
 {
   // --- Initialize SLope Limiter structures ---
 
-  // U_M = new double[3 * 3 * Grid.Get_nNodes()];
   dU  = new double[3];
   SlopeDifference = new double[3];
-
-  // DataStructure3D U_M(3,3,nNodes);
 
   // --- Initialize Characteristic matrices ---
 
@@ -55,9 +51,8 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int numNodes, double S
 void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid, 
   DataStructure3D& D )
 {
-  const unsigned int nNodes = Grid.Get_nNodes();
 
-  if ( nNodes == 1 )
+  if ( order == 1 )
   {
     return;
   }
@@ -69,8 +64,9 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
   double* tmp    = new double[3];
   double* Vals   = new double[3];
   
-  const unsigned int ilo = Grid.Get_ilo();
-  const unsigned int ihi = Grid.Get_ihi();
+  const unsigned int nNodes = Grid.Get_nNodes();
+  const unsigned int ilo    = Grid.Get_ilo();
+  const unsigned int ihi    = Grid.Get_ihi();
 
   for ( int i = 0; i < 3; i++ )
   {
@@ -90,14 +86,14 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
   {
     // Check if TCI val is less than TCI_Threshold
     // unsigned int j = 0;
-    // for ( unsigned int iN = 0; iN < nNodes; iN++ )
+    // for ( unsigned int k = 0; k < order; k++ )
     // {
-    //   if ( D(0,iX,iN) < TCI_Threshold )
+    //   if ( D(0,iX,k) < TCI_Threshold )
     //   {
     //     j++;
     //   }
     // }
-    // if ( j == nNodes ) continue;
+    // if ( j == order ) continue;
 
     for ( int i = 0; i < 3; i++ )
     {
@@ -133,7 +129,7 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       Vals[iCF] = U(iCF, iX, 1);
     }
     
-    // store a = invR @ U_M(:,0,1)
+    // store a = invR @ U(:,iX,1)
     MatMul( 3, 1, 3, 1.0, R_inv, 
       3, Vals, 1, 1.0, a, 1 );
 
@@ -187,7 +183,6 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       {
         c[iCF] = 0.0; // reset c storage
         Vals[iCF] = Beta_TVD * U(iCF, iX+1, 0) - U(iCF, iX, 0);
-        // std::printf("%d %d %.5f\n", iCF, iX, Vals[iCF]);
       }
 
       MatMul( 3, 1, 3, 1.0, R_inv, 
@@ -225,13 +220,11 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       
       if ( SlopeDifference[iCF] > SlopeLimiter_Threshold * std::abs( U(iCF, iX, 0) ) )
       {
-        
-        for (unsigned int k = 1; k < nNodes; k++ )
+        for (unsigned int k = 1; k < order; k++ )
         {
           U(iCF, iX, k) = 0.0;
         }
-        U(iCF, iX, 1) = dU[iCF];        
-
+        U(iCF, iX, 1) = dU[iCF];
       }
       
       //TODO: Denoted LimitedCell[iCF, iX] = True
