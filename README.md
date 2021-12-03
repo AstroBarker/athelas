@@ -11,11 +11,13 @@
  - [x] Write Taylor functions
  - [x] Write functions to orthogonalize them
  - [ ] Output overhaul - write basis terms and all coefficients
- - [ ] Separate out nNodes from order where they should be distinct.
- - [ ] We need to replace instances of Lagrange with Taylor, etc
-    - [ ] SlopeLimiter needs changes, FluidDiscretization... 
+ - [x] Separate out nNodes from order where they should be distinct.
+    - Broken
+ - [x] We need to replace instances of Lagrange with Taylor, etc
+    - [x] SlopeLimiter needs changes, FluidDiscretization... 
     - [x] Initialization?
-    - [ ] Node Coordinate? Grid?
+    - [x] Node Coordinate? Grid?
+ - [ ] Fix BoudnaryConditions
 
 * TODO: Everything
  - [ ] Update Grid to depend opn GridStructures
