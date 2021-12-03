@@ -46,7 +46,6 @@ public:
 
   double CellAverage( unsigned int iCF, unsigned int iX, unsigned int nNodes, 
     std::vector<double> Weights );
-  void copy( std::vector<double> dest );
   void zero( );
 
 private:

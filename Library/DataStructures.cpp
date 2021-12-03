@@ -71,17 +71,6 @@ double DataStructure3D::CellAverage( unsigned int iCF, unsigned int iX, unsigned
   return avg;
 }
 
-// Copy Grid contents into new array
-// TODO: Fix DataStructure Copy routines 
-// (look at grid -- don't include Guard cells)
-void DataStructure3D::copy( std::vector<double> dest )
-{
-
-  for ( unsigned int i = 0; i < mSize; i++ )
-  {
-    dest[i] = Data[i];
-  }
-}
 
 // zero out structure
 void DataStructure3D::zero( )
