@@ -84,7 +84,7 @@ double ModalBasis::dTaylor( unsigned int order, double eta, double eta_c )
 
   if ( order < 0 ) throw Error("Please enter a valid polynomial order.\n");
 
-  // Handle constant and linear terms separately -- no need to exponentiate.
+  // Handle first few terms separately -- no need to call std::pow
   if ( order == 0 )
   {
     return 0.0;
@@ -92,6 +92,10 @@ double ModalBasis::dTaylor( unsigned int order, double eta, double eta_c )
   else if ( order == 1 )
   {
     return 1.0;
+  }
+  else if ( order == 2)
+  {
+    return 2 * ( eta - eta_c );
   }
   else
   {
@@ -169,18 +173,18 @@ double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
 
   if ( order == 0 ) return result;
 
-  for ( unsigned int i = 0; i < order; i++ )
+  for ( unsigned int k = 0; k < order; k++ )
   {
-    numerator   = InnerProduct( order-i-1, order, iX, eta_c, uPF, Grid); // TODO: make sure order-i is correct for GS
-    denominator = InnerProduct( order-i-1, iX, eta_c, uPF, Grid );
+    numerator   = InnerProduct( order-k-1, order, iX, eta_c, uPF, Grid); // TODO: make sure order-i is correct for GS
+    denominator = InnerProduct( order-k-1, iX, eta_c, uPF, Grid );
     // ? Can this be cleaned up?
     if ( not derivative_option )
     {
-      phi_n = Phi(iX, i_eta, order-i-1);
+      phi_n = Phi(iX, i_eta, order-k-1);
     }
     else
     {
-      phi_n = dPhi(iX, i_eta, order-i-1);
+      phi_n = dPhi(iX, i_eta, order-k-1);
     }
     result -= ( numerator / denominator ) * phi_n;
   }

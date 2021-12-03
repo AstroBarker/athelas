@@ -27,12 +27,12 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder, double Slo
     bool CharacteristicLimitingOption, bool TCIOption, 
     double TCI_Threshold_val )
     : order(pOrder),
-    SlopeLimiter_Threshold(SlopeLimiterThreshold),
-    Beta_TVD(Beta_TVD_val),
-    Beta_TVB(Beta_TVB_val),
-    CharacteristicLimiting_Option(CharacteristicLimitingOption),
-    TCI_Option(TCIOption),
-    TCI_Threshold(TCI_Threshold_val)
+      SlopeLimiter_Threshold(SlopeLimiterThreshold),
+      Beta_TVD(Beta_TVD_val),
+      Beta_TVB(Beta_TVB_val),
+      CharacteristicLimiting_Option(CharacteristicLimitingOption),
+      TCI_Option(TCIOption),
+      TCI_Threshold(TCI_Threshold_val)
 {
   // --- Initialize SLope Limiter structures ---
 
