@@ -20,29 +20,15 @@
 #include "FluidUtilities.h"
 #include "Timestepper.h"
 #include "Error.h"
+#include "Driver.h"
 
-/**
- * Pick number of quadrature points in order to evaluate polynomial of 
- * at least order^2. 
-**/
-int NumNodes( unsigned int order )
-{
-  if ( order <= 4 )
-  {
-    return order;
-  }
-  else
-  {
-    return 2 * order;
-  }
-}
 
 int main( int argc, char* argv[] )
 {
   // --- Problem Parameters ---
   const std::string ProblemName = "Sod";
 
-  const unsigned int nX            = 1000;
+  const unsigned int nX            = 512;
   const unsigned int order         = 3;
   const unsigned int nNodes        = NumNodes( order );
   const unsigned short int nStages = 3;
@@ -56,7 +42,7 @@ int main( int argc, char* argv[] )
   double dt          = 0.0;
   const double t_end = 0.2;
 
-  const double CFL = 0.3 / ( 1.0 * ( 2.0 * ( order ) - 1.0 ) );
+  const double CFL = 0.3 / ( 1.0 * ( 2.0 * ( order+1 ) - 1.0 ) );
 
   // --- Create the Grid object ---
   GridStructure Grid( nNodes, nX, nStages, nGuard, xL, xR );
@@ -65,7 +51,7 @@ int main( int argc, char* argv[] )
   DataStructure3D uCF( 3, nX + 2*nGuard, order );
   DataStructure3D uPF( 3, nX + 2*nGuard, order );
   DataStructure3D uAF( 3, nX + 2*nGuard, order );
-  DataStructure3D D( 2, nX + 2*nGuard, order );
+  // DataStructure3D D( 2, nX + 2*nGuard, order );
 
   // --- Data Structures needed for update step ---
 
@@ -76,7 +62,6 @@ int main( int argc, char* argv[] )
   DataStructure2D uCF_F_L( 3, nX + 2*nGuard );
   DataStructure2D uCF_F_R( 3, nX + 2*nGuard );
 
-  // std::vector<double> Flux_U(nX + 2*nGuard + 1, 0.0);
   std::vector<std::vector<double>> Flux_U(nStages + 1, 
     std::vector<double>(nX + 2*nGuard + 1,0.0));
   std::vector<double> Flux_P(nX + 2*nGuard + 1, 0.0);
@@ -125,13 +110,12 @@ int main( int argc, char* argv[] )
     CharacteristicLimiting_Option, TCI_Option, TCI_Threshold );
 
   // Limit the initial conditions
-  S_Limiter.ApplySlopeLimiter( uCF, Grid, D );
-
+  S_Limiter.ApplySlopeLimiter( uCF, Grid );
 
   // --- Evolution loop ---
   unsigned int iStep = 0;
   std::cout << "Step\tt\tdt" << std::endl;
-  while( t < t_end && iStep >= 0 )
+  while( t < t_end && iStep < 1245 )
   {
 
     dt = ComputeTimestep_Fluid( uCF, Grid, CFL ); // Next: ComputeTimestep
@@ -146,7 +130,7 @@ int main( int argc, char* argv[] )
 
     UpdateFluid( Compute_Increment_Explicit, dt, uCF,  Grid, Basis, a_jk,  b_jk,
                  U_s,  dU_s, Grid_s, dU,  SumVar, Flux_q,  dFlux_num, uCF_F_L,  uCF_F_R,  
-                 Flux_U, Flux_P,  uCF_L,  uCF_R, nStages, D, S_Limiter, "Homogenous" );
+                 Flux_U, Flux_P,  uCF_L,  uCF_R, nStages, S_Limiter, "Homogenous" );
 
     t += dt;
 
@@ -155,4 +139,48 @@ int main( int argc, char* argv[] )
 
   WriteState( uCF, uPF, uAF, Grid, ProblemName );
 
+  std::printf("testing cell avg\n");
+  for ( unsigned int iCF = 0; iCF < 3; iCF++)
+  for ( unsigned int iX = 1; iX < nX-1; iX++ )
+  {
+    std::printf("%d %d %f\n ",iCF, iX, uCF(iCF,iX,0) - CellAverage( uCF, Grid, Basis, iCF, iX ) );
+  }
+  std::printf("\n");
+
+}
+
+
+/**
+ * Pick number of quadrature points in order to evaluate polynomial of 
+ * at least order^2. 
+ * ! Broken for nNodes > order !
+**/
+int NumNodes( unsigned int order )
+{
+  if ( order <= 4 )
+  {
+    return order;
+  }
+  else
+  {
+    return 2 * order;
+  }
+}
+
+/**
+ * Return the cell average of a field iCF on cell iX.
+**/
+double CellAverage( DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
+  unsigned int iCF, unsigned int iX )
+{
+  const unsigned int nNodes = Grid.Get_nNodes();
+
+  double avg = 0.0;
+
+  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  {
+    avg += Grid.Get_Weights(iN) * Basis.BasisEval( U, iX, iCF, iN+1 );
+  }
+
+  return avg;
 }
