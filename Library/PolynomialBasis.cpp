@@ -40,7 +40,7 @@ ModalBasis::ModalBasis( DataStructure3D& uPF, GridStructure& Grid,
   InitializeTaylorBasis( uPF, Grid );
 }
 
-// *** Taylor Methods ***
+// --- Taylor Methods ---
 
 /** 
  * Return Taylor polynomial of given order
@@ -373,76 +373,7 @@ int ModalBasis::Get_Order( )
 }
 
 
-// *** Lagrange Methods *** [DEPRECIATED]
-
-/**
- * Permute node array. Used for passing to dLagrange.
- * Maybe not the best solution.
-**/
-void ModalBasis::PermuteNodes( unsigned int nNodes, unsigned int iN, double* nodes )
-{
-
-  // First, swap last and iN-th values
-  if ( iN < nNodes - 1)
-  {
-    double tmp1 = nodes[iN];
-    double tmp2 = nodes[nNodes-1];
-
-    nodes[nNodes-1] = tmp1;
-    nodes[iN]       = tmp2;
-
-    // Now, sort all but last value
-    std::sort(nodes, nodes + nNodes-1);
-  }
-
-}
-
-
-// Lagrange interpolating polynomial
-double ModalBasis::Lagrange
-       ( unsigned int nNodes, double x, unsigned int p, double* nodes )
-{
-  double result = 1.0;
-  for ( unsigned int i = 0; i < nNodes - 0; i++ )
-  {
-    if ( i == p ) continue;
-
-    result *= ( x - nodes[i] ) / ( nodes[p] - nodes[i] );
-    
-  }
-  return result;
-}
-
-
-// Derivative of Lagrange polynomial
-double ModalBasis::dLagrange
-       ( unsigned int nNodes, double x, double* nodes )
-{
-  double denominator = 1.0;
-  
-  for ( unsigned int i = 0; i < nNodes - 1; i++ )
-  {
-
-    denominator *= ( nodes[nNodes-1] - nodes[i] );
-  }
-
-  double numerator;
-  double result = 0.0;
-  for ( unsigned int i = 0; i < nNodes - 1; i++ )
-  {
-    numerator = 1.0;
-    for ( unsigned int j = 0; j < nNodes - 1; j++ )
-    {
-      if ( j == i ) continue;
-
-      numerator *= ( x - nodes[j] );
-    }
-    result += numerator / denominator;
-  }
-  return result;
-}
-
-// *** Legendre Methods ***
+// --- Legendre Methods ---
 
 
 // Legendre polynomials
@@ -495,20 +426,4 @@ double ModalBasis::dLegendre( unsigned int nNodes, double x )
   }
 
   return dPn;
-}
-
-
-// Evaluate interpolating polynomial at a point
-double ModalBasis::Poly_Eval( unsigned int nNodes, double* nodes, double* data, double point )
-{
-
-  // TODO: Generalize this a bit in terms of a given basis, not just Lagrange
-  long double s = 0.0;
-
-  for ( unsigned int i = 0; i < nNodes; i++ )
-  {
-    s += data[i] * Lagrange( nNodes, point, i, nodes ); 
-  }
-
-  return s;
 }
