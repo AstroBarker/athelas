@@ -21,16 +21,18 @@ DataStructure2D::DataStructure2D( unsigned int rows, unsigned int cols )
 {
 }
 
-//TODO: When we use this, make sure it is accessing data efficiently.
+
 double& DataStructure2D::operator()( unsigned int i, unsigned int j )
 {
   return Data[i * Cols + j];
 }
 
+
 double DataStructure2D::operator()( unsigned int i, unsigned int j ) const
 {
   return Data[i * Cols + j];
 }
+
 
 // init as {nCF, nX, order}
 DataStructure3D::DataStructure3D( unsigned int N1, unsigned int N2, unsigned int N3 )
@@ -42,13 +44,14 @@ DataStructure3D::DataStructure3D( unsigned int N1, unsigned int N2, unsigned int
 {
 }
 
+
 // access (iCF, iX, iN)
-//TODO: DataStructures not accessing memory correctly?
 double& DataStructure3D::operator()
   ( unsigned int i, unsigned int j, unsigned int k )
 {
   return Data[(i * Size2 + j) * Size3 + k];
 }
+
 
 double DataStructure3D::operator()
   ( unsigned int i, unsigned int j, unsigned int k ) const
