@@ -20,7 +20,8 @@
  - [ ] Fix BoudnaryConditions
 
 * TODO: Everything
- - [ ] Update Grid to depend opn GridStructures
+ - [ ] We need a build system....
+ - [x] Update Grid to depend opn GridStructures
  - [x] Start with Lagrange and Legendre polynomial bases
     - [x] We need to put in LG (and LGL) quadratures.
 - [x] Make directory for test problem and setup
@@ -28,9 +29,16 @@
 - [x] Add UpdateGrid()
 - [x] Add SlopeLimiter
 - [ ] Add TroubledCellIndicator
+- [ ] 4th order timestepper
+
+* Future Work
+
+- We will want to extend beyond the minmod limiter to something which allows us to retain high order information.
+- Parallelism
 
 
 * BROKEN: 
+- [ ] nNodes > order, crash when SlopeLimiter applied.
 - [x] Timestepper (nStages > 1)
 - [ ] Likely more
 
