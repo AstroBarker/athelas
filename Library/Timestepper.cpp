@@ -1,5 +1,5 @@
 /**
- * File     :  Timestepper.cpp.cpp
+ * File     :  Timestepper.cpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -15,13 +15,46 @@
 #include "Grid.h"
 #include "DataStructures.h"
 #include "SlopeLimiter.h"
-#include "Timestepper.h"
 #include "Fluid_Discretization.h"
 #include "PolynomialBasis.h"
+#include "Timestepper.h"
+
+/**
+ * The constructor creates the necessary data structures for time evolution.
+**/
+TimeStepper::TimeStepper( unsigned int nS, unsigned int tO, unsigned int pOrder,
+    GridStructure& Grid, std::string BCond )
+    : mSize( Grid.Get_nElements() + 2 * Grid.Get_Guard() ),
+      nStages(nS),
+      tOrder(tO),
+      BC(BCond),
+      a_jk(nStages, nStages),
+      b_jk(nStages, nStages),
+      SumVar_U( 3, mSize + 1, pOrder ),
+      SumVar_X( mSize + 1, 0.0),
+      U_s(nStages+1, DataStructure3D( 3, mSize, pOrder )),
+      dU_s(nStages+1, DataStructure3D( 3, mSize, pOrder )),
+      Grid_s(nStages+1, GridStructure( Grid.Get_nNodes(), 
+        Grid.Get_nElements(), Grid.Get_Guard(), Grid.Get_xL(), Grid.Get_xR() )),
+      Flux_q( 3, mSize + 1, Grid.Get_nNodes() ),
+      dFlux_num( 3, mSize + 1 ),
+      uCF_F_L( 3, mSize ),
+      uCF_F_R( 3, mSize ),
+      Flux_U( nStages + 1, std::vector<double>(mSize + 1,0.0) ),
+      Flux_P( mSize + 1, 0.0),
+      uCF_L(3, 0.0),
+      uCF_R(3, 0.0)
+{
+
+  // --- Call Initialization ---
+  InitializeTimestepper();
+
+}
+
 
 // Initialize arrays for timestepper
-void InitializeTimestepper( const unsigned short int nStages, 
-  DataStructure2D& a_jk, DataStructure2D& b_jk )
+// TODO: Separate nStages from a tOrder
+void TimeStepper::InitializeTimestepper( )
 {
 
   if ( nStages == 1 )
@@ -68,17 +101,9 @@ void InitializeTimestepper( const unsigned short int nStages,
  * TODO: adjust for spherically symmetric
  * TODO: Remove dU (we only use dU_s)
 **/
-
-
-void UpdateFluid( myFuncType ComputeIncrement, double dt, 
-  DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
-  DataStructure2D& a_jk, DataStructure2D& b_jk,
-  std::vector<DataStructure3D>& U_s, std::vector<DataStructure3D>& dU_s, std::vector<GridStructure>& Grid_s,
-  DataStructure3D& dU, DataStructure3D& SumVar, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 
-  DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<std::vector<double>>& Flux_U, 
-  std::vector<double>& Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R,
-  const short unsigned int nStages, SlopeLimiter& S_Limiter,
-  const std::string BC )
+void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt, 
+    DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
+    SlopeLimiter& S_Limiter )
 {
 
   const unsigned int order = Basis.Get_Order();
@@ -89,9 +114,10 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
 
   unsigned short int i;
 
-  std::vector<double> SumVar_X(ihi + 2, 0.0);
   std::vector<std::vector<double>> StageData(nStages + 1, 
     std::vector<double>(ihi + 2, 0.0));
+
+  SumVar_U.zero();
 
   U_s[0] = U;
   // StageData holds left interface positions
@@ -104,7 +130,7 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
   {
     i = iS - 1;
     // re-zero the summation variable `SumVar`
-    SumVar.zero();
+    SumVar_U.zero();
     for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
     {
       SumVar_X[iX] = 0.0;
@@ -123,7 +149,7 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
       for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < order; k++ )
       {
-        SumVar(iCF,iX,k) += a_jk(i,j) * U_s[j](iCF,iX,k) 
+        SumVar_U(iCF,iX,k) += a_jk(i,j) * U_s[j](iCF,iX,k) 
                         + dt * b_jk(i,j) * dU_s[j](iCF,iX,k);
       }
 
@@ -134,7 +160,7 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
       }
       
     }
-    U_s[iS] = SumVar;
+    U_s[iS] = SumVar_U;
     StageData[iS] = SumVar_X;
     Grid_s[iS].UpdateGrid( StageData[iS] );
 

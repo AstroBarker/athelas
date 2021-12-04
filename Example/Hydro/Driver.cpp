@@ -31,7 +31,7 @@ int main( int argc, char* argv[] )
   const unsigned int nX            = 512;
   const unsigned int order         = 3;
   const unsigned int nNodes        = NumNodes( order );
-  const unsigned short int nStages = 3;
+  const unsigned int nStages = 3;
 
   const unsigned int nGuard = 1;
 
@@ -42,33 +42,15 @@ int main( int argc, char* argv[] )
   double dt          = 0.0;
   const double t_end = 0.2;
 
-  const double CFL = 0.3 / ( 1.0 * ( 2.0 * ( order+1 ) - 1.0 ) );
+  const double CFL = 0.3 / ( 1.0 * ( 2.0 * ( order ) - 1.0 ) );
 
   // --- Create the Grid object ---
-  GridStructure Grid( nNodes, nX, nStages, nGuard, xL, xR );
+  GridStructure Grid( nNodes, nX, nGuard, xL, xR );
 
   // --- Create the data structures ---
   DataStructure3D uCF( 3, nX + 2*nGuard, order );
   DataStructure3D uPF( 3, nX + 2*nGuard, order );
   DataStructure3D uAF( 3, nX + 2*nGuard, order );
-  // DataStructure3D D( 2, nX + 2*nGuard, order );
-
-  // --- Data Structures needed for update step ---
-
-  DataStructure3D dU( 3, nX + 2*nGuard, order );
-  DataStructure3D Flux_q( 3, nX + 2*nGuard + 1, nNodes );
-
-  DataStructure2D dFlux_num( 3, nX + 2*nGuard + 1 );
-  DataStructure2D uCF_F_L( 3, nX + 2*nGuard );
-  DataStructure2D uCF_F_R( 3, nX + 2*nGuard );
-
-  std::vector<std::vector<double>> Flux_U(nStages + 1, 
-    std::vector<double>(nX + 2*nGuard + 1,0.0));
-  std::vector<double> Flux_P(nX + 2*nGuard + 1, 0.0);
-  std::vector<double> uCF_L(3, 0.0);
-  std::vector<double> uCF_R(3, 0.0);
-
-  // We may need more allocations later. Put them here.
 
   // --- Initialize fields ---
   InitializeFields( uCF, uPF, Grid, ProblemName );
@@ -86,39 +68,29 @@ int main( int argc, char* argv[] )
   ModalBasis Basis( uPF, Grid, order, nNodes, nX, nGuard );
 
   // --- Initialize timestepper ---
-  DataStructure2D a_jk(nStages, nStages);
-  DataStructure2D b_jk(nStages, nStages);
-
-  // Inter-stage data structures
-  DataStructure3D SumVar( 3, nX + 2*nGuard + 1, order ); // Used in Integrator...
-  std::vector<DataStructure3D> U_s(nStages+1, DataStructure3D( 3, nX + 2*nGuard, order ));
-  std::vector<GridStructure> Grid_s(nStages+1, GridStructure( nNodes, nX, nStages, nGuard, xL, xR ));
-  std::vector<DataStructure3D> dU_s(nStages, DataStructure3D( 3, nX + 2*nGuard, order ));
-
-  InitializeTimestepper( nStages, a_jk, b_jk );
+  TimeStepper SSPRK( nStages, nStages, order, Grid, "Homogenous" );
   
-  // Slope limiter things
+  // --- Initialize Slope Limiter ---
   const double Beta_TVD = 1.0;
   const double Beta_TVB = 0.0;
-  const double SlopeLimiter_Threshold = 1e-6;
-  const double TCI_Threshold = 0.05;
+  const double SlopeLimiter_Threshold = 5e-6;
+  const double TCI_Threshold = 0.1;
   const bool CharacteristicLimiting_Option = true;
-  const bool TCI_Option = false;
-  // --- Initialize Slope Limiter ---
+  const bool TCI_Option = true;
   
   SlopeLimiter S_Limiter( Grid, nNodes, SlopeLimiter_Threshold, Beta_TVD, Beta_TVB,
     CharacteristicLimiting_Option, TCI_Option, TCI_Threshold );
 
-  // Limit the initial conditions
-  S_Limiter.ApplySlopeLimiter( uCF, Grid );
+  // --- Limit the initial conditions ---
+  S_Limiter.ApplySlopeLimiter( uCF, Grid, Basis );
 
   // --- Evolution loop ---
   unsigned int iStep = 0;
   std::cout << "Step\tt\tdt" << std::endl;
-  while( t < t_end && iStep < 1245 )
+  while( t < t_end && iStep >= 0 )
   {
 
-    dt = ComputeTimestep_Fluid( uCF, Grid, CFL ); // Next: ComputeTimestep
+    dt = ComputeTimestep_Fluid( uCF, Grid, CFL );
     // dt = 0.000005;
 
     if ( t + dt > t_end )
@@ -128,9 +100,8 @@ int main( int argc, char* argv[] )
 
     std::printf( "%d \t %.5e \t %.5e\n", iStep, t, dt );
 
-    UpdateFluid( Compute_Increment_Explicit, dt, uCF,  Grid, Basis, a_jk,  b_jk,
-                 U_s,  dU_s, Grid_s, dU,  SumVar, Flux_q,  dFlux_num, uCF_F_L,  uCF_F_R,  
-                 Flux_U, Flux_P,  uCF_L,  uCF_R, nStages, S_Limiter, "Homogenous" );
+    SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, 
+      uCF, Grid, Basis, S_Limiter );
 
     t += dt;
 
@@ -138,14 +109,6 @@ int main( int argc, char* argv[] )
   }
 
   WriteState( uCF, uPF, uAF, Grid, ProblemName );
-
-  std::printf("testing cell avg\n");
-  for ( unsigned int iCF = 0; iCF < 3; iCF++)
-  for ( unsigned int iX = 1; iX < nX-1; iX++ )
-  {
-    std::printf("%d %d %f\n ",iCF, iX, uCF(iCF,iX,0) - CellAverage( uCF, Grid, Basis, iCF, iX ) );
-  }
-  std::printf("\n");
 
 }
 
