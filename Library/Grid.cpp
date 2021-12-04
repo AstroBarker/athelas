@@ -112,14 +112,14 @@ double GridStructure::Get_Weights( unsigned int nN )
 
 
 // Acessor for xL
-double GridStructure::Get_xL();
+double GridStructure::Get_xL()
 {
   return xL;
 }
 
 
 // Acessor for xR
-double GridStructure::Get_xR();
+double GridStructure::Get_xR()
 {
   return xR;
 }
