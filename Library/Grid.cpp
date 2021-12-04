@@ -37,9 +37,9 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX,
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     tmp_nodes[iN]   = 0.0;
-    tmp_weights[iN] = 
-    0.0;
+    tmp_weights[iN] = 0.0;
   }
+
   LG_Quadrature( nNodes, tmp_nodes, tmp_weights );
   
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
@@ -165,7 +165,7 @@ void GridStructure::CreateGrid( )
 {
 
   const unsigned int ilo = nGhost; // first real zone
-  const unsigned int ihi = nElements - nGhost + 1; // last real zone
+  const unsigned int ihi = nElements + nGhost - 1; // last real zone
 
   for (unsigned int i = 0; i < nElements + 2 * nGhost; i++)
   {

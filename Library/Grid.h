@@ -26,7 +26,7 @@ class GridStructure
 {
 public:
 
-  GridStructure( unsigned int nX, unsigned int nN,
+  GridStructure( unsigned int nN, unsigned int nX,
     unsigned int nG, double left, double right );
   double NodeCoordinate( unsigned int iC, unsigned int iN ); // TODO: NodeCoordinate needs updating for modal
   double Get_Centers( unsigned int iC );
