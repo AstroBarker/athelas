@@ -38,6 +38,7 @@ ModalBasis::ModalBasis( DataStructure3D& uPF, GridStructure& Grid,
     dPhi( nElements + 2*nGuard, 3*nN + 2, pOrder )
 {
   InitializeTaylorBasis( uPF, Grid );
+  // InitializeLegendreBasis( uPF, Grid );
 }
 
 // --- Taylor Methods ---
@@ -267,6 +268,77 @@ void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
 
 
 /**
+ * Pre-compute the orthogonal Taylor basis terms. Phi(k,eta) will store
+ * the expansion terms for each order k, stored at various points eta.
+ * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
+**/
+void ModalBasis::InitializeLegendreBasis( DataStructure3D& uPF,
+  GridStructure& Grid )
+{
+  const unsigned int n_eta = 3 * nNodes + 2;
+  const unsigned int ilo   = Grid.Get_ilo();
+  const unsigned int ihi   = Grid.Get_ihi();
+
+
+  double eta = 0.5;
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  {
+    for ( unsigned int k = 0; k < order; k++ )
+    for ( unsigned int i_eta = 0; i_eta < n_eta; i_eta++ )
+    {
+      // face values
+      if ( i_eta == 0 )
+      {
+        eta = -0.5;
+      }
+      else if ( i_eta == nNodes + 1 )
+      {
+        eta = +0.5;
+      }
+      else if ( i_eta > 0 && i_eta < nNodes + 1 )// GL nodes
+      {
+        eta = Grid.Get_Nodes(i_eta-1);
+      }
+      else if ( i_eta > nNodes + 1 && i_eta < 2*nNodes+1) // GL nodes left neighbor
+      {
+        eta = Grid.Get_Nodes(i_eta-nNodes-1) - 1.0;
+      }
+      else
+      {
+        eta = Grid.Get_Nodes(i_eta-2*nNodes-1) + 1.0;
+      }
+      
+      Phi(iX, i_eta, k)  = Legendre( k, eta );
+      dPhi(iX, i_eta, k) = dLegendre( k, eta );
+    }
+  }
+  CheckOrthogonality( uPF, Grid );
+  ComputeMassMatrix( uPF, Grid );
+
+  // === Fill Guard cells ===
+
+  // ? Using identical basis in guard cells as boundaries ?
+  for ( unsigned int iX = 0; iX < ilo; iX ++ )
+  for ( unsigned int i_eta = 0; i_eta < n_eta; i_eta++)
+  for ( unsigned int k = 0; k < order; k++ )
+  {
+    Phi(ilo-1-iX, i_eta, k) = Phi(ilo+iX, i_eta, k);
+    Phi(ihi+1+iX, i_eta, k) = Phi(ihi-iX, i_eta, k);
+
+    dPhi(ilo-1-iX, i_eta, k) = dPhi(ilo+iX, i_eta, k);
+    dPhi(ihi+1+iX, i_eta, k) = dPhi(ihi-iX, i_eta, k);
+  }
+
+  for ( unsigned int iX = 0; iX < ilo; iX ++ )
+  for ( unsigned int k = 0; k < order; k++ )
+  {
+    MassMatrix(ilo-1-iX, k) = MassMatrix(ilo+iX, k);
+    MassMatrix(ihi+1+iX, k) = MassMatrix(ihi-iX, k);
+  }
+}
+
+
+/**
  * The following checks orthogonality of basis functions on each cell. 
  * Returns error if orthogonality is not met.
 **/
@@ -317,13 +389,10 @@ void ModalBasis::ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid )
   const unsigned int ihi    = Grid.Get_ihi();
   const unsigned int nNodes = Grid.Get_nNodes();
 
-  // double eta_c = 0.0;
-
   double result = 0.0;
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
-    // eta_c  = Grid.Get_CenterOfMass( iX );
     for ( unsigned int k = 0; k < order; k++ )
     {
       result = 0.0;
@@ -385,28 +454,28 @@ int ModalBasis::Get_Order( )
 
 
 // Legendre polynomials
-double ModalBasis::Legendre( unsigned int nNodes, double x )
+double ModalBasis::Legendre( unsigned int order, double x )
 {
 
-  if ( nNodes == 0 )
+  if ( order == 0 )
   {
     return 1.0;
   }
-  else if ( nNodes == 1 )
+  else if ( order == 1 )
   {
     return 2.0 * x;
   }
   else
   {
 
-    x *= 2.0; // This maps to intercal [-0.5, 0.5]
+    x *= 2.0; // This maps to interval [-0.5, 0.5]
 
     double Pn, Pnm1; // P_n, P_{n-1}
     double Pnp1 = 0.0;
 
     Pnm1 = 1.0; // P_0
     Pn = x;    //  P_1
-    for ( unsigned int i = 1; i < nNodes; i++ )
+    for ( unsigned int i = 1; i < order; i++ )
     {
       Pnp1 = 2.0 * x * Pn - Pnm1 - ( x * Pn - Pnm1) / (i+1);
       // Pnp1 = ( (2*i + 1) * x * Pn - i * Pnm1 ) / (i + 1);
@@ -421,14 +490,14 @@ double ModalBasis::Legendre( unsigned int nNodes, double x )
 
 
 // Derivative of Legendre polynomials
-double ModalBasis::dLegendre( unsigned int nNodes, double x )
+double ModalBasis::dLegendre( unsigned int order, double x )
 {
 
   double dPn; // P_n
   // double dPnp1 = 0.0;
 
   dPn = 0.0;
-  for ( unsigned int i = 0; i < nNodes; i++ )
+  for ( unsigned int i = 0; i < order; i++ )
   {
     dPn = ( i + 1 ) * Legendre( i, x ) + 2.0 * x * dPn;
   }

@@ -36,6 +36,7 @@ class ModalBasis
   double InnerProduct( unsigned int m, unsigned int n, 
     unsigned int iX, double eta_c, DataStructure3D& uPF, GridStructure& Grid );
   void InitializeTaylorBasis( DataStructure3D& U, GridStructure& Grid );
+  void InitializeLegendreBasis( DataStructure3D& uPF, GridStructure& Grid );
   void CheckOrthogonality( DataStructure3D& uPF, GridStructure& Grid );
   double BasisEval( DataStructure3D& U, unsigned int iX, unsigned int iCF, 
     unsigned int i_eta );
@@ -47,8 +48,8 @@ class ModalBasis
 
   int Get_Order( );
 
-  double Legendre ( unsigned int nNodes, double x );
-  double dLegendre( unsigned int nNodes, double x );
+  double Legendre ( unsigned int order, double x );
+  double dLegendre( unsigned int order, double x );
 
 private:
   unsigned int nX;
