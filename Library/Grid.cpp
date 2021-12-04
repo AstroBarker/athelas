@@ -13,7 +13,7 @@
 
 #include "Grid.h"
 
-GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nS,
+GridStructure::GridStructure( unsigned int nN, unsigned int nX,
   unsigned int nG, double left, double right )
   : nElements(nX),
     nNodes(nN),
@@ -108,6 +108,20 @@ double GridStructure::Get_Nodes( unsigned int nN )
 double GridStructure::Get_Weights( unsigned int nN )
 {
   return Weights[nN];
+}
+
+
+// Acessor for xL
+double GridStructure::Get_xL();
+{
+  return xL;
+}
+
+
+// Acessor for xR
+double GridStructure::Get_xR();
+{
+  return xR;
 }
 
 
@@ -298,9 +312,8 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
 void GridStructure::UpdateGrid( std::vector<double>& SData )
 {
 
-  // const unsigned int nNodes = Get_nNodes();
-  const unsigned int ilo    = Get_ilo();
-  const unsigned int ihi    = Get_ihi();
+  const unsigned int ilo = Get_ilo();
+  const unsigned int ihi = Get_ihi();
 
   xR = SData[ihi + 1];
   xL = SData[ilo];
@@ -310,11 +323,6 @@ void GridStructure::UpdateGrid( std::vector<double>& SData )
     Widths[iX]   = SData[iX+1] - SData[iX];
     Centers[iX]  = 0.5 * (SData[iX+1] + SData[iX]);
   }
-
-  // for ( unsigned int iX = ilo; iX < ihi; iX++ )
-  // {
-  //   std::printf("%f\n", Centers[iX+1] - Centers[iX]);
-  // }
 
   for (unsigned int iC = ilo; iC <= ihi; iC++)
   {
