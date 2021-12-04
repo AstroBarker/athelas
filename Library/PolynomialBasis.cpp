@@ -34,8 +34,8 @@ ModalBasis::ModalBasis( DataStructure3D& uPF, GridStructure& Grid,
     nNodes(nN),
     mSize( (nN)*(nN+2)*(nElements+2*nGuard) ),
     MassMatrix( nElements + 2*nGuard, pOrder ),
-    Phi( nElements + 2*nGuard, nN + 2, pOrder ),
-    dPhi( nElements + 2*nGuard, nN + 2, pOrder )
+    Phi( nElements + 2*nGuard, 3*nN + 2, pOrder ),
+    dPhi( nElements + 2*nGuard, 3*nN + 2, pOrder )
 {
   InitializeTaylorBasis( uPF, Grid );
 }
@@ -201,7 +201,7 @@ double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
 void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
   GridStructure& Grid )
 {
-  const unsigned int n_eta = nNodes + 2;
+  const unsigned int n_eta = 3 * nNodes + 2;
   const unsigned int ilo   = Grid.Get_ilo();
   const unsigned int ihi   = Grid.Get_ihi();
 
@@ -223,9 +223,17 @@ void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
       {
         eta = +0.5;
       }
-      else // GL nodes
+      else if ( i_eta > 0 && i_eta < nNodes + 1 )// GL nodes
       {
         eta = Grid.Get_Nodes(i_eta-1);
+      }
+      else if ( i_eta > nNodes + 1 && i_eta < 2*nNodes+1) // GL nodes left neighbor
+      {
+        eta = Grid.Get_Nodes(i_eta-nNodes-1) - 1.0;
+      }
+      else
+      {
+        eta = Grid.Get_Nodes(i_eta-2*nNodes-1) + 1.0;
       }
 
       Phi(iX, i_eta, k)  = OrthoTaylor( k, iX, i_eta, eta, eta_c, uPF, Grid, false );

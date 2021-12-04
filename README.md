@@ -17,10 +17,12 @@
     - [x] SlopeLimiter needs changes, FluidDiscretization... 
     - [x] Initialization?
     - [x] Node Coordinate? Grid?
- - [ ] Fix BoudnaryConditions
+ - [ ] Fix BoundaryConditions
 
-* TODO: Everything
+* TODO:
+ - [ ] TimeStepper class (main purpose: hold U_s, SumVar, etc)
  - [ ] We need a build system....
+ - [ ] Initialize with input file at runtime
  - [x] Update Grid to depend opn GridStructures
  - [x] Start with Lagrange and Legendre polynomial bases
     - [x] We need to put in LG (and LGL) quadratures.
@@ -28,8 +30,12 @@
 - [x] Use LAPACKE for lapack calls (more portable)
 - [x] Add UpdateGrid()
 - [x] Add SlopeLimiter
-- [ ] Add TroubledCellIndicator
+- [x] Add TroubledCellIndicator
 - [ ] 4th order timestepper
+
+* Reader
+ - [ ] Need to extend Reader to compute solution at arbitrary points using basis
+    - Have to output the full solution and basis first.
 
 * Future Work
 

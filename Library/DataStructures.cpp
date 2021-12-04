@@ -60,21 +60,6 @@ double DataStructure3D::operator()
 }
 
 
-double DataStructure3D::CellAverage( unsigned int iCF, unsigned int iX, unsigned int nNodes, 
-  std::vector<double> Weights )
-{
-
-  double avg = 0.0;
-
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
-  {
-    avg += Weights[iN] * Data[(iCF * Size2 + iX) * Size3 + iN];
-  }
-
-  return avg;
-}
-
-
 // zero out structure
 void DataStructure3D::zero( )
 {

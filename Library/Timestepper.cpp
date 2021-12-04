@@ -77,7 +77,7 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
   DataStructure3D& dU, DataStructure3D& SumVar, DataStructure3D& Flux_q, DataStructure2D& dFlux_num, 
   DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R, std::vector<std::vector<double>>& Flux_U, 
   std::vector<double>& Flux_P, std::vector<double> uCF_L, std::vector<double> uCF_R,
-  const short unsigned int nStages, DataStructure3D& D, SlopeLimiter& S_Limiter,
+  const short unsigned int nStages, SlopeLimiter& S_Limiter,
   const std::string BC )
 {
 
@@ -123,7 +123,6 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
       for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < order; k++ )
       {
-        // TODO: Can I just replace SumVar += with U_s[iS](...) += ????
         SumVar(iCF,iX,k) += a_jk(i,j) * U_s[j](iCF,iX,k) 
                         + dt * b_jk(i,j) * dU_s[j](iCF,iX,k);
       }
@@ -139,13 +138,14 @@ void UpdateFluid( myFuncType ComputeIncrement, double dt,
     StageData[iS] = SumVar_X;
     Grid_s[iS].UpdateGrid( StageData[iS] );
 
-    S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], D );
+    S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], Basis );
     
   }
   
   U = U_s[nStages-0];
 
-  Grid.UpdateGrid( StageData[nStages] );
-  S_Limiter.ApplySlopeLimiter( U, Grid, D );
+  // Grid.UpdateGrid( StageData[nStages] );
+  Grid = Grid_s[nStages];
+  S_Limiter.ApplySlopeLimiter( U, Grid, Basis );
 
 }

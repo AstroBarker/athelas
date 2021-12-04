@@ -44,8 +44,6 @@ public:
   double& operator()( unsigned int i, unsigned int j, unsigned int k );
   double operator()( unsigned int i, unsigned int j, unsigned int k ) const;
 
-  double CellAverage( unsigned int iCF, unsigned int iX, unsigned int nNodes, 
-    std::vector<double> Weights );
   void zero( );
 
 private:

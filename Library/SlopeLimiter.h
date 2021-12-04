@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <iostream>
+
 #include "Error.h"
 #include "DataStructures.h"
 #include "Grid.h"
@@ -29,7 +30,13 @@ public:
     bool TCIOption, double TCI_Threshold_val );
 
   void ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid, 
-    DataStructure3D& D );
+    ModalBasis& Basis );
+
+  void DetectTroubledCells( DataStructure3D& U, 
+    GridStructure& Grid, ModalBasis& Basis );
+
+  double CellAverage( DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
+    unsigned int iCF, unsigned int iX, int extrapolate );
 
   ~SlopeLimiter()
   {
@@ -53,6 +60,8 @@ private:
 
   double* SlopeDifference;
   double* dU;
+
+  DataStructure2D D;
 
 };
 

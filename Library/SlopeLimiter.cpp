@@ -5,18 +5,19 @@
  * Author   : Brandon L. Barker
  * Purpose  : Classes for slope limters
  * Contains : SlopeLimiter
- * TODO: Properly switch to purely modal basis.
 **/ 
 
+#include <cstdlib>     /* abs */
+#include <algorithm>   /* std::min, std::max */
+#include <cstdlib>     /* abs */
+
 #include <iostream>
-#include "SlopeLimiter.h"
 #include "SlopeLimiter_Utilities.h"
 #include "CharacteristicDecomposition.h"
 #include "LinearAlgebraModules.h"
 #include "DataStructures.h"
 #include "Error.h"
-
-#include <cstdlib>     /* abs */
+#include "SlopeLimiter.h"
 
 
 /**
@@ -32,7 +33,8 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder, double Slo
       Beta_TVB(Beta_TVB_val),
       CharacteristicLimiting_Option(CharacteristicLimitingOption),
       TCI_Option(TCIOption),
-      TCI_Threshold(TCI_Threshold_val)
+      TCI_Threshold(TCI_Threshold_val),
+      D( 3, Grid.Get_nElements()+2*Grid.Get_Guard() )
 {
   // --- Initialize SLope Limiter structures ---
 
@@ -47,24 +49,65 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder, double Slo
 }
 
 
+/**
+ * Apply the Troubled Cell Indicator of Fu & Shu (2017) 
+ * to flag cells for limiting
+**/
+void SlopeLimiter::DetectTroubledCells( DataStructure3D& U, 
+  GridStructure& Grid, ModalBasis& Basis )
+{
+  const unsigned int ilo = Grid.Get_ilo();
+  const unsigned int ihi = Grid.Get_ihi();
+
+  double result      = 0.0;
+  double cell_avg    = 0.0;
+  double denominator = 0.0;
+
+  // Cell averages by extrapolating L and R neighbors into current cell
+  double cell_avg_L = 0.0;
+  double cell_avg_R = 0.0;
+
+  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  {
+    result = 0.0;
+    cell_avg = U(iCF,iX,0);
+
+    // Extrapolate neighboring poly representations into current cell
+    // and compute the new cell averages
+    cell_avg_L = CellAverage( U, Grid, Basis, iCF, iX, -1 );
+    cell_avg_R = CellAverage( U, Grid, Basis, iCF, iX, +1 );
+    // std::printf("%f %f %f \n", cell_avg_L, cell_avg, cell_avg_R);
+    result += ( std::abs( cell_avg - cell_avg_L ) + std::abs( cell_avg - cell_avg_R ) );
+
+    denominator = std::max( std::max( std::abs(cell_avg_L), 
+      std::abs(cell_avg_R) ), cell_avg );
+    
+    D(iCF,iX) = result / denominator;
+    // std::printf("%d %f %f\n", iCF, result, denominator);
+
+  }
+}
+
+
 // Apply slope limiter
 void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid, 
-  DataStructure3D& D )
+  ModalBasis& Basis )
 {
 
+  // Do not apply for first order method. No slopes!
   if ( order == 1 )
   {
     return;
   }
 
   
-  double* a      = new double[3];
-  double* b      = new double[3];
-  double* c      = new double[3];
-  double* tmp    = new double[3];
-  double* Vals   = new double[3];
+  double* a    = new double[3];
+  double* b    = new double[3];
+  double* c    = new double[3];
+  double* tmp  = new double[3];
+  double* Vals = new double[3];
   
-  const unsigned int nNodes = Grid.Get_nNodes();
   const unsigned int ilo    = Grid.Get_ilo();
   const unsigned int ihi    = Grid.Get_ihi();
 
@@ -80,20 +123,19 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
   // --- Apply troubled cell indicator ---
   // Exit if we don't need to limit slopes
 
-  //DetectTroubledCells( Mesh, U, D )
+  if ( TCI_Option ) DetectTroubledCells( U, Grid, Basis );
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
     // Check if TCI val is less than TCI_Threshold
-    // unsigned int j = 0;
-    // for ( unsigned int k = 0; k < order; k++ )
-    // {
-    //   if ( D(0,iX,k) < TCI_Threshold )
-    //   {
-    //     j++;
-    //   }
-    // }
-    // if ( j == order ) continue;
+    unsigned int j = 0;
+    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+    {
+      // if ( iCF == 1 ) continue;
+      if ( D(iCF,iX) > TCI_Threshold ) j++; // ! What is the appropriate data layout for D !
+      // std::printf("%d %f\n", iCF, D(iCF,iX));
+    }
+    if ( j == 0 ) continue;
 
     for ( int i = 0; i < 3; i++ )
     {
@@ -239,4 +281,39 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
   delete [] tmp;
   delete [] c;
 
+}
+
+
+/**
+ * Return the cell average of a field iCF on cell iX.
+ * The parameter `int extrapolate` designates how the cell average is computed.
+ *  0  : Return stadnard cell average on iX
+ *  -1 : Extrapolate polynomial from iX-1 into iX
+ *  +1 : Extrapolate polynomial from iX+1 into iX 
+**/
+double SlopeLimiter::CellAverage( DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
+  unsigned int iCF, unsigned int iX, int extrapolate )
+{
+  const unsigned int nNodes = Grid.Get_nNodes();
+
+  double avg = 0.0;
+
+  // Used to set loop bounds
+  int mult  = 1;
+  unsigned int end   = nNodes; 
+  unsigned int start = 0;
+
+  if ( extrapolate == -1 ) mult = 1;
+  if ( extrapolate ==  0 ) mult = 0;
+  if ( extrapolate == +1 ) mult = 2;
+
+  start = 1 + mult * nNodes;
+  end   = start + nNodes;
+
+  for ( unsigned int iN = start; iN < end; iN++ )
+  {
+    avg += Grid.Get_Weights(iN-start) * Basis.BasisEval( U, iX, iCF, iN+1 );
+  }
+
+  return avg;
 }
