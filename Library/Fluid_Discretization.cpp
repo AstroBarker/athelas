@@ -37,10 +37,6 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
 
   double Poly_L, Poly_R;
 
-  // const unsigned int nF_X   = nX + 1 + 2 * nG;  // Number of Interfaces
-  // const unsigned int nCF_K  = 3 * nX           // Number of Fluid Fields in Domain
-  // const unsigned int nCF_F  = 3 * nF_X        // Number of Fluid Fields on Interfaces
-
   // --- Interpolate Conserved Variable to Interfaces ---
   
   // Left/Right face states
@@ -118,14 +114,12 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   for ( unsigned int k = 0; k < order; k++ )
   {
     local_sum = 0.0;
-    // PermuteNodes(nNodes, iN, Nodes);
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
       // X1 = Grid.NodeCoordinate(...)
       local_sum += Grid.Get_Weights(iN) * Flux_q(iCF,iX,iN) 
                 * Basis.Get_dPhi( iX, iN+1, k );
     }
-    // std::sort(Nodes, Nodes + nNodes);
 
     dU(iCF,iX,k) -= local_sum;
   }
@@ -176,12 +170,12 @@ void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid,
 
   // double X;
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-  for ( unsigned int iX  = ilo-0; iX <= ihi+0; iX++ )
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   for ( unsigned int k = 0; k < order; k++ )
   {
     // X = Grid.NodeCoordinate(iX,iN);
     dU(iCF,iX,k) /= Basis.Get_MassMatrix( iX, k );
   }
 
-  // --- Increment Gravity --- ?
+  // --- Increment Gravity --- 
 }
