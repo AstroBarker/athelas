@@ -318,7 +318,7 @@ void GridStructure::UpdateGrid( std::vector<double>& SData )
   xR = SData[ihi + 1];
   xL = SData[ilo];
   
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( unsigned int iX = ilo; iX <= ihi+1; iX++ )
   {
     Widths[iX]   = SData[iX+1] - SData[iX];
     Centers[iX]  = 0.5 * (SData[iX+1] + SData[iX]);
