@@ -40,12 +40,12 @@ int main( int argc, char* argv[] )
 
   double t           = 0.0;
   double dt          = 0.0;
-  const double t_end = 0.5;
+  const double t_end = 0.2;
 
   const double CFL = 0.3 / ( 1.0 * ( 2.0 * ( order ) - 1.0 ) );
 
   // --- Create the Grid object ---
-  GridStructure Grid( nNodes, nX, nStages, nGuard, xL, xR );
+  GridStructure Grid( nNodes, nX, nGuard, xL, xR );
 
   // --- Create the data structures ---
   DataStructure3D uCF( 3, nX + 2*nGuard, order );
@@ -72,10 +72,10 @@ int main( int argc, char* argv[] )
   TimeStepper SSPRK( nStages, nStages, order, Grid, "Homogenous" );
   
   // --- Initialize Slope Limiter ---
-  const double Beta_TVD = 1.0;
-  const double Beta_TVB = 0.0;
+  const double Beta_TVD = 1.1;
+  const double Beta_TVB = 10.0;
   const double SlopeLimiter_Threshold = 5e-6;
-  const double TCI_Threshold = 0.1;
+  const double TCI_Threshold = 0.4;
   const bool CharacteristicLimiting_Option = true;
   const bool TCI_Option = true;
   
@@ -126,7 +126,7 @@ int NumNodes( unsigned int order )
   }
   else
   {
-    return 2 * order;
+    return order + 1;
   }
 }
 

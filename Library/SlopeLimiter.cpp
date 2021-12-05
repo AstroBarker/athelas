@@ -107,8 +107,8 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
   double* tmp  = new double[3];
   double* Vals = new double[3];
   
-  const unsigned int ilo    = Grid.Get_ilo();
-  const unsigned int ihi    = Grid.Get_ihi();
+  const unsigned int ilo = Grid.Get_ilo();
+  const unsigned int ihi = Grid.Get_ihi();
 
   for ( int i = 0; i < 3; i++ )
   {
@@ -131,9 +131,9 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
       // if ( iCF == 1 ) continue;
-      if ( D(iCF,iX) > TCI_Threshold ) j++; // ! What is the appropriate data layout for D !
+      if ( D(iCF,iX) > TCI_Threshold && TCI_Option ) j++; // ! What is the appropriate data layout for D !
     }
-    if ( j == 0 ) continue;
+    if ( j == 0 && TCI_Option ) continue;
 
     for ( int i = 0; i < 3; i++ )
     {

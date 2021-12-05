@@ -157,12 +157,6 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
         SumVar_X[iX] += a_jk(i,j) * StageData[j][iX]
                      + dt * b_jk(i,j) * Flux_U[j][iX];
       }
-
-      for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
-      {
-        SumVar_X[iX] += a_jk(i,j) * StageData[j][iX]
-                     + dt * b_jk(i,j) * Flux_U[j][iX];
-      }
       
     }
     

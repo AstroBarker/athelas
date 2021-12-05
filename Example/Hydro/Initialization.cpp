@@ -155,7 +155,7 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
       }
       else
       {
-        uCF(iCF_Tau, iX, k) = 1.0 / (2.0 + Amp * sin( 2.0 * pi() * X1 ));
+        uCF(iCF_Tau, iX, k) = 1.0 / (2.0 + Amp * sin( 2.0 * PI() * X1 ));
         uCF(iCF_V, iX, k)   = V0;
         uCF(iCF_E, iX, k)   = (P0 / 0.4) * uCF(iCF_Tau, iX, k) + 0.5 * V0*V0;
       }
