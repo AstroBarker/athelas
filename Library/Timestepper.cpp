@@ -101,7 +101,6 @@ void TimeStepper::InitializeTimestepper( )
 /** 
  * Update Solution with SSPRK methods 
  * TODO: adjust for spherically symmetric
- * TODO: Remove dU (we only use dU_s)
 **/
 void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt, 
     DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
@@ -169,7 +168,6 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
   
   U = U_s[nStages-0];
 
-  // Grid.UpdateGrid( StageData[nStages] );
   Grid = Grid_s[nStages];
   S_Limiter.ApplySlopeLimiter( U, Grid, Basis );
 

@@ -26,21 +26,21 @@
 int main( int argc, char* argv[] )
 {
   // --- Problem Parameters ---
-  const std::string ProblemName = "Sod";
+  const std::string ProblemName = "SmoothAdvection";
 
-  const unsigned int nX            = 512;
-  const unsigned int order         = 3;
-  const unsigned int nNodes        = NumNodes( order );
+  const unsigned int nX      = 512;
+  const unsigned int order   = 1;
+  const unsigned int nNodes  = NumNodes( order );
   const unsigned int nStages = 3;
 
-  const unsigned int nGuard = 1;
+  const unsigned int nGuard  = 1;
 
   const double xL = 0.0;
   const double xR = 1.0;
 
   double t           = 0.0;
   double dt          = 0.0;
-  const double t_end = 0.2;
+  const double t_end = 0.5;
 
   const double CFL = 0.3 / ( 1.0 * ( 2.0 * ( order ) - 1.0 ) );
 
@@ -49,17 +49,17 @@ int main( int argc, char* argv[] )
 
   // --- Create the data structures ---
   DataStructure3D uCF( 3, nX + 2*nGuard, order );
-  DataStructure3D uPF( 3, nX + 2*nGuard, order );
+  DataStructure3D uPF( 3, nX + 2*nGuard, nNodes );
   DataStructure3D uAF( 3, nX + 2*nGuard, order );
 
   // --- Initialize fields ---
-  InitializeFields( uCF, uPF, Grid, ProblemName );
+  InitializeFields( uCF, uPF, Grid, order, ProblemName );
   // WriteState( uCF, uPF, uAF, Grid, ProblemName );
 
-  ApplyBC_Fluid( uCF, Grid, order, "Homogenous" );
+  ApplyBC_Fluid( uCF, Grid, order, "Periodic" );
 
   // --- Compute grid quantities ---
-  // TODO: Bundle this in an InitializeGrid?
+  // TODO: Bundle this in an InitializeGrid? Move into ModalBasis Constructor?
   Grid.ComputeVolume( );
   Grid.ComputeMass( uPF );
   Grid.ComputeCenterOfMass( uPF );
@@ -91,7 +91,6 @@ int main( int argc, char* argv[] )
   {
 
     dt = ComputeTimestep_Fluid( uCF, Grid, CFL );
-    // dt = 0.000005;
 
     if ( t + dt > t_end )
     {
