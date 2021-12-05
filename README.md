@@ -1,11 +1,11 @@
-# splode
-<p align="center">(for now) 1D Lagrangian hydrodynamics solver written in C++ </p>
+# athelas (A radiaTion-Hydrodynamics codE for modeLing supernovA Systems (WIP)
+<p align="center">sypherically symmetric Lagrangian radiation-hydrodynamics solver written in C++ </p>
 
 <p align="center">
 <a href="./LICENSE.md"><img src="https://img.shields.io/badge/license-GPL-blue.svg"></a>
 </p>
 
-splode solves the 1D Cartesian Lagrangian equation of non-relativistic hydrodynamics using a discontinuous Galerkin scheme. 
+athelas solves the 1D Cartesian Lagrangian equation of non-relativistic hydrodynamics using a discontinuous Galerkin scheme. 
 It will be extended to spherical symmetry, special relativistic hydrodynamics.
 For now, it includes an ideal gas equation of state.
 
