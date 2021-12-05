@@ -68,7 +68,6 @@ void LG_Quadrature( int m, double* nodes, double* weights )
   for ( int i = 0; i < m; i++ )
   {
     nodes[i] = aj[i];
-    // std::cout << aj[i] << " ";
   }
   
   weights[0] = sqrt ( zemu );
@@ -85,7 +84,6 @@ void LG_Quadrature( int m, double* nodes, double* weights )
   for ( int i = 0; i < m; i++ )
   {
     weights[i] = weights[i] * weights[i];
-    // std::cout << weights[i] << " ";
 
     // Shift to interval [-0.5, 0.5]
     weights[i] *= 0.5;

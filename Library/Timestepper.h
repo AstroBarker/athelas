@@ -48,6 +48,8 @@ private:
   std::vector<DataStructure3D> U_s;
   std::vector<DataStructure3D> dU_s;
   std::vector<GridStructure> Grid_s;
+  std::vector<std::vector<double>> StageData; 
+  // StageData Holds cell left interface positions
 
   // Variables to pass to update step
   DataStructure3D Flux_q;

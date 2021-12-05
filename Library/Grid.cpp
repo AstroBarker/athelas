@@ -198,6 +198,7 @@ void GridStructure::CreateGrid( )
 }
 
 // Return center of given cell
+// ! Flag For Removal: Unused !
 double GridStructure::CellAverage( unsigned int iX )
 {
 
@@ -291,7 +292,7 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
     com = 0.0;
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      com += uPF(0,iX,0) * Nodes[iN] * Weights[iN]; // TODO: Density in COM
+      com += uPF(0,iX,0) * Nodes[iN] * Weights[iN];
     }
     com *= Volume[iX];
     CenterOfMass[iX] = com / Mass[iX];

@@ -45,14 +45,15 @@ public:
   int Get_nNodes( );
   int Get_nElements( );
 
-  double& operator()( unsigned int i, unsigned int j );
-  double operator()( unsigned int i, unsigned int j ) const;
   void CreateGrid( );
-  double CellAverage( unsigned int iX );
+  double CellAverage( unsigned int iX ); // ! Flag For Removal: Unused !
   void UpdateGrid( std::vector<double>& SData );
   void ComputeMass( DataStructure3D& uPF );
   void ComputeVolume(  );
   void ComputeCenterOfMass( DataStructure3D& uPF );
+
+  double& operator()( unsigned int i, unsigned int j );
+  double operator()( unsigned int i, unsigned int j ) const;
 
 private:
   unsigned int nElements;

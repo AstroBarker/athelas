@@ -36,6 +36,8 @@ TimeStepper::TimeStepper( unsigned int nS, unsigned int tO, unsigned int pOrder,
       dU_s(nStages+1, DataStructure3D( 3, mSize, pOrder )),
       Grid_s(nStages+1, GridStructure( Grid.Get_nNodes(), 
         Grid.Get_nElements(), Grid.Get_Guard(), Grid.Get_xL(), Grid.Get_xR() )),
+      StageData(nStages + 1, 
+        std::vector<double>(mSize + 1, 0.0)),
       Flux_q( 3, mSize + 1, Grid.Get_nNodes() ),
       dFlux_num( 3, mSize + 1 ),
       uCF_F_L( 3, mSize ),
@@ -114,9 +116,6 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
 
   unsigned short int i;
 
-  std::vector<std::vector<double>> StageData(nStages + 1, 
-    std::vector<double>(ihi + 2, 0.0));
-
   SumVar_U.zero();
 
   U_s[0] = U;
@@ -129,7 +128,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
   for ( unsigned short int iS = 1; iS <= nStages; iS++ )
   {
     i = iS - 1;
-    // re-zero the summation variable `SumVar`
+    // re-zero the summation variables `SumVar`
     SumVar_U.zero();
     for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
     {

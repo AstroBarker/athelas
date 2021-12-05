@@ -27,7 +27,7 @@ void ApplyBC_Fluid( DataStructure3D& uCF, GridStructure& Grid,
 
   unsigned int j = 0;
 
-  if ( BC == "Reflecting" )
+  if ( BC == "Reflecting" ) // TODO: Update Reflecting BC for modal
   {
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
@@ -60,7 +60,13 @@ void ApplyBC_Fluid( DataStructure3D& uCF, GridStructure& Grid,
   }
   else if ( BC == "Periodic" )
   {
-    // TODO: Implement periodic BCs
+    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+    for ( unsigned int iX = 0; iX < ilo; iX ++ )
+    for ( unsigned int k = 0; k < order; k++ )
+    {
+      uCF(iCF, ilo-1-iX, k) = uCF(iCF, ihi-iX, k);
+      uCF(iCF, ihi+1+iX, k) = uCF(iCF, ilo+iX, k);
+    }
   }
   else
   {
