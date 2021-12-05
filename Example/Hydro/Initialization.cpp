@@ -159,7 +159,7 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
         uCF(iCF_V, iX, k)   = V0;
         uCF(iCF_E, iX, k)   = (P0 / 0.4) * uCF(iCF_Tau, iX, k) + 0.5 * V0*V0;
       }
-      uPF(iPF_D, iX, iNodeX) = (2.0 + Amp * sin( 2.0 * pi() * X1 ));
+      uPF(iPF_D, iX, iNodeX) = (2.0 + Amp * sin( 2.0 * PI() * X1 ));
 
     }
     // Fill density in guard cells
