@@ -1,16 +1,22 @@
 # splode
-(for now) DG Lagrangian hydro
-
 <p align="center">(for now) 1D Lagrangian hydrodynamics solver written in C++ </p>
 
 <p align="center">
 <a href="./LICENSE.md"><img src="https://img.shields.io/badge/license-GPL-blue.svg"></a>
 </p>
 
+splode solves the 1D Cartesian Lagrangian equation of non-relativistic hydrodynamics using a discontinuous Galerkin scheme. 
+It will be extended to spherical symmetry, special relativistic hydrodynamics.
+For now, it includes an ideal gas equation of state.
+
+Future work will a finite element Poisson solver for Gravity and multiground flux-limited diffusion for radiation.
+
 * TODO: Transitioning to modal basis
+ - [ ] 4th order timestepper
+ - [ ] Output overhaul - write basis terms and all coefficients
  - [x] Write Taylor functions
  - [x] Write functions to orthogonalize them
- - [ ] Output overhaul - write basis terms and all coefficients
+
  - [x] Separate out nNodes from order where they should be distinct.
     - Broken
  - [x] We need to replace instances of Lagrange with Taylor, etc
@@ -20,8 +26,8 @@
  - [ ] Fix BoundaryConditions
 
 * TODO:
- - [x] TimeStepper class (main purpose: hold U_s, SumVar, etc)
  - [ ] **We need a build system....**
+ - [x] TimeStepper class (main purpose: hold U_s, SumVar, etc)
  - [ ] Initialize with input file at runtime
  - [x] Update Grid to depend opn GridStructures
  - [x] Start with Lagrange and Legendre polynomial bases
@@ -31,7 +37,6 @@
 - [x] Add UpdateGrid()
 - [x] Add SlopeLimiter
 - [x] Add TroubledCellIndicator
-- [ ] 4th order timestepper
 
 * Reader
  - [ ] Need to extend Reader to compute solution at arbitrary points using basis
@@ -41,14 +46,14 @@
 
 - We will want to extend beyond the minmod limiter to something which allows us to retain high order information.
 - Parallelism
+- Poisson solver
+- Multigroup flux-limited diffusion
 
 
-* BROKEN: 
+* BUGS: 
 - [ ] nNodes > order, crash when SlopeLimiter applied.
-- [x] Timestepper (nStages > 1)
-- [ ] Likely more
 
 # Dependencies
-LAPACKE
-cBLAS
-HDF5
+* LAPACKE
+* cBLAS
+* HDF5
