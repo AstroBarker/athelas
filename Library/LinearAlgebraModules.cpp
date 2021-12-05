@@ -1,5 +1,5 @@
 /**
- * File     :  LinearAlgebraMOdules.cpp
+ * File     :  LinearAlgebraModules.cpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -23,6 +23,7 @@
  *   int rows
  *   int cols
  **/
+ // ! Flag For Removal: Replaced !
 double** AllocateMatrix( int rows, int cols )
 {
   double** mat;
@@ -38,6 +39,7 @@ double** AllocateMatrix( int rows, int cols )
 /**
  * Deallocate array memory.
  */
+ // ! Flag For Removal: Replaced !
 void DeallocateMatrix( double** A, int rows )
 {
   //Deallocate each sub-array
@@ -84,9 +86,7 @@ void Tri_Sym_Diag( int n, double* d, double* e, double* array )
   lapack_int m, ldz, info, work_dim;
   m = n;
   char job = 'V';
-  // int info;
   ldz = n;
-  // int work_dim;
 
   if ( n == 1 )
   {
@@ -119,7 +119,6 @@ void Tri_Sym_Diag( int n, double* d, double* e, double* array )
 
 /**
  * Use LAPACKE to invert a matrix M using LU factorization.
- * Used in SlopeLimiter to invert the nodal to modal mapping matrix K.
 **/
 void InvertMatrix( double* M, unsigned int n )
 {
@@ -134,8 +133,7 @@ void InvertMatrix( double* M, unsigned int n )
 
   if ( info1 != 0 || info2 != 0 )
   {
-    throw Error("Issue occured in matrix inversion \
-      (likely in initializing slope limiter, inverting K).");
+    throw Error("Issue occured in matrix inversion.");
   }
 
 }
@@ -146,7 +144,8 @@ void InvertMatrix( double* M, unsigned int n )
  *
  * Parameters:
  * -----------
- * 
+ * see, e.g., 
+ * https://www.netlib.org/blas/
 **/
 void MatMul( int m, int n, int k, double alpha, double* A, 
   int lda, double* B, int ldb, double beta, double* C, int ldc )

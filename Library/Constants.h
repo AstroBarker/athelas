@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-const double PI = 3.1415926535897932384626433832795028;
+constexpr double PI() { return std::atan(1)*4; }
+constexpr double G_GRAV = 6.674299999999999e-8; // cgs
+constexpr double L_sun  = 3.828e33; // cgs
 
 #endif

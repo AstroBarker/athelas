@@ -12,11 +12,50 @@
 #include <algorithm>    // std::min, std::max
 
 #include "Error.h"
-#include "DataStructures.h"
 #include "Grid.h"
+#include "PolynomialBasis.h"
+#include "DataStructures.h"
 #include "EquationOfStateLibrary_IDEAL.h"
+#include "FluidUtilities.h"
+
+/**
+ * Compute the primitive quantities (density, momemtum, energy density)
+ * from conserved quantities. Primitive quantities are stored at Gauss-Legendre
+ * nodes.
+**/
+void ComputePrimitiveFromConserved( DataStructure3D& uCF, 
+  DataStructure3D& uPF, ModalBasis& Basis, GridStructure& Grid )
+{
+  const unsigned int nNodes = Grid.Get_nNodes();
+  const unsigned int ilo    = Grid.Get_ilo();
+  const unsigned int ihi    = Grid.Get_ihi();
+
+  double Tau = 0.0;
+  double Vel = 0.0;
+  double EmT = 0.0;
+
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  {
+    // Density
+    Tau = Basis.BasisEval( uCF, 0, iX, iN+1 );
+    uPF(0,iX,iN) = 1.0 / Tau;
+
+    // Momentum
+    Vel = Basis.BasisEval( uCF, 1, iX, iN+1 );
+    uPF(1,iX,iN) = uPF(0,iX,iN) * Vel;
+
+    // Specific Total Energy
+    EmT = Basis.BasisEval( uCF, 2, iX, iN+1 );
+    uPF(2,iX,iN) = EmT / Tau;
+  }
 
 
+}
+
+
+// Fluid vector. 
+// ! Flag For Removal: Unused !
 double Fluid( double Tau, double V, double Em_T, int iCF )
 {
   if ( iCF == 0 )
@@ -45,19 +84,19 @@ double Flux_Fluid( double V, double P, unsigned int iCF )
 {
   if ( iCF == 0 )
   {
-    return - V;
+    return + V;
   }
   else if ( iCF == 1 )
   {
-    return + P;
+    return - P;
   }
   else if ( iCF == 2 )
   {
-    return P * V;
+    return - P * V;
   }
   else{ // Error case. Shouldn't ever trigger.
     throw Error("Please input a valid iCF! (0,1,2). ");
-    return -1; // just a formality.
+    return -1.0; // just a formality.
   }
 }
 
@@ -72,6 +111,8 @@ void NumericalFlux_Gudonov( double vL, double vR, double pL, double pR,
   Flux_P = ( zR*pL + zL*pR + zL*zR * (vL - vR) ) / ( zR + zL );
 }
 
+
+// ! Flag For Removal: Does This Even Work !
 void NumericalFlux_HLL( double tauL, double tauR, double vL, double vR, 
   double eL, double eR, double pL, double pR, double zL, double zR, 
   int iCF, double& out )
@@ -90,9 +131,10 @@ void NumericalFlux_HLL( double tauL, double tauR, double vL, double vR,
 
     out = (ap * Flux_Fluid( vL, pL, iCF ) + am * Flux_Fluid( vR, pR, iCF ) - am*ap * (uR-uL) ) / ( am + ap );
 }
-// ComputePrimitive
+
 
 //Compute Auxilliary
+
 
 double ComputeTimestep_Fluid( DataStructure3D& U, 
        GridStructure& Grid, const double CFL )
@@ -104,14 +146,6 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
 
   const unsigned int ilo    = Grid.Get_ilo();
   const unsigned int ihi    = Grid.Get_ihi();
-  const unsigned int nNodes = Grid.Get_nNodes();
-
-  // Store Weights - for cell averages
-  std::vector<double> Weights(nNodes);
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
-  {
-    Weights[iN] = Grid.Get_Weights( iN );
-  }
 
   double Cs     = 0.0;
   double eigval = 0.0;
@@ -121,9 +155,6 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
   double vel_x  = 0.0;
   double eint_x = 0.0;
 
-  // Hold cell centers (not updated with grid)
-  double r_np1 = 0.0; // r_{n+1}
-  double r_n   = 0.0; // r_{n}
   double dr    = 0.0;
 
   double dt1 = 0.0;
@@ -134,17 +165,15 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
   {
 
     // --- Compute Cell Averages ---
-    tau_x  = U.CellAverage( 0, iX, nNodes, Weights );
-    vel_x  = U.CellAverage( 1, iX, nNodes, Weights );
-    eint_x = U.CellAverage( 2, iX, nNodes, Weights );
+    tau_x  = U( 0, iX, 0 );
+    vel_x  = U( 1, iX, 0 );
+    eint_x = U( 2, iX, 0 );
 
-    r_n   = Grid.Get_Centers( iX );
-    r_np1 = Grid.Get_Centers( iX + 1 );
-    dr = Grid.Get_Widths( iX );
+    dr    = Grid.Get_Widths( iX );
 
     Cs     = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
     eigval = Cs;
-    
+
     dt1 = std::abs( dr ) / std::abs( eigval - vel_x );
     dt2 = std::abs( dr ) / std::abs( eigval + vel_x );
 

@@ -9,7 +9,7 @@
  * Purpose  : Classes for holding multidimensional data.
  *  Multi-D structures are wrapped around 1D vectors to conveniently and 
  *  efficiently access data. For conserved variables data structure, 
- *  initialize/acces as DataStructures3D uCF(nCF,nX,nNodes)
+ *  initialize/acces as DataStructures3D uCF(nCF,nX,order)
  * Contains : DataStructures2D, DataStructures3D
 **/ 
 
@@ -44,9 +44,6 @@ public:
   double& operator()( unsigned int i, unsigned int j, unsigned int k );
   double operator()( unsigned int i, unsigned int j, unsigned int k ) const;
 
-  double CellAverage( unsigned int iCF, unsigned int iX, unsigned int nNodes, 
-    std::vector<double> Weights );
-  void copy( std::vector<double> dest );
   void zero( );
 
 private:

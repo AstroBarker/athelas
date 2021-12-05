@@ -13,7 +13,8 @@
 
 #include "Grid.h"
 
-GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nS,
+GridStructure::GridStructure( unsigned int nN, unsigned int nX,
+
   unsigned int nG, double left, double right )
   : nElements(nX),
     nNodes(nN),
@@ -25,21 +26,23 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nS,
     Weights(nNodes),
     Centers(mSize, 0.0),
     Widths(mSize, 0.0),
-    Work(mSize, 0.0),
     Mass(mSize, 0.0),
     Volume(mSize, 0.0),
     CenterOfMass(mSize, 0.0),
-    StageData(nS + 1, std::vector<double>(nX + 2*nG + 1,0.0)),
     Grid(mSize*nNodes, 0.0)
 {
+  // TODO: Allow LG_Quadrature to take in vectors.
   double* tmp_nodes   = new double[nNodes];
   double* tmp_weights = new double[nNodes];
+
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     tmp_nodes[iN]   = 0.0;
     tmp_weights[iN] = 0.0;
   }
+
   LG_Quadrature( nNodes, tmp_nodes, tmp_weights );
+  
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     Nodes[iN]   = tmp_nodes[iN];
@@ -109,6 +112,20 @@ double GridStructure::Get_Weights( unsigned int nN )
 }
 
 
+// Acessor for xL
+double GridStructure::Get_xL()
+{
+  return xL;
+}
+
+
+// Acessor for xR
+double GridStructure::Get_xR()
+{
+  return xR;
+}
+
+
 // Return nNodes
 int GridStructure::Get_nNodes( )
 {
@@ -149,7 +166,7 @@ void GridStructure::CreateGrid( )
 {
 
   const unsigned int ilo = nGhost; // first real zone
-  const unsigned int ihi = nElements - nGhost + 1; // last real zone
+  const unsigned int ihi = nElements + nGhost - 1; // last real zone
 
   for (unsigned int i = 0; i < nElements + 2 * nGhost; i++)
   {
@@ -182,6 +199,7 @@ void GridStructure::CreateGrid( )
 }
 
 // Return center of given cell
+// ! Flag For Removal: Unused !
 double GridStructure::CellAverage( unsigned int iX )
 {
 
@@ -275,7 +293,7 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
     com = 0.0;
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      com += uPF(0,iX,0) * Nodes[iN] * Weights[iN]; // TODO: Density in COM
+      com += uPF(0,iX,0) * Nodes[iN] * Weights[iN];
     }
     com *= Volume[iX];
     CenterOfMass[iX] = com / Mass[iX];
@@ -296,23 +314,17 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
 void GridStructure::UpdateGrid( std::vector<double>& SData )
 {
 
-  // const unsigned int nNodes = Get_nNodes();
-  const unsigned int ilo    = Get_ilo();
-  const unsigned int ihi    = Get_ihi();
+  const unsigned int ilo = Get_ilo();
+  const unsigned int ihi = Get_ihi();
 
   xR = SData[ihi + 1];
   xL = SData[ilo];
   
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( unsigned int iX = ilo; iX <= ihi+1; iX++ )
   {
     Widths[iX]   = SData[iX+1] - SData[iX];
     Centers[iX]  = 0.5 * (SData[iX+1] + SData[iX]);
   }
-
-  // for ( unsigned int iX = ilo; iX < ihi; iX++ )
-  // {
-  //   std::printf("%f\n", Centers[iX+1] - Centers[iX]);
-  // }
 
   for (unsigned int iC = ilo; iC <= ihi; iC++)
   {
