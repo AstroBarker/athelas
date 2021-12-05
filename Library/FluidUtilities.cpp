@@ -186,6 +186,11 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
   dt = std::max( CFL * dt, MIN_DT );
   dt = std::min( dt, MAX_DT );
 
+  if ( dt != dt )
+  {
+    throw Error("nan encountered in ComputeTimestep.\n");
+  }
+  
   return dt;
 
 }

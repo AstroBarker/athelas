@@ -129,6 +129,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
     i = iS - 1;
     // re-zero the summation variables `SumVar`
     SumVar_U.zero();
+
     for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
     {
       SumVar_X[iX] = 0.0;
@@ -156,8 +157,15 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
         SumVar_X[iX] += a_jk(i,j) * StageData[j][iX]
                      + dt * b_jk(i,j) * Flux_U[j][iX];
       }
+
+      for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
+      {
+        SumVar_X[iX] += a_jk(i,j) * StageData[j][iX]
+                     + dt * b_jk(i,j) * Flux_U[j][iX];
+      }
       
     }
+    
     U_s[iS] = SumVar_U;
     StageData[iS] = SumVar_X;
     Grid_s[iS].UpdateGrid( StageData[iS] );
@@ -167,6 +175,8 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
   }
   
   U = U_s[nStages-0];
+  // Grid = Grid_s[nStages];
+  Grid.UpdateGrid( StageData[nStages] );
 
   Grid = Grid_s[nStages];
   S_Limiter.ApplySlopeLimiter( U, Grid, Basis );

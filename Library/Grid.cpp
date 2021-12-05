@@ -14,6 +14,7 @@
 #include "Grid.h"
 
 GridStructure::GridStructure( unsigned int nN, unsigned int nX,
+
   unsigned int nG, double left, double right )
   : nElements(nX),
     nNodes(nN),

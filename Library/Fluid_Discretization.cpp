@@ -41,7 +41,7 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   
   // Left/Right face states
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-  for ( unsigned int iX  = ilo; iX <= ihi+1; iX++ ) //TODO: Check that these bounds are correct
+  for ( unsigned int iX = ilo; iX <= ihi+1; iX++ ) //TODO: Check that these bounds are correct
   {
     uCF_F_L(iCF, iX) = Basis.BasisEval( U, iX-1, iCF, nNodes + 1 );
     uCF_F_R(iCF, iX) = Basis.BasisEval( U, iX, iCF, 0 );
@@ -162,6 +162,10 @@ void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid,
 
   // --- First: Zero out dU. It is reused storage and we only increment it ---
   dU.zero();
+  for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
+  {
+    Flux_U[iX] = 0.0;
+  }
 
   ComputeIncrement_Fluid_Divergence( U, Grid, Basis, dU, Flux_q, dFlux_num, 
     uCF_F_L, uCF_F_R, Flux_U, Flux_P, uCF_L, uCF_R );

@@ -45,11 +45,12 @@ int main( int argc, char* argv[] )
   const double CFL = 0.3 / ( 1.0 * ( 2.0 * ( order ) - 1.0 ) );
 
   // --- Create the Grid object ---
-  GridStructure Grid( nNodes, nX, nGuard, xL, xR );
+  GridStructure Grid( nNodes, nX, nStages, nGuard, xL, xR );
 
   // --- Create the data structures ---
   DataStructure3D uCF( 3, nX + 2*nGuard, order );
   DataStructure3D uPF( 3, nX + 2*nGuard, nNodes );
+
   DataStructure3D uAF( 3, nX + 2*nGuard, order );
 
   // --- Initialize fields ---
