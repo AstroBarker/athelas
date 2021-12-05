@@ -20,8 +20,8 @@
  - [ ] Fix BoundaryConditions
 
 * TODO:
- - [ ] TimeStepper class (main purpose: hold U_s, SumVar, etc)
- - [ ] We need a build system....
+ - [x] TimeStepper class (main purpose: hold U_s, SumVar, etc)
+ - [ ] **We need a build system....**
  - [ ] Initialize with input file at runtime
  - [x] Update Grid to depend opn GridStructures
  - [x] Start with Lagrange and Legendre polynomial bases

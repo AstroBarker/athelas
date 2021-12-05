@@ -26,10 +26,10 @@
 int main( int argc, char* argv[] )
 {
   // --- Problem Parameters ---
-  const std::string ProblemName = "SmoothAdvection";
+  const std::string ProblemName = "Sod";
 
   const unsigned int nX      = 512;
-  const unsigned int order   = 1;
+  const unsigned int order   = 3;
   const unsigned int nNodes  = NumNodes( order );
   const unsigned int nStages = 3;
 

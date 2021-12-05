@@ -77,14 +77,13 @@ void SlopeLimiter::DetectTroubledCells( DataStructure3D& U,
     // and compute the new cell averages
     cell_avg_L = CellAverage( U, Grid, Basis, iCF, iX, -1 );
     cell_avg_R = CellAverage( U, Grid, Basis, iCF, iX, +1 );
-    // std::printf("%f %f %f \n", cell_avg_L, cell_avg, cell_avg_R);
+
     result += ( std::abs( cell_avg - cell_avg_L ) + std::abs( cell_avg - cell_avg_R ) );
 
     denominator = std::max( std::max( std::abs(cell_avg_L), 
       std::abs(cell_avg_R) ), cell_avg );
     
     D(iCF,iX) = result / denominator;
-    // std::printf("%d %f %f\n", iCF, result, denominator);
 
   }
 }
@@ -133,7 +132,6 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
     {
       // if ( iCF == 1 ) continue;
       if ( D(iCF,iX) > TCI_Threshold ) j++; // ! What is the appropriate data layout for D !
-      // std::printf("%d %f\n", iCF, D(iCF,iX));
     }
     if ( j == 0 ) continue;
 
