@@ -11,6 +11,8 @@
  * sgn, minmod, minmodB
 **/ 
 
+#include <iostream>
+
 #include "SlopeLimiter_Utilities.h"
 #include "DataStructures.h"
 #include <algorithm>    // std::min, std::max
@@ -49,12 +51,3 @@ double minmodB( double a, double b, double c, double dx, double M )
     return minmod( a, b, c );
   }
 }
-
-
-// Troubled Cell Indicator
-// void ApplyTroubledCellIndicator( DataStructure3D& U, DataStructure3D& D )
-// {
-
- 
-  
-// }

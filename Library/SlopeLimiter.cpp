@@ -127,10 +127,9 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
     // Check if TCI val is less than TCI_Threshold
-    unsigned int j = 0;
+    int j = 0;
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
-      // if ( iCF == 1 ) continue;
       if ( D(iCF,iX) > TCI_Threshold && TCI_Option ) j++; // ! What is the appropriate data layout for D !
     }
     if ( j == 0 && TCI_Option ) continue;
