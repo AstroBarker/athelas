@@ -9,11 +9,12 @@ Currently, athelas solves the 1D Cartesian Lagrangian equation of non-relativist
 It will be extended to spherical symmetry, special relativistic hydrodynamics.
 For now, it includes an ideal gas equation of state.
 
-Future work will a finite element Poisson solver for Gravity and multiground flux-limited diffusion for radiation.
+Future work will implement a finite element Poisson solver for Gravity and multiground flux-limited diffusion for radiation.
 
 # TODO: Transitioning to modal basis
  - [ ] 4th order timestepper
  - [ ] Output overhaul - write basis terms and all coefficients
+   - partially done
  - [x] Write Taylor functions
  - [x] Write functions to orthogonalize them
 
