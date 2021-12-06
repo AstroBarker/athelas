@@ -32,6 +32,7 @@ int main( int argc, char* argv[] )
   const unsigned int order   = 3;
   const unsigned int nNodes  = NumNodes( order );
   const unsigned int nStages = 3;
+  const unsigned int tOrder  = nStages;
 
   const unsigned int nGuard  = 1;
 
@@ -85,8 +86,14 @@ int main( int argc, char* argv[] )
   // --- Limit the initial conditions ---
   S_Limiter.ApplySlopeLimiter( uCF, Grid, Basis );
 
+  // -- print run parameters ---
+  PrintSimulationParameters( Grid, order, tOrder, nStages, CFL, Beta_TVD, 
+    Beta_TVB, TCI_Threshold, CharacteristicLimiting_Option, TCI_Option, 
+    ProblemName );
+
   // --- Evolution loop ---
-  unsigned int iStep = 0;
+  unsigned int iStep   = 0;
+  unsigned int i_write = 10;
   std::cout << "Step\tt\tdt" << std::endl;
   while( t < t_end && iStep >= 0 )
   {
@@ -98,7 +105,10 @@ int main( int argc, char* argv[] )
       dt = t_end - t;
     }
 
-    std::printf( "%d \t %.5e \t %.5e\n", iStep, t, dt );
+    if ( iStep % i_write == 0 )
+    {
+      std::printf( "%d \t %.5e \t %.5e\n", iStep, t, dt );
+    }
 
     SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, 
       uCF, Grid, Basis, S_Limiter );

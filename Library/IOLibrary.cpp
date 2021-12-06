@@ -1,5 +1,5 @@
 /**
- * File     :  FluidUtilities.cpp
+ * File     :  IOLibrary.cpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -15,6 +15,67 @@
 #include "Grid.h"
 
 #include "IOLibrary.h"
+
+
+/**
+ * Write to standard output some initialization info
+ * for the current simulation.
+**/
+void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder, 
+  unsigned int tOrder, unsigned int nStages, double CFL, double Beta_TVD, 
+  double Beta_TVB, double TCI, bool Char_option, bool TCI_Option, 
+  std::string ProblemName )
+{
+  const unsigned int nX = Grid.Get_nElements();
+  const unsigned int nNodes = Grid.Get_nNodes();
+
+  std::printf("--- Order Parameters --- \n");
+  std::printf("Spatial Order  : %d\n", pOrder);
+  std::printf("Temporal Order : %d\n", tOrder);
+  std::printf("RK Stages      : %d\n", nStages);
+  std::printf("\n");
+
+  std::printf("--- Grid Parameters --- \n");
+  std::printf("Mesh Elements  : %d\n", nX);
+  std::printf("Number Nodes   : %d\n", nNodes);
+  std::printf("Lower Boudnary : %f\n", Grid.Get_xL());
+  std::printf("Upper Boudnary : %f\n", Grid.Get_xR());
+  std::printf("\n");
+
+  std::printf("--- Limiter Parameters --- \n");
+  if ( pOrder == 1)
+  {
+    printf("Spatial Order 1: Slope limiter not applied.\n");
+  }
+  else
+  {
+    std::printf("Beta_TVD       : %f\n", Beta_TVD);
+    std::printf("Beta_TVB       : %f\n", Beta_TVB);
+  }
+  if ( TCI_Option )
+  {
+    std::printf("TCI Value      : %f\n", TCI);
+  }
+  else
+  {
+    std::printf("TCI Not Used.\n");
+  }
+  if ( Char_option )
+  {
+    std::printf("Characteristic Limiting Used\n");
+  }
+  else
+  {
+    std::printf("Componentwise Limiting Used\n");
+  }
+  std::printf("\n");
+
+  std::printf("--- Other --- \n");
+  std::cout << "ProblemName    : " << ProblemName << std::endl;
+  std::printf("CFL            : %f\n", CFL);
+  std::printf("\n");
+}
+
 
 //TODO: add Time
 void WriteState( DataStructure3D& uCF, DataStructure3D& uPF, 
