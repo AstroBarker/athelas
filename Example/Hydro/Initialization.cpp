@@ -25,7 +25,6 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
   GridStructure& Grid, const unsigned int pOrder, 
   const std::string ProblemName )
 {
-  std::cout << " --- Initializing: " << ProblemName << " ---" << std::endl;
 
   const unsigned int ilo    = Grid.Get_ilo();
   const unsigned int ihi    = Grid.Get_ihi();

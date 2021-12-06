@@ -31,8 +31,8 @@ int main( int argc, char* argv[] )
   const unsigned int nX      = 512;
   const unsigned int order   = 3;
   const unsigned int nNodes  = NumNodes( order );
-  const unsigned int nStages = 3;
-  const unsigned int tOrder  = nStages;
+  const unsigned int nStages = 5;
+  const unsigned int tOrder  = 4;
 
   const unsigned int nGuard  = 1;
 
@@ -43,7 +43,7 @@ int main( int argc, char* argv[] )
   double dt          = 0.0;
   const double t_end = 0.2;
 
-  const double CFL = 0.3 / ( 1.0 * ( 2.0 * ( order ) - 1.0 ) );
+  const double CFL = ComputeCFL( 0.4, order, nStages, tOrder );
 
   // --- Create the Grid object ---
   GridStructure Grid( nNodes, nX, nGuard, xL, xR );
@@ -58,7 +58,7 @@ int main( int argc, char* argv[] )
   InitializeFields( uCF, uPF, Grid, order, ProblemName );
   // WriteState( uCF, uPF, uAF, Grid, ProblemName );
 
-  ApplyBC_Fluid( uCF, Grid, order, "Periodic" );
+  ApplyBC_Fluid( uCF, Grid, order, "Homogenous" );
 
   // --- Datastructure for modal basis ---
   ModalBasis Basis( uPF, Grid, order, nNodes, nX, nGuard );
@@ -66,13 +66,13 @@ int main( int argc, char* argv[] )
   WriteBasis( Basis, nGuard, Grid.Get_ihi(), nNodes, order, ProblemName );
 
   // --- Initialize timestepper ---
-  TimeStepper SSPRK( nStages, nStages, order, Grid, "Homogenous" );
+  TimeStepper SSPRK( nStages, tOrder, order, Grid, "Homogenous" );
   
   // --- Initialize Slope Limiter ---
-  const double Beta_TVD = 1.1;
-  const double Beta_TVB = 10.0;
-  const double SlopeLimiter_Threshold = 5e-6;
-  const double TCI_Threshold = 0.4;
+  const double Beta_TVD = 1.0;
+  const double Beta_TVB = 100.0;
+  const double SlopeLimiter_Threshold = 5e-4;
+  const double TCI_Threshold = 0.65; //0.65
   const bool CharacteristicLimiting_Option = true;
   const bool TCI_Option = true;
   
@@ -152,4 +152,24 @@ double CellAverage( DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
   }
 
   return avg;
+}
+
+
+/**
+ * Compute the CFL timestep restriction.
+**/
+double ComputeCFL( double CFL, unsigned int order, 
+  unsigned int nStages, unsigned int tOrder )
+{
+  double c = 1.0;
+
+  if ( nStages == tOrder ) c = 1.0;
+  if ( nStages != tOrder )
+  {
+    if ( tOrder == 2 ) c = 4.0;
+    if ( tOrder == 3 ) c = 2.65062919294483;
+    if ( tOrder == 4 ) c = 1.50818004975927;
+  }
+
+  return c * CFL / ( ( 2.0 * ( order ) - 1.0 ) );
 }

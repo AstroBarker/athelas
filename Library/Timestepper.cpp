@@ -59,40 +59,134 @@ TimeStepper::TimeStepper( unsigned int nS, unsigned int tO, unsigned int pOrder,
 void TimeStepper::InitializeTimestepper( )
 {
 
-  if ( nStages == 1 )
+  if ( tOrder == 1 and nStages > 1 )
   {
-    a_jk(0,0) = 1.0;
-    b_jk(0,0) = 1.0;
+    throw Error("\n === \n \
+      Issue in setting SSPRK coefficients.\n \
+      Please enter an appropriate SSPRK temporal order and nStages\n \
+      combination. We support first through fourth order timesteppers\n \
+      using 1-3 stages for first-thrid order and 5 stages for second\n \
+      through fourth order.\n === \n");
   }
-  else if ( nStages == 2 )
+  if ( (nStages != tOrder && nStages != 5) )
   {
-    a_jk(0,0) = 1.0;
-    a_jk(1,0) = 0.5;
-    a_jk(1,1) = 0.5;
+    throw Error("\n === \n \
+      Issue in setting SSPRK coefficients.\n \
+      Please enter an appropriate SSPRK temporal order and nStages\n \
+      combination. We support first through fourth order timesteppers\n \
+      using 1-3 stages for first-thrid order and 5 stages for second\n \
+      through fourth order.\n === \n");
+  }
 
-    b_jk(0,0) = 1.0;
-    b_jk(1,0) = 0.0;
-    b_jk(1,1) = 0.5;
-  }
-  else if ( nStages == 3 )
+  // Init to zero
+  for ( unsigned int i = 0; i < nStages; i++ )
+  for ( unsigned int j = 0; j < nStages; j++ )
   {
-    a_jk(0,0) = 1.0;
-    a_jk(1,0) = 0.75;
-    a_jk(1,1) = 0.25;
-    a_jk(2,0) = 1.0 / 3.0;
-    a_jk(2,1) = 0.0;
-    a_jk(2,2) = 2.0 / 3.0;
+    a_jk(i,j) = 0.0;
+    b_jk(i,j) = 0.0;
+  }
 
-    b_jk(0,0) = 1.0;
-    b_jk(1,0) = 0.0;
-    b_jk(1,1) = 0.25;
-    b_jk(2,0) = 0.0;
-    b_jk(2,1) = 0.0;
-    b_jk(2,2) = 2.0 / 3.0;
-  }
-  else
+  if ( nStages < 5  )
   {
-    throw Error("\n === Please enter an appropriate number of SSPRK stages (1,2,3) === \n");
+
+    if ( tOrder == 1 )
+    {
+      a_jk(0,0) = 1.0;
+      b_jk(0,0) = 1.0;
+    }
+    else if ( tOrder == 2 )
+    {
+      a_jk(0,0) = 1.0;
+      a_jk(1,0) = 0.5;
+      a_jk(1,1) = 0.5;
+
+      b_jk(0,0) = 1.0;
+      b_jk(1,0) = 0.0;
+      b_jk(1,1) = 0.5;
+    }
+    else if ( tOrder == 3 )
+    {
+      a_jk(0,0) = 1.0;
+      a_jk(1,0) = 0.75;
+      a_jk(1,1) = 0.25;
+      a_jk(2,0) = 1.0 / 3.0;
+      a_jk(2,1) = 0.0;
+      a_jk(2,2) = 2.0 / 3.0;
+
+      b_jk(0,0) = 1.0;
+      b_jk(1,0) = 0.0;
+      b_jk(1,1) = 0.25;
+      b_jk(2,0) = 0.0;
+      b_jk(2,1) = 0.0;
+      b_jk(2,2) = 2.0 / 3.0;
+    }
+  }
+  else if ( nStages == 5 )
+  {
+    if ( tOrder == 1 )
+    {
+      throw Error("\n === We do support a 1st order, 5 stage SSPRK integrator. === \n");
+    }
+    else if ( tOrder == 2 )
+    {
+      a_jk(0,0) = 1.0;
+      a_jk(4,0) = 0.2;
+      a_jk(1,1) = 1.0;
+      a_jk(2,2) = 1.0;
+      a_jk(3,3) = 1.0;
+      a_jk(4,4) = 0.8;
+
+      b_jk(0,0) = 0.25;
+      b_jk(1,1) = 0.25;
+      b_jk(2,2) = 0.25;
+      b_jk(3,3) = 0.25;
+      b_jk(4,4) = 0.20;
+    }
+    else if ( tOrder == 3 )
+    {
+      a_jk(0,0) = 1.0;
+      a_jk(1,0) = 0.0;
+      a_jk(2,0) = 0.56656131914033;
+      a_jk(3,0) = 0.09299483444413;
+      a_jk(4,0) = 0.00736132260920;
+      a_jk(1,1) = 1.0;
+      a_jk(3,1) = 0.00002090369620;
+      a_jk(4,1) = 0.20127980325145;
+      a_jk(2,2) = 0.43343868085967;
+      a_jk(4,2) = 0.00182955389682;
+      a_jk(3,3) = 0.90698426185967;
+      a_jk(4,4) = 0.78952932024253;
+
+      b_jk(0,0) = 0.37726891511710;
+      b_jk(3,0) = 0.00071997378654;
+      b_jk(4,0) = 0.00277719819460;
+      b_jk(1,1) = 0.37726891511710;
+      b_jk(4,1) = 0.00001567934613;
+      b_jk(2,2) = 0.16352294089771;
+      b_jk(3,3) = 0.34217696850008;
+      b_jk(4,4) = 0.29786487010104;
+    }
+    else if ( tOrder == 4 )
+    {
+      a_jk(0,0) = 1.0;
+      a_jk(1,0) = 0.44437049406734;
+      a_jk(2,0) = 0.62010185138540;
+      a_jk(3,0) = 0.17807995410773;
+      a_jk(4,0) = 0.00683325884039;
+      a_jk(1,1) = 0.55562950593266;
+      a_jk(2,2) = 0.37989814861460;
+      a_jk(4,2) = 0.51723167208978;
+      a_jk(3,3) = 0.82192004589227;
+      a_jk(4,3) = 0.12759831133288;
+      a_jk(4,4) = 0.34833675773694;
+
+      b_jk(0,0) = 0.39175222700392;
+      b_jk(1,1) = 0.36841059262959;
+      b_jk(2,2) = 0.25189177424738;
+      b_jk(3,3) = 0.54497475021237;
+      b_jk(4,3) = 0.08460416338212;
+      b_jk(4,4) = 0.22600748319395;
+    }
   }
   
 }
@@ -170,7 +264,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
   
   U = U_s[nStages-0];
   // Grid = Grid_s[nStages];
-  Grid.UpdateGrid( StageData[nStages] );
+  // Grid.UpdateGrid( StageData[nStages] );
 
   Grid = Grid_s[nStages];
   S_Limiter.ApplySlopeLimiter( U, Grid, Basis );
