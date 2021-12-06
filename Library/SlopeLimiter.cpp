@@ -75,10 +75,11 @@ void SlopeLimiter::DetectTroubledCells( DataStructure3D& U,
 
     // Extrapolate neighboring poly representations into current cell
     // and compute the new cell averages
-    cell_avg_L = CellAverage( U, Grid, Basis, iCF, iX, -1 );
-    cell_avg_R = CellAverage( U, Grid, Basis, iCF, iX, +1 );
+    cell_avg_L = CellAverage( U, Grid, Basis, iCF, iX+1, -1 );
+    cell_avg_R = CellAverage( U, Grid, Basis, iCF, iX-1, +1 );
 
-    result += ( std::abs( cell_avg - cell_avg_L ) + std::abs( cell_avg - cell_avg_R ) );
+    result += ( std::abs( cell_avg - cell_avg_L ) 
+           + std::abs( cell_avg - cell_avg_R ) );
 
     denominator = std::max( std::max( std::abs(cell_avg_L), 
       std::abs(cell_avg_R) ), cell_avg );
@@ -259,7 +260,7 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       
       if ( SlopeDifference[iCF] > SlopeLimiter_Threshold * std::abs( U(iCF, iX, 0) ) )
       {
-        for (unsigned int k = 1; k < order; k++ )
+        for ( unsigned int k = 1; k < order; k++ )
         {
           U(iCF, iX, k) = 0.0;
         }
@@ -285,8 +286,8 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
  * Return the cell average of a field iCF on cell iX.
  * The parameter `int extrapolate` designates how the cell average is computed.
  *  0  : Return stadnard cell average on iX
- *  -1 : Extrapolate polynomial from iX-1 into iX
- *  +1 : Extrapolate polynomial from iX+1 into iX 
+ *  -1 : Extrapolate polynomial from iX+1 into iX
+ *  +1 : Extrapolate polynomial from iX-1 into iX 
 **/
 double SlopeLimiter::CellAverage( DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
   unsigned int iCF, unsigned int iX, int extrapolate )
@@ -304,8 +305,8 @@ double SlopeLimiter::CellAverage( DataStructure3D& U, GridStructure& Grid, Modal
   if ( extrapolate ==  0 ) mult = 0;
   if ( extrapolate == +1 ) mult = 2;
 
-  start = 1 + mult * nNodes;
-  end   = start + nNodes;
+  start = 2 + mult * nNodes;
+  end   = start + nNodes - 1;
 
   for ( unsigned int iN = start; iN < end; iN++ )
   {
