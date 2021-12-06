@@ -60,14 +60,10 @@ int main( int argc, char* argv[] )
 
   ApplyBC_Fluid( uCF, Grid, order, "Periodic" );
 
-  // --- Compute grid quantities ---
-  // TODO: Bundle this in an InitializeGrid? Move into ModalBasis Constructor?
-  Grid.ComputeVolume( );
-  Grid.ComputeMass( uPF );
-  Grid.ComputeCenterOfMass( uPF );
-
   // --- Datastructure for modal basis ---
   ModalBasis Basis( uPF, Grid, order, nNodes, nX, nGuard );
+
+  WriteBasis( Basis, nGuard, Grid.Get_ihi(), nNodes, order, ProblemName );
 
   // --- Initialize timestepper ---
   TimeStepper SSPRK( nStages, nStages, order, Grid, "Homogenous" );

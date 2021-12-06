@@ -5,13 +5,13 @@
 <a href="./LICENSE.md"><img src="https://img.shields.io/badge/license-GPL-blue.svg"></a>
 </p>
 
-athelas solves the 1D Cartesian Lagrangian equation of non-relativistic hydrodynamics using a discontinuous Galerkin scheme. 
+Currently, athelas solves the 1D Cartesian Lagrangian equation of non-relativistic hydrodynamics using a discontinuous Galerkin scheme. 
 It will be extended to spherical symmetry, special relativistic hydrodynamics.
 For now, it includes an ideal gas equation of state.
 
 Future work will a finite element Poisson solver for Gravity and multiground flux-limited diffusion for radiation.
 
-* TODO: Transitioning to modal basis
+# TODO: Transitioning to modal basis
  - [ ] 4th order timestepper
  - [ ] Output overhaul - write basis terms and all coefficients
  - [x] Write Taylor functions
@@ -25,7 +25,7 @@ Future work will a finite element Poisson solver for Gravity and multiground flu
     - [x] Node Coordinate? Grid?
  - [ ] Fix BoundaryConditions
 
-* TODO:
+# TODO:
  - [ ] **We need a build system....**
  - [x] TimeStepper class (main purpose: hold U_s, SumVar, etc)
  - [ ] Initialize with input file at runtime
@@ -38,19 +38,20 @@ Future work will a finite element Poisson solver for Gravity and multiground flu
 - [x] Add SlopeLimiter
 - [x] Add TroubledCellIndicator
 
-* Reader
+## Reader
  - [ ] Need to extend Reader to compute solution at arbitrary points using basis
     - Have to output the full solution and basis first.
 
-* Future Work
+# Future Work
 
 - We will want to extend beyond the minmod limiter to something which allows us to retain high order information.
+- Relativistic hydro
 - Parallelism
 - Poisson solver
 - Multigroup flux-limited diffusion
 
 
-* BUGS: 
+# BUGS: 
 - [ ] nNodes > order, crash when SlopeLimiter applied.
 
 # Dependencies

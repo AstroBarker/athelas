@@ -13,6 +13,7 @@
 #include "H5Cpp.h"
 #include "DataStructures.h"
 #include "Grid.h"
+#include "PolynomialBasis.h"
 
 #include "IOLibrary.h"
 
@@ -82,7 +83,7 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
   DataStructure3D& uAF, GridStructure& Grid, const std::string ProblemName )
 {
 
-  std::string fn = "Splode_";
+  std::string fn = "athelas_";
   fn.append( ProblemName );
   fn.append( ".h5" );
 
@@ -142,4 +143,41 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
   dataset_vel.write( vel.data(), H5::PredType::NATIVE_DOUBLE );
   dataset_eint.write( eint.data(), H5::PredType::NATIVE_DOUBLE );
   
+}
+
+
+/**
+ * Write Modal Basis coefficients and mass matrix
+**/
+void WriteBasis( ModalBasis& Basis, unsigned int ilo, 
+  unsigned int ihi, unsigned int nNodes, unsigned int order, 
+  std::string ProblemName )
+{
+  std::string fn = "athelas_basis_";
+  fn.append( ProblemName );
+  fn.append( ".h5" );
+
+  const char * fn2 = fn.c_str();
+
+  const H5std_string FILE_NAME( fn );
+  const H5std_string DATASET_NAME("Basis");
+
+  double* data = new double[ ihi*(nNodes+2)*order ];
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( unsigned int iN = 0; iN < nNodes+2; iN++ )
+  for ( unsigned int k = 0; k < order; k++ )
+  {
+    data[((iX-ilo) * (nNodes+2) + iN) * order + k] = Basis.Get_Phi(iX,iN,k);
+  }
+
+  // Create HDF5 file and dataset
+  H5::H5File file( fn2, H5F_ACC_TRUNC );
+  hsize_t dimsf[3] = {ihi, nNodes+2, order};
+  H5::DataSpace dataspace(3, dimsf);
+  H5::DataSet BasisDataset( file.createDataSet("Basis", H5::PredType::NATIVE_DOUBLE,
+                                          dataspace) );
+  // Write to File
+  BasisDataset.write( data, H5::PredType::NATIVE_DOUBLE );
+
+  delete [] data;
 }

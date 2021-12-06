@@ -37,7 +37,13 @@ ModalBasis::ModalBasis( DataStructure3D& uPF, GridStructure& Grid,
     Phi( nElements + 2*nGuard, 3*nN + 2, pOrder ),
     dPhi( nElements + 2*nGuard, 3*nN + 2, pOrder )
 {
+  // --- Compute grid quantities ---
+  Grid.ComputeVolume( );
+  Grid.ComputeMass( uPF );
+  Grid.ComputeCenterOfMass( uPF );
+
   InitializeTaylorBasis( uPF, Grid );
+  
   // InitializeLegendreBasis( uPF, Grid );
 }
 

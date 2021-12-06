@@ -19,4 +19,8 @@ void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
   double Beta_TVB, double TCI, bool Char_option, bool TCI_Option, 
   std::string ProblemName );
 
+void WriteBasis( ModalBasis& Basis, unsigned int ilo, 
+  unsigned int ihi, unsigned int nNodes, unsigned int order, 
+  std::string ProblemName );
+
 #endif
