@@ -28,9 +28,9 @@ int main( int argc, char* argv[] )
   // --- Problem Parameters ---
   const std::string ProblemName = "Sod";
 
-  const unsigned int nX      = 512;
-  const unsigned int order   = 3;
-  const unsigned int nNodes  = NumNodes( order );
+  const unsigned int nX      = 256;
+  const unsigned int order   = 2;
+  const unsigned int nNodes  = NumNodes( order ) + 0;
   const unsigned int nStages = 5;
   const unsigned int tOrder  = 4;
 
@@ -43,10 +43,13 @@ int main( int argc, char* argv[] )
   double dt          = 0.0;
   const double t_end = 0.2;
 
-  const double CFL = ComputeCFL( 0.4, order, nStages, tOrder );
+  bool Geometry = true; // Cartesian
+  std::string BC = "Reflecting";
+
+  const double CFL = ComputeCFL( 0.3, order, nStages, tOrder );
 
   // --- Create the Grid object ---
-  GridStructure Grid( nNodes, nX, nGuard, xL, xR );
+  GridStructure Grid( nNodes, nX, nGuard, xL, xR, Geometry );
 
   // --- Create the data structures ---
   DataStructure3D uCF( 3, nX + 2*nGuard, order );
@@ -58,21 +61,26 @@ int main( int argc, char* argv[] )
   InitializeFields( uCF, uPF, Grid, order, ProblemName );
   // WriteState( uCF, uPF, uAF, Grid, ProblemName );
 
-  ApplyBC_Fluid( uCF, Grid, order, "Homogenous" );
+  ApplyBC_Fluid( uCF, Grid, order, BC );
 
   // --- Datastructure for modal basis ---
-  ModalBasis Basis( uPF, Grid, order, nNodes, nX, nGuard );
+  ModalBasis Basis( uCF, Grid, order, nNodes, nX, nGuard );
+  std::vector<double> Mass(nX+2, 0.0);
+  for ( unsigned int iX = nGuard; iX < nX; iX++ )
+  {
+    Mass[iX] = Grid.Get_Mass(iX);
+  }
 
   WriteBasis( Basis, nGuard, Grid.Get_ihi(), nNodes, order, ProblemName );
 
   // --- Initialize timestepper ---
-  TimeStepper SSPRK( nStages, tOrder, order, Grid, "Homogenous" );
+  TimeStepper SSPRK( nStages, tOrder, order, Grid, Geometry, BC );
   
   // --- Initialize Slope Limiter ---
   const double Beta_TVD = 1.0;
-  const double Beta_TVB = 100.0;
+  const double Beta_TVB = 50.0;
   const double SlopeLimiter_Threshold = 5e-4;
-  const double TCI_Threshold = 0.65; //0.65
+  const double TCI_Threshold = 0.5; //0.65
   const bool CharacteristicLimiting_Option = true;
   const bool TCI_Option = true;
   
@@ -116,6 +124,15 @@ int main( int argc, char* argv[] )
 
   WriteState( uCF, uPF, uAF, Grid, ProblemName );
 
+  double avg = 0.0;
+  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  for ( unsigned int iX = 1; iX < nX; iX++ )
+  {
+    avg = CellAverage( uCF, Grid, Basis, iCF, iX );
+    // std::printf("%f %f %f %.3e\n",Grid.Get_Centers(iX), avg, uCF(iCF,iX,0), (avg - uCF(iCF,iX,0))/avg  );
+    std::printf("%f %f %.3e \n",avg, Mass[iX], (avg-Mass[iX])/avg );
+  }
+
 }
 
 
@@ -144,14 +161,20 @@ double CellAverage( DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
 {
   const unsigned int nNodes = Grid.Get_nNodes();
 
-  double avg = 0.0;
+  double avg  = 0.0;
+  double mass = 0.0;
+  double X   = 0.0;
 
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
-    avg += Grid.Get_Weights(iN) * Basis.BasisEval( U, iX, iCF, iN+1 );
+    X = Grid.NodeCoordinate(iX,iN);
+    mass += Grid.Get_Weights(iN) * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX) / Basis.BasisEval( U, iX, 0, iN+1 );/// U(0,iX,0);
+    avg += Grid.Get_Weights(iN) * Basis.BasisEval( U, iX, iCF, iN+1 ) 
+        * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX) / Basis.BasisEval( U, iX, 0, iN+1 ) ;/// U(0,iX,0);
   }
-
-  return avg;
+  
+  return mass;
+  // return avg / mass;
 }
 
 
