@@ -19,9 +19,9 @@ class TimeStepper
 {
 
 public:
-
+  // TODO: Is it possible to initialize Grid_s from Grid directly?
   TimeStepper( unsigned int nS, unsigned int tO, unsigned int pO,
-    GridStructure& Grid, std::string BCond );
+    GridStructure& Grid, bool Geometry, std::string BCond );
 
   void InitializeTimestepper( );
 

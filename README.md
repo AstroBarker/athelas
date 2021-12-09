@@ -11,8 +11,11 @@ For now, it includes an ideal gas equation of state.
 
 Future work will implement a finite element Poisson solver for Gravity and multiground flux-limited diffusion for radiation.
 
+# TODO: Spherical Symetry
+- [ ] Ensure mass conservation...
+
 # TODO: Transitioning to modal basis
- - [ ] 4th order timestepper
+ - [x] 4th order timestepper
  - [ ] Output overhaul - write basis terms and all coefficients
    - partially done
  - [x] Write Taylor functions
@@ -24,7 +27,7 @@ Future work will implement a finite element Poisson solver for Gravity and multi
     - [x] SlopeLimiter needs changes, FluidDiscretization... 
     - [x] Initialization?
     - [x] Node Coordinate? Grid?
- - [ ] Fix BoundaryConditions
+ - [x] Fix BoundaryConditions
 
 # TODO:
  - [ ] **We need a build system....**

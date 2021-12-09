@@ -75,8 +75,8 @@ void SlopeLimiter::DetectTroubledCells( DataStructure3D& U,
 
     // Extrapolate neighboring poly representations into current cell
     // and compute the new cell averages
-    cell_avg_L = CellAverage( U, Grid, Basis, iCF, iX+1, -1 );
-    cell_avg_R = CellAverage( U, Grid, Basis, iCF, iX-1, +1 );
+    cell_avg_L = CellAverage( U, Grid, Basis, iCF, iX+1, -1 ); // from right
+    cell_avg_R = CellAverage( U, Grid, Basis, iCF, iX-1, +1 ); // from left
 
     result += ( std::abs( cell_avg - cell_avg_L ) 
            + std::abs( cell_avg - cell_avg_R ) );
@@ -295,6 +295,8 @@ double SlopeLimiter::CellAverage( DataStructure3D& U, GridStructure& Grid, Modal
   const unsigned int nNodes = Grid.Get_nNodes();
 
   double avg = 0.0;
+  double vol = 0.0;
+  double X;
 
   // Used to set loop bounds
   int mult  = 1;
@@ -310,8 +312,12 @@ double SlopeLimiter::CellAverage( DataStructure3D& U, GridStructure& Grid, Modal
 
   for ( unsigned int iN = start; iN < end; iN++ )
   {
-    avg += Grid.Get_Weights(iN-start) * Basis.BasisEval( U, iX, iCF, iN+1 );
+    X = Grid.NodeCoordinate(iX+extrapolate,iN); // Need the metric on target cell
+    vol += Grid.Get_Weights(iN-start) * Grid.Get_SqrtGm(X) 
+        * Grid.Get_Widths(iX+extrapolate);// / Basis.BasisEval( U, iX, 0, iN+1 );
+    avg += Grid.Get_Weights(iN-start) * Basis.BasisEval( U, iX, iCF, iN+1 ) 
+        * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX+extrapolate);// / Basis.BasisEval( U, iX, 0, iN+1 );
   }
 
-  return avg;
+  return avg / vol;
 }
