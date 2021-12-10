@@ -27,8 +27,8 @@ class GridStructure
 public:
 
   GridStructure( unsigned int nN, unsigned int nX,
-    unsigned int nG, double left, double right );
-  double NodeCoordinate( unsigned int iC, unsigned int iN ); // TODO: NodeCoordinate needs updating for modal
+    unsigned int nG, double left, double right, bool Geom );
+  double NodeCoordinate( unsigned int iC, unsigned int iN );
   double Get_Centers( unsigned int iC );
   double Get_Widths( unsigned int iC );
   double Get_Nodes( unsigned int nN );
@@ -38,6 +38,9 @@ public:
   double Get_CenterOfMass( unsigned int iX );
   double Get_xL( );
   double Get_xR( );
+  double Get_SqrtGm( double X );
+
+  bool DoGeometry();
   
   int Get_Guard( );
   int Get_ilo( );
@@ -51,6 +54,7 @@ public:
   void ComputeMass( DataStructure3D& uPF );
   void ComputeVolume(  );
   void ComputeCenterOfMass( DataStructure3D& uPF );
+  void ComputeSqrtGm(  );
 
   double& operator()( unsigned int i, unsigned int j );
   double operator()( unsigned int i, unsigned int j ) const;
@@ -64,6 +68,8 @@ private:
   double xL;
   double xR;
 
+  bool Geometry;
+
   std::vector<double> Nodes;
   std::vector<double> Weights;
 
@@ -73,6 +79,8 @@ private:
   std::vector<double> Mass;
   std::vector<double> Volume;
   std::vector<double> CenterOfMass;
+
+  DataStructure2D SqrtGm;
 
   std::vector<double> Grid;
 

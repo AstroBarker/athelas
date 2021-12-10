@@ -96,20 +96,20 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
 
   const H5std_string FILE_NAME( fn );
   const H5std_string DATASET_NAME("Grid");
-  const int size = (nX + 0*nGuard);// * nNodes; // dataset dimensions
+  const int size = (nX + 1*nGuard);// * nNodes; // dataset dimensions
 
   std::vector<DataType> tau(size);
   std::vector<DataType> vel(size);
   std::vector<DataType> eint(size);
   std::vector<DataType> grid(size);
 
-  for ( unsigned int iX = nGuard; iX <= ihi; iX++ )
+  for ( unsigned int iX = 0; iX <= ihi; iX++ )
   // for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
-    grid[(iX-nGuard)].x = Grid.Get_Centers(iX);
-    tau[(iX-nGuard)].x  = uCF(0, iX, 0);
-    vel[(iX-nGuard)].x  = uCF(1, iX, 0);
-    eint[(iX-nGuard)].x = uCF(2, iX, 0);
+    grid[(iX-0*nGuard)].x = Grid.Get_Centers(iX);
+    tau[(iX-0*nGuard)].x  = uCF(0, iX, 0);
+    vel[(iX-0*nGuard)].x  = uCF(1, iX, 0);
+    eint[(iX-0*nGuard)].x = uCF(2, iX, 0);
   }
   
   // Tell HDF5 how to use my datatype

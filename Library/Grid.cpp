@@ -11,17 +11,19 @@
  * TODO: Convert Grid to vectors.
 **/ 
 
+#include <math.h>       /* atan */
+#include "Constants.h"
 #include "Grid.h"
 
 GridStructure::GridStructure( unsigned int nN, unsigned int nX,
-
-  unsigned int nG, double left, double right )
+  unsigned int nG, double left, double right, bool Geom )
   : nElements(nX),
     nNodes(nN),
     nGhost(nG),
     mSize(nElements + 2 * nGhost),
     xL(left),
     xR(right),
+    Geometry(Geom),
     Nodes(nNodes),
     Weights(nNodes),
     Centers(mSize, 0.0),
@@ -29,11 +31,13 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX,
     Mass(mSize, 0.0),
     Volume(mSize, 0.0),
     CenterOfMass(mSize, 0.0),
+    SqrtGm(mSize,nNodes),
     Grid(mSize*nNodes, 0.0)
 {
   // TODO: Allow LG_Quadrature to take in vectors.
   double* tmp_nodes   = new double[nNodes];
   double* tmp_weights = new double[nNodes];
+
 
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
@@ -50,6 +54,8 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX,
   }
 
   CreateGrid();
+
+  ComputeSqrtGm();
 
   delete [] tmp_nodes;
   delete [] tmp_weights;
@@ -126,6 +132,20 @@ double GridStructure::Get_xR()
 }
 
 
+// Acessor for SqrtGm
+double GridStructure::Get_SqrtGm( double X )
+{
+  if ( Geometry )
+  {
+    return 4.0 * PI() * X * X;
+  }
+  else
+  {
+    return 1.0;
+  }
+}
+
+
 // Return nNodes
 int GridStructure::Get_nNodes( )
 {
@@ -158,6 +178,13 @@ int GridStructure::Get_ilo( )
 int GridStructure::Get_ihi( )
 {
   return nElements + nGhost - 1;
+}
+
+
+// Return true if in spherical symmetry
+bool GridStructure::DoGeometry()
+{
+  return Geometry;
 }
 
 
@@ -249,20 +276,22 @@ void GridStructure::ComputeVolume(  )
 /**
  * Compute cell masses
 **/
-void GridStructure::ComputeMass( DataStructure3D& uPF )
+void GridStructure::ComputeMass( DataStructure3D& uCF )
 {
   const unsigned int nNodes = Get_nNodes();
   const unsigned int ilo    = Get_ilo();
   const unsigned int ihi    = Get_ihi();
 
   double mass;
+  double X;
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
     mass = 0.0;
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      mass += uPF(0,iX,0) * Weights[iN]; // TODO: Density in Compute Mass
+      X = NodeCoordinate(iX,iN);
+      mass += Weights[iN] * Get_SqrtGm(X) / uCF(0,iX,0);
     }
     mass *= Volume[iX];
     Mass[iX] = mass;
@@ -280,20 +309,22 @@ void GridStructure::ComputeMass( DataStructure3D& uPF )
 /**
  * Compute cell centers of masses
 **/
-void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
+void GridStructure::ComputeCenterOfMass( DataStructure3D& uCF )
 {
   const unsigned int nNodes = Get_nNodes();
   const unsigned int ilo    = Get_ilo();
   const unsigned int ihi    = Get_ihi();
 
   double com;
+  double X;
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
     com = 0.0;
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      com += uPF(0,iX,0) * Nodes[iN] * Weights[iN];
+      X = NodeCoordinate(iX,iN);
+      com += Nodes[iN] * Weights[iN] * Get_SqrtGm(X) / uCF(0,iX,0);
     }
     com *= Volume[iX];
     CenterOfMass[iX] = com / Mass[iX];
@@ -304,6 +335,37 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
   {
     CenterOfMass[ilo-1-iX] = CenterOfMass[ilo+iX];
     CenterOfMass[ihi+1+iX] = CenterOfMass[ihi-iX];
+  }
+}
+
+
+/**
+ * Compute Sqrt(Gamma).
+ * Useage:
+ * -----------
+ * bool Geometry: (in Grid Constructor)
+ *  false: Cartesian
+ *  true: Spherical Symmetry
+**/
+void GridStructure::ComputeSqrtGm(  )
+{
+  const unsigned int ilo = Get_ilo();
+  const unsigned int ihi = Get_ihi();
+
+  double X = 0.0;
+
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  {
+    if ( Geometry )
+    {
+      X = NodeCoordinate(iX,iN);
+      SqrtGm(iX,iN) = 4.0 * PI() * X * X; // ? Should the 4pi be here ?
+    }
+    else
+    {
+      SqrtGm(iX,iN) = 1.0;
+    }
   }
 }
 
@@ -333,6 +395,10 @@ void GridStructure::UpdateGrid( std::vector<double>& SData )
       Grid[iC * nNodes + iN] = NodeCoordinate( iC, iN );
     }
   }
+
+  // Update SqrtGm
+  ComputeSqrtGm();
+  ComputeVolume();
 
 }
 
