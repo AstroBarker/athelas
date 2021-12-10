@@ -1,5 +1,0 @@
-include $(SPLODE_DIR)/Build/Makefile_Path
-include $(SPLODE_DIR)/Build/Makefile_Splode_Objects
-include $(SPLODE_DIR)/Build/Makefile_Compilers
-include $(SPLODE_DIR)/Build/Makefile_Defines
-#include $(SPLODE_DIR)/Build/Makefile_Suffixes

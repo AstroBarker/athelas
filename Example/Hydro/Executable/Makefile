@@ -1,8 +1,0 @@
-MACHINE = $(SPLODE_MACHINE)
-
-EOS = IDEAL
-
-OPT_LEVEL = OPTIMIZE
-FLAGS     = $(FLAGS_$(OPT_LEVEL))
-
-include ../Makefile
