@@ -2,7 +2,7 @@
 <p align="center">sypherically symmetric Lagrangian radiation-hydrodynamics solver written in C++ </p>
 
 <p align="center">
-<a href="./LICENSE.md"><img src="https://img.shields.io/badge/license-GPL-blue.svg"></a>
+<a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL-blue.svg"></a>
 </p>
 
 Currently, `athelas` solves the 1D Cartesian Lagrangian equation of non-relativistic hydrodynamics using a discontinuous Galerkin scheme. 
