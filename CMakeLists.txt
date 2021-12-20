@@ -20,7 +20,8 @@ set(CMAKE_FIND_APPBUNDLE NEVER)
 
 set( CMAKE_PREFIX_PATH "/usr/local")
 
-project( athelas VERSION 0.2 )
+project( athelas VERSION 0.2 LANGUAGES CXX )
+enable_language(CXX)
 
 set(HYDRO_DIR "${PROJECT_SOURCE_DIR}/Example/Hydro")
 message(STATUS "HYDRO_DIR = ${HYDRO_DIR}")
@@ -77,25 +78,25 @@ endif(OPENMP_FOUND)
 # TODO: Need a better handling of HDF5/LAPACKE/cBLAS. 
 # My system is finding versions of these that don't work (e.g., LAPACK from miniconda....)
 # HDF5
-# find_package ( HDF5 REQUIRED )
-set( HDF5_INCLUDE_DIRS "/usr/local/Cellar/hdf5/1.12.1/include" )
-set( HDF5_C_LIBRARIES "/usr/local/Cellar/hdf5/1.12.1/lib/libhdf5_cpp.dylib" )
-set( HDF5_LIBRARIES "/usr/local/Cellar/hdf5/1.12.1/lib/libhdf5.dylib")
+find_package ( HDF5 REQUIRED COMPONENTS CXX HL )
+# set( HDF5_INCLUDE_DIRS "/usr/local/Cellar/hdf5/1.12.1/include" )
+# set( HDF5_C_LIBRARIES "/usr/local/Cellar/hdf5/1.12.1/lib/libhdf5_cpp.dylib" )
+# set( HDF5_LIBRARIES "/usr/local/Cellar/hdf5/1.12.1/lib/libhdf5.dylib")
 
 # Check BLAS/LAPACK
 
-# find_package(LAPACK REQUIRED)
+# find_package( LAPACK REQUIRED  )
 set( LAPACK_LIBRARIES /usr/local/opt/lapack/lib/liblapacke.3.dylib )
 set( LAPACK_INCLUDE_DIRS /usr/local/opt/lapack/include )
 
-# find_package( BLAS REQUIRED )
+# find_package( BLAS REQUIRED  )
 set( BLAS_LIBRARIES /usr/local/opt/openblas/lib/libopenblas.dylib )
 set( BLAS_INCLUDE_DIRS /usr/local/opt/openblas/include )
 
-target_link_libraries( libathelas PUBLIC ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} )
+target_link_libraries( libathelas PUBLIC ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES} )
 target_include_directories( libathelas PUBLIC ${HDF5_INCLUDE_DIRS})
 
-message(STATUS "HDF5_LIBRARIES = ${HDF5_C_LIBRARIES}")
+message(STATUS "HDF5_LIBRARIES = ${HDF5_CXX_LIBRARIES}")
 
 target_link_libraries( libathelas PUBLIC ${LAPACK_LIBRARIES} )
 target_include_directories( libathelas PUBLIC ${LAPACK_INCLUDE_DIRS})

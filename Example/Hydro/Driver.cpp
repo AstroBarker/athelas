@@ -29,7 +29,7 @@ int main( int argc, char* argv[] )
   const std::string ProblemName = "Sod";
 
   const unsigned int nX      = 256;
-  const unsigned int order   = 2;
+  const unsigned int order   = 3;
   const unsigned int nNodes  = NumNodes( order ) + 0;
   const unsigned int nStages = 5;
   const unsigned int tOrder  = 4;
@@ -64,9 +64,10 @@ int main( int argc, char* argv[] )
   ApplyBC_Fluid( uCF, Grid, order, BC );
 
   // --- Datastructure for modal basis ---
-  ModalBasis Basis( uCF, Grid, order, nNodes, nX, nGuard );
+  ModalBasis Basis( uPF, Grid, order, nNodes, nX, nGuard );
   std::vector<double> Mass(nX+2, 0.0);
   for ( unsigned int iX = nGuard; iX < nX; iX++ )
+  for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     Mass[iX] = Grid.Get_Mass(iX);
   }
@@ -130,7 +131,7 @@ int main( int argc, char* argv[] )
   {
     avg = CellAverage( uCF, Grid, Basis, iCF, iX );
     // std::printf("%f %f %f %.3e\n",Grid.Get_Centers(iX), avg, uCF(iCF,iX,0), (avg - uCF(iCF,iX,0))/avg  );
-    std::printf("%f %f %.3e \n",avg, Mass[iX], (avg-Mass[iX])/avg );
+    std::printf("%e %e %.3e \n",avg, Mass[iX], (avg-Mass[iX])/avg );
   }
 
 }

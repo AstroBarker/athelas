@@ -28,7 +28,7 @@
  * Constructor creates necessary matrices and bases, etc.
  * This has to be called after the problem is initialized.
 **/
-ModalBasis::ModalBasis( DataStructure3D& uCF, GridStructure& Grid, 
+ModalBasis::ModalBasis( DataStructure3D& uPF, GridStructure& Grid, 
   unsigned int pOrder, unsigned int nN,
   unsigned int nElements, unsigned int nGuard )
   : nX(nElements), 
@@ -41,12 +41,12 @@ ModalBasis::ModalBasis( DataStructure3D& uCF, GridStructure& Grid,
 {
   // --- Compute grid quantities ---
   Grid.ComputeVolume( );
-  Grid.ComputeMass( uCF );
-  Grid.ComputeCenterOfMass( uCF );
+  Grid.ComputeMass( uPF );
+  Grid.ComputeCenterOfMass( uPF );
 
-  InitializeTaylorBasis( uCF, Grid );
+  InitializeTaylorBasis( uPF, Grid );
   
-  // InitializeLegendreBasis( uCF, Grid );
+  // InitializeLegendreBasis( uPF, Grid );
 }
 
 // --- Taylor Methods ---
@@ -121,7 +121,7 @@ double ModalBasis::dTaylor( unsigned int order, double eta, double eta_c )
  * TODO: Make InnerProduct functions cleaner????
 **/
 double ModalBasis::InnerProduct( unsigned int m, unsigned int n, 
-  unsigned int iX, double eta_c, DataStructure3D& uCF, GridStructure& Grid )
+  unsigned int iX, double eta_c, DataStructure3D& uPF, GridStructure& Grid )
 {
   double result = 0.0;
   double eta_q = 0.0;
@@ -132,7 +132,7 @@ double ModalBasis::InnerProduct( unsigned int m, unsigned int n,
     eta_q = Grid.Get_Nodes(iN);
     X = Grid.NodeCoordinate(iX,iN);
     result += Taylor( n, eta_q, eta_c ) * Phi( iX, iN+1, m )
-           * Grid.Get_Weights(iN) / uCF(0,iX,0) * Grid.Get_Volume(iX)
+           * Grid.Get_Weights(iN) * uPF(0,iX,iN) * Grid.Get_Volume(iX)
            * Grid.Get_SqrtGm(X);
   }
 
@@ -147,7 +147,7 @@ double ModalBasis::InnerProduct( unsigned int m, unsigned int n,
  * <f,g> = \sum_q \rho_q f_q g_q j^0 w_q
 **/
 double ModalBasis::InnerProduct( unsigned int n, unsigned int iX, 
-  double eta_c, DataStructure3D& uCF, GridStructure& Grid )
+  double eta_c, DataStructure3D& uPF, GridStructure& Grid )
 {
   double result = 0.0;
   double X = 0.0;
@@ -156,7 +156,7 @@ double ModalBasis::InnerProduct( unsigned int n, unsigned int iX,
   {
     X = Grid.NodeCoordinate(iX,iN);
     result += Phi( iX, iN+1, n )  * Phi( iX, iN+1, n ) 
-           * Grid.Get_Weights(iN) / uCF(0,iX,0) * Grid.Get_Volume(iX)
+           * Grid.Get_Weights(iN) * uPF(0,iX,iN) * Grid.Get_Volume(iX)
            * Grid.Get_SqrtGm(X);
   }
 
@@ -167,7 +167,7 @@ double ModalBasis::InnerProduct( unsigned int n, unsigned int iX,
 // Gram-Schmidt orthogonalization to Taylor basis
 // TODO: OrthoTaylor: Clean up derivative options?
 double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX, 
-  unsigned int i_eta, double eta, double eta_c, DataStructure3D& uCF, 
+  unsigned int i_eta, double eta, double eta_c, DataStructure3D& uPF, 
   GridStructure& Grid, bool derivative_option )
 {
 
@@ -190,8 +190,8 @@ double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
 
   for ( unsigned int k = 0; k < order; k++ )
   {
-    numerator   = InnerProduct( order-k-1, order, iX, eta_c, uCF, Grid);
-    denominator = InnerProduct( order-k-1, iX, eta_c, uCF, Grid );
+    numerator   = InnerProduct( order-k-1, order, iX, eta_c, uPF, Grid);
+    denominator = InnerProduct( order-k-1, iX, eta_c, uPF, Grid );
     // ? Can this be cleaned up?
     if ( not derivative_option )
     {
@@ -213,7 +213,7 @@ double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
 **/
-void ModalBasis::InitializeTaylorBasis( DataStructure3D& uCF,
+void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
   GridStructure& Grid )
 {
   const unsigned int n_eta = 3 * nNodes + 2;
@@ -251,12 +251,12 @@ void ModalBasis::InitializeTaylorBasis( DataStructure3D& uCF,
         eta = Grid.Get_Nodes(i_eta-2*nNodes-1) + 1.0;
       }
 
-      Phi(iX, i_eta, k)  = OrthoTaylor( k, iX, i_eta, eta, eta_c, uCF, Grid, false );
-      dPhi(iX, i_eta, k) = OrthoTaylor( k, iX, i_eta, eta, eta_c, uCF, Grid, true );
+      Phi(iX, i_eta, k)  = OrthoTaylor( k, iX, i_eta, eta, eta_c, uPF, Grid, false );
+      dPhi(iX, i_eta, k) = OrthoTaylor( k, iX, i_eta, eta, eta_c, uPF, Grid, true );
     }
   }
-  CheckOrthogonality( uCF, Grid );
-  ComputeMassMatrix( uCF, Grid );
+  CheckOrthogonality( uPF, Grid );
+  ComputeMassMatrix( uPF, Grid );
 
   // === Fill Guard cells ===
 
@@ -286,7 +286,7 @@ void ModalBasis::InitializeTaylorBasis( DataStructure3D& uCF,
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
 **/
-void ModalBasis::InitializeLegendreBasis( DataStructure3D& uCF,
+void ModalBasis::InitializeLegendreBasis( DataStructure3D& uPF,
   GridStructure& Grid )
 {
   const unsigned int n_eta = 3 * nNodes + 2;
@@ -326,8 +326,8 @@ void ModalBasis::InitializeLegendreBasis( DataStructure3D& uCF,
       dPhi(iX, i_eta, k) = dLegendre( k, eta );
     }
   }
-  CheckOrthogonality( uCF, Grid );
-  ComputeMassMatrix( uCF, Grid );
+  CheckOrthogonality( uPF, Grid );
+  ComputeMassMatrix( uPF, Grid );
 
   // === Fill Guard cells ===
 
@@ -356,7 +356,7 @@ void ModalBasis::InitializeLegendreBasis( DataStructure3D& uCF,
  * The following checks orthogonality of basis functions on each cell. 
  * Returns error if orthogonality is not met.
 **/
-void ModalBasis::CheckOrthogonality( DataStructure3D& uCF,
+void ModalBasis::CheckOrthogonality( DataStructure3D& uPF,
   GridStructure& Grid )
 {
 
@@ -375,7 +375,7 @@ void ModalBasis::CheckOrthogonality( DataStructure3D& uCF,
       X = Grid.NodeCoordinate(iX,i_eta-1);
       // Not using an InnerProduct function because their API is odd.. 
       result += Phi( iX, i_eta, k1 ) * Phi( iX, i_eta, k2 ) 
-             / BasisEval( uCF, iX, 0, i_eta ) * Grid.Get_Weights(i_eta-1)  
+             * uPF(0,iX,i_eta-1) * Grid.Get_Weights(i_eta-1)  
              * Grid.Get_Volume(iX) * Grid.Get_SqrtGm(X);
     }
     
@@ -399,7 +399,7 @@ void ModalBasis::CheckOrthogonality( DataStructure3D& uCF,
  * ? If so, how do I expand this ?
  * ? I would need to compute and store more GL nodes, weights ?
 **/
-void ModalBasis::ComputeMassMatrix( DataStructure3D& uCF, GridStructure& Grid )
+void ModalBasis::ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid )
 {
   const unsigned int ilo    = Grid.Get_ilo();
   const unsigned int ihi    = Grid.Get_ihi();
@@ -418,7 +418,7 @@ void ModalBasis::ComputeMassMatrix( DataStructure3D& uCF, GridStructure& Grid )
         X = Grid.NodeCoordinate(iX,iN);
         result += Phi( iX, iN+1, k ) * Phi( iX, iN+1, k ) 
                * Grid.Get_Volume(iX) * Grid.Get_Weights(iN) 
-               * Grid.Get_SqrtGm(X) / BasisEval( uCF, iX, 0, iN+1 );
+               * Grid.Get_SqrtGm(X)  * uPF(0,iX,iN);
       }
       MassMatrix(iX,k) = result;
     }

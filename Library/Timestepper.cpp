@@ -195,7 +195,6 @@ void TimeStepper::InitializeTimestepper( )
 
 /** 
  * Update Solution with SSPRK methods 
- * TODO: adjust for spherically symmetric
 **/
 void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt, 
     DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
@@ -216,7 +215,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
   // StageData holds left interface positions
   for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
   {
-    StageData[0][iX] = Grid.Get_Centers(iX) - Grid.Get_Widths(iX) / 2.0;
+    StageData[0][iX] = Grid.Get_LeftInterface(iX);
   }
   
   for ( unsigned short int iS = 1; iS <= nStages; iS++ )
@@ -240,7 +239,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
       
       // inner sum
       for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-      for ( unsigned int iX = 0; iX <= ihi+1; iX++ ) //! adjust?
+      for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
       for ( unsigned int k = 0; k < order; k++ )
       {
         SumVar_U(iCF,iX,k) += a_jk(i,j) * U_s[j](iCF,iX,k) 
@@ -257,7 +256,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
     
     U_s[iS] = SumVar_U;
     StageData[iS] = SumVar_X;
-    Grid_s[iS].UpdateGrid( StageData[iS] );
+    Grid_s[iS].UpdateGrid( StageData[iS], U_s[iS] );
 
     S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], Basis );
     

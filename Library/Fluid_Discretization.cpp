@@ -92,8 +92,8 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
     
     Poly_L = Basis.Get_Phi(iX, 0, k);
     Poly_R = Basis.Get_Phi(iX, nNodes+1, k);
-    X_L = Grid.Get_Centers(iX) - 0.5 * Grid.Get_Widths(iX);
-    X_R = Grid.Get_Centers(iX) + 0.5 * Grid.Get_Widths(iX);
+    X_L = Grid.Get_LeftInterface(iX);
+    X_R = Grid.Get_LeftInterface(iX+1);
     SqrtGm_L = Grid.Get_SqrtGm( X_L );
     SqrtGm_R = Grid.Get_SqrtGm( X_R );
 

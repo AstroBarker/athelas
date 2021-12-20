@@ -11,7 +11,6 @@
  *  ilo = nGhost
  *  ihi = nElements - nGhost + 1
  *
- * TODO: Convert Grid to vectors.
 **/ 
 
 #include <iostream>
@@ -39,6 +38,7 @@ public:
   double Get_xL( );
   double Get_xR( );
   double Get_SqrtGm( double X );
+  double Get_LeftInterface( unsigned int iX );
 
   bool DoGeometry();
   
@@ -49,11 +49,11 @@ public:
   int Get_nElements( );
 
   void CreateGrid( );
-  double CellAverage( unsigned int iX ); // ! Flag For Removal: Unused !
-  void UpdateGrid( std::vector<double>& SData );
+  void UpdateGrid( std::vector<double>& SData, DataStructure3D& uPF );
   void ComputeMass( DataStructure3D& uPF );
   void ComputeVolume(  );
   void ComputeCenterOfMass( DataStructure3D& uPF );
+  void ComputeCenterOfMass_Radius( DataStructure3D& uPF );
   void ComputeSqrtGm(  );
 
   double& operator()( unsigned int i, unsigned int j );
@@ -75,6 +75,7 @@ private:
 
   std::vector<double> Centers;
   std::vector<double> Widths;
+  std::vector<double> X_L; // left interface coordinate
 
   std::vector<double> Mass;
   std::vector<double> Volume;

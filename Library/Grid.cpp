@@ -8,7 +8,7 @@
  *  ilo = nGhost
  *  ihi = nElements - nGhost + 1
  *
- * TODO: Convert Grid to vectors.
+ * TODO: Can we initialize a Grid object from another?
 **/ 
 
 #include <math.h>       /* atan */
@@ -28,6 +28,7 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX,
     Weights(nNodes),
     Centers(mSize, 0.0),
     Widths(mSize, 0.0),
+    X_L(mSize, 0.0),
     Mass(mSize, 0.0),
     Volume(mSize, 0.0),
     CenterOfMass(mSize, 0.0),
@@ -61,11 +62,24 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX,
   delete [] tmp_weights;
 }
 
+// linear shape function on the reference element
+double ShapeFunction( int interface, double eta )
+{
+  double mult = 1.0;
+  
+  if ( interface == 0 ) mult = -1.0;
+  if ( interface == 1 ) mult = +1.0;
+  if ( interface != 0 && interface != 1 ) throw Error("Invalid shape func params");
+
+  return 0.5 + mult * eta; 
+}
+
 
 // Give physical grid coordinate from a node.
 double GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN )
 {
-  return Centers[iC] + Widths[iC] * Nodes[iN];
+  return X_L[iC] * ShapeFunction( 0, Nodes[iN] ) 
+         + X_L[iC+1] * ShapeFunction( 1, Nodes[iN] );
 }
 
 
@@ -97,7 +111,7 @@ double GridStructure::Get_Mass( unsigned int iX )
 }
 
 
-// Return cell Volume
+// Return cell reference Center of Mass
 double GridStructure::Get_CenterOfMass( unsigned int iX )
 {
   return CenterOfMass[iX];
@@ -146,6 +160,13 @@ double GridStructure::Get_SqrtGm( double X )
 }
 
 
+// Accessor for X_L
+double GridStructure::Get_LeftInterface( unsigned int iX )
+{
+  return X_L[iX];
+}
+
+
 // Return nNodes
 int GridStructure::Get_nNodes( )
 {
@@ -189,6 +210,7 @@ bool GridStructure::DoGeometry()
 
 
 // Equidistant mesh
+// TODO: We will need to replace Centers here, right?
 void GridStructure::CreateGrid( )
 {
 
@@ -198,6 +220,12 @@ void GridStructure::CreateGrid( )
   for (unsigned int i = 0; i < nElements + 2 * nGhost; i++)
   {
     Widths[i] = ( xR - xL ) / nElements;
+  }
+
+  X_L[nGhost] = xL;
+  for ( unsigned int iX = 2; iX < nElements + 2 * nGhost; iX++ )
+  {
+    X_L[iX] = X_L[iX-1] + Widths[iX-1];
   }
 
   Centers[ilo] = xL + 0.5 * Widths[ilo];
@@ -225,24 +253,9 @@ void GridStructure::CreateGrid( )
 
 }
 
-// Return center of given cell
-// ! Flag For Removal: Unused !
-double GridStructure::CellAverage( unsigned int iX )
-{
-
-  double avg = 0.0;
-
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
-  {
-    avg += Weights[iN] * Grid[iX * nNodes + iN];
-  }
-
-  return avg;
-}
-
 
 /**
- * Compute cell volumes element (e.g., 4 pi r^2 dr)
+ * Compute "j" -- just dr?
 **/
 void GridStructure::ComputeVolume(  )
 {
@@ -276,7 +289,7 @@ void GridStructure::ComputeVolume(  )
 /**
  * Compute cell masses
 **/
-void GridStructure::ComputeMass( DataStructure3D& uCF )
+void GridStructure::ComputeMass( DataStructure3D& uPF )
 {
   const unsigned int nNodes = Get_nNodes();
   const unsigned int ilo    = Get_ilo();
@@ -291,7 +304,7 @@ void GridStructure::ComputeMass( DataStructure3D& uCF )
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
       X = NodeCoordinate(iX,iN);
-      mass += Weights[iN] * Get_SqrtGm(X) / uCF(0,iX,0);
+      mass += Weights[iN] * Get_SqrtGm(X) * uPF(0,iX,iN);
     }
     mass *= Volume[iX];
     Mass[iX] = mass;
@@ -307,9 +320,9 @@ void GridStructure::ComputeMass( DataStructure3D& uCF )
 
 
 /**
- * Compute cell centers of masses
+ * Compute cell centers of masses reference coordinates
 **/
-void GridStructure::ComputeCenterOfMass( DataStructure3D& uCF )
+void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
 {
   const unsigned int nNodes = Get_nNodes();
   const unsigned int ilo    = Get_ilo();
@@ -324,7 +337,7 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uCF )
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
       X = NodeCoordinate(iX,iN);
-      com += Nodes[iN] * Weights[iN] * Get_SqrtGm(X) / uCF(0,iX,0);
+      com += Nodes[iN] * Weights[iN] * Get_SqrtGm(X) * uPF(0,iX,iN);
     }
     com *= Volume[iX];
     CenterOfMass[iX] = com / Mass[iX];
@@ -373,7 +386,7 @@ void GridStructure::ComputeSqrtGm(  )
 /**
  * Update grid coordinates using interface and nodal velocities.
 **/
-void GridStructure::UpdateGrid( std::vector<double>& SData )
+void GridStructure::UpdateGrid( std::vector<double>& SData, DataStructure3D& uPF )
 {
 
   const unsigned int ilo = Get_ilo();
@@ -384,7 +397,8 @@ void GridStructure::UpdateGrid( std::vector<double>& SData )
   
   for ( unsigned int iX = ilo; iX <= ihi+1; iX++ )
   {
-    Widths[iX]   = SData[iX+1] - SData[iX];
+    X_L[iX] = SData[iX];
+    Widths[iX] = SData[iX+1] - SData[iX];
     Centers[iX]  = 0.5 * (SData[iX+1] + SData[iX]);
   }
 
