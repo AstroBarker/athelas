@@ -47,8 +47,8 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   for ( unsigned int iX = ilo; iX <= ihi+1; iX++ )
   {
-    uCF_F_L(iCF, iX) = Basis.BasisEval( U, iX-1, iCF, nNodes + 1 );
-    uCF_F_R(iCF, iX) = Basis.BasisEval( U, iX, iCF, 0 );
+    uCF_F_L(iCF, iX) = Basis.BasisEval( U, iX-1, iCF, nNodes + 1, false );
+    uCF_F_R(iCF, iX) = Basis.BasisEval( U, iX, iCF, 0, false );
   }
   
 
@@ -73,7 +73,8 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
     // --- Numerical Fluxes ---
 
     // Riemann Problem
-    NumericalFlux_Gudonov( uCF_L[1], uCF_R[1], P_L, P_R, lam_L, lam_R, Flux_U[iX], Flux_P[iX] );
+    NumericalFlux_Gudonov( uCF_L[1], uCF_R[1], P_L, P_R, lam_L, lam_R, 
+      Flux_U[iX], Flux_P[iX] );
     
     // TODO: Clean This Up
     dFlux_num(0, iX) = + Flux_U[iX];
@@ -106,9 +107,12 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
-    P = ComputePressureFromConserved_IDEAL( Basis.BasisEval( U, iX, 0, iN+1 ), 
-      Basis.BasisEval( U, iX, 1, iN+1 ), Basis.BasisEval( U, iX, 2, iN+1 ) );
-    Flux_q(iCF,iX,iN) = Flux_Fluid( Basis.BasisEval( U, iX, 1, iN+1 ), P, iCF );
+    P = ComputePressureFromConserved_IDEAL( 
+      Basis.BasisEval( U, iX, 0, iN+1, false ), 
+      Basis.BasisEval( U, iX, 1, iN+1, false ), 
+      Basis.BasisEval( U, iX, 2, iN+1, false ) );
+    Flux_q(iCF,iX,iN) = Flux_Fluid( Basis.BasisEval( U, iX, 1, iN+1, false ), 
+      P, iCF );
   }
   
   // --- Volume Term ---
@@ -153,8 +157,10 @@ void ComputeIncrement_Fluid_Geometry( DataStructure3D& U, GridStructure& Grid,
     local_sum = 0.0;
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      P = ComputePressureFromConserved_IDEAL( Basis.BasisEval( U, iX, 0, iN+1 ), 
-        Basis.BasisEval( U, iX, 1, iN+1 ), Basis.BasisEval( U, iX, 2, iN+1 ) );
+      P = ComputePressureFromConserved_IDEAL( 
+        Basis.BasisEval( U, iX, 0, iN+1, false ), 
+        Basis.BasisEval( U, iX, 1, iN+1, false ), 
+        Basis.BasisEval( U, iX, 2, iN+1, false ) );
       X = Grid.NodeCoordinate(iX,iN);
       local_sum += Grid.Get_Weights(iN) * P
                 * Basis.Get_Phi( iX, iN+1, k ) * X;

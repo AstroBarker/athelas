@@ -85,13 +85,13 @@ find_package ( HDF5 REQUIRED COMPONENTS CXX HL )
 
 # Check BLAS/LAPACK
 
-# find_package( LAPACK REQUIRED  )
-set( LAPACK_LIBRARIES /usr/local/opt/lapack/lib/liblapacke.3.dylib )
-set( LAPACK_INCLUDE_DIRS /usr/local/opt/lapack/include )
+find_package( LAPACK REQUIRED  )
+#set( LAPACK_LIBRARIES /usr/local/opt/lapack/lib/liblapacke.3.dylib )
+#set( LAPACK_INCLUDE_DIRS /usr/local/opt/lapack/include )
 
-# find_package( BLAS REQUIRED  )
-set( BLAS_LIBRARIES /usr/local/opt/openblas/lib/libopenblas.dylib )
-set( BLAS_INCLUDE_DIRS /usr/local/opt/openblas/include )
+find_package( BLAS REQUIRED  )
+#set( BLAS_LIBRARIES /usr/local/opt/openblas/lib/libopenblas.dylib )
+#set( BLAS_INCLUDE_DIRS /usr/local/opt/openblas/include )
 
 target_link_libraries( libathelas PUBLIC ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES} )
 target_include_directories( libathelas PUBLIC ${HDF5_INCLUDE_DIRS})

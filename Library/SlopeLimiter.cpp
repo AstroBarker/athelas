@@ -314,9 +314,9 @@ double SlopeLimiter::CellAverage( DataStructure3D& U, GridStructure& Grid, Modal
   {
     X = Grid.NodeCoordinate(iX+extrapolate,iN); // Need the metric on target cell
     vol += Grid.Get_Weights(iN-start) * Grid.Get_SqrtGm(X) 
-        * Grid.Get_Widths(iX+extrapolate);// / Basis.BasisEval( U, iX, 0, iN+1 );
-    avg += Grid.Get_Weights(iN-start) * Basis.BasisEval( U, iX, iCF, iN+1 ) 
-        * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX+extrapolate);// / Basis.BasisEval( U, iX, 0, iN+1 );
+        * Grid.Get_Widths(iX+extrapolate);// / Basis.BasisEval( U, iX, 0, iN+1, false );
+    avg += Grid.Get_Weights(iN-start) * Basis.BasisEval( U, iX, iCF, iN+1, false ) 
+        * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX+extrapolate);// / Basis.BasisEval( U, iX, 0, iN+1, false );
   }
 
   return avg / vol;

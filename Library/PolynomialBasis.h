@@ -39,7 +39,7 @@ class ModalBasis
   void InitializeLegendreBasis( DataStructure3D& uCF, GridStructure& Grid );
   void CheckOrthogonality( DataStructure3D& uCF, GridStructure& Grid );
   double BasisEval( DataStructure3D& U, unsigned int iX, unsigned int iCF, 
-    unsigned int i_eta );
+    unsigned int i_eta, bool DerivativeOption );
   void ComputeMassMatrix( DataStructure3D& uCF, GridStructure& Grid );
 
   double Get_Phi( unsigned int iX, unsigned int i_eta, unsigned int k );

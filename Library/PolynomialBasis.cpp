@@ -427,15 +427,27 @@ void ModalBasis::ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid )
 
 
 /**
- * Evaluate (modal) basis on element iX for quantity iCF
+ * Evaluate (modal) basis on element iX for quantity iCF.
+ * If DerivativeOption is true, evaluate the derivative.
 **/
 double ModalBasis::BasisEval( DataStructure3D& U, 
-  unsigned int iX, unsigned int iCF, unsigned int i_eta )
+  unsigned int iX, unsigned int iCF, unsigned int i_eta, 
+  bool DerivativeOption )
 {
   double result = 0.0;
-  for ( unsigned int k = 0; k < order; k++ )
+  if ( DerivativeOption )
   {
-    result += Phi(iX,i_eta,k) * U(iCF,iX,k);
+    for ( unsigned int k = 0; k < order; k++ )
+    {
+      result += dPhi(iX,i_eta,k) * U(iCF,iX,k);
+    }
+  }
+  else
+  {
+    for ( unsigned int k = 0; k < order; k++ )
+    {
+      result += Phi(iX,i_eta,k) * U(iCF,iX,k);
+    }
   }
   return result;
 }
