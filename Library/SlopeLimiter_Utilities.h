@@ -3,5 +3,5 @@
 
 double minmod( double a, double b, double c );
 double minmodB( double a, double b, double c, double dx, double M );
-// void ApplyTroubledCellIndicator( DataStructure3D& U, DataStructure3D& D );
+double BarthJespersen( double* U_vertex, double* U_c, double alpha );
 #endif
