@@ -38,15 +38,15 @@ void ComputePrimitiveFromConserved( DataStructure3D& uCF,
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     // Density
-    Tau = Basis.BasisEval( uCF, 0, iX, iN+1 );
+    Tau = Basis.BasisEval( uCF, 0, iX, iN+1, false );
     uPF(0,iX,iN) = 1.0 / Tau;
 
     // Momentum
-    Vel = Basis.BasisEval( uCF, 1, iX, iN+1 );
+    Vel = Basis.BasisEval( uCF, 1, iX, iN+1, false );
     uPF(1,iX,iN) = uPF(0,iX,iN) * Vel;
 
     // Specific Total Energy
-    EmT = Basis.BasisEval( uCF, 2, iX, iN+1 );
+    EmT = Basis.BasisEval( uCF, 2, iX, iN+1, false );
     uPF(2,iX,iN) = EmT / Tau;
   }
 

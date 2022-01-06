@@ -169,9 +169,9 @@ double CellAverage( DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     X = Grid.NodeCoordinate(iX,iN);
-    mass += Grid.Get_Weights(iN) * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX) / Basis.BasisEval( U, iX, 0, iN+1 );/// U(0,iX,0);
-    avg += Grid.Get_Weights(iN) * Basis.BasisEval( U, iX, iCF, iN+1 ) 
-        * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX) / Basis.BasisEval( U, iX, 0, iN+1 ) ;/// U(0,iX,0);
+    mass += Grid.Get_Weights(iN) * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX) / Basis.BasisEval( U, iX, 0, iN+1, false );/// U(0,iX,0);
+    avg += Grid.Get_Weights(iN) * Basis.BasisEval( U, iX, iCF, iN+1, false ) 
+        * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX) / Basis.BasisEval( U, iX, 0, iN+1, false ) ;/// U(0,iX,0);
   }
   
   return mass;
