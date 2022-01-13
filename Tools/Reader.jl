@@ -24,7 +24,7 @@ function Load_Output( Dir::AbstractString, filenumber::AbstractString; run::Abst
 
   # fn :: String = string(Dir, "/", run, "_FluidFields_", filenumber, ".h5")
   # fn :: String = "../Example/Hydro/Executable/Athelas_MovingContact.h5"
-  fn :: String = "../bin/Athelas_Sod.h5"
+  fn :: String = "../bin/athelas_Sod.h5"
   # fn :: String = "../Example/Hydro/Executable/Athelas_SmoothAdvection.h5"
 
   fid = h5open( fn, "r" )
@@ -120,7 +120,7 @@ end
 nNodes = 3
 Data = Load_Output( "bleh", "000000" )
 
-reference, _ = load_thornado_single( ".", "000100", run="RiemannProblemSod" )
+# reference, _ = load_thornado_single( ".", "000100", run="RiemannProblemSod" )
 
 Nodes, Weights = ComputeQuadrature( nNodes )
 
