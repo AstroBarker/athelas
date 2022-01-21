@@ -31,7 +31,7 @@ double ComputeSoundSpeedFromConserved_IDEAL( double Tau, double V, double Em_T,
 {
   double Em = Em_T - 0.5 * V*V;
 
-  double Cs = sqrt( GAMMA * ( GAMMA - 1.0 ) * Em / (Tau*Tau) );
+  double Cs = sqrt( GAMMA * ( GAMMA - 1.0 ) * Em );
               //  / ( D + GAMMA * Ev ) )
   return Cs;
 }
