@@ -32,7 +32,6 @@ public:
   double Get_Widths( unsigned int iC );
   double Get_Nodes( unsigned int nN );
   double Get_Weights( unsigned int nN ); 
-  double Get_Volume( unsigned int iX );
   double Get_Mass( unsigned int iX );
   double Get_CenterOfMass( unsigned int iX );
   double Get_xL( );
@@ -51,7 +50,6 @@ public:
   void CreateGrid( );
   void UpdateGrid( std::vector<double>& SData, DataStructure3D& uPF );
   void ComputeMass( DataStructure3D& uPF );
-  void ComputeVolume(  );
   void ComputeCenterOfMass( DataStructure3D& uPF );
   void ComputeCenterOfMass_Radius( DataStructure3D& uPF );
   void ComputeSqrtGm(  );
@@ -78,7 +76,6 @@ private:
   std::vector<double> X_L; // left interface coordinate
 
   std::vector<double> Mass;
-  std::vector<double> Volume;
   std::vector<double> CenterOfMass;
 
   DataStructure2D SqrtGm;

@@ -30,7 +30,6 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX,
     Widths(mSize, 0.0),
     X_L(mSize, 0.0),
     Mass(mSize, 0.0),
-    Volume(mSize, 0.0),
     CenterOfMass(mSize, 0.0),
     SqrtGm(mSize,nNodes),
     Grid(mSize*nNodes, 0.0)
@@ -97,13 +96,6 @@ double GridStructure::Get_Widths( unsigned int iC )
 }
 
 
-// Return cell Volume
-double GridStructure::Get_Volume( unsigned int iX )
-{
-  return Volume[iX];
-}
-
-
 // Return cell mass
 double GridStructure::Get_Mass( unsigned int iX )
 {
@@ -151,7 +143,8 @@ double GridStructure::Get_SqrtGm( double X )
 {
   if ( Geometry )
   {
-    return 4.0 * PI() * X * X;
+    // return 4.0 * PI() * X * X;
+    return X * X;
   }
   else
   {
@@ -255,38 +248,6 @@ void GridStructure::CreateGrid( )
 
 
 /**
- * Compute "j" -- just dr?
-**/
-void GridStructure::ComputeVolume(  )
-{
-  const unsigned int nNodes = Get_nNodes();
-  const unsigned int ilo    = Get_ilo();
-  const unsigned int ihi    = Get_ihi();
-
-  double geom = 1.0; // Temporary
-  double vol;
-
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-  {
-    vol = 0.0;
-    for ( unsigned int iN = 0; iN < nNodes; iN++ )
-    {
-      vol += geom * Get_Widths(iX) * Weights[iN];
-    }
-    Volume[iX] = vol;
-  }
-
-  // Guard cells
-  for ( unsigned int iX = 0; iX < ilo; iX ++ )
-  {
-    Volume[ilo-1-iX] = Volume[ilo+iX];
-    Volume[ihi+1+iX] = Volume[ihi-iX];
-  }
-
-}
-
-
-/**
  * Compute cell masses
 **/
 void GridStructure::ComputeMass( DataStructure3D& uPF )
@@ -306,7 +267,7 @@ void GridStructure::ComputeMass( DataStructure3D& uPF )
       X = NodeCoordinate(iX,iN);
       mass += Weights[iN] * Get_SqrtGm(X) * uPF(0,iX,iN);
     }
-    mass *= Volume[iX];
+    mass *= Widths[iX];
     Mass[iX] = mass;
   }
 
@@ -339,7 +300,7 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
       X = NodeCoordinate(iX,iN);
       com += Nodes[iN] * Weights[iN] * Get_SqrtGm(X) * uPF(0,iX,iN);
     }
-    com *= Volume[iX];
+    com *= Widths[iX];
     CenterOfMass[iX] = com / Mass[iX];
   }
 
@@ -412,7 +373,6 @@ void GridStructure::UpdateGrid( std::vector<double>& SData, DataStructure3D& uPF
 
   // Update SqrtGm
   ComputeSqrtGm();
-  ComputeVolume();
 
 }
 
