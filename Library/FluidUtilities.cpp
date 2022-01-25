@@ -84,15 +84,15 @@ double Flux_Fluid( double V, double P, unsigned int iCF )
 {
   if ( iCF == 0 )
   {
-    return + V;
+    return - V;
   }
   else if ( iCF == 1 )
   {
-    return - P;
+    return + P;
   }
   else if ( iCF == 2 )
   {
-    return - P * V;
+    return + P * V;
   }
   else{ // Error case. Shouldn't ever trigger.
     throw Error("Please input a valid iCF! (0,1,2). ");

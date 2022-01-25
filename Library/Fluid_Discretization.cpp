@@ -82,9 +82,9 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
       // rho_L, rho_R, Flux_U[iX], Flux_P[iX] );
     
     // TODO: Clean This Up
-    dFlux_num(0, iX) = + Flux_U[iX];
-    dFlux_num(1, iX) = - Flux_P[iX];
-    dFlux_num(2, iX) = - Flux_U[iX] * Flux_P[iX];
+    dFlux_num(0, iX) = - Flux_U[iX];
+    dFlux_num(1, iX) = + Flux_P[iX];
+    dFlux_num(2, iX) = + Flux_U[iX] * Flux_P[iX];
     
   }
   
@@ -103,7 +103,7 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
     SqrtGm_L = Grid.Get_SqrtGm( X_L );
     SqrtGm_R = Grid.Get_SqrtGm( X_R );
 
-    dU(iCF,iX,k) += ( + dFlux_num(iCF,iX+1) * Poly_R * SqrtGm_R
+    dU(iCF,iX,k) -= ( + dFlux_num(iCF,iX+1) * Poly_R * SqrtGm_R
                       - dFlux_num(iCF,iX+0) * Poly_L * SqrtGm_L );  
   }
 
@@ -137,7 +137,7 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
                 * Basis.Get_dPhi( iX, iN+1, k ) * Grid.Get_SqrtGm(X);
     }
 
-    dU(iCF,iX,k) -= local_sum;
+    dU(iCF,iX,k) += local_sum;
   }
 
 }
