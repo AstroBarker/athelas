@@ -23,8 +23,8 @@
  * for the current simulation.
 **/
 void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder, 
-  unsigned int tOrder, unsigned int nStages, double CFL, double Beta_TVD, 
-  double Beta_TVB, double TCI, bool Char_option, bool TCI_Option, 
+  unsigned int tOrder, unsigned int nStages, double CFL, double alpha, 
+  double TCI, bool Char_option, bool TCI_Option, 
   std::string ProblemName )
 {
   const unsigned int nX = Grid.Get_nElements();
@@ -50,8 +50,7 @@ void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
   }
   else
   {
-    std::printf("Beta_TVD       : %f\n", Beta_TVD);
-    std::printf("Beta_TVB       : %f\n", Beta_TVB);
+    std::printf("Alpha          : %f\n", alpha);
   }
   if ( TCI_Option )
   {

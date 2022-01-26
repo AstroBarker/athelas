@@ -74,8 +74,8 @@ The build system may not be perfect yet. I have hard coded in paths to my librar
 
 # BUGS: 
 - [ ] nNodes > order, crash when SlopeLimiter applied.
-- [ ] Issue with TCI
-- [ ] Issues with Characteristic Limiting
+- [x] Issue with TCI
+- [x] Issues with Characteristic Limiting
 
 # Dependencies
 * LAPACKE

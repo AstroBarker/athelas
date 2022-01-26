@@ -25,15 +25,15 @@ class SlopeLimiter
 public:
 
   SlopeLimiter( GridStructure& Grid, unsigned int pOrder, 
-    double SlopeLimiterThreshold, unsigned int Beta_TVD_val, 
-    unsigned int Beta_TVB_val, bool CharacteristicLimitingOption, 
+    double SlopeLimiterThreshold, double alpha_val, 
+    bool CharacteristicLimitingOption, 
     bool TCIOption, double TCI_Threshold_val );
 
   void ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid, 
     ModalBasis& Basis );
 
   void LimitQuadratic( DataStructure3D& U, ModalBasis& Basis, 
-    unsigned int iX, unsigned int nNodes );
+    double* d2w, unsigned int iX, unsigned int nNodes );
 
   void DetectTroubledCells( DataStructure3D& U, 
     GridStructure& Grid, ModalBasis& Basis );
@@ -48,6 +48,7 @@ public:
     delete [] SlopeDifference;
     delete [] dU;
     delete [] d2U;
+    delete [] d2w;
     delete [] U_c_L;
     delete [] U_c_T;
     delete [] U_c_R;
@@ -58,18 +59,22 @@ public:
     delete [] dU_c_R;
     delete [] dU_v_L;
     delete [] dU_v_R;
+    delete [] Mult1;
+    delete [] Mult2;
+    delete [] Mult3;
   }
 
 private:
 
   unsigned int order;
   double SlopeLimiter_Threshold;
-  unsigned int Beta_TVD, Beta_TVB;
   bool CharacteristicLimiting_Option;
   bool TCI_Option;
   double TCI_Threshold;
 
   double alpha;
+  double Phi1;
+  double Phi2;
 
   double* R;
   double* R_inv;
@@ -77,6 +82,7 @@ private:
   double* SlopeDifference;
   double* dU;
   double* d2U;
+  double* d2w;
 
   // --- Slope limiter quantities ---
 
@@ -104,6 +110,11 @@ private:
   double* dw_c_R;
   double* dw_v_L;
   double* dw_v_R;
+
+  // matrix mult scratch scape
+  double* Mult1;
+  double* Mult2;
+  double* Mult3;
 
   DataStructure2D D;
 

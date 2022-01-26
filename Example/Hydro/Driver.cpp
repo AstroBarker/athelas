@@ -72,22 +72,21 @@ int main( int argc, char* argv[] )
   TimeStepper SSPRK( nStages, tOrder, order, Grid, Geometry, BC );
   
   // --- Initialize Slope Limiter ---
-  const double Beta_TVD = 1.0;
-  const double Beta_TVB = 50.0;
+  const double alpha    = 0.85;
   const double SlopeLimiter_Threshold = 5e-6;
-  const double TCI_Threshold = 0.65; //0.65
+  const double TCI_Threshold = 0.65;
   const bool CharacteristicLimiting_Option = true;
   const bool TCI_Option = true;
   
-  SlopeLimiter S_Limiter( Grid, nNodes, SlopeLimiter_Threshold, Beta_TVD, Beta_TVB,
-    CharacteristicLimiting_Option, TCI_Option, TCI_Threshold );
+  SlopeLimiter S_Limiter( Grid, nNodes, SlopeLimiter_Threshold,
+    alpha, CharacteristicLimiting_Option, TCI_Option, TCI_Threshold );
 
   // --- Limit the initial conditions ---
   S_Limiter.ApplySlopeLimiter( uCF, Grid, Basis );
 
   // -- print run parameters ---
-  PrintSimulationParameters( Grid, order, tOrder, nStages, CFL, Beta_TVD, 
-    Beta_TVB, TCI_Threshold, CharacteristicLimiting_Option, TCI_Option, 
+  PrintSimulationParameters( Grid, order, tOrder, nStages, CFL, 
+    alpha, TCI_Threshold, CharacteristicLimiting_Option, TCI_Option, 
     ProblemName );
 
   // --- Evolution loop ---
