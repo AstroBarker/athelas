@@ -26,9 +26,9 @@ This will create a directory `bin` in the root directory that contains the execu
 The build system may not be perfect yet. I have hard coded in paths to my libraries for HDF5, LAPACK, and BLAS as cmake had some issues finding them. You may overwrite those lines, or comment them out and try to let `find_package()` do the work.
 
 # TODO: Spherical Symetry
- - [ ] Ensure mass conservation...
-## Issues with mass conservation 
- - weirdness in r_cm calculation. eta_cm is zero. can I calculate r_cm from eta_cm? 
+ - [x] Ensure mass conservation...
+ - Done?
+
 
 # TODO: Transitioning to modal basis
  - [x] 4th order timestepper
@@ -74,6 +74,8 @@ The build system may not be perfect yet. I have hard coded in paths to my librar
 
 # BUGS: 
 - [ ] nNodes > order, crash when SlopeLimiter applied.
+- [x] Issue with TCI
+- [x] Issues with Characteristic Limiting
 
 # Dependencies
 * LAPACKE

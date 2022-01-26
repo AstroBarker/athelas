@@ -12,6 +12,7 @@
 **/ 
 
 #include <iostream>
+#include <limits>
 
 #include "SlopeLimiter_Utilities.h"
 #include "DataStructures.h"
@@ -50,4 +51,62 @@ double minmodB( double a, double b, double c, double dx, double M )
   {
     return minmod( a, b, c );
   }
+}
+
+
+/** 
+ *  Barth-Jespersen limiter
+ *  Parameters:
+ *  -----------
+ *  U_v_*: left/right vertex values on target cell
+ *  U_c_*: cell averages of target cell + neighbors 
+ *    [ left, target, right ]
+ *  alpha: scaling coefficient for BJ limiter. 
+ *    alpha=1 is classical limiter, alpha=0 enforces constant solutions
+**/
+double BarthJespersen( double U_v_L, double U_v_R, double U_c_L, 
+  double U_c_T, double U_c_R, double alpha )
+{
+  // Get U_min, U_max
+  double U_min = 10000000.0 * U_c_T;
+  double U_max = std::numeric_limits<double>::epsilon() * U_c_T;
+
+  U_min = std::min( U_min, std::min( U_c_T, std::min( U_c_L, U_c_R ) ) );
+  U_max = std::max( U_max, std::max( U_c_T, std::max( U_c_L, U_c_R ) ) );
+
+  // loop of cell certices
+  double phi = 10000000000.0;
+  double phi_L = 0.0;
+  double phi_R = 0.0;
+
+  // left vertex
+  if ( U_v_L - U_c_T > 0.0 )
+  {
+    phi_L = std::min( 1.0, alpha * (U_max - U_c_T) / (U_v_L - U_c_T) ); 
+  }
+  else if ( U_v_L - U_c_T == 0.0 )
+  {
+    phi_L = 1.0;
+  }
+  else
+  {  
+    phi_L = std::min( 1.0, alpha * (U_min - U_c_T) / (U_v_L - U_c_T) ); 
+  }
+
+  // right vertex
+  if ( U_v_R - U_c_T > 0.0 )
+  {
+    phi_R = std::min( 1.0, alpha * (U_max - U_c_T) / (U_v_R - U_c_T) ); 
+  }
+  else if ( U_v_R - U_c_T == 0.0 )
+  {
+    phi_R = 1.0;
+  }
+  else
+  {  
+    phi_R = std::min( 1.0, alpha * (U_min - U_c_T) / (U_v_R - U_c_T) ); 
+  }
+
+  // return min of two values
+  return std::min( phi_L, phi_R );
 }

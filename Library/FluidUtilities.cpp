@@ -38,15 +38,15 @@ void ComputePrimitiveFromConserved( DataStructure3D& uCF,
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     // Density
-    Tau = Basis.BasisEval( uCF, 0, iX, iN+1 );
+    Tau = Basis.BasisEval( uCF, 0, iX, iN+1, false );
     uPF(0,iX,iN) = 1.0 / Tau;
 
     // Momentum
-    Vel = Basis.BasisEval( uCF, 1, iX, iN+1 );
+    Vel = Basis.BasisEval( uCF, 1, iX, iN+1, false );
     uPF(1,iX,iN) = uPF(0,iX,iN) * Vel;
 
     // Specific Total Energy
-    EmT = Basis.BasisEval( uCF, 2, iX, iN+1 );
+    EmT = Basis.BasisEval( uCF, 2, iX, iN+1, false );
     uPF(2,iX,iN) = EmT / Tau;
   }
 
@@ -84,15 +84,15 @@ double Flux_Fluid( double V, double P, unsigned int iCF )
 {
   if ( iCF == 0 )
   {
-    return + V;
+    return - V;
   }
   else if ( iCF == 1 )
   {
-    return - P;
+    return + P;
   }
   else if ( iCF == 2 )
   {
-    return - P * V;
+    return + P * V;
   }
   else{ // Error case. Shouldn't ever trigger.
     throw Error("Please input a valid iCF! (0,1,2). ");
@@ -112,24 +112,18 @@ void NumericalFlux_Gudonov( double vL, double vR, double pL, double pR,
 }
 
 
-// ! Flag For Removal: Does This Even Work !
-void NumericalFlux_HLL( double tauL, double tauR, double vL, double vR, 
-  double eL, double eR, double pL, double pR, double zL, double zR, 
-  int iCF, double& out )
+/**
+ * Gudonov style numerical flux. Constucts v* and p* states.
+**/
+void NumericalFlux_HLLC( double vL, double vR, double pL, double pR, 
+  double cL, double cR, double rhoL, double rhoR, 
+  double& Flux_U, double& Flux_P  )
 {
-
-  double uL = Fluid( tauL, vL, eL, iCF );
-  double uR = Fluid( tauR, vR, eR, iCF );
-
-    // zL += vL / tauL;
-    // zR += vR / tauR;
-
-    double am = std::max( std::max( 0.0, - zL ), - zR );
-    double ap = std::max( std::max( 0.0, + zL ), + zR );
-
-    // f = (zR * Flux_Fluid( vL, pL) + zL * Flux_Fluid( vR, pR) - zL*zR * ( uR - uL ) ) / (zL + zR)
-
-    out = (ap * Flux_Fluid( vL, pL, iCF ) + am * Flux_Fluid( vR, pR, iCF ) - am*ap * (uR-uL) ) / ( am + ap );
+  double aL = vL - cL; // left wave speed estimate
+  double aR = vR + cR; // right wave speed estimate
+  Flux_U = ( rhoR * vR * (aR - vR) - rhoL * vL * (aL - vL) + pL - pR ) 
+         / ( rhoR * (aR - vR) - rhoL * (aL - vL) );
+  Flux_P = rhoL * (vL - aL) * (vL - Flux_U) + pL;
 }
 
 
@@ -157,8 +151,6 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
 
   double dr    = 0.0;
 
-  double dt1 = 0.0;
-  double dt2 = 0.0;
   double dt  = 0.0;
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
@@ -174,10 +166,7 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
     Cs     = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
     eigval = Cs;
 
-    dt1 = std::abs( dr ) / std::abs( eigval - vel_x );
-    dt2 = std::abs( dr ) / std::abs( eigval + vel_x );
-
-    dt = std::min( dt1, dt2 );
+    dt = std::abs( dr ) / std::abs( eigval );
 
     dt     = std::min( dt, dt_old );
     dt_old = dt;

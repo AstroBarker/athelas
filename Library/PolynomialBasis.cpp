@@ -40,7 +40,6 @@ ModalBasis::ModalBasis( DataStructure3D& uPF, GridStructure& Grid,
     dPhi( nElements + 2*nGuard, 3*nN + 2, pOrder )
 {
   // --- Compute grid quantities ---
-  Grid.ComputeVolume( );
   Grid.ComputeMass( uPF );
   Grid.ComputeCenterOfMass( uPF );
 
@@ -132,7 +131,7 @@ double ModalBasis::InnerProduct( unsigned int m, unsigned int n,
     eta_q = Grid.Get_Nodes(iN);
     X = Grid.NodeCoordinate(iX,iN);
     result += Taylor( n, eta_q, eta_c ) * Phi( iX, iN+1, m )
-           * Grid.Get_Weights(iN) * uPF(0,iX,iN) * Grid.Get_Volume(iX)
+           * Grid.Get_Weights(iN) * uPF(0,iX,iN) * Grid.Get_Widths(iX)
            * Grid.Get_SqrtGm(X);
   }
 
@@ -156,7 +155,7 @@ double ModalBasis::InnerProduct( unsigned int n, unsigned int iX,
   {
     X = Grid.NodeCoordinate(iX,iN);
     result += Phi( iX, iN+1, n )  * Phi( iX, iN+1, n ) 
-           * Grid.Get_Weights(iN) * uPF(0,iX,iN) * Grid.Get_Volume(iX)
+           * Grid.Get_Weights(iN) * uPF(0,iX,iN) * Grid.Get_Widths(iX)
            * Grid.Get_SqrtGm(X);
   }
 
@@ -376,7 +375,7 @@ void ModalBasis::CheckOrthogonality( DataStructure3D& uPF,
       // Not using an InnerProduct function because their API is odd.. 
       result += Phi( iX, i_eta, k1 ) * Phi( iX, i_eta, k2 ) 
              * uPF(0,iX,i_eta-1) * Grid.Get_Weights(i_eta-1)  
-             * Grid.Get_Volume(iX) * Grid.Get_SqrtGm(X);
+             * Grid.Get_Widths(iX) * Grid.Get_SqrtGm(X);
     }
     
     if ( k1 == k2 && result == 0.0 )
@@ -417,7 +416,7 @@ void ModalBasis::ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid )
       {
         X = Grid.NodeCoordinate(iX,iN);
         result += Phi( iX, iN+1, k ) * Phi( iX, iN+1, k ) 
-               * Grid.Get_Volume(iX) * Grid.Get_Weights(iN) 
+               * Grid.Get_Weights(iN) * Grid.Get_Widths(iX)
                * Grid.Get_SqrtGm(X)  * uPF(0,iX,iN);
       }
       MassMatrix(iX,k) = result;
@@ -427,15 +426,27 @@ void ModalBasis::ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid )
 
 
 /**
- * Evaluate (modal) basis on element iX for quantity iCF
+ * Evaluate (modal) basis on element iX for quantity iCF.
+ * If DerivativeOption is true, evaluate the derivative.
 **/
 double ModalBasis::BasisEval( DataStructure3D& U, 
-  unsigned int iX, unsigned int iCF, unsigned int i_eta )
+  unsigned int iX, unsigned int iCF, unsigned int i_eta, 
+  bool DerivativeOption )
 {
   double result = 0.0;
-  for ( unsigned int k = 0; k < order; k++ )
+  if ( DerivativeOption )
   {
-    result += Phi(iX,i_eta,k) * U(iCF,iX,k);
+    for ( unsigned int k = 0; k < order; k++ )
+    {
+      result += dPhi(iX,i_eta,k) * U(iCF,iX,k);
+    }
+  }
+  else
+  {
+    for ( unsigned int k = 0; k < order; k++ )
+    {
+      result += Phi(iX,i_eta,k) * U(iCF,iX,k);
+    }
   }
   return result;
 }

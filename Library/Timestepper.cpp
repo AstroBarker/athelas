@@ -212,6 +212,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
   SumVar_U.zero();
 
   U_s[0] = U;
+  Grid_s[0] = Grid;
   // StageData holds left interface positions
   for ( unsigned int iX = 0; iX <= ihi+1; iX++ )
   {

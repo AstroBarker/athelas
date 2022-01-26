@@ -5,6 +5,7 @@
 
 cmake_minimum_required( VERSION 3.10 )
 
+# set( CMAKE_BUILD_TYPE DEBUG )
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to Release")
     set(CMAKE_BUILD_TYPE "Release")
@@ -86,12 +87,12 @@ find_package ( HDF5 REQUIRED COMPONENTS CXX HL )
 # Check BLAS/LAPACK
 
 find_package( LAPACK REQUIRED  )
-# set( LAPACK_LIBRARIES /usr/local/opt/lapack/lib/liblapacke.3.dylib )
-# set( LAPACK_INCLUDE_DIRS /usr/local/opt/lapack/include )
+#set( LAPACK_LIBRARIES /usr/local/opt/lapack/lib/liblapacke.3.dylib )
+#set( LAPACK_INCLUDE_DIRS /usr/local/opt/lapack/include )
 
 find_package( BLAS REQUIRED  )
-# set( BLAS_LIBRARIES /usr/local/opt/openblas/lib/libopenblas.dylib )
-# set( BLAS_INCLUDE_DIRS /usr/local/opt/openblas/include )
+#set( BLAS_LIBRARIES /usr/local/opt/openblas/lib/libopenblas.dylib )
+#set( BLAS_INCLUDE_DIRS /usr/local/opt/openblas/include )
 
 target_link_libraries( libathelas PUBLIC ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES} )
 target_include_directories( libathelas PUBLIC ${HDF5_INCLUDE_DIRS})

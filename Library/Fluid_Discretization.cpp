@@ -35,7 +35,7 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   const unsigned int ilo    = Grid.Get_ilo();
   const unsigned int ihi    = Grid.Get_ihi();
 
-  double P_L, P_R, Cs_L, Cs_R, lam_L, lam_R, P;
+  double rho_L, rho_R, P_L, P_R, Cs_L, Cs_R, lam_L, lam_R, P;
 
   double Poly_L, Poly_R;
   double X_L, X_R;
@@ -47,8 +47,8 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   for ( unsigned int iX = ilo; iX <= ihi+1; iX++ )
   {
-    uCF_F_L(iCF, iX) = Basis.BasisEval( U, iX-1, iCF, nNodes + 1 );
-    uCF_F_R(iCF, iX) = Basis.BasisEval( U, iX, iCF, 0 );
+    uCF_F_L(iCF, iX) = Basis.BasisEval( U, iX-1, iCF, nNodes + 1, false );
+    uCF_F_R(iCF, iX) = Basis.BasisEval( U, iX, iCF, 0, false );
   }
   
 
@@ -62,27 +62,33 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
       uCF_R[iCF] = uCF_F_R(iCF, iX);
     }
 
+    rho_L = 1.0 / uCF_L[0];
+    rho_R = 1.0 / uCF_R[0];
+
     P_L   = ComputePressureFromConserved_IDEAL( uCF_L[0], uCF_L[1], uCF_L[2] );
     Cs_L  = ComputeSoundSpeedFromConserved_IDEAL( uCF_L[0], uCF_L[1], uCF_L[2] );
-    lam_L = Cs_L / uCF_L[0];
+    lam_L = Cs_L * rho_L;
 
     P_R   = ComputePressureFromConserved_IDEAL( uCF_R[0], uCF_R[1], uCF_R[2] );
     Cs_R  = ComputeSoundSpeedFromConserved_IDEAL( uCF_R[0], uCF_R[1], uCF_R[2] );
-    lam_R = Cs_R / uCF_R[0];
+    lam_R = Cs_R * rho_R;
 
-    // --- Numerical Fluxes ---
+    /* --- Numerical Fluxes --- */
 
     // Riemann Problem
-    NumericalFlux_Gudonov( uCF_L[1], uCF_R[1], P_L, P_R, lam_L, lam_R, Flux_U[iX], Flux_P[iX] );
+    NumericalFlux_Gudonov( uCF_L[1], uCF_R[1], P_L, P_R, lam_L, lam_R, 
+      Flux_U[iX], Flux_P[iX] );
+    // NumericalFlux_HLLC( uCF_L[1], uCF_R[1], P_L, P_R, Cs_L, Cs_R, 
+      // rho_L, rho_R, Flux_U[iX], Flux_P[iX] );
     
     // TODO: Clean This Up
-    dFlux_num(0, iX) = + Flux_U[iX];
-    dFlux_num(1, iX) = - Flux_P[iX];
-    dFlux_num(2, iX) = - Flux_U[iX] * Flux_P[iX];
+    dFlux_num(0, iX) = - Flux_U[iX];
+    dFlux_num(1, iX) = + Flux_P[iX];
+    dFlux_num(2, iX) = + Flux_U[iX] * Flux_P[iX];
     
   }
   
-  // --- Surface Term ---
+  /* --- Surface Term --- */
 
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   // #pragma omp parallel for simd collapse(2)
@@ -97,8 +103,8 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
     SqrtGm_L = Grid.Get_SqrtGm( X_L );
     SqrtGm_R = Grid.Get_SqrtGm( X_R );
 
-    dU(iCF,iX,k) += + ( + dFlux_num(iCF,iX+1) * Poly_R * SqrtGm_R
-                        - dFlux_num(iCF,iX+0) * Poly_L * SqrtGm_L );  
+    dU(iCF,iX,k) -= ( + dFlux_num(iCF,iX+1) * Poly_R * SqrtGm_R
+                      - dFlux_num(iCF,iX+0) * Poly_L * SqrtGm_L );  
   }
 
   // --- Compute Flux_q everywhere for the Volume term ---
@@ -106,9 +112,12 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
-    P = ComputePressureFromConserved_IDEAL( Basis.BasisEval( U, iX, 0, iN+1 ), 
-      Basis.BasisEval( U, iX, 1, iN+1 ), Basis.BasisEval( U, iX, 2, iN+1 ) );
-    Flux_q(iCF,iX,iN) = Flux_Fluid( Basis.BasisEval( U, iX, 1, iN+1 ), P, iCF );
+    P = ComputePressureFromConserved_IDEAL( 
+      Basis.BasisEval( U, iX, 0, iN+1, false ), 
+      Basis.BasisEval( U, iX, 1, iN+1, false ), 
+      Basis.BasisEval( U, iX, 2, iN+1, false ) );
+    Flux_q(iCF,iX,iN) = Flux_Fluid( Basis.BasisEval( U, iX, 1, iN+1, false ), 
+      P, iCF );
   }
   
   // --- Volume Term ---
@@ -128,7 +137,7 @@ void ComputeIncrement_Fluid_Divergence( DataStructure3D& U, GridStructure& Grid,
                 * Basis.Get_dPhi( iX, iN+1, k ) * Grid.Get_SqrtGm(X);
     }
 
-    dU(iCF,iX,k) -= local_sum;
+    dU(iCF,iX,k) += local_sum;
   }
 
 }
@@ -153,14 +162,19 @@ void ComputeIncrement_Fluid_Geometry( DataStructure3D& U, GridStructure& Grid,
     local_sum = 0.0;
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      P = ComputePressureFromConserved_IDEAL( Basis.BasisEval( U, iX, 0, iN+1 ), 
-        Basis.BasisEval( U, iX, 1, iN+1 ), Basis.BasisEval( U, iX, 2, iN+1 ) );
+      P = ComputePressureFromConserved_IDEAL( 
+        Basis.BasisEval( U, iX, 0, iN+1, false ), 
+        Basis.BasisEval( U, iX, 1, iN+1, false ), 
+        Basis.BasisEval( U, iX, 2, iN+1, false ) );
+
       X = Grid.NodeCoordinate(iX,iN);
+
       local_sum += Grid.Get_Weights(iN) * P
                 * Basis.Get_Phi( iX, iN+1, k ) * X;
     }
 
-    dU(1,iX,k) += 8.0 * PI() * Grid.Get_Widths(iX) * local_sum;
+    dU(1,iX,k) += ( 2.0 * local_sum * Grid.Get_Widths(iX) ) 
+               / Basis.Get_MassMatrix( iX, k );
   }
 }
 
@@ -208,17 +222,17 @@ void Compute_Increment_Explicit( DataStructure3D& U, GridStructure& Grid,
   ComputeIncrement_Fluid_Divergence( U, Grid, Basis, dU, Flux_q, dFlux_num, 
     uCF_F_L, uCF_F_R, Flux_U, Flux_P, uCF_L, uCF_R );
 
-  // --- Increment from Geometry ---
-  if ( Grid.DoGeometry() )
-  {
-    ComputeIncrement_Fluid_Geometry( U, Grid, Basis, dU );
-  }
-
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   for ( unsigned int k = 0; k < order; k++ )
   {
-    dU(iCF,iX,k) /= Basis.Get_MassMatrix( iX, k );
+    dU(iCF,iX,k) /= ( Basis.Get_MassMatrix( iX, k ) );
+  }
+
+  /* --- Increment from Geometry --- */
+  if ( Grid.DoGeometry() )
+  {
+    ComputeIncrement_Fluid_Geometry( U, Grid, Basis, dU );
   }
 
   // --- Increment Gravity --- 
