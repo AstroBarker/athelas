@@ -52,7 +52,6 @@ public:
   void ComputeMass( DataStructure3D& uPF );
   void ComputeCenterOfMass( DataStructure3D& uPF );
   void ComputeCenterOfMass_Radius( DataStructure3D& uPF );
-  void ComputeSqrtGm(  );
 
   double& operator()( unsigned int i, unsigned int j );
   double operator()( unsigned int i, unsigned int j ) const;
@@ -77,8 +76,6 @@ private:
 
   std::vector<double> Mass;
   std::vector<double> CenterOfMass;
-
-  DataStructure2D SqrtGm;
 
   std::vector<double> Grid;
 

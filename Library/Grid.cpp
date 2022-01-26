@@ -31,7 +31,6 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX,
     X_L(mSize, 0.0),
     Mass(mSize, 0.0),
     CenterOfMass(mSize, 0.0),
-    SqrtGm(mSize,nNodes),
     Grid(mSize*nNodes, 0.0)
 {
   // TODO: Allow LG_Quadrature to take in vectors.
@@ -54,8 +53,6 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX,
   }
 
   CreateGrid();
-
-  ComputeSqrtGm();
 
   delete [] tmp_nodes;
   delete [] tmp_weights;
@@ -314,37 +311,6 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
 
 
 /**
- * Compute Sqrt(Gamma).
- * Useage:
- * -----------
- * bool Geometry: (in Grid Constructor)
- *  false: Cartesian
- *  true: Spherical Symmetry
-**/
-void GridStructure::ComputeSqrtGm(  )
-{
-  const unsigned int ilo = Get_ilo();
-  const unsigned int ihi = Get_ihi();
-
-  double X = 0.0;
-
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
-  {
-    if ( Geometry )
-    {
-      X = NodeCoordinate(iX,iN);
-      SqrtGm(iX,iN) = 4.0 * PI() * X * X; // ? Should the 4pi be here ?
-    }
-    else
-    {
-      SqrtGm(iX,iN) = 1.0;
-    }
-  }
-}
-
-
-/**
  * Update grid coordinates using interface and nodal velocities.
 **/
 void GridStructure::UpdateGrid( std::vector<double>& SData, DataStructure3D& uPF )
@@ -370,9 +336,6 @@ void GridStructure::UpdateGrid( std::vector<double>& SData, DataStructure3D& uPF
       Grid[iC * nNodes + iN] = NodeCoordinate( iC, iN );
     }
   }
-
-  // Update SqrtGm
-  ComputeSqrtGm();
 
 }
 
