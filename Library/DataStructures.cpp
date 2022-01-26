@@ -63,7 +63,7 @@ double DataStructure3D::operator()
 // zero out structure
 void DataStructure3D::zero( )
 {
-  for ( unsigned int i = 0; i <= mSize; i++ )
+  for ( unsigned int i = 0; i < mSize; i++ )
   {
     Data[i] = 0.0;
   }
