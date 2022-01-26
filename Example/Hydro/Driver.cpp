@@ -25,14 +25,14 @@
 
 int main( int argc, char* argv[] )
 {
-  // --- Problem Parameters ---
+  /* --- Problem Parameters --- */
   const std::string ProblemName = "Sod";
 
-  const unsigned int nX      = 256;
+  const unsigned int nX      = 512;
   const unsigned int order   = 3;
   const unsigned int nNodes  = NumNodes( order ) + 0;
   const unsigned int nStages = 5;
-  const unsigned int tOrder  = 4;
+  const unsigned int tOrder  = 3;
 
   const unsigned int nGuard  = 1;
 
@@ -43,10 +43,10 @@ int main( int argc, char* argv[] )
   double dt          = 0.0;
   const double t_end = 0.2;
 
-  bool Geometry = true; // Cartesian
+  bool Geometry  = true; /* false: Cartesian, true: Spherical */
   std::string BC = "Reflecting";
 
-  const double CFL = ComputeCFL( 0.3, order, nStages, tOrder );
+  const double CFL = ComputeCFL( 0.5, order, nStages, tOrder );
 
   // --- Create the Grid object ---
   GridStructure Grid( nNodes, nX, nGuard, xL, xR, Geometry );
@@ -65,12 +65,6 @@ int main( int argc, char* argv[] )
 
   // --- Datastructure for modal basis ---
   ModalBasis Basis( uPF, Grid, order, nNodes, nX, nGuard );
-  std::vector<double> Mass(nX+2, 0.0);
-  for ( unsigned int iX = nGuard; iX < nX; iX++ )
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
-  {
-    Mass[iX] = Grid.Get_Mass(iX);
-  }
 
   WriteBasis( Basis, nGuard, Grid.Get_ihi(), nNodes, order, ProblemName );
 
@@ -80,8 +74,8 @@ int main( int argc, char* argv[] )
   // --- Initialize Slope Limiter ---
   const double Beta_TVD = 1.0;
   const double Beta_TVB = 50.0;
-  const double SlopeLimiter_Threshold = 5e-4;
-  const double TCI_Threshold = 0.5; //0.65
+  const double SlopeLimiter_Threshold = 5e-6;
+  const double TCI_Threshold = 0.65; //0.65
   const bool CharacteristicLimiting_Option = true;
   const bool TCI_Option = true;
   
@@ -125,15 +119,6 @@ int main( int argc, char* argv[] )
 
   WriteState( uCF, uPF, uAF, Grid, ProblemName );
 
-  double avg = 0.0;
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-  for ( unsigned int iX = 1; iX < nX; iX++ )
-  {
-    avg = CellAverage( uCF, Grid, Basis, iCF, iX );
-    // std::printf("%f %f %f %.3e\n",Grid.Get_Centers(iX), avg, uCF(iCF,iX,0), (avg - uCF(iCF,iX,0))/avg  );
-    std::printf("%e %e %.3e \n",avg, Mass[iX], (avg-Mass[iX])/avg );
-  }
-
 }
 
 
@@ -152,30 +137,6 @@ int NumNodes( unsigned int order )
   {
     return order + 1;
   }
-}
-
-/**
- * Return the cell average of a field iCF on cell iX.
-**/
-double CellAverage( DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
-  unsigned int iCF, unsigned int iX )
-{
-  const unsigned int nNodes = Grid.Get_nNodes();
-
-  double avg  = 0.0;
-  double mass = 0.0;
-  double X   = 0.0;
-
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
-  {
-    X = Grid.NodeCoordinate(iX,iN);
-    mass += Grid.Get_Weights(iN) * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX) / Basis.BasisEval( U, iX, 0, iN+1, false );/// U(0,iX,0);
-    avg += Grid.Get_Weights(iN) * Basis.BasisEval( U, iX, iCF, iN+1, false ) 
-        * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX) / Basis.BasisEval( U, iX, 0, iN+1, false ) ;/// U(0,iX,0);
-  }
-  
-  return mass;
-  // return avg / mass;
 }
 
 
