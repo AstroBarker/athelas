@@ -59,6 +59,16 @@ public:
     delete [] dU_c_R;
     delete [] dU_v_L;
     delete [] dU_v_R;
+    delete [] w_c_L;
+    delete [] w_c_T;
+    delete [] w_c_R;
+    delete [] w_v_L;
+    delete [] w_v_R;
+    delete [] dw_c_L;
+    delete [] dw_c_T;
+    delete [] dw_c_R;
+    delete [] dw_v_L;
+    delete [] dw_v_R;
     delete [] Mult1;
     delete [] Mult2;
     delete [] Mult3;
