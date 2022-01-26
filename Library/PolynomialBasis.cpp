@@ -243,12 +243,10 @@ void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
       }
       else if ( i_eta > nNodes + 1 && i_eta <= 2*nNodes+1) // GL nodes left neighbor
       {
-        std::printf("%d\n", i_eta);
         eta = Grid.Get_Nodes(i_eta-nNodes-1) - 1.0;
       }
       else
       {
-        // std::printf("%d %d %d %d %f\n", i_eta, n_eta, nNodes, i_eta-2*nNodes-0, Grid.Get_Nodes(i_eta-2*nNodes-1));
         eta = Grid.Get_Nodes(i_eta-2*nNodes-1) + 1.0;
       }
 
