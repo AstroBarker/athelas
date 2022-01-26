@@ -243,11 +243,11 @@ void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
       }
       else if ( i_eta > nNodes + 1 && i_eta <= 2*nNodes+1) // GL nodes left neighbor
       {
-        eta = Grid.Get_Nodes(i_eta-nNodes-1) - 1.0;
+        eta = Grid.Get_Nodes(i_eta-nNodes-2) - 1.0;
       }
       else
       {
-        eta = Grid.Get_Nodes(i_eta-2*nNodes-1) + 1.0;
+        eta = Grid.Get_Nodes(i_eta-2*nNodes-2) + 1.0;
       }
 
       Phi(iX, i_eta, k)  = OrthoTaylor( k, iX, i_eta, eta, eta_c, uPF, Grid, false );
