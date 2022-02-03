@@ -43,35 +43,7 @@ public:
 
   ~SlopeLimiter()
   {
-    delete [] R;
-    delete [] R_inv;
-    delete [] SlopeDifference;
-    delete [] dU;
-    delete [] d2U;
-    delete [] d2w;
-    delete [] U_c_L;
-    delete [] U_c_T;
-    delete [] U_c_R;
-    delete [] U_v_L;
-    delete [] U_v_R;
-    delete [] dU_c_L;
-    delete [] dU_c_T;
-    delete [] dU_c_R;
-    delete [] dU_v_L;
-    delete [] dU_v_R;
-    delete [] w_c_L;
-    delete [] w_c_T;
-    delete [] w_c_R;
-    delete [] w_v_L;
-    delete [] w_v_R;
-    delete [] dw_c_L;
-    delete [] dw_c_T;
-    delete [] dw_c_R;
-    delete [] dw_v_L;
-    delete [] dw_v_R;
-    delete [] Mult1;
-    delete [] Mult2;
-    delete [] Mult3;
+
   }
 
 private:
@@ -86,45 +58,45 @@ private:
   double Phi1;
   double Phi2;
 
-  double* R;
-  double* R_inv;
+  double R[9];
+  double R_inv[9];
 
-  double* SlopeDifference;
-  double* dU;
-  double* d2U;
-  double* d2w;
+  double SlopeDifference[3];
+  double dU[3];
+  double d2U[3];
+  double d2w[3];
 
   // --- Slope limiter quantities ---
 
-  double* U_c_L;
-  double* U_c_T;
-  double* U_c_R;
-  double* U_v_L;
-  double* U_v_R;
+  double U_c_L[3];
+  double U_c_T[3];
+  double U_c_R[3];
+  double U_v_L[3];
+  double U_v_R[3];
 
-  double* dU_c_L;
-  double* dU_c_T;
-  double* dU_c_R;
-  double* dU_v_L;
-  double* dU_v_R;
+  double dU_c_L[3];
+  double dU_c_T[3];
+  double dU_c_R[3];
+  double dU_v_L[3];
+  double dU_v_R[3];
 
   // characteristic forms
-  double* w_c_L;
-  double* w_c_T;
-  double* w_c_R;
-  double* w_v_L;
-  double* w_v_R;
+  double w_c_L[3];
+  double w_c_T[3];
+  double w_c_R[3];
+  double w_v_L[3];
+  double w_v_R[3];
 
-  double* dw_c_L;
-  double* dw_c_T;
-  double* dw_c_R;
-  double* dw_v_L;
-  double* dw_v_R;
+  double dw_c_L[3];
+  double dw_c_T[3];
+  double dw_c_R[3];
+  double dw_v_L[3];
+  double dw_v_R[3];
 
   // matrix mult scratch scape
-  double* Mult1;
-  double* Mult2;
-  double* Mult3;
+  double Mult1[3];
+  double Mult2[3];
+  double Mult3[3];
 
   DataStructure2D D;
 

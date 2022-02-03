@@ -5,21 +5,13 @@
  * Author   : Brandon L. Barker
  * Purpose  : Classes for slope limters
  * Contains : SlopeLimiter
- * ! Warning: ApplySlopeLimiter is a mess. !
- * TODO: Clean up ApplySlopeLimiter
+ * TODO: Restructure loops iCF...iX
 **/ 
 
-// BUG: !!
-// I need to limit the quadratic term FIRST. 
-// compute Phi2. Change U(:,:,2)
-// Then, with the updated U, we can compute phi 1
-// This will be better! Will it fix my issues?
-// Maybe not. But I am doing it wrong.
-// BUG: !!
+
 
 #include <cstdlib>     /* abs */
 #include <algorithm>   /* std::min, std::max */
-#include <cstdlib>     /* abs */
 
 #include <iostream>
 #include "SlopeLimiter_Utilities.h"
@@ -46,46 +38,6 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder, double Slo
       TCI_Threshold(TCI_Threshold_val),
       D( 3, Grid.Get_nElements()+2*Grid.Get_Guard() )
 {
-  // --- Initialize SLope Limiter structures ---
-
-  dU  = new double[3];
-  d2U = new double[3];
-  d2w = new double[3];
-  SlopeDifference = new double[3];
-
-  Mult1 = new double[3];
-  Mult2 = new double[3];
-  Mult3 = new double[3];
-
-  U_c_L = new double[3];
-  U_c_T = new double[3];
-  U_c_R = new double[3];
-  U_v_L = new double[3];
-  U_v_R = new double[3];
-
-  dU_c_L = new double[3];
-  dU_c_T = new double[3];
-  dU_c_R = new double[3];
-  dU_v_L = new double[3];
-  dU_v_R = new double[3];
-
-  // characteristic forms
-  w_c_L = new double[3];
-  w_c_T = new double[3];
-  w_c_R = new double[3];
-  w_v_L = new double[3];
-  w_v_R = new double[3];
-
-  dw_c_L = new double[3];
-  dw_c_T = new double[3];
-  dw_c_R = new double[3];
-  dw_v_L = new double[3];
-  dw_v_R = new double[3];
-
-  // --- Initialize Characteristic matrices ---
-
-  R     = new double[9];
-  R_inv = new double[9];
 
 }
 
@@ -188,27 +140,19 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       IdentityMatrix( R_inv, 3 );
     }
 
-    // multiply invR @ U_M[:,0,1] ( U_M[:,0,1] = slopes in modal basis)
-    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-    {
-      Mult2[iCF] = U(iCF, iX, 1); // Slopes
-      Mult3[iCF] = U(iCF, iX, 0); // Cell averages
-    }
-    
     // ! Anything needed for boundaries? !
 
     // --- Limit Quadratic Term ---
     if ( order >= 3 )
     {
+      for ( int iCF = 0; iCF < 3; iCF++ )
+      {
+        Mult1[iCF] = U(iCF,iX,2);
+      }
       MatMul( 3, 1, 3, 1.0, R_inv, 
         3, Mult1, 1, 1.0, d2w, 1 );
 
       LimitQuadratic( U, Basis, d2w, iX, nNodes);
-      // store e = invR @ d2U
-      for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-      {
-        Mult1[iCF] = U(iCF, iX, 2); // 2nd derivative
-      }
     }
 
     // --- Compute info for limiter ---
@@ -222,6 +166,8 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       U_c_T[iCF] = U(iCF, iX  , 0);
       U_c_R[iCF] = U(iCF, iX+1, 0);
 
+      dU_c_T[iCF] = U(iCF, iX, 1);
+
       U_v_L[iCF] = Basis.BasisEval( U, iX, iCF, 0, false );
       U_v_R[iCF] = Basis.BasisEval( U, iX, iCF, nNodes + 1, false );
 
@@ -233,6 +179,7 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       w_v_L[iCF] = 0.0;
       w_v_R[iCF] = 0.0;
 
+      dw_c_T[iCF] = 0.0;
     }
 
     // --- Map limiter variables to characteristics ---
@@ -250,16 +197,17 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
     MatMul( 3, 1, 3, 1.0, R_inv, 
       3, U_v_R, 1, 1.0, w_v_R, 1 );
 
+    MatMul( 3, 1, 3, 1.0, R_inv, 
+      3, dU_c_T, 1, 1.0, dw_c_T, 1 );
 
     // Limited Slopes
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
       Phi1 = BarthJespersen( w_v_L[iCF], w_v_R[iCF], 
         w_c_L[iCF], w_c_T[iCF], w_c_R[iCF], alpha );
-      
+
       dU[iCF] = Phi1 * dw_c_T[iCF]; // Multiply slope by Phi1
       if ( order >= 3 ) d2U[iCF] = Phi1 * d2w[iCF]; // 2nd derivative
-      
     }
 
     // Transform back to conserved quantities
@@ -269,13 +217,15 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       MatMul( 3, 1, 3, 1.0, R, 
         3, dU, 1, 1.0, Mult1, 1 );
       // d2U -> R d2U
-      MatMul( 3, 1, 3, 1.0, R, 
-        3, d2U, 1, 1.0, Mult2, 1 );
-
+      if ( order >= 3 )
+      {
+        MatMul( 3, 1, 3, 1.0, R, 
+          3, d2U, 1, 1.0, Mult2, 1 );
+      }
       for ( unsigned int iCF = 0; iCF < 3; iCF++ )
       {
-        dU[iCF]  = Mult1[iCF];
-        d2U[iCF] = Mult2[iCF];
+        dU[iCF] = Mult1[iCF];
+        if ( order >= 3 ) d2U[iCF] = Mult2[iCF];
       }
     }
 
@@ -284,14 +234,14 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
       SlopeDifference[iCF] = std::abs( U(iCF, iX, 1) - dU[iCF] );
-    
+
       // if slopes differ too much, replace
       if ( SlopeDifference[iCF] > SlopeLimiter_Threshold * std::abs( U(iCF, iX, 0) ) )
       {
-        for ( unsigned int k = 1; k < order; k++ )
-        {
-          U(iCF, iX, k) = 0.0;
-        }
+        // for ( unsigned int k = 1; k < order; k++ )
+        // {
+        //   U(iCF, iX, k) = 0.0;
+        // }
         U(iCF, iX, 1) = dU[iCF];
         if ( order >= 3 ) U(iCF,iX,2) = d2U[iCF];
       }
@@ -397,7 +347,7 @@ double SlopeLimiter::CellAverage( DataStructure3D& U, GridStructure& Grid, Modal
   const unsigned int nNodes = Grid.Get_nNodes();
 
   double avg = 0.0;
-  double vol = 0.0;
+  double mass = 0.0;
   double X;
 
   // Used to set loop bounds
@@ -409,17 +359,24 @@ double SlopeLimiter::CellAverage( DataStructure3D& U, GridStructure& Grid, Modal
   if ( extrapolate ==  0 ) mult = 0;
   if ( extrapolate == +1 ) mult = 2;
 
-  start = 2 + mult * nNodes;
-  end   = start + nNodes - 1;
+  if ( extrapolate == 0 )
+  {
+    start = 1;
+  }
+  else
+  {
+    start = 2 + mult * nNodes;
+  }
+  end = start + nNodes - 1;
 
   for ( unsigned int iN = start; iN < end; iN++ )
   {
     X = Grid.NodeCoordinate(iX+extrapolate,iN); // Need the metric on target cell
-    vol += Grid.Get_Weights(iN-start) * Grid.Get_SqrtGm(X) 
-        * Grid.Get_Widths(iX+extrapolate);// / Basis.BasisEval( U, iX, 0, iN+1, false );
+    mass += Grid.Get_Weights(iN-start) * Grid.Get_SqrtGm(X) 
+        * Grid.Get_Widths(iX+extrapolate) / Basis.BasisEval( U, iX, 0, iN+1, false );
     avg += Grid.Get_Weights(iN-start) * Basis.BasisEval( U, iX, iCF, iN+1, false ) 
-        * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX+extrapolate);// / Basis.BasisEval( U, iX, 0, iN+1, false );
+        * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX+extrapolate);
   }
 
-  return avg / vol;
+  return avg / mass;
 }

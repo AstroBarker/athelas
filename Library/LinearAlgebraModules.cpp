@@ -147,8 +147,8 @@ void InvertMatrix( double* M, unsigned int n )
  * see, e.g., 
  * https://www.netlib.org/blas/
 **/
-void MatMul( int m, int n, int k, double alpha, double* A, 
-  int lda, double* B, int ldb, double beta, double* C, int ldc )
+void MatMul( int m, int n, int k, double alpha, double A[], 
+  int lda, double B[], int ldb, double beta, double C[], int ldc )
 {
   // Calculate A*B=C
   cblas_dgemm( CblasRowMajor, CblasNoTrans, CblasNoTrans,

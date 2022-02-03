@@ -21,7 +21,6 @@
 
 // Implements a typesafe sgn function
 // https://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
-// TODO: make sure this actually has the correct behavior for minmod...
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
@@ -68,43 +67,46 @@ double BarthJespersen( double U_v_L, double U_v_R, double U_c_L,
   double U_c_T, double U_c_R, double alpha )
 {
   // Get U_min, U_max
-  double U_min = 10000000.0 * U_c_T;
-  double U_max = std::numeric_limits<double>::epsilon() * U_c_T;
+  double U_min_L = 10000000.0 * U_c_T;
+  double U_min_R = 10000000.0 * U_c_T;
+  double U_max_L = std::numeric_limits<double>::epsilon() * U_c_T * 0.00001;
+  double U_max_R = std::numeric_limits<double>::epsilon() * U_c_T * 0.00001;
 
-  U_min = std::min( U_min, std::min( U_c_T, std::min( U_c_L, U_c_R ) ) );
-  U_max = std::max( U_max, std::max( U_c_T, std::max( U_c_L, U_c_R ) ) );
+  U_min_L = std::min( U_min_L, std::min( U_c_T, U_c_L ) );
+  U_max_L = std::max( U_max_L, std::max( U_c_T, U_c_L ) );
+  U_min_R = std::min( U_min_R, std::min( U_c_T, U_c_R ) );
+  U_max_R = std::max( U_max_R, std::max( U_c_T, U_c_R ) );
 
   // loop of cell certices
-  double phi = 10000000000.0;
   double phi_L = 0.0;
   double phi_R = 0.0;
 
   // left vertex
-  if ( U_v_L - U_c_T > 0.0 )
+  if ( U_v_L - U_c_T + 1.0 > 1.0 )
   {
-    phi_L = std::min( 1.0, alpha * (U_max - U_c_T) / (U_v_L - U_c_T) ); 
+    phi_L = std::min( 1.0, alpha * (U_max_L - U_c_T) / (U_v_L - U_c_T) ); 
   }
-  else if ( U_v_L - U_c_T == 0.0 )
+  else if ( U_v_L - U_c_T + 1.0 < 1.0 )
   {
-    phi_L = 1.0;
+    phi_L = std::min( 1.0, alpha * (U_min_L - U_c_T) / (U_v_L - U_c_T) ); 
   }
   else
   {  
-    phi_L = std::min( 1.0, alpha * (U_min - U_c_T) / (U_v_L - U_c_T) ); 
+    phi_L = 1.0;
   }
 
   // right vertex
-  if ( U_v_R - U_c_T > 0.0 )
+  if ( U_v_R - U_c_T + 1.0 > 1.0 )
   {
-    phi_R = std::min( 1.0, alpha * (U_max - U_c_T) / (U_v_R - U_c_T) ); 
+    phi_R = std::min( 1.0, alpha * (U_max_R - U_c_T) / (U_v_R - U_c_T) ); 
   }
-  else if ( U_v_R - U_c_T == 0.0 )
+  else if ( U_v_R - U_c_T + 1.0 < 1.0 )
   {
-    phi_R = 1.0;
+    phi_R = std::min( 1.0, alpha * (U_min_R - U_c_T) / (U_v_R - U_c_T) ); 
   }
   else
   {  
-    phi_R = std::min( 1.0, alpha * (U_min - U_c_T) / (U_v_R - U_c_T) ); 
+    phi_R = 1.0;
   }
 
   // return min of two values
