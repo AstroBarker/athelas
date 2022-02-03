@@ -48,7 +48,7 @@ public:
   int Get_nElements( );
 
   void CreateGrid( );
-  void UpdateGrid( std::vector<double>& SData, DataStructure3D& uPF );
+  void UpdateGrid( std::vector<double>& SData );
   void ComputeMass( DataStructure3D& uPF );
   void ComputeCenterOfMass( DataStructure3D& uPF );
   void ComputeCenterOfMass_Radius( DataStructure3D& uPF );

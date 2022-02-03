@@ -311,9 +311,9 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
 
 
 /**
- * Update grid coordinates using interface and nodal velocities.
+ * Update grid coordinates using interface velocities.
 **/
-void GridStructure::UpdateGrid( std::vector<double>& SData, DataStructure3D& uPF )
+void GridStructure::UpdateGrid( std::vector<double>& SData )
 {
 
   const unsigned int ilo = Get_ilo();

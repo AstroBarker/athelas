@@ -257,9 +257,10 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
     
     U_s[iS] = SumVar_U;
     StageData[iS] = SumVar_X;
-    Grid_s[iS].UpdateGrid( StageData[iS], U_s[iS] );
+    Grid_s[iS].UpdateGrid( StageData[iS] );
 
-    S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], Basis );
+    // ! This will give poor performance. Why? !
+    // S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], Basis );
     
   }
   
