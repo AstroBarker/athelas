@@ -238,10 +238,10 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       // if slopes differ too much, replace
       if ( SlopeDifference[iCF] > SlopeLimiter_Threshold * std::abs( U(iCF, iX, 0) ) )
       {
-        // for ( unsigned int k = 1; k < order; k++ )
-        // {
-        //   U(iCF, iX, k) = 0.0;
-        // }
+        for ( unsigned int k = 1; k < order; k++ )
+        {
+          U(iCF, iX, k) = 0.0;
+        }
         U(iCF, iX, 1) = dU[iCF];
         if ( order >= 3 ) U(iCF,iX,2) = d2U[iCF];
       }
