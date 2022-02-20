@@ -12,7 +12,8 @@ struct DataType
 };
 
 void WriteState( DataStructure3D& uCF, DataStructure3D& uPF, 
-  DataStructure3D& uAF, GridStructure& Grid, const std::string ProblemName );
+  DataStructure3D& uAF, GridStructure& Grid, SlopeLimiter& SL, 
+  const std::string ProblemName );
 
 void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder, 
   unsigned int tOrder, unsigned int nStages, double CFL, double alpha, 
