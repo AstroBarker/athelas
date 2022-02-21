@@ -16,4 +16,7 @@ struct State
   uCF :: Matrix{Float64}
   uPF :: Matrix{Float64}
   uAF :: Matrix{Float64}
+  
+  SLopeLimiter :: Array{Int64}
+
 end

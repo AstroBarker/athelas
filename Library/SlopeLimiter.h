@@ -41,6 +41,8 @@ public:
   double CellAverage( DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
     unsigned int iCF, unsigned int iX, int extrapolate );
 
+  int Get_Limited( unsigned int iX );
+
   ~SlopeLimiter()
   {
 
@@ -99,6 +101,7 @@ private:
   double Mult3[3];
 
   DataStructure2D D;
+  std::vector<int> LimitedCell;
 
 };
 

@@ -39,10 +39,12 @@ function Load_Output( Dir::AbstractString, filenumber::AbstractString; run::Abst
   uCF[:,2] = fid["/Conserved Fields/Velocity"][:]
   uCF[:,3] = fid["/Conserved Fields/Specific Internal Energy"][:]
 
+  SlopeLimiter :: Array{Int64,1} = fid["/Diagnostic Fields/Limiter"][:] 
+
   uPF :: Matrix{Float64} = zeros( length(x1), 3 )
   uAF :: Matrix{Float64} = zeros( length(x1), 3 )
 
-  state = State( time, x1, uCF, uPF, uAF )
+  state = State( time, x1, uCF, uPF, uAF, SlopeLimiter )
 
   close( fid )
 
@@ -133,8 +135,11 @@ Em = EmT - 0.5 * Vel .* Vel
 
 fig, ax = subplots()
 
-ax.plot( Rad, 1.0 ./ Tau, marker=".", ls = " ", lw=2.0, label="Density", color="orchid" )
-ax.plot( Rad, Vel, marker=".", ls=" ", lw=2.0, label="Velocity", color="tomato" )
+alpha = 0.5 * Data.SLopeLimiter + 0.5 * ones( length(Tau) )
+println(Data.SLopeLimiter)
+
+ax.scatter( Rad, 1.0 ./ Tau, marker="o", label="Density", color="orchid", alpha = alpha )
+ax.scatter( Rad, Vel, marker="o", label="Velocity", color="tomato", alpha = alpha )
 # ax.plot( Rad, EmT, marker=" ", ls="--", lw=2.0, label="Total Specific Energy", color="teal" )
 # ax.plot( Rad, ComputePressure(Tau, Vel, EmT), "o", ls="--", lw=1.0, label="Pressure" )
 

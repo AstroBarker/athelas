@@ -36,7 +36,8 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder, double Slo
       CharacteristicLimiting_Option(CharacteristicLimitingOption),
       TCI_Option(TCIOption),
       TCI_Threshold(TCI_Threshold_val),
-      D( 3, Grid.Get_nElements()+2*Grid.Get_Guard() )
+      D( 3, Grid.Get_nElements()+2*Grid.Get_Guard() ),
+      LimitedCell( Grid.Get_nElements()+2*Grid.Get_Guard(), 0 )
 {
 
 }
@@ -57,22 +58,29 @@ void SlopeLimiter::DetectTroubledCells( DataStructure3D& U,
   double denominator = 0.0;
 
   // Cell averages by extrapolating L and R neighbors into current cell
-  double cell_avg_L = 0.0;
-  double cell_avg_R = 0.0;
+  double cell_avg_L_T = 0.0;
+  double cell_avg_R_T = 0.0;
+  double cell_avg_L   = 0.0;
+  double cell_avg_R   = 0.0;
 
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
+
+    if ( iCF == 1 ) continue; /* skip velocit */
+
     result = 0.0;
     cell_avg = U(iCF,iX,0);
 
     // Extrapolate neighboring poly representations into current cell
     // and compute the new cell averages
-    cell_avg_L = CellAverage( U, Grid, Basis, iCF, iX+1, -1 ); // from right
-    cell_avg_R = CellAverage( U, Grid, Basis, iCF, iX-1, +1 ); // from left
+    cell_avg_L_T = CellAverage( U, Grid, Basis, iCF, iX+1, -1 ); // from right
+    cell_avg_R_T = CellAverage( U, Grid, Basis, iCF, iX-1, +1 ); // from left
+    cell_avg_L   = U(iCF, iX - 1, 0); // native left
+    cell_avg_R   = U(iCF, iX + 1, 0); // native right
 
-    result += ( std::abs( cell_avg - cell_avg_L ) 
-           + std::abs( cell_avg - cell_avg_R ) );
+    result += ( std::abs( cell_avg - cell_avg_L_T ) 
+           + std::abs( cell_avg - cell_avg_R_T ) );
 
     denominator = std::max( std::max( std::abs(cell_avg_L), 
       std::abs(cell_avg_R) ), cell_avg );
@@ -105,6 +113,9 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
+
+    LimitedCell[iX] = 0;
+
     // Check if TCI val is less than TCI_Threshold
     int j = 0;
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
@@ -113,6 +124,9 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
     }
     
     if ( j == 0 && TCI_Option ) continue;
+
+    /* Note we have limited this cell */
+    LimitedCell[iX] = 1;
 
     for ( int i = 0; i < 3; i++ )
     {
@@ -238,15 +252,13 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       // if slopes differ too much, replace
       if ( SlopeDifference[iCF] > SlopeLimiter_Threshold * std::abs( U(iCF, iX, 0) ) )
       {
-        // for ( unsigned int k = 1; k < order; k++ )
-        // {
-        //   U(iCF, iX, k) = 0.0;
-        // }
+        for ( unsigned int k = 1; k < order; k++ )
+        {
+          U(iCF, iX, k) = 0.0;
+        }
         U(iCF, iX, 1) = dU[iCF];
         if ( order >= 3 ) U(iCF,iX,2) = d2U[iCF];
       }
-      
-      //TODO: Denoted LimitedCell[iCF, iX] = True
 
     }
     
@@ -361,7 +373,7 @@ double SlopeLimiter::CellAverage( DataStructure3D& U, GridStructure& Grid, Modal
 
   if ( extrapolate == 0 )
   {
-    start = 1;
+    start = 0;
   }
   else
   {
@@ -372,11 +384,18 @@ double SlopeLimiter::CellAverage( DataStructure3D& U, GridStructure& Grid, Modal
   for ( unsigned int iN = start; iN < end; iN++ )
   {
     X = Grid.NodeCoordinate(iX+extrapolate,iN); // Need the metric on target cell
-    mass += Grid.Get_Weights(iN-start) * Grid.Get_SqrtGm(X) 
-        * Grid.Get_Widths(iX+extrapolate) / Basis.BasisEval( U, iX, 0, iN+1, false );
-    avg += Grid.Get_Weights(iN-start) * Basis.BasisEval( U, iX, iCF, iN+1, false ) 
+    mass += Grid.Get_Weights(iN-start) * Grid.Get_SqrtGm(X)
+        * Grid.Get_Widths(iX+extrapolate);// / Basis.BasisEval( U, iX+extrapolate, 0, iN+1, false );
+    avg += Grid.Get_Weights(iN-start) * Basis.BasisEval( U, iX+extrapolate, iCF, iN+1, false ) 
         * Grid.Get_SqrtGm(X) * Grid.Get_Widths(iX+extrapolate);
   }
 
   return avg / mass;
+}
+
+
+// LimitedCell accessor
+int SlopeLimiter::Get_Limited( unsigned int iX )
+{
+  return LimitedCell[iX];
 }

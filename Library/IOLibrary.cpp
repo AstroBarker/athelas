@@ -14,6 +14,7 @@
 #include "DataStructures.h"
 #include "Grid.h"
 #include "PolynomialBasis.h"
+#include "SlopeLimiter.h"
 
 #include "IOLibrary.h"
 
@@ -62,11 +63,11 @@ void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
   }
   if ( Char_option )
   {
-    std::printf("Characteristic Limiting Used\n");
+    std::printf("Limiting       : Characteristic \n");
   }
   else
   {
-    std::printf("Componentwise Limiting Used\n");
+    std::printf("Limiting       : Componentwise\n");
   }
   std::printf("\n");
 
@@ -79,7 +80,8 @@ void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
 
 //TODO: add Time
 void WriteState( DataStructure3D& uCF, DataStructure3D& uPF, 
-  DataStructure3D& uAF, GridStructure& Grid, const std::string ProblemName )
+  DataStructure3D& uAF, GridStructure& Grid, SlopeLimiter& SL, 
+  const std::string ProblemName )
 {
 
   std::string fn = "athelas_";
@@ -101,11 +103,13 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
   std::vector<DataType> vel(size);
   std::vector<DataType> eint(size);
   std::vector<DataType> grid(size);
+  std::vector<DataType> limiter(size);
 
   for ( unsigned int iX = 0; iX <= ihi; iX++ )
   // for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
     grid[(iX-0*nGuard)].x = Grid.Get_Centers(iX);
+    limiter[(iX-0*nGuard)].x = SL.Get_Limited(iX);
     tau[(iX-0*nGuard)].x  = uCF(0, iX, 0);
     vel[(iX-0*nGuard)].x  = uCF(1, iX, 0);
     eint[(iX-0*nGuard)].x = uCF(2, iX, 0);
@@ -130,6 +134,7 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
   // Groups
   H5::Group group_grid = file.createGroup("/Spatial Grid");
   H5::Group group_CF = file.createGroup("/Conserved Fields");
+  H5::Group group_LF = file.createGroup("/Diagnostic Fields");
 
   //DataSets
   H5::DataSet dataset_grid( file.createDataSet("/Spatial Grid/Grid", H5::PredType::NATIVE_DOUBLE, space) );
@@ -137,7 +142,10 @@ void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
   H5::DataSet dataset_vel( file.createDataSet("/Conserved Fields/Velocity", H5::PredType::NATIVE_DOUBLE, space) );
   H5::DataSet dataset_eint( file.createDataSet("/Conserved Fields/Specific Internal Energy", H5::PredType::NATIVE_DOUBLE, space) );
 
+  H5::DataSet dataset_limiter( file.createDataSet("/Diagnostic Fields/Limiter", H5::PredType::NATIVE_DOUBLE, space) );
+
   dataset_grid.write( grid.data(), H5::PredType::NATIVE_DOUBLE );
+  dataset_limiter.write( limiter.data(), H5::PredType::NATIVE_DOUBLE );
   dataset_tau.write( tau.data(), H5::PredType::NATIVE_DOUBLE );
   dataset_vel.write( vel.data(), H5::PredType::NATIVE_DOUBLE );
   dataset_eint.write( eint.data(), H5::PredType::NATIVE_DOUBLE );
