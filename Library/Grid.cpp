@@ -318,9 +318,6 @@ void GridStructure::UpdateGrid( std::vector<double>& SData )
 
   const unsigned int ilo = Get_ilo();
   const unsigned int ihi = Get_ihi();
-
-  xR = SData[ihi + 1];
-  xL = SData[ilo];
   
   for ( unsigned int iX = ilo; iX <= ihi+1; iX++ )
   {
