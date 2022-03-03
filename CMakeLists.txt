@@ -5,7 +5,7 @@
 
 cmake_minimum_required( VERSION 3.10 )
 
-# set( CMAKE_BUILD_TYPE DEBUG )
+set( CMAKE_BUILD_TYPE DEBUG )
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to Release")
     set(CMAKE_BUILD_TYPE "Release")

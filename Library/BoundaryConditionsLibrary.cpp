@@ -72,6 +72,42 @@ void ApplyBC_Fluid( DataStructure3D& uCF, GridStructure& Grid,
       uCF(iCF, ihi+1+iX, k) = uCF(iCF, ilo+iX, k);
     }
   }
+  else if ( BC == "ShocklessNoh" ) /* Special case for ShocklessNoh test */
+  {
+    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+    for ( unsigned int iX = 0; iX < ilo; iX ++ )
+    for ( unsigned int k = 0; k < order; k++ )
+    {
+      if ( k == 0 )
+      {
+        if (iCF == 0 )
+        {
+          uCF(iCF, ilo-1-iX, k) = uCF(iCF, ilo+iX, k);
+          uCF(iCF, ihi+1+iX, k) = uCF(iCF, ihi-iX, k);
+        }
+        else if ( iCF == 1 )
+        {
+          uCF(iCF, ilo-1-iX, k) = -uCF(iCF, ilo+iX, k);
+          uCF(iCF, ihi+1+iX, k) = uCF(iCF, ihi-iX, k) + (uCF(iCF, ihi-iX-1, k) - uCF(iCF, ihi-iX-2, k));
+        }
+        else
+        {
+          // Have to keep internal energy consistent with new velocities
+          uCF(iCF, ilo-1-iX, k) = uCF(iCF, ilo+iX, k);// - 0.5*uCF(1, ilo+iX, k)*uCF(1, ilo+iX, k) + 0.5*uCF(1, ilo-1-iX, k)*uCF(1, ilo-1-iX, k);
+          uCF(iCF, ihi+1+iX, k) = uCF(iCF, ihi-iX, k) - 0.5*uCF(1, ihi-iX, k)*uCF(1, ihi-iX, k) + 0.5*uCF(1, ihi+1+iX, k)*uCF(1, ihi+1+iX, k);
+        }
+      }
+      else
+      {
+        uCF(0, ilo-1-iX, k) = -uCF(0, ilo+iX, k);
+        uCF(0, ihi+1+iX, k) = uCF(0, ihi-iX, k);
+        uCF(1, ilo-1-iX, k) = uCF(1, ilo+iX, k);
+        uCF(1, ihi+1+iX, k) = uCF(1, ihi-iX, k);
+        uCF(2, ilo-1-iX, k) = -uCF(2, ilo+iX, k);//+ 1.0 * uCF(1, ilo+iX, 0) * uCF(1, ilo+iX, k);
+        uCF(2, ihi+1+iX, k) = uCF(2, ihi-iX, k);
+      }
+    }
+  }
   else
   {
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )

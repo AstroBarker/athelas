@@ -26,10 +26,10 @@
 int main( int argc, char* argv[] )
 {
   /* --- Problem Parameters --- */
-  const std::string ProblemName = "Sod";
+  const std::string ProblemName = "ShocklessNoh";
 
-  const unsigned int nX      = 512;
-  const unsigned int order   = 3;
+  const unsigned int nX      = 128;
+  const unsigned int order   = 2;
   const unsigned int nNodes  = NumNodes( order ) + 0;
   const unsigned int nStages = 5;
   const unsigned int tOrder  = 3;
@@ -39,12 +39,14 @@ int main( int argc, char* argv[] )
   const double xL = 0.0;
   const double xR = 1.0;
 
+  const double GAMMA_IDEAL = 5.0/3.0;
+
   double t           = 0.0;
   double dt          = 0.0;
-  const double t_end = 0.2;
+  const double t_end = 0.15;
 
-  bool Geometry  = true; /* false: Cartesian, true: Spherical */
-  std::string BC = "Reflecting";
+  bool Geometry  = false; /* false: Cartesian, true: Spherical */
+  std::string BC = "ShocklessNoh";
 
   const double CFL = ComputeCFL( 0.5, order, nStages, tOrder );
 
@@ -58,7 +60,7 @@ int main( int argc, char* argv[] )
   DataStructure3D uAF( 3, nX + 2*nGuard, order );
 
   // --- Initialize fields ---
-  InitializeFields( uCF, uPF, Grid, order, ProblemName );
+  InitializeFields( uCF, uPF, Grid, order, GAMMA_IDEAL, ProblemName );
   // WriteState( uCF, uPF, uAF, Grid, ProblemName );
 
   ApplyBC_Fluid( uCF, Grid, order, BC );
@@ -72,9 +74,9 @@ int main( int argc, char* argv[] )
   TimeStepper SSPRK( nStages, tOrder, order, Grid, Geometry, BC );
   
   // --- Initialize Slope Limiter ---
-  const double alpha    = 0.85;
+  const double alpha    = 1.0;
   const double SlopeLimiter_Threshold = 5e-6;
-  const double TCI_Threshold = 0.65;
+  const double TCI_Threshold = 0.05;
   const bool CharacteristicLimiting_Option = true;
   const bool TCI_Option = true;
   
@@ -91,7 +93,7 @@ int main( int argc, char* argv[] )
 
   // --- Evolution loop ---
   unsigned int iStep   = 0;
-  unsigned int i_write = 10;
+  unsigned int i_write = 1;
   std::cout << "Step\tt\tdt" << std::endl;
   while( t < t_end && iStep >= 0 )
   {
@@ -116,8 +118,9 @@ int main( int argc, char* argv[] )
     iStep++;
   }
 
-  WriteState( uCF, uPF, uAF, Grid, ProblemName );
+  WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName );
 
+  return 0;
 }
 
 

@@ -22,7 +22,7 @@
  * TODO: iNodeX and order separation
  **/
 void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF, 
-  GridStructure& Grid, const unsigned int pOrder, 
+  GridStructure& Grid, const unsigned int pOrder, const double GAMMA_IDEAL,
   const std::string ProblemName )
 {
 
@@ -168,6 +168,92 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
       uPF(0, ilo-1-iX, iN) = uPF(0, ilo+iX, nNodes-iN-1);
       uPF(0, ihi+1+iX, iN) = uPF(0, ihi-iX, nNodes-iN-1);
     }     
+  }
+  else if ( ProblemName == "Noh" )
+  {
+    const double V_L = 1.0;
+    const double D_L = 1.0;
+    const double P_L = 0.000001;
+    const double D_R = 1.0;
+    const double V_R = -1.0;
+    const double P_R = 0.000001;
+
+    double X1 = 0.0;
+    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+    for ( unsigned int k = 0; k < pOrder; k++ )
+    for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++  )
+    {
+      X1 = Grid.NodeCoordinate( iX, iNodeX );
+      uCF(iCF_Tau, iX, k) = 0.0;
+      uCF(iCF_V, iX, k)   = 0.0;
+      uCF(iCF_E, iX, k)   = 0.0;
+      
+      if ( X1 <= 0.5 )
+      {
+        if ( k == 0 )
+        {
+          uCF(iCF_Tau, iX, 0) = 1.0 / D_L;
+          uCF(iCF_V, iX, 0)   = V_L;
+          uCF(iCF_E, iX, 0)   = (P_L / (GAMMA_IDEAL-1.0)) * uCF(iCF_Tau, iX, 0) 
+            + 0.5 * V_L * V_L;
+        }
+
+        uPF(iPF_D, iX, iNodeX) = D_L;
+      }else{ // right domain
+        if ( k == 0 )
+        {
+          uCF(iCF_Tau, iX, 0) = 1.0 / D_R;
+          uCF(iCF_V, iX, 0)   = V_R;
+          uCF(iCF_E, iX, 0)   = (P_R / (GAMMA_IDEAL-1.0)) * uCF(iCF_Tau, iX, 0)
+            + 0.5 * V_R * V_R;
+        }
+
+        uPF(iPF_D, iX, iNodeX) = D_R;
+      }
+    }
+    // Fill density in guard cells
+    for ( unsigned int iX = 0; iX < ilo; iX++ )
+    for ( unsigned int iN = 0; iN < nNodes; iN++  )
+    {
+      uPF(0, ilo-1-iX, iN) = uPF(0, ilo+iX, nNodes-iN-1);
+      uPF(0, ihi+1+iX, iN) = uPF(0, ihi-iX, nNodes-iN-1);
+    }
+  }
+  else if ( ProblemName == "ShocklessNoh" )
+  {
+    const double D   = 1.0;
+    const double E_M = 1.0;
+    const double P   = (GAMMA_IDEAL - 1.0) * E_M * D;
+
+
+    double X1 = 0.0;
+    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+    for ( unsigned int k = 0; k < pOrder; k++ )
+    for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++  )
+    {
+      X1 = Grid.NodeCoordinate( iX, iNodeX );
+      uCF(iCF_Tau, iX, k) = 0.0;
+      uCF(iCF_V, iX, k)   = 0.0;
+      uCF(iCF_E, iX, k)   = 0.0;
+      
+
+      if ( k == 0 )
+      {
+        uCF(iCF_Tau, iX, 0) = 1.0 / D;
+        uCF(iCF_V, iX, 0)   = - X1;
+        uCF(iCF_E, iX, 0)   = E_M + 0.5 * uCF(iCF_V, iX, 0) * uCF(iCF_V, iX, 0);
+      }
+
+      uPF(iPF_D, iX, iNodeX) = D;
+
+    }
+    // Fill density in guard cells
+    for ( unsigned int iX = 0; iX < ilo; iX++ )
+    for ( unsigned int iN = 0; iN < nNodes; iN++  )
+    {
+      uPF(0, ilo-1-iX, iN) = uPF(0, ilo+iX, nNodes-iN-1);
+      uPF(0, ihi+1+iX, iN) = uPF(0, ihi-iX, nNodes-iN-1);
+    }
   }
   else
   {
