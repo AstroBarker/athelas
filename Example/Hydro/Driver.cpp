@@ -31,7 +31,7 @@ int main( int argc, char* argv[] )
   const unsigned int nX      = 128;
   const unsigned int order   = 2;
   const unsigned int nNodes  = NumNodes( order ) + 0;
-  const unsigned int nStages = 5;
+  const unsigned int nStages = 3;
   const unsigned int tOrder  = 3;
 
   const unsigned int nGuard  = 1;
@@ -43,7 +43,7 @@ int main( int argc, char* argv[] )
 
   double t           = 0.0;
   double dt          = 0.0;
-  const double t_end = 0.15;
+  const double t_end = 0.3;
 
   bool Geometry  = false; /* false: Cartesian, true: Spherical */
   std::string BC = "ShocklessNoh";

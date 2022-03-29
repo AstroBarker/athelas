@@ -93,7 +93,7 @@ void ApplyBC_Fluid( DataStructure3D& uCF, GridStructure& Grid,
         else
         {
           // Have to keep internal energy consistent with new velocities
-          uCF(iCF, ilo-1-iX, k) = uCF(iCF, ilo+iX, k);// - 0.5*uCF(1, ilo+iX, k)*uCF(1, ilo+iX, k) + 0.5*uCF(1, ilo-1-iX, k)*uCF(1, ilo-1-iX, k);
+          uCF(iCF, ilo-1-iX, k) = uCF(iCF, ilo+iX, k) - 0.5*uCF(1, ilo+iX, k)*uCF(1, ilo+iX, k) + 0.5*uCF(1, ilo-1-iX, k)*uCF(1, ilo-1-iX, k);
           uCF(iCF, ihi+1+iX, k) = uCF(iCF, ihi-iX, k) - 0.5*uCF(1, ihi-iX, k)*uCF(1, ihi-iX, k) + 0.5*uCF(1, ihi+1+iX, k)*uCF(1, ihi+1+iX, k);
         }
       }
@@ -101,10 +101,12 @@ void ApplyBC_Fluid( DataStructure3D& uCF, GridStructure& Grid,
       {
         uCF(0, ilo-1-iX, k) = -uCF(0, ilo+iX, k);
         uCF(0, ihi+1+iX, k) = uCF(0, ihi-iX, k);
+
         uCF(1, ilo-1-iX, k) = uCF(1, ilo+iX, k);
         uCF(1, ihi+1+iX, k) = uCF(1, ihi-iX, k);
-        uCF(2, ilo-1-iX, k) = -uCF(2, ilo+iX, k);//+ 1.0 * uCF(1, ilo+iX, 0) * uCF(1, ilo+iX, k);
-        uCF(2, ihi+1+iX, k) = uCF(2, ihi-iX, k);
+
+        uCF(2, ilo-1-iX, k) = - uCF(1, ilo+iX, 0) * uCF(1, ilo+iX, 1);
+        uCF(2, ihi+1+iX, k) = uCF(1, ihi+1+iX, 0) * uCF(1, ihi+1+iX, 1);
       }
     }
   }

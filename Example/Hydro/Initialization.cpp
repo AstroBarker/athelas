@@ -231,7 +231,7 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
     for ( unsigned int k = 0; k < pOrder; k++ )
     for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++  )
     {
-      X1 = Grid.NodeCoordinate( iX, iNodeX );
+      X1 = Grid.Get_Centers(iX);//Grid.NodeCoordinate( iX, iNodeX );
       uCF(iCF_Tau, iX, k) = 0.0;
       uCF(iCF_V, iX, k)   = 0.0;
       uCF(iCF_E, iX, k)   = 0.0;
@@ -242,6 +242,12 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
         uCF(iCF_Tau, iX, 0) = 1.0 / D;
         uCF(iCF_V, iX, 0)   = - X1;
         uCF(iCF_E, iX, 0)   = E_M + 0.5 * uCF(iCF_V, iX, 0) * uCF(iCF_V, iX, 0);
+      }
+      else if ( k == 1 )
+      {
+        uCF(iCF_Tau, iX, k) = 0.0;
+        uCF(iCF_V, iX, k)   = - Grid.Get_Widths(iX);
+        uCF(iCF_E, iX, k)   = ( - X1 ) * ( - Grid.Get_Widths(iX) );
       }
 
       uPF(iPF_D, iX, iNodeX) = D;
