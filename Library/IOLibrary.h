@@ -3,25 +3,26 @@
 
 struct GridType
 {
-  double r{};
+  double r{ };
 };
 
 struct DataType
 {
-    double x{};
+  double x{ };
 };
 
-void WriteState( DataStructure3D& uCF, DataStructure3D& uPF, 
-  DataStructure3D& uAF, GridStructure& Grid, SlopeLimiter& SL, 
-  const std::string ProblemName );
+void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
+                 DataStructure3D& uAF, GridStructure& Grid, SlopeLimiter& SL,
+                 const std::string ProblemName );
 
-void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder, 
-  unsigned int tOrder, unsigned int nStages, double CFL, double alpha, 
-  double TCI, bool Char_option, bool TCI_Option, 
-  std::string ProblemName );
+void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
+                                unsigned int tOrder, unsigned int nStages,
+                                double CFL, double alpha, double TCI,
+                                bool Char_option, bool TCI_Option,
+                                std::string ProblemName );
 
-void WriteBasis( ModalBasis& Basis, unsigned int ilo, 
-  unsigned int ihi, unsigned int nNodes, unsigned int order, 
-  std::string ProblemName );
+void WriteBasis( ModalBasis& Basis, unsigned int ilo, unsigned int ihi,
+                 unsigned int nNodes, unsigned int order,
+                 std::string ProblemName );
 
 #endif

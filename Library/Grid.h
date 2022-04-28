@@ -11,27 +11,26 @@
  *  ilo = nGhost
  *  ihi = nElements - nGhost + 1
  *
-**/ 
+ **/
 
+#include <algorithm> // std::copy
 #include <iostream>
-#include <algorithm>    // std::copy
 #include <vector>
 
-#include "QuadratureLibrary.h"
 #include "DataStructures.h"
 #include "Error.h"
+#include "QuadratureLibrary.h"
 
 class GridStructure
 {
-public:
-
-  GridStructure( unsigned int nN, unsigned int nX,
-    unsigned int nG, double left, double right, bool Geom );
+ public:
+  GridStructure( unsigned int nN, unsigned int nX, unsigned int nG, double left,
+                 double right, bool Geom );
   double NodeCoordinate( unsigned int iC, unsigned int iN );
   double Get_Centers( unsigned int iC );
   double Get_Widths( unsigned int iC );
   double Get_Nodes( unsigned int nN );
-  double Get_Weights( unsigned int nN ); 
+  double Get_Weights( unsigned int nN );
   double Get_Mass( unsigned int iX );
   double Get_CenterOfMass( unsigned int iX );
   double Get_xL( );
@@ -39,8 +38,8 @@ public:
   double Get_SqrtGm( double X );
   double Get_LeftInterface( unsigned int iX );
 
-  bool DoGeometry();
-  
+  bool DoGeometry( );
+
   int Get_Guard( );
   int Get_ilo( );
   int Get_ihi( );
@@ -53,10 +52,10 @@ public:
   void ComputeCenterOfMass( DataStructure3D& uPF );
   void ComputeCenterOfMass_Radius( DataStructure3D& uPF );
 
-  double& operator()( unsigned int i, unsigned int j );
-  double operator()( unsigned int i, unsigned int j ) const;
+  double& operator( )( unsigned int i, unsigned int j );
+  double operator( )( unsigned int i, unsigned int j ) const;
 
-private:
+ private:
   unsigned int nElements;
   unsigned int nNodes;
   unsigned int nGhost;
@@ -78,7 +77,6 @@ private:
   std::vector<double> CenterOfMass;
 
   std::vector<double> Grid;
-
 };
 
 #endif

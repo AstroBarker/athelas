@@ -4,25 +4,24 @@
  *
  * Author   : Brandon L. Barker
  * Purpose  : Functions necessary for computing quadrature rules
-**/ 
+ **/
 
-#include <math.h>
 #include <iostream>
+#include <math.h>
 
-#include "QuadratureLibrary.h"
 #include "Constants.h"
 #include "LinearAlgebraModules.h"
+#include "QuadratureLibrary.h"
 
 /**
  * Gauss-Legendre Quadrature
  **/
 
-
 /**
  * Jacobi matrix for Legendre-Gauss quadrature rule
  *
  * Parameters:
- * 
+ *
  *   int m      : number of quadrature nodes
  *   double* aj : matrix diagonal    (output)
  *   double* bj : matrix subdiagonal (output)
@@ -35,9 +34,9 @@ double Jacobi_Matrix( int m, double* aj, double* bj )
   double zemu;
   double abi;
   double abj;
-  
-  ab = 0.0;  
-  zemu = 2.0 / ( ab + 1.0 );  
+
+  ab   = 0.0;
+  zemu = 2.0 / ( ab + 1.0 );
   for ( int i = 0; i < m; i++ )
   {
     aj[i] = 0.0;
@@ -45,13 +44,12 @@ double Jacobi_Matrix( int m, double* aj, double* bj )
 
   for ( int i = 1; i <= m; i++ )
   {
-    abi = i + ab * ( i % 2 );
-    abj = 2 * i + ab;
-    bj[i-1] = sqrt ( abi * abi / ( abj * abj - 1.0 ) );
+    abi       = i + ab * ( i % 2 );
+    abj       = 2 * i + ab;
+    bj[i - 1] = sqrt( abi * abi / ( abj * abj - 1.0 ) );
   }
 
   return zemu;
-
 }
 
 void LG_Quadrature( int m, double* nodes, double* weights )
@@ -60,7 +58,7 @@ void LG_Quadrature( int m, double* nodes, double* weights )
   double* bj = new double[m];
 
   double zemu;
-  
+
   //  Get the Jacobi matrix and zero-th moment.
   zemu = Jacobi_Matrix( m, aj, bj );
 
@@ -69,17 +67,17 @@ void LG_Quadrature( int m, double* nodes, double* weights )
   {
     nodes[i] = aj[i];
   }
-  
-  weights[0] = sqrt ( zemu );
+
+  weights[0] = sqrt( zemu );
   for ( int i = 1; i < m; i++ )
   {
     weights[i] = 0.0;
   }
-  
+
   //
   //  Diagonalize the Jacobi matrix.
   //
-  Tri_Sym_Diag( m, nodes, bj, weights ); //imtqlx
+  Tri_Sym_Diag( m, nodes, bj, weights ); // imtqlx
 
   for ( int i = 0; i < m; i++ )
   {
@@ -87,10 +85,9 @@ void LG_Quadrature( int m, double* nodes, double* weights )
 
     // Shift to interval [-0.5, 0.5]
     weights[i] *= 0.5;
-    nodes[i]   *= 0.5;
+    nodes[i] *= 0.5;
   }
 
-  delete [] aj;
-  delete [] bj;
-
+  delete[] aj;
+  delete[] bj;
 }

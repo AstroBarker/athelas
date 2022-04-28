@@ -4,7 +4,7 @@
  *
  * Author  : Brandon L. Barker
  * Purpose : Print error messages ...
-**/  
+ **/
 
 #ifndef ERROR_H
 #define ERROR_H
@@ -14,10 +14,8 @@
 class Error : public std::runtime_error
 {
 
-  public :
-
+ public:
   Error( const std::string& message ) : std::runtime_error( message ) {}
-
 };
 
 #endif

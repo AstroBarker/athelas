@@ -25,6 +25,37 @@ This will create a directory `bin` in the root directory that contains the execu
 ## NOTE: 
 The build system may not be perfect yet. I have hard coded in paths to my libraries for HDF5, LAPACK, and BLAS as cmake had some issues finding them. You may overwrite those lines, or comment them out and try to let `find_package()` do the work.
 
+
+# Future Work
+
+- We will want to extend beyond the minmod limiter to something which allows us to retain high order information.
+- Relativistic hydro
+- Parallelism
+- Poisson solver
+- Multigroup flux-limited diffusion
+
+
+# BUGS: 
+- [ ] nNodes > order, crash when SlopeLimiter applied.
+- [x] Issue with TCI
+- [x] Issues with Characteristic Limiting
+
+# Dependencies
+* LAPACKE
+* cBLAS
+* HDF5
+
+
+## Clang-format
+
+We use clang format for code cleanliness. The current version of
+`clang-format` is pinned to `clang-format-12`, however, you can try
+formatting with other versions at your own risk.
+
+You can format all files in git history automatically by calling
+`scripts/bash/format.sh` from anywhere within the Phoebus repo (but
+outside of submodules)
+
 # TODO: Spherical Symetry
  - [x] Ensure mass conservation...
  - Done?
@@ -62,22 +93,3 @@ The build system may not be perfect yet. I have hard coded in paths to my librar
 ## Reader
  - [ ] Need to extend Reader to compute solution at arbitrary points using basis
     - Have to output the full solution and basis first.
-
-# Future Work
-
-- We will want to extend beyond the minmod limiter to something which allows us to retain high order information.
-- Relativistic hydro
-- Parallelism
-- Poisson solver
-- Multigroup flux-limited diffusion
-
-
-# BUGS: 
-- [ ] nNodes > order, crash when SlopeLimiter applied.
-- [x] Issue with TCI
-- [x] Issues with Characteristic Limiting
-
-# Dependencies
-* LAPACKE
-* cBLAS
-* HDF5

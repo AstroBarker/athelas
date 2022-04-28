@@ -8,48 +8,43 @@
  * Author   : Brandon L. Barker
  * Purpose  : Class for holding slope limiter data and routines.
  * Contains : SlopeLimiter
-**/ 
+ **/
 
-#include <vector>
 #include <iostream>
+#include <vector>
 
-#include "Error.h"
 #include "DataStructures.h"
+#include "Error.h"
 #include "Grid.h"
 #include "PolynomialBasis.h"
-
 
 class SlopeLimiter
 {
 
-public:
+ public:
+  SlopeLimiter( GridStructure& Grid, unsigned int pOrder,
+                double SlopeLimiterThreshold, double alpha_val,
+                bool CharacteristicLimitingOption, bool TCIOption,
+                double TCI_Threshold_val );
 
-  SlopeLimiter( GridStructure& Grid, unsigned int pOrder, 
-    double SlopeLimiterThreshold, double alpha_val, 
-    bool CharacteristicLimitingOption, 
-    bool TCIOption, double TCI_Threshold_val );
+  void ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
+                          ModalBasis& Basis );
 
-  void ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid, 
-    ModalBasis& Basis );
+  void LimitQuadratic( DataStructure3D& U, ModalBasis& Basis, double* d2w,
+                       unsigned int iX, unsigned int nNodes );
 
-  void LimitQuadratic( DataStructure3D& U, ModalBasis& Basis, 
-    double* d2w, unsigned int iX, unsigned int nNodes );
+  void DetectTroubledCells( DataStructure3D& U, GridStructure& Grid,
+                            ModalBasis& Basis );
 
-  void DetectTroubledCells( DataStructure3D& U, 
-    GridStructure& Grid, ModalBasis& Basis );
-
-  double CellAverage( DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
-    unsigned int iCF, unsigned int iX, int extrapolate );
+  double CellAverage( DataStructure3D& U, GridStructure& Grid,
+                      ModalBasis& Basis, unsigned int iCF, unsigned int iX,
+                      int extrapolate );
 
   int Get_Limited( unsigned int iX );
 
-  ~SlopeLimiter()
-  {
+  ~SlopeLimiter( ) {}
 
-  }
-
-private:
-
+ private:
   unsigned int order;
   double SlopeLimiter_Threshold;
   bool CharacteristicLimiting_Option;
@@ -102,7 +97,6 @@ private:
 
   DataStructure2D D;
   std::vector<int> LimitedCell;
-
 };
 
 #endif

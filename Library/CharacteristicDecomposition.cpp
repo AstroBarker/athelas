@@ -4,10 +4,10 @@
  *
  * Author   : Brandon L. Barker
  * Purpose  : Compute matrices for characteristic decomposition
-**/ 
+ **/
 
 #include <iostream>
-#include <math.h>       /* sqrt */
+#include <math.h> /* sqrt */
 
 #include "CharacteristicDecomposition.h"
 #include "Error.h"
@@ -23,7 +23,7 @@ void ComputeCharacteristicDecomposition( double* U, double* R, double* R_inv )
   // const double P  = ComputePressureFromConserved_IDEAL( Tau, V, Em_T );
   // const double Cs = ComputeSoundSpeedFromConserved_IDEAL( Tau, V, Em_T );
 
-  const double Em = Em_T - 0.5 * V*V;
+  const double Em = Em_T - 0.5 * V * V;
 
   const float GAMMA = 1.4;
 
@@ -42,27 +42,28 @@ void ComputeCharacteristicDecomposition( double* U, double* R, double* R_inv )
 
   /*  --- Compute Matrix Elements --- */
 
-  for ( int i = 0; i < 3; i++ ) R[i] = 1.0;
-  
-  R[3] = + sqrt_e * k * InvTau;
-  R[4] = + 0.0;
-  R[5] = - sqrt_e * k * InvTau;
+  for ( int i = 0; i < 3; i++ )
+    R[i] = 1.0;
 
-  R[6] = (Em + sqrt_e * k * V - Em * GAMMA) * InvTau;
-  R[7] = (Em * InvTau);
-  R[8] = (Em - sqrt_e * k * V - Em * GAMMA) * InvTau;
+  R[3] = +sqrt_e * k * InvTau;
+  R[4] = +0.0;
+  R[5] = -sqrt_e * k * InvTau;
+
+  R[6] = ( Em + sqrt_e * k * V - Em * GAMMA ) * InvTau;
+  R[7] = ( Em * InvTau );
+  R[8] = ( Em - sqrt_e * k * V - Em * GAMMA ) * InvTau;
 
   R_inv[0] = 0.5;
-  R_inv[1] = Tau * (k * V + sqrt_e * GAMMA) / (2.0 * Em * k);
-  R_inv[2] = - Tau / (2.0 * Em);
+  R_inv[1] = Tau * ( k * V + sqrt_e * GAMMA ) / ( 2.0 * Em * k );
+  R_inv[2] = -Tau / ( 2.0 * Em );
 
   R_inv[3] = GAMMA - 1.0;
-  R_inv[4] = - V * Tau / Em;
+  R_inv[4] = -V * Tau / Em;
   R_inv[5] = Tau / Em;
 
   R_inv[6] = 0.5;
-  R_inv[7] = Tau * (k * V - sqrt_e * GAMMA) / (2.0 * Em * k);
-  R_inv[8] = - Tau / (2.0 * Em);
+  R_inv[7] = Tau * ( k * V - sqrt_e * GAMMA ) / ( 2.0 * Em * k );
+  R_inv[8] = -Tau / ( 2.0 * Em );
 
   for ( int i = 0; i < 9; i++ )
   {

@@ -4,61 +4,50 @@
  *
  * Author   : Brandon L. Barker
  * Purpose  : Classes for holding multidimensional data.
- *  Multi-D structures are wrapped around 1D vectors to conveniently and 
- *  efficiently access data. For conserved variables data structure, 
+ *  Multi-D structures are wrapped around 1D vectors to conveniently and
+ *  efficiently access data. For conserved variables data structure,
  *  initialize/acces as DataStructures3D uCF(nCF,nX,order)
  * Contains : DataStructures2D, DataStructures3D
-**/ 
+ **/
 
-#include <vector>
 #include "DataStructures.h"
+#include <vector>
 
 DataStructure2D::DataStructure2D( unsigned int rows, unsigned int cols )
-  : Rows(rows),
-    Cols(cols),
-    mSize(Rows * Cols),
-    Data(mSize, 0.0)
+    : Rows( rows ), Cols( cols ), mSize( Rows * Cols ), Data( mSize, 0.0 )
 {
 }
 
-
-double& DataStructure2D::operator()( unsigned int i, unsigned int j )
+double& DataStructure2D::operator( )( unsigned int i, unsigned int j )
 {
   return Data[i * Cols + j];
 }
 
-
-double DataStructure2D::operator()( unsigned int i, unsigned int j ) const
+double DataStructure2D::operator( )( unsigned int i, unsigned int j ) const
 {
   return Data[i * Cols + j];
 }
-
 
 // init as {nCF, nX, order}
-DataStructure3D::DataStructure3D( unsigned int N1, unsigned int N2, unsigned int N3 )
-  : Size1(N1),
-    Size2(N2),
-    Size3(N3),
-    mSize(Size1*Size2*Size2),
-    Data(mSize, 0.0)
+DataStructure3D::DataStructure3D( unsigned int N1, unsigned int N2,
+                                  unsigned int N3 )
+    : Size1( N1 ), Size2( N2 ), Size3( N3 ), mSize( Size1 * Size2 * Size2 ),
+      Data( mSize, 0.0 )
 {
 }
-
 
 // access (iCF, iX, iN)
-double& DataStructure3D::operator()
-  ( unsigned int i, unsigned int j, unsigned int k )
+double& DataStructure3D::operator( )( unsigned int i, unsigned int j,
+                                      unsigned int k )
 {
-  return Data[(i * Size2 + j) * Size3 + k];
+  return Data[( i * Size2 + j ) * Size3 + k];
 }
 
-
-double DataStructure3D::operator()
-  ( unsigned int i, unsigned int j, unsigned int k ) const
-{                                                
-  return Data[(i * Size2 + j) * Size3 + k];      
+double DataStructure3D::operator( )( unsigned int i, unsigned int j,
+                                     unsigned int k ) const
+{
+  return Data[( i * Size2 + j ) * Size3 + k];
 }
-
 
 // zero out structure
 void DataStructure3D::zero( )

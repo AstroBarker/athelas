@@ -4,7 +4,7 @@
  *
  * Author   : Brandon L. Barker
  * Purpose  : Utility routines for fluid fields. Includes Riemann solvers.
-**/ 
+ **/
 
 #include <iostream>
 #include <vector>
@@ -22,39 +22,36 @@
  * Compute the primitive quantities (density, momemtum, energy density)
  * from conserved quantities. Primitive quantities are stored at Gauss-Legendre
  * nodes.
-**/
-void ComputePrimitiveFromConserved( DataStructure3D& uCF, 
-  DataStructure3D& uPF, ModalBasis& Basis, GridStructure& Grid )
+ **/
+void ComputePrimitiveFromConserved( DataStructure3D& uCF, DataStructure3D& uPF,
+                                    ModalBasis& Basis, GridStructure& Grid )
 {
-  const unsigned int nNodes = Grid.Get_nNodes();
-  const unsigned int ilo    = Grid.Get_ilo();
-  const unsigned int ihi    = Grid.Get_ihi();
+  const unsigned int nNodes = Grid.Get_nNodes( );
+  const unsigned int ilo    = Grid.Get_ilo( );
+  const unsigned int ihi    = Grid.Get_ihi( );
 
   double Tau = 0.0;
   double Vel = 0.0;
   double EmT = 0.0;
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
-  {
-    // Density
-    Tau = Basis.BasisEval( uCF, 0, iX, iN+1, false );
-    uPF(0,iX,iN) = 1.0 / Tau;
+    for ( unsigned int iN = 0; iN < nNodes; iN++ )
+    {
+      // Density
+      Tau              = Basis.BasisEval( uCF, 0, iX, iN + 1, false );
+      uPF( 0, iX, iN ) = 1.0 / Tau;
 
-    // Momentum
-    Vel = Basis.BasisEval( uCF, 1, iX, iN+1, false );
-    uPF(1,iX,iN) = uPF(0,iX,iN) * Vel;
+      // Momentum
+      Vel              = Basis.BasisEval( uCF, 1, iX, iN + 1, false );
+      uPF( 1, iX, iN ) = uPF( 0, iX, iN ) * Vel;
 
-    // Specific Total Energy
-    EmT = Basis.BasisEval( uCF, 2, iX, iN+1, false );
-    uPF(2,iX,iN) = EmT / Tau;
-  }
-
-
+      // Specific Total Energy
+      EmT              = Basis.BasisEval( uCF, 2, iX, iN + 1, false );
+      uPF( 2, iX, iN ) = EmT / Tau;
+    }
 }
 
-
-// Fluid vector. 
+// Fluid vector.
 // ! Flag For Removal: Unused !
 double Fluid( double Tau, double V, double Em_T, int iCF )
 {
@@ -70,8 +67,9 @@ double Fluid( double Tau, double V, double Em_T, int iCF )
   {
     return Em_T;
   }
-  else{ // Error case. Shouldn't ever trigger.
-    throw Error("Please input a valid iCF! (0,1,2). ");
+  else
+  { // Error case. Shouldn't ever trigger.
+    throw Error( "Please input a valid iCF! (0,1,2). " );
     return -1; // just a formality.
   }
 }
@@ -79,67 +77,65 @@ double Fluid( double Tau, double V, double Em_T, int iCF )
 /**
  * Return a component iCF of the flux vector.
  * TODO: Flux_Fluid needs streamlining
-**/
+ **/
 double Flux_Fluid( double V, double P, unsigned int iCF )
 {
   if ( iCF == 0 )
   {
-    return - V;
+    return -V;
   }
   else if ( iCF == 1 )
   {
-    return + P;
+    return +P;
   }
   else if ( iCF == 2 )
   {
-    return + P * V;
+    return +P * V;
   }
-  else{ // Error case. Shouldn't ever trigger.
-    throw Error("Please input a valid iCF! (0,1,2). ");
+  else
+  { // Error case. Shouldn't ever trigger.
+    throw Error( "Please input a valid iCF! (0,1,2). " );
     return -1.0; // just a formality.
   }
 }
 
-
 /**
  * Gudonov style numerical flux. Constucts v* and p* states.
-**/
-void NumericalFlux_Gudonov( double vL, double vR, double pL, double pR, 
-     double zL, double zR, double& Flux_U, double& Flux_P  )
+ **/
+void NumericalFlux_Gudonov( double vL, double vR, double pL, double pR,
+                            double zL, double zR, double& Flux_U,
+                            double& Flux_P )
 {
-  Flux_U = ( pL - pR + zR*vR + zL*vL ) / ( zR + zL );
-  Flux_P = ( zR*pL + zL*pR + zL*zR * (vL - vR) ) / ( zR + zL );
+  Flux_U = ( pL - pR + zR * vR + zL * vL ) / ( zR + zL );
+  Flux_P = ( zR * pL + zL * pR + zL * zR * ( vL - vR ) ) / ( zR + zL );
 }
 
-
 /**
  * Gudonov style numerical flux. Constucts v* and p* states.
-**/
-void NumericalFlux_HLLC( double vL, double vR, double pL, double pR, 
-  double cL, double cR, double rhoL, double rhoR, 
-  double& Flux_U, double& Flux_P  )
+ **/
+void NumericalFlux_HLLC( double vL, double vR, double pL, double pR, double cL,
+                         double cR, double rhoL, double rhoR, double& Flux_U,
+                         double& Flux_P )
 {
   double aL = vL - cL; // left wave speed estimate
   double aR = vR + cR; // right wave speed estimate
-  Flux_U = ( rhoR * vR * (aR - vR) - rhoL * vL * (aL - vL) + pL - pR ) 
-         / ( rhoR * (aR - vR) - rhoL * (aL - vL) );
-  Flux_P = rhoL * (vL - aL) * (vL - Flux_U) + pL;
+  Flux_U    = ( rhoR * vR * ( aR - vR ) - rhoL * vL * ( aL - vL ) + pL - pR ) /
+           ( rhoR * ( aR - vR ) - rhoL * ( aL - vL ) );
+  Flux_P = rhoL * ( vL - aL ) * ( vL - Flux_U ) + pL;
 }
 
+// Compute Auxilliary
 
-//Compute Auxilliary
-
-
-double ComputeTimestep_Fluid( DataStructure3D& U, 
-       GridStructure& Grid, const double CFL )
+double ComputeTimestep_Fluid( DataStructure3D& U, GridStructure& Grid,
+                              const double CFL )
 {
 
   const double MIN_DT = 0.000000005;
   const double MAX_DT = 1.0;
-  double dt_old = 10000.0;
+  double dt_old       = 10000.0;
 
-  const unsigned int ilo    = Grid.Get_ilo();
-  const unsigned int ihi    = Grid.Get_ihi();
+  const unsigned int ilo = Grid.Get_ilo( );
+  const unsigned int ihi = Grid.Get_ihi( );
 
   double Cs     = 0.0;
   double eigval = 0.0;
@@ -149,9 +145,9 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
   double vel_x  = 0.0;
   double eint_x = 0.0;
 
-  double dr    = 0.0;
+  double dr = 0.0;
 
-  double dt  = 0.0;
+  double dt = 0.0;
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
@@ -161,7 +157,7 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
     vel_x  = U( 1, iX, 0 );
     eint_x = U( 2, iX, 0 );
 
-    dr    = Grid.Get_Widths( iX );
+    dr = Grid.Get_Widths( iX );
 
     Cs     = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
     eigval = Cs;
@@ -177,9 +173,8 @@ double ComputeTimestep_Fluid( DataStructure3D& U,
 
   if ( dt != dt )
   {
-    throw Error("nan encountered in ComputeTimestep.\n");
+    throw Error( "nan encountered in ComputeTimestep.\n" );
   }
-  
-  return dt;
 
+  return dt;
 }

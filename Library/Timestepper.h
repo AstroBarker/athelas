@@ -7,30 +7,30 @@
  *
  * Author   : Brandon L. Barker
  * Purpose  : Class for SSPRK timestepping
-**/ 
+ **/
 
-typedef void myFuncType (DataStructure3D&, GridStructure&, ModalBasis&,
-  DataStructure3D&, DataStructure3D&, DataStructure2D&, 
-  DataStructure2D&, DataStructure2D&, std::vector<double>&, 
-  std::vector<double>&, std::vector<double>, std::vector<double>,
-  const std::string);
+typedef void myFuncType( DataStructure3D&, GridStructure&, ModalBasis&,
+                         DataStructure3D&, DataStructure3D&, DataStructure2D&,
+                         DataStructure2D&, DataStructure2D&,
+                         std::vector<double>&, std::vector<double>&,
+                         std::vector<double>, std::vector<double>,
+                         const std::string );
 
 class TimeStepper
 {
 
-public:
+ public:
   // TODO: Is it possible to initialize Grid_s from Grid directly?
   TimeStepper( unsigned int nS, unsigned int tO, unsigned int pO,
-    GridStructure& Grid, bool Geometry, std::string BCond );
+               GridStructure& Grid, bool Geometry, std::string BCond );
 
   void InitializeTimestepper( );
 
-  void UpdateFluid( myFuncType ComputeIncrement, double dt, 
-    DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
-    SlopeLimiter& S_Limiter );
+  void UpdateFluid( myFuncType ComputeIncrement, double dt, DataStructure3D& U,
+                    GridStructure& Grid, ModalBasis& Basis,
+                    SlopeLimiter& S_Limiter );
 
-private: 
-
+ private:
   const unsigned int mSize;
   const unsigned int nStages;
   const unsigned int tOrder;
@@ -48,7 +48,7 @@ private:
   std::vector<DataStructure3D> U_s;
   std::vector<DataStructure3D> dU_s;
   std::vector<GridStructure> Grid_s;
-  std::vector<std::vector<double>> StageData; 
+  std::vector<std::vector<double>> StageData;
   // StageData Holds cell left interface positions
 
   // Variables to pass to update step
@@ -63,7 +63,6 @@ private:
 
   std::vector<double> uCF_L;
   std::vector<double> uCF_R;
-
 };
 
 #endif
