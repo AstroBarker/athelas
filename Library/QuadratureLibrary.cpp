@@ -52,6 +52,9 @@ double Jacobi_Matrix( int m, double* aj, double* bj )
   return zemu;
 }
 
+/**
+ * Compute LEgendre-Gauss Quadrature
+ **/
 void LG_Quadrature( int m, double* nodes, double* weights )
 {
   double* aj = new double[m];
@@ -74,9 +77,7 @@ void LG_Quadrature( int m, double* nodes, double* weights )
     weights[i] = 0.0;
   }
 
-  //
-  //  Diagonalize the Jacobi matrix.
-  //
+  // --- Diagonalize the Jacobi matrix. ---
   Tri_Sym_Diag( m, nodes, bj, weights ); // imtqlx
 
   for ( int i = 0; i < m; i++ )

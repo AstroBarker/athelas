@@ -126,6 +126,9 @@ void NumericalFlux_HLLC( double vL, double vR, double pL, double pR, double cL,
 
 // Compute Auxilliary
 
+/**
+ * Compute the fluid timestep.
+ **/
 double ComputeTimestep_Fluid( DataStructure3D& U, GridStructure& Grid,
                               const double CFL )
 {
