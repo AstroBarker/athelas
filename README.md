@@ -48,13 +48,10 @@ The build system may not be perfect yet. I have hard coded in paths to my librar
 
 ## Clang-format
 
-We use clang format for code cleanliness. The current version of
-`clang-format` is pinned to `clang-format-12`, however, you can try
-formatting with other versions at your own risk.
+We use clang format for code cleanliness. 
+The current version of `clang-format` used is `clang-format-13`.
+Simply call `Tools/Bash/format.sh` to format the `.h` and `.cpp` files.
 
-You can format all files in git history automatically by calling
-`scripts/bash/format.sh` from anywhere within the Phoebus repo (but
-outside of submodules)
 
 # TODO: Spherical Symetry
  - [x] Ensure mass conservation...
