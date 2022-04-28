@@ -87,7 +87,9 @@ void SlopeLimiter::DetectTroubledCells( DataStructure3D& U, GridStructure& Grid,
     }
 }
 
-// Apply slope limiter
+/**
+ * Apply the slope limiter. We use a vertex based, heirarchical slope limiter.
+ **/
 void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
                                       ModalBasis& Basis )
 {
@@ -230,7 +232,7 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
       }
     }
 
-    // --- Compare Limited to Original Slopes
+    // --- Compare Limited to Original Slopes ---
 
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {

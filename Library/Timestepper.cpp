@@ -21,6 +21,7 @@
 
 /**
  * The constructor creates the necessary data structures for time evolution.
+ * Lots of structures used in Fluid Discretization live here.
  **/
 TimeStepper::TimeStepper( unsigned int nS, unsigned int tO, unsigned int pOrder,
                           GridStructure& Grid, bool Geometry,

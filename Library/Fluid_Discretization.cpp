@@ -3,7 +3,7 @@
  * --------------
  *
  * Author   : Brandon L. Barker
- * Purpose  : The main spatial discretization and update routines go here.
+ * Purpose  : The main fluid spatial update routines go here.
  *  Compute divergence term.
  **/
 
@@ -73,13 +73,11 @@ void ComputeIncrement_Fluid_Divergence(
     Cs_R = ComputeSoundSpeedFromConserved_IDEAL( uCF_R[0], uCF_R[1], uCF_R[2] );
     lam_R = Cs_R * rho_R;
 
-    /* --- Numerical Fluxes --- */
+    // --- Numerical Fluxes ---
 
     // Riemann Problem
     NumericalFlux_Gudonov( uCF_L[1], uCF_R[1], P_L, P_R, lam_L, lam_R,
                            Flux_U[iX], Flux_P[iX] );
-    // NumericalFlux_HLLC( uCF_L[1], uCF_R[1], P_L, P_R, Cs_L, Cs_R,
-    // rho_L, rho_R, Flux_U[iX], Flux_P[iX] );
 
     // TODO: Clean This Up
     dFlux_num( 0, iX ) = -Flux_U[iX];
@@ -87,7 +85,7 @@ void ComputeIncrement_Fluid_Divergence(
     dFlux_num( 2, iX ) = +Flux_U[iX] * Flux_P[iX];
   }
 
-  /* --- Surface Term --- */
+  // --- Surface Term --- 
 
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     // #pragma omp parallel for simd collapse(2)
@@ -140,7 +138,9 @@ void ComputeIncrement_Fluid_Divergence(
       }
 }
 
-// Geometry
+/**
+ * Compute fluid increment from geometry in spherical symmetry
+ **/
 void ComputeIncrement_Fluid_Geometry( DataStructure3D& U, GridStructure& Grid,
                                       ModalBasis& Basis, DataStructure3D& dU )
 {
@@ -179,14 +179,16 @@ void ComputeIncrement_Fluid_Geometry( DataStructure3D& U, GridStructure& Grid,
  *
  * Parameters:
  * -----------
- * U : Conserved variables
- * Grid : Grid object
- * dU : Update vector
- * Flux_q : Nodal fluxes, for volume term
- * dFLux_num : numerical surface flux
+ * U                : Conserved variables
+ * Grid             : Grid object
+ * Basis            : Basis object
+ * dU               : Update vector
+ * Flux_q           : Nodal fluxes, for volume term
+ * dFLux_num        : numerical surface flux
  * uCF_F_L, uCF_F_R : left/right face states
- * Flux_U, Flux_P : Fluxes (from Riemann problem)
- * BC : (string) boundary condition type
+ * Flux_U, Flux_P   : Fluxes (from Riemann problem)
+ * uCF_L, uCF_R     : holds interface data
+ * BC               : (string) boundary condition type
  **/
 void Compute_Increment_Explicit(
     DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
@@ -208,13 +210,14 @@ void Compute_Increment_Explicit(
 
   // --- Compute Increment for new solution ---
 
-  // --- First: Zero out dU. It is reused storage and we only increment it ---
+  // --- First: Zero out dU  ---
   dU.zero( );
   for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
   {
     Flux_U[iX] = 0.0;
   }
 
+  // --- Fluid Increment : Divergence ---
   ComputeIncrement_Fluid_Divergence( U, Grid, Basis, dU, Flux_q, dFlux_num,
                                      uCF_F_L, uCF_F_R, Flux_U, Flux_P, uCF_L,
                                      uCF_R );
@@ -226,7 +229,7 @@ void Compute_Increment_Explicit(
         dU( iCF, iX, k ) /= ( Basis.Get_MassMatrix( iX, k ) );
       }
 
-  /* --- Increment from Geometry --- */
+  // --- Increment from Geometry --- 
   if ( Grid.DoGeometry( ) )
   {
     ComputeIncrement_Fluid_Geometry( U, Grid, Basis, dU );
