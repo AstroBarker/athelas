@@ -53,7 +53,7 @@ double Jacobi_Matrix( int m, double* aj, double* bj )
 }
 
 /**
- * Compute LEgendre-Gauss Quadrature
+ * Compute Legendre-Gauss Quadrature
  **/
 void LG_Quadrature( int m, double* nodes, double* weights )
 {
