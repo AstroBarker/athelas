@@ -6,6 +6,8 @@
  * Purpose : Main driver routine
  **/
 
+#include <chrono>
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -20,18 +22,23 @@
 #include "FluidUtilities.h"
 #include "Timestepper.h"
 #include "Error.h"
+#include "Timer.h"
 #include "Driver.h"
 
 int main( int argc, char* argv[] )
 {
+  // --- Timer ---
+  Timer timer;
+  timer.start( );
+
   /* --- Problem Parameters --- */
   const std::string ProblemName = "Sod";
 
-  const unsigned int nX      = 128;
-  const unsigned int order   = 2;
+  const unsigned int nX      = 512;
+  const unsigned int order   = 1;
   const unsigned int nNodes  = NumNodes( order ) + 0;
-  const unsigned int nStages = 2;
-  const unsigned int tOrder  = 2;
+  const unsigned int nStages = 1;
+  const unsigned int tOrder  = 1;
 
   const unsigned int nGuard = 1;
 
@@ -93,7 +100,7 @@ int main( int argc, char* argv[] )
 
   // --- Evolution loop ---
   unsigned int iStep   = 0;
-  unsigned int i_write = 1;
+  unsigned int i_write = 10;
   std::cout << "Step\tt\tdt" << std::endl;
   while ( t < t_end && iStep >= 0 )
   {
@@ -117,6 +124,10 @@ int main( int argc, char* argv[] )
 
     iStep++;
   }
+
+  // --- Finalize timer ---
+  timer.stop( );
+  std::printf( "Done! Elapsed time: %f seconds.\n", timer.elapsedSeconds( ) );
 
   WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName );
 
