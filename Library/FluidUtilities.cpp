@@ -8,8 +8,8 @@
 
 #include <iostream>
 #include <vector>
-#include <cstdlib>     /* abs */
-#include <algorithm>    // std::min, std::max
+#include <cstdlib>   /* abs */
+#include <algorithm> // std::min, std::max
 
 #include "Error.h"
 #include "Grid.h"

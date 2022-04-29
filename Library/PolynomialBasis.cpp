@@ -13,8 +13,8 @@
 
 #include <iostream>
 #include <algorithm> /* std::sort */
-#include <math.h>       /* pow */
-#include <cstdlib>     /* abs */
+#include <math.h>    /* pow */
+#include <cstdlib>   /* abs */
 
 #include "DataStructures.h"
 #include "Grid.h"

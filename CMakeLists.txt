@@ -5,14 +5,14 @@
 
 cmake_minimum_required( VERSION 3.10 )
 
-set( CMAKE_BUILD_TYPE DEBUG )
+set( CMAKE_BUILD_TYPE RELEASE )
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to Release")
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
 ### c++11 standards
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS False)
 
@@ -36,6 +36,7 @@ include_directories(athelas PUBLIC
 # --- Source Files ---
 set( ATHELAS_SOURCES 
   "${HYDRO_DIR}/Initialization.cpp" 
+  "Library/Timer.cpp"
   "Library/BoundaryConditionsLibrary.cpp"
   "Library/CharacteristicDecomposition.cpp"
   "Library/DataStructures.cpp"
@@ -120,6 +121,6 @@ set_target_properties(main
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
 )
 
-target_compile_options( main PRIVATE -fexceptions -O2 -Wall )
+target_compile_options( main PRIVATE -fexceptions -O2 -Wall -std=c++17 )
 add_dependencies( main libathelas )
 target_link_libraries( main libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} )

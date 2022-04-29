@@ -1,7 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#include <math.h>       /* atan */
+#include <math.h> /* atan */
 
 constexpr double PI( ) { return std::atan( 1 ) * 4; }
 constexpr double G_GRAV = 6.674299999999999e-8; // cgs
