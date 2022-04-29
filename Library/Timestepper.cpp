@@ -228,8 +228,8 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
       ComputeIncrement( U_s[j], Grid_s[j], Basis, dU_s[j], Flux_q, dFlux_num,
                         uCF_F_L, uCF_F_R, Flux_U[j], Flux_P, uCF_L, uCF_R, BC );
 
-// inner sum
-#pragma omp parallel for
+      // inner sum
+      // #pragma omp parallel for
       for ( unsigned int iCF = 0; iCF < 3; iCF++ )
         for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
           for ( unsigned int k = 0; k < order; k++ )
@@ -238,7 +238,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
                                       dt * b_jk( i, j ) * dU_s[j]( iCF, iX, k );
           }
 
-#pragma omp parallel for
+      // #pragma omp parallel for
       for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
       {
         SumVar_X[iX] +=

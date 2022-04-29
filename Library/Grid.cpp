@@ -247,7 +247,7 @@ void GridStructure::UpdateGrid( std::vector<double>& SData )
   const unsigned int ilo = Get_ilo( );
   const unsigned int ihi = Get_ihi( );
 
-#pragma omp parallel for
+  // #pragma omp parallel for
   for ( unsigned int iX = ilo; iX <= ihi + 1; iX++ )
   {
     X_L[iX]     = SData[iX];
@@ -255,7 +255,7 @@ void GridStructure::UpdateGrid( std::vector<double>& SData )
     Centers[iX] = 0.5 * ( SData[iX + 1] + SData[iX] );
   }
 
-#pragma omp parallel for
+  // #pragma omp parallel for
   for ( unsigned int iC = ilo; iC <= ihi; iC++ )
   {
     for ( unsigned int iN = 0; iN < nNodes; iN++ )

@@ -46,7 +46,7 @@ void ComputeIncrement_Fluid_Divergence(
 
   // Left/Right face states
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-#pragma omp parallel for
+    // #pragma omp parallel for
     for ( unsigned int iX = ilo; iX <= ihi + 1; iX++ )
     {
       uCF_F_L( iCF, iX ) = Basis.BasisEval( U, iX - 1, iCF, nNodes + 1, false );
@@ -87,8 +87,9 @@ void ComputeIncrement_Fluid_Divergence(
     dFlux_num( 2, iX ) = +Flux_U[iX] * Flux_P[iX];
   }
 
-// --- Surface Term ---
-#pragma omp parallel for private( Poly_L, Poly_R, X_L, X_R, SqrtGm_L, SqrtGm_R )
+  // --- Surface Term ---
+  // #pragma omp parallel for private( Poly_L, Poly_R, X_L, X_R, SqrtGm_L,
+  // SqrtGm_R )
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < order; k++ )
@@ -105,8 +106,8 @@ void ComputeIncrement_Fluid_Divergence(
                               dFlux_num( iCF, iX + 0 ) * Poly_L * SqrtGm_L );
       }
 
-// --- Compute Flux_q everywhere for the Volume term ---
-#pragma omp parallel for private( P )
+  // --- Compute Flux_q everywhere for the Volume term ---
+  // #pragma omp parallel for private( P )
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int iN = 0; iN < nNodes; iN++ )
@@ -119,9 +120,9 @@ void ComputeIncrement_Fluid_Divergence(
             Flux_Fluid( Basis.BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
       }
 
-      // --- Volume Term ---
+  // --- Volume Term ---
 
-#pragma omp parallel for
+  // #pragma omp parallel for
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < order; k++ )
@@ -214,7 +215,7 @@ void Compute_Increment_Explicit(
 
   // --- First: Zero out dU  ---
   dU.zero( );
-#pragma omp parallel for
+  // #pragma omp parallel for
   for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
   {
     Flux_U[iX] = 0.0;
@@ -225,8 +226,8 @@ void Compute_Increment_Explicit(
                                      uCF_F_L, uCF_F_R, Flux_U, Flux_P, uCF_L,
                                      uCF_R );
 
+  // #pragma omp parallel for
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-#pragma omp parallel for
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < order; k++ )
       {
