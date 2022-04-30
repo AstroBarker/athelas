@@ -258,6 +258,19 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
             uCF( iCF_V, iX, k )   = -Grid.Get_Widths( iX );
             uCF( iCF_E, iX, k )   = ( -X1 ) * ( -Grid.Get_Widths( iX ) );
           }
+          else if ( k == 2 )
+          {
+            uCF( iCF_Tau, iX, k ) = 0.0;
+            uCF( iCF_V, iX, k )   = 0.0;
+            uCF( iCF_E, iX, k )   = uCF( iCF_V, iX, 1 ) * uCF( iCF_V, iX, 1 );
+            uCF( iCF_E, iX, 0 )  -= uCF( iCF_E, iX, 2 ) * ( -0.083333333333 );
+          }
+          else
+          {
+            uCF( iCF_Tau, iX, k ) = 0.0;
+            uCF( iCF_V, iX, k )   = 0.0;
+            uCF( iCF_E, iX, k )   = 0.0;
+          }
 
           uPF( iPF_D, iX, iNodeX ) = D;
         }
