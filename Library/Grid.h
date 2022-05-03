@@ -26,25 +26,25 @@ class GridStructure
  public:
   GridStructure( unsigned int nN, unsigned int nX, unsigned int nG, double left,
                  double right, bool Geom );
-  double NodeCoordinate( unsigned int iC, unsigned int iN );
-  double Get_Centers( unsigned int iC );
-  double Get_Widths( unsigned int iC );
-  double Get_Nodes( unsigned int nN );
-  double Get_Weights( unsigned int nN );
-  double Get_Mass( unsigned int iX );
-  double Get_CenterOfMass( unsigned int iX );
-  double Get_xL( );
-  double Get_xR( );
-  double Get_SqrtGm( double X );
-  double Get_LeftInterface( unsigned int iX );
+  double NodeCoordinate( unsigned int iC, unsigned int iN ) const;
+  double Get_Centers( unsigned int iC ) const;
+  double Get_Widths( unsigned int iC ) const;
+  double Get_Nodes( unsigned int nN ) const;
+  double Get_Weights( unsigned int nN ) const;
+  double Get_Mass( unsigned int iX ) const;
+  double Get_CenterOfMass( unsigned int iX ) const;
+  double Get_xL( ) const;
+  double Get_xR( ) const;
+  double Get_SqrtGm( double X ) const;
+  double Get_LeftInterface( unsigned int iX ) const;
 
-  bool DoGeometry( );
+  bool DoGeometry( ) const;
 
-  int Get_Guard( );
-  int Get_ilo( );
-  int Get_ihi( );
-  int Get_nNodes( );
-  int Get_nElements( );
+  int Get_Guard( ) const;
+  int Get_ilo( ) const;
+  int Get_ihi( ) const;
+  int Get_nNodes( ) const;
+  int Get_nElements( ) const;
 
   void CreateGrid( );
   void UpdateGrid( std::vector<double>& SData );

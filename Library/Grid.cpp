@@ -63,41 +63,41 @@ double ShapeFunction( int interface, double eta )
 }
 
 // Give physical grid coordinate from a node.
-double GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN )
+double GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN ) const
 {
   return X_L[iC] * ShapeFunction( 0, Nodes[iN] ) +
          X_L[iC + 1] * ShapeFunction( 1, Nodes[iN] );
 }
 
 // Return cell center
-double GridStructure::Get_Centers( unsigned int iC ) { return Centers[iC]; }
+double GridStructure::Get_Centers( unsigned int iC ) const { return Centers[iC]; }
 
 // Return cell width
-double GridStructure::Get_Widths( unsigned int iC ) { return Widths[iC]; }
+double GridStructure::Get_Widths( unsigned int iC ) const { return Widths[iC]; }
 
 // Return cell mass
-double GridStructure::Get_Mass( unsigned int iX ) { return Mass[iX]; }
+double GridStructure::Get_Mass( unsigned int iX ) const { return Mass[iX]; }
 
 // Return cell reference Center of Mass
-double GridStructure::Get_CenterOfMass( unsigned int iX )
+double GridStructure::Get_CenterOfMass( unsigned int iX ) const
 {
   return CenterOfMass[iX];
 }
 
 // Return given quadrature node
-double GridStructure::Get_Nodes( unsigned int nN ) { return Nodes[nN]; }
+double GridStructure::Get_Nodes( unsigned int nN ) const { return Nodes[nN]; }
 
 // Return given quadrature weight
-double GridStructure::Get_Weights( unsigned int nN ) { return Weights[nN]; }
+double GridStructure::Get_Weights( unsigned int nN ) const { return Weights[nN]; }
 
 // Acessor for xL
-double GridStructure::Get_xL( ) { return xL; }
+double GridStructure::Get_xL( ) const { return xL; }
 
 // Acessor for xR
-double GridStructure::Get_xR( ) { return xR; }
+double GridStructure::Get_xR( ) const { return xR; }
 
 // Acessor for SqrtGm
-double GridStructure::Get_SqrtGm( double X )
+double GridStructure::Get_SqrtGm( double X ) const
 {
   if ( Geometry )
   {
@@ -111,25 +111,25 @@ double GridStructure::Get_SqrtGm( double X )
 }
 
 // Accessor for X_L
-double GridStructure::Get_LeftInterface( unsigned int iX ) { return X_L[iX]; }
+double GridStructure::Get_LeftInterface( unsigned int iX ) const { return X_L[iX]; }
 
 // Return nNodes
-int GridStructure::Get_nNodes( ) { return nNodes; }
+int GridStructure::Get_nNodes( ) const { return nNodes; }
 
 // Return nElements
-int GridStructure::Get_nElements( ) { return nElements; }
+int GridStructure::Get_nElements( ) const { return nElements; }
 
 // Return number of guard zones
-int GridStructure::Get_Guard( ) { return nGhost; }
+int GridStructure::Get_Guard( ) const { return nGhost; }
 
 // Return first physical zone
-int GridStructure::Get_ilo( ) { return nGhost; }
+int GridStructure::Get_ilo( ) const { return nGhost; }
 
 // Return last physical zone
-int GridStructure::Get_ihi( ) { return nElements + nGhost - 1; }
+int GridStructure::Get_ihi( ) const { return nElements + nGhost - 1; }
 
 // Return true if in spherical symmetry
-bool GridStructure::DoGeometry( ) { return Geometry; }
+bool GridStructure::DoGeometry( ) const { return Geometry; }
 
 // Equidistant mesh
 // TODO: We will need to replace Centers here, right?

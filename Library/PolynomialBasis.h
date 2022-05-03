@@ -40,8 +40,8 @@ class ModalBasis
                     unsigned int i_eta, bool DerivativeOption );
   void ComputeMassMatrix( DataStructure3D& uCF, GridStructure& Grid );
 
-  double Get_Phi( unsigned int iX, unsigned int i_eta, unsigned int k );
-  double Get_dPhi( unsigned int iX, unsigned int i_eta, unsigned int k );
+  double Get_Phi( unsigned int iX, unsigned int i_eta, unsigned int k ) const;
+  double Get_dPhi( unsigned int iX, unsigned int i_eta, unsigned int k ) const;
   double Get_MassMatrix( unsigned int iX, unsigned int k );
 
   int Get_Order( );

@@ -4,6 +4,7 @@
 # ===
 
 cmake_minimum_required( VERSION 3.10 )
+cmake_policy(SET CMP0074 NEW)
 
 set( CMAKE_BUILD_TYPE RELEASE )
 if (NOT CMAKE_BUILD_TYPE)
@@ -20,6 +21,8 @@ set(CMAKE_FIND_FRAMEWORK NEVER)
 set(CMAKE_FIND_APPBUNDLE NEVER)
 
 set( CMAKE_PREFIX_PATH "/usr/local")
+
+# set( Kokkos_DIR "/home/barker/opt/Kokkos/" )
 
 project( athelas VERSION 0.2 LANGUAGES CXX )
 enable_language(CXX)
@@ -52,7 +55,7 @@ set( ATHELAS_SOURCES
   "Library/SlopeLimiter_Utilities.cpp"
   "Library/Timestepper.cpp")
 
-add_library(libathelas SHARED ${ATHELAS_SOURCES})
+add_library(libathelas ${ATHELAS_SOURCES})
 set_target_properties(libathelas
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
@@ -95,18 +98,23 @@ find_package( BLAS REQUIRED  )
 #set( BLAS_LIBRARIES /usr/local/opt/openblas/lib/libopenblas.dylib )
 #set( BLAS_INCLUDE_DIRS /usr/local/opt/openblas/include )
 
-target_link_libraries( libathelas PUBLIC ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES} )
-target_include_directories( libathelas PUBLIC ${HDF5_INCLUDE_DIRS})
+# Kokkos
+find_package( Kokkos REQUIRED )
+target_link_libraries( libathelas Kokkos::kokkos)
+
+
+target_link_libraries( libathelas ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES} )
+# target_include_directories( libathelas PRIVATE ${HDF5_INCLUDE_DIRS})
 
 message(STATUS "HDF5_LIBRARIES = ${HDF5_CXX_LIBRARIES}")
 
-target_link_libraries( libathelas PUBLIC ${LAPACK_LIBRARIES} )
-target_include_directories( libathelas PUBLIC ${LAPACK_INCLUDE_DIRS})
+target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
+# target_include_directories( libathelas PRIVATE ${LAPACK_INCLUDE_DIRS})
 message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
 
 
-target_link_libraries( libathelas PUBLIC ${BLAS_LIBRARIES} )
-target_include_directories( libathelas PUBLIC ${BLAS_INCLUDE_DIRS})
+target_link_libraries( libathelas ${BLAS_LIBRARIES} )
+# target_include_directories( libathelas PRIVATE ${BLAS_INCLUDE_DIRS})
 message( STATUS "BLAS_LIBRARIES: ${BLAS_LIBRARIES}" )
 
 install(TARGETS libathelas DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
@@ -121,6 +129,7 @@ set_target_properties(main
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
 )
 
-target_compile_options( main PRIVATE -fexceptions -O2 -Wall -std=c++17 )
+target_compile_options( main PRIVATE -fPIC -O2 -Wall -std=c++17 )
 add_dependencies( main libathelas )
-target_link_libraries( main libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} )
+target_link_libraries( main libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} Kokkos::kokkos )
+target_link_libraries( main Kokkos::kokkos )

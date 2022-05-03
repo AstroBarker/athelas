@@ -9,8 +9,12 @@
  * Purpose  : Class for SSPRK timestepping
  **/
 
+// typedef Kokkos::View<double*>    DataStructure1DType;
+// typedef Kokkos::View<double**>   DataStructure2DType;
+// typedef Kokkos::View<double***>  DataStructure3DType;
+
 typedef void myFuncType( DataStructure3D&, GridStructure&, ModalBasis&,
-                         DataStructure3D&, DataStructure3D&, DataStructure2D&,
+                         DataStructure3DType&, DataStructure3D&, DataStructure2D&,
                          DataStructure2D&, DataStructure2D&,
                          std::vector<double>&, std::vector<double>&,
                          std::vector<double>, std::vector<double>,
@@ -46,7 +50,7 @@ class TimeStepper
 
   // Hold stage data
   std::vector<DataStructure3D> U_s;
-  std::vector<DataStructure3D> dU_s;
+  std::vector<DataStructure3DType> dU_s;
   std::vector<GridStructure> Grid_s;
   std::vector<std::vector<double>> StageData;
   // StageData Holds cell left interface positions

@@ -447,14 +447,14 @@ double ModalBasis::BasisEval( DataStructure3D& U, unsigned int iX,
 
 // Accessor for Phi
 double ModalBasis::Get_Phi( unsigned int iX, unsigned int i_eta,
-                            unsigned int k )
+                            unsigned int k ) const
 {
   return Phi( iX, i_eta, k );
 }
 
 // Accessor for dPhi
 double ModalBasis::Get_dPhi( unsigned int iX, unsigned int i_eta,
-                             unsigned int k )
+                             unsigned int k ) const
 {
   return dPhi( iX, i_eta, k );
 }

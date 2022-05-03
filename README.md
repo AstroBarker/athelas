@@ -25,6 +25,12 @@ This will create a directory `bin` in the root directory that contains the execu
 ## NOTE: 
 The build system may not be perfect yet. I have hard coded in paths to my libraries for HDF5, LAPACK, and BLAS as cmake had some issues finding them. You may overwrite those lines, or comment them out and try to let `find_package()` do the work.
 
+# In Progress: Kokkos
+Porting to Kokkos to handle data structures and parallelism.
+This will increase code complexity, but ultimately improve performance.
+Currently I have a basic compilation and made dU a View object.
+More work to port other objects to Views.
+
 
 # Future Work
 

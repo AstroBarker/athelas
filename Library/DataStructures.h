@@ -43,7 +43,7 @@ class DataStructure3D
 
   void zero( );
 
- private:
+//  private:
   unsigned int Size1;
   unsigned int Size2;
   unsigned int Size3;

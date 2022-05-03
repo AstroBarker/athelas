@@ -9,7 +9,7 @@
 #include <iostream>
 #include <vector>
 
-#include "omp.h"
+// #include "omp.h"
 
 #include "Error.h"
 #include "Grid.h"
@@ -31,7 +31,6 @@ TimeStepper::TimeStepper( unsigned int nS, unsigned int tO, unsigned int pOrder,
       b_jk( nStages, nStages ), SumVar_U( 3, mSize + 1, pOrder ),
       SumVar_X( mSize + 1, 0.0 ),
       U_s( nStages + 1, DataStructure3D( 3, mSize, pOrder ) ),
-      dU_s( nStages + 1, DataStructure3D( 3, mSize, pOrder ) ),
       Grid_s( nStages + 1,
               GridStructure( Grid.Get_nNodes( ), Grid.Get_nElements( ),
                              Grid.Get_Guard( ), Grid.Get_xL( ), Grid.Get_xR( ),
@@ -42,6 +41,14 @@ TimeStepper::TimeStepper( unsigned int nS, unsigned int tO, unsigned int pOrder,
       Flux_U( nStages + 1, std::vector<double>( mSize + 1, 0.0 ) ),
       Flux_P( mSize + 1, 0.0 ), uCF_L( 3, 0.0 ), uCF_R( 3, 0.0 )
 {
+
+  // --- Initialize vector<View> Structure for dU_s ---
+  dU_s.resize( nStages + 1 );
+  DataStructure3DType temp( "dU", 3, mSize, pOrder );
+  for ( int s = 0; s < nStages + 1; s++ )
+  {
+    dU_s[s] = temp;
+  }
 
   // --- Call Initialization ---
   InitializeTimestepper( );
@@ -162,24 +169,42 @@ void TimeStepper::InitializeTimestepper( )
     }
     else if ( tOrder == 4 )
     {
-      a_jk( 0, 0 ) = 1.0;
-      a_jk( 1, 0 ) = 0.44437049406734;
-      a_jk( 2, 0 ) = 0.62010185138540;
-      a_jk( 3, 0 ) = 0.17807995410773;
-      a_jk( 4, 0 ) = 0.00683325884039;
-      a_jk( 1, 1 ) = 0.55562950593266;
-      a_jk( 2, 2 ) = 0.37989814861460;
-      a_jk( 4, 2 ) = 0.51723167208978;
-      a_jk( 3, 3 ) = 0.82192004589227;
-      a_jk( 4, 3 ) = 0.12759831133288;
-      a_jk( 4, 4 ) = 0.34833675773694;
+      // a_jk( 0, 0 ) = 1.0;
+      // a_jk( 1, 0 ) = 0.44437049406734;
+      // a_jk( 2, 0 ) = 0.62010185138540;
+      // a_jk( 3, 0 ) = 0.17807995410773;
+      // a_jk( 4, 0 ) = 0.00683325884039;
+      // a_jk( 1, 1 ) = 0.55562950593266;
+      // a_jk( 2, 2 ) = 0.37989814861460;
+      // a_jk( 4, 2 ) = 0.51723167208978;
+      // a_jk( 3, 3 ) = 0.82192004589227;
+      // a_jk( 4, 3 ) = 0.12759831133288;
+      // a_jk( 4, 4 ) = 0.34833675773694;
 
-      b_jk( 0, 0 ) = 0.39175222700392;
-      b_jk( 1, 1 ) = 0.36841059262959;
-      b_jk( 2, 2 ) = 0.25189177424738;
-      b_jk( 3, 3 ) = 0.54497475021237;
-      b_jk( 4, 3 ) = 0.08460416338212;
-      b_jk( 4, 4 ) = 0.22600748319395;
+      // b_jk( 0, 0 ) = 0.39175222700392;
+      // b_jk( 1, 1 ) = 0.36841059262959;
+      // b_jk( 2, 2 ) = 0.25189177424738;
+      // b_jk( 3, 3 ) = 0.54497475021237;
+      // b_jk( 4, 3 ) = 0.08460416338212;
+      // b_jk( 4, 4 ) = 0.22600748319395;
+      a_jk( 0, 0 ) = 1.0;
+      a_jk( 1, 0 ) = 0.444370493651235;
+      a_jk( 2, 0 ) = 0.620101851488403;
+      a_jk( 3, 0 ) = 0.178079954393132;
+      a_jk( 4, 0 ) = 0.000000000000000;
+      a_jk( 1, 1 ) = 0.555629506348765;
+      a_jk( 2, 2 ) = 0.379898148511597;
+      a_jk( 4, 2 ) = 0.517231671970585;
+      a_jk( 3, 3 ) = 0.821920045606868;
+      a_jk( 4, 3 ) = 0.096059710526147;
+      a_jk( 4, 4 ) = 0.386708617503269;
+
+      b_jk( 0, 0 ) = 0.391752226571890;
+      b_jk( 1, 1 ) = 0.368410593050371;
+      b_jk( 2, 2 ) = 0.251891774271694;
+      b_jk( 3, 3 ) = 0.544974750228521;
+      b_jk( 4, 3 ) = 0.063692468666290;
+      b_jk( 4, 4 ) = 0.226007483236906;
     }
   }
 }

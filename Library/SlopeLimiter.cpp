@@ -11,6 +11,8 @@
 #include <algorithm> /* std::min, std::max */
 #include <cstdlib>   /* abs */
 
+#include "omp.h"
+
 #include "CharacteristicDecomposition.h"
 #include "DataStructures.h"
 #include "Error.h"
@@ -58,6 +60,7 @@ void SlopeLimiter::DetectTroubledCells( DataStructure3D& U, GridStructure& Grid,
   double cell_avg_L   = 0.0;
   double cell_avg_R   = 0.0;
 
+  // #pragma parallel for
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
     {

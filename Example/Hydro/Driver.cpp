@@ -12,6 +12,8 @@
 #include <vector>
 #include <string>
 
+#include "Kokkos_Core.hpp"
+
 #include "DataStructures.h"
 #include "Grid.h"
 #include "BoundaryConditionsLibrary.h"
@@ -34,11 +36,11 @@ int main( int argc, char* argv[] )
   /* --- Problem Parameters --- */
   const std::string ProblemName = "Sod";
 
-  const unsigned int nX      = 512;
-  const unsigned int order   = 1;
+  const unsigned int nX      = 128;
+  const unsigned int order   = 3;
   const unsigned int nNodes  = NumNodes( order ) + 0;
-  const unsigned int nStages = 1;
-  const unsigned int tOrder  = 1;
+  const unsigned int nStages = 2;
+  const unsigned int tOrder  = 2;
 
   const unsigned int nGuard = 1;
 
@@ -51,10 +53,15 @@ int main( int argc, char* argv[] )
   double dt          = 0.0;
   const double t_end = 0.2;
 
+  bool Restart = false;
+
   bool Geometry  = false; /* false: Cartesian, true: Spherical */
-  std::string BC = "Homogenous";
+  std::string BC = "Sod";
 
   const double CFL = ComputeCFL( 0.5, order, nStages, tOrder );
+
+  Kokkos::initialize( argc, argv );
+  {
 
   // --- Create the Grid object ---
   GridStructure Grid( nNodes, nX, nGuard, xL, xR, Geometry );
@@ -65,12 +72,15 @@ int main( int argc, char* argv[] )
 
   DataStructure3D uAF( 3, nX + 2 * nGuard, order );
 
-  // --- Initialize fields ---
-  InitializeFields( uCF, uPF, Grid, order, GAMMA_IDEAL, ProblemName );
+  if ( not Restart )
+  {
+    // --- Initialize fields ---
+    InitializeFields( uCF, uPF, Grid, order, GAMMA_IDEAL, ProblemName );
+
+    ApplyBC_Fluid( uCF, Grid, order, BC );
+  }
   // WriteState( uCF, uPF, uAF, Grid, ProblemName );
-
-  ApplyBC_Fluid( uCF, Grid, order, BC );
-
+  
   // --- Datastructure for modal basis ---
   ModalBasis Basis( uPF, Grid, order, nNodes, nX, nGuard );
 
@@ -83,15 +93,15 @@ int main( int argc, char* argv[] )
   const double alpha                       = 1.0;
   const double SlopeLimiter_Threshold      = 0.0;
   const double TCI_Threshold               = 0.01;
-  const bool CharacteristicLimiting_Option = false;
-  const bool TCI_Option                    = false;
+  const bool CharacteristicLimiting_Option = true;
+  const bool TCI_Option                    = true;
 
   SlopeLimiter S_Limiter( Grid, nNodes, SlopeLimiter_Threshold, alpha,
                           CharacteristicLimiting_Option, TCI_Option,
                           TCI_Threshold );
 
   // --- Limit the initial conditions ---
-  S_Limiter.ApplySlopeLimiter( uCF, Grid, Basis );
+  // S_Limiter.ApplySlopeLimiter( uCF, Grid, Basis );
 
   // -- print run parameters ---
   PrintSimulationParameters( Grid, order, tOrder, nStages, CFL, alpha,
@@ -128,8 +138,11 @@ int main( int argc, char* argv[] )
   // --- Finalize timer ---
   timer.stop( );
   std::printf( "Done! Elapsed time: %f seconds.\n", timer.elapsedSeconds( ) );
-
+  ApplyBC_Fluid( uCF, Grid, order, BC );
   WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName );
+
+  }
+  Kokkos::finalize();
 
   return 0;
 }
