@@ -262,6 +262,11 @@ void GridStructure::UpdateGrid( std::vector<double>& SData )
     X_L[iX]     = SData[iX];
     Widths[iX]  = SData[iX + 1] - SData[iX];
     Centers[iX] = 0.5 * ( SData[iX + 1] + SData[iX] );
+
+    if ( Widths[iX] != Widths[iX] )
+    {
+      throw Error( "nan encountered in GridUpdate.\n" );
+    }
   }
 
   // #pragma omp parallel for
