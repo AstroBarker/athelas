@@ -65,17 +65,17 @@ void SlopeLimiter::DetectTroubledCells( DataStructure3D& U, GridStructure& Grid,
 
       if ( iCF == 1 ) continue; /* skip velocit */
 
-      result   = 0.0;
-      cell_avg = U( iCF, iX, 0 );
+      double result   = 0.0;
+      double cell_avg = U( iCF, iX, 0 );
 
       // Extrapolate neighboring poly representations into current cell
       // and compute the new cell averages
-      cell_avg_L_T =
+      double cell_avg_L_T =
           CellAverage( U, Grid, Basis, iCF, iX + 1, -1 ); // from right
-      cell_avg_R_T =
+      double cell_avg_R_T =
           CellAverage( U, Grid, Basis, iCF, iX - 1, +1 ); // from left
-      cell_avg_L = U( iCF, iX - 1, 0 );                   // native left
-      cell_avg_R = U( iCF, iX + 1, 0 );                   // native right
+      double cell_avg_L = U( iCF, iX - 1, 0 );                   // native left
+      double cell_avg_R = U( iCF, iX + 1, 0 );                   // native right
 
       result += ( std::abs( cell_avg - cell_avg_L_T ) +
                   std::abs( cell_avg - cell_avg_R_T ) );
