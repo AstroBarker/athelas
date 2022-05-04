@@ -252,7 +252,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
     Grid_s[iS].UpdateGrid( StageData[iS] );
 
     // ! This will give poor performance. Why? ! But also helps with Sedov..
-    S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], Basis );
+    // S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], Basis );
   }
 
   U = U_s[nStages - 0];
