@@ -241,6 +241,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
       #pragma omp parallel for
       for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
       {
+        // std::printf("%d %f %f\n", iX, StageData[j][iX], Flux_U[j][iX] );
         SumVar_X[iX] +=
             a_jk( i, j ) * StageData[j][iX] + dt * b_jk( i, j ) * Flux_U[j][iX];
       }
@@ -250,8 +251,8 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
     StageData[iS] = SumVar_X;
     Grid_s[iS].UpdateGrid( StageData[iS] );
 
-    // ! This will give poor performance. Why? !
-    // S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], Basis );
+    // ! This will give poor performance. Why? ! But also helps with Sedov..
+    S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], Basis );
   }
 
   U = U_s[nStages - 0];
