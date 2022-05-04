@@ -49,7 +49,7 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1                    = Grid.NodeCoordinate( iX, iNodeX );
+          X1                    = Grid.Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
           uCF( iCF_E, iX, k )   = 0.0;
@@ -99,7 +99,7 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1                    = Grid.NodeCoordinate( iX, iNodeX );
+          X1                    = Grid.Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
           uCF( iCF_E, iX, k )   = 0.0;
@@ -149,7 +149,7 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1 = Grid.NodeCoordinate( iX, iNodeX );
+          X1 = Grid.Get_Centers( iX );
 
           if ( k != 0 )
           {
@@ -166,6 +166,53 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
                 ( P0 / 0.4 ) * uCF( iCF_Tau, iX, k ) + 0.5 * V0 * V0;
           }
           uPF( iPF_D, iX, iNodeX ) = ( 2.0 + Amp * sin( 2.0 * PI( ) * X1 ) );
+        }
+    // Fill density in guard cells
+    for ( unsigned int iX = 0; iX < ilo; iX++ )
+      for ( unsigned int iN = 0; iN < nNodes; iN++ )
+      {
+        uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
+        uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
+      }
+  }
+  else if ( ProblemName == "Sedov" )
+  {
+    // Smooth advection problem
+    const double V0  = 0.0;
+    const double D0  = 1.0;
+    const double E0  = 0.3;
+
+    const int origin = Grid.Get_nElements() / 2;
+
+    const double P0  = ( 5.0/3.0 - 1.0 ) * E0 / Grid.Get_Widths( origin );
+
+    double X1 = 0.0;
+    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+      for ( unsigned int k = 0; k < pOrder; k++ )
+        for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
+        {
+          X1 = Grid.Get_Centers( iX );
+
+          if ( k != 0 )
+          {
+            uCF( iCF_Tau, iX, k ) = 0.0;
+            uCF( iCF_V, iX, k )   = 0.0;
+            uCF( iCF_E, iX, k )   = 0.0;
+          }
+          else
+          {
+            uCF( iCF_Tau, iX, k ) = 1.0 / D0;
+            uCF( iCF_V, iX, k ) = V0;
+            if ( iX == origin || iX == origin + 1 )
+            {
+              uCF( iCF_E, iX, k ) = ( P0 / (5.0/3.0 - 1.0) ) * uCF( iCF_Tau, iX, k ) + 0.5 * V0 * V0;
+            }
+            else
+            {
+              uCF( iCF_E, iX, k ) = ( 1.0e-6 / (5.0/3.0 - 1.0) ) * uCF( iCF_Tau, iX, k ) + 0.5 * V0 * V0;
+            }
+          }
+          uPF( iPF_D, iX, iNodeX ) = D0;
         }
     // Fill density in guard cells
     for ( unsigned int iX = 0; iX < ilo; iX++ )
@@ -240,7 +287,7 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1 = Grid.Get_Centers( iX ); // Grid.NodeCoordinate( iX, iNodeX );
+          X1 = Grid.Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
           uCF( iCF_E, iX, k )   = 0.0;
