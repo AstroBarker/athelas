@@ -425,7 +425,7 @@ void ModalBasis::ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid )
  **/
 double ModalBasis::BasisEval( DataStructure3D& U, unsigned int iX,
                               unsigned int iCF, unsigned int i_eta,
-                              bool DerivativeOption )
+                              bool DerivativeOption ) const
 {
   double result = 0.0;
   if ( DerivativeOption )
@@ -447,26 +447,26 @@ double ModalBasis::BasisEval( DataStructure3D& U, unsigned int iX,
 
 // Accessor for Phi
 double ModalBasis::Get_Phi( unsigned int iX, unsigned int i_eta,
-                            unsigned int k )
+                            unsigned int k ) const
 {
   return Phi( iX, i_eta, k );
 }
 
 // Accessor for dPhi
 double ModalBasis::Get_dPhi( unsigned int iX, unsigned int i_eta,
-                             unsigned int k )
+                             unsigned int k ) const
 {
   return dPhi( iX, i_eta, k );
 }
 
 // Accessor for mass matrix
-double ModalBasis::Get_MassMatrix( unsigned int iX, unsigned int k )
+double ModalBasis::Get_MassMatrix( unsigned int iX, unsigned int k ) const
 {
   return MassMatrix( iX, k );
 }
 
 // Accessor for Order
-int ModalBasis::Get_Order( ) { return order; }
+int ModalBasis::Get_Order( ) const { return order; }
 
 // --- Legendre Methods ---
 

@@ -58,6 +58,7 @@ void SlopeLimiter::DetectTroubledCells( DataStructure3D& U, GridStructure& Grid,
   double cell_avg_L   = 0.0;
   double cell_avg_R   = 0.0;
 
+  #pragma omp parallel for
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
     {

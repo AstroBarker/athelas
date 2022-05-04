@@ -34,11 +34,11 @@ int main( int argc, char* argv[] )
   /* --- Problem Parameters --- */
   const std::string ProblemName = "Sod";
 
-  const unsigned int nX      = 512;
-  const unsigned int order   = 1;
+  const unsigned int nX      = 256;
+  const unsigned int order   = 2;
   const unsigned int nNodes  = NumNodes( order ) + 0;
-  const unsigned int nStages = 1;
-  const unsigned int tOrder  = 1;
+  const unsigned int nStages = 2;
+  const unsigned int tOrder  = 2;
 
   const unsigned int nGuard = 1;
 

@@ -263,7 +263,7 @@ void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
             uCF( iCF_Tau, iX, k ) = 0.0;
             uCF( iCF_V, iX, k )   = 0.0;
             uCF( iCF_E, iX, k )   = uCF( iCF_V, iX, 1 ) * uCF( iCF_V, iX, 1 );
-            uCF( iCF_E, iX, 0 )  -= uCF( iCF_E, iX, 2 ) * ( -0.083333333333 );
+            uCF( iCF_E, iX, 0 ) -= uCF( iCF_E, iX, 2 ) * ( -0.083333333333 );
           }
           else
           {
