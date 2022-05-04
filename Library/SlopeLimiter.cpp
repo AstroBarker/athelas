@@ -120,13 +120,12 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
       if ( D( iCF, iX ) > TCI_Threshold && TCI_Option )
+      {
         j++; // ! What is the appropriate data layout for D !
+      }
     }
 
     if ( j == 0 && TCI_Option ) continue;
-
-    /* Note we have limited this cell */
-    LimitedCell[iX] = 1;
 
     for ( int i = 0; i < 3; i++ )
     {
@@ -250,6 +249,8 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
         U( iCF, iX, 1 ) = dU[iCF];
         if ( order >= 3 ) U( iCF, iX, 2 ) = d2U[iCF];
       }
+      /* Note we have limited this cell */
+      LimitedCell[iX] = 1;
     }
   }
 }
