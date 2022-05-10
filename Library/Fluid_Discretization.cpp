@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <math.h> /* atan */
 
-// #include "omp.h"
 #include "Kokkos_Core.hpp"
 
 #include "Error.h"
@@ -45,12 +44,15 @@ void ComputeIncrement_Fluid_Divergence(
   // --- Interpolate Conserved Variable to Interfaces ---
 
   // Left/Right face states
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-    for ( unsigned int iX = ilo; iX <= ihi + 1; iX++ )
-    {
-      uCF_F_L( iCF, iX ) = Basis.BasisEval( U, iX - 1, iCF, nNodes + 1, false );
-      uCF_F_R( iCF, iX ) = Basis.BasisEval( U, iX, iCF, 0, false );
-    }
+  Kokkos::parallel_for(
+      "Surface Term", 3, KOKKOS_LAMBDA( unsigned int iCF ) {
+        for ( unsigned int iX = ilo; iX <= ihi + 1; iX++ )
+        {
+          uCF_F_L( iCF, iX ) =
+              Basis.BasisEval( U, iX - 1, iCF, nNodes + 1, false );
+          uCF_F_R( iCF, iX ) = Basis.BasisEval( U, iX, iCF, 0, false );
+        }
+      } );
 
   // --- Calc numerical flux at all faces
   Kokkos::parallel_for(
@@ -130,7 +132,6 @@ void ComputeIncrement_Fluid_Divergence(
           {
             double local_sum = 0.0;
             double X         = 0.0;
-            // local_sum = 0.0;
             for ( unsigned int iN = 0; iN < nNodes; iN++ )
             {
               X = Grid.NodeCoordinate( iX, iN );
@@ -228,7 +229,6 @@ void Compute_Increment_Explicit(
         }
       } );
 
-  // #pragma omp parallel for
   Kokkos::parallel_for(
       ihi + 1, KOKKOS_LAMBDA( unsigned int iX ) { Flux_U( iX ) = 0.0; } );
 

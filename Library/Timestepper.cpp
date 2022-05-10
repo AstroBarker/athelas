@@ -9,8 +9,6 @@
 #include <iostream>
 #include <vector>
 
-// #include "omp.h"
-
 #include "Error.h"
 #include "Grid.h"
 #include "SlopeLimiter.h"
