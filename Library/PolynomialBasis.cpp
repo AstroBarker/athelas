@@ -117,7 +117,8 @@ double ModalBasis::dTaylor( unsigned int order, double eta, double eta_c )
  **/
 double ModalBasis::InnerProduct( unsigned int m, unsigned int n,
                                  unsigned int iX, double eta_c,
-                                 Kokkos::View<double***> uPF, GridStructure& Grid )
+                                 Kokkos::View<double***> uPF,
+                                 GridStructure& Grid )
 {
   double result = 0.0;
   double eta_q  = 0.0;
@@ -142,7 +143,8 @@ double ModalBasis::InnerProduct( unsigned int m, unsigned int n,
  * <f,g> = \sum_q \rho_q f_q g_q j^0 w_q
  **/
 double ModalBasis::InnerProduct( unsigned int n, unsigned int iX, double eta_c,
-                                 Kokkos::View<double***> uPF, GridStructure& Grid )
+                                 Kokkos::View<double***> uPF,
+                                 GridStructure& Grid )
 {
   double result = 0.0;
   double X      = 0.0;
@@ -162,8 +164,8 @@ double ModalBasis::InnerProduct( unsigned int n, unsigned int iX, double eta_c,
 // TODO: OrthoTaylor: Clean up derivative options?
 double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
                                 unsigned int i_eta, double eta, double eta_c,
-                                Kokkos::View<double***> uPF, GridStructure& Grid,
-                                bool derivative_option )
+                                Kokkos::View<double***> uPF,
+                                GridStructure& Grid, bool derivative_option )
 {
 
   double result      = 0.0;
@@ -351,7 +353,8 @@ void ModalBasis::InitializeLegendreBasis( Kokkos::View<double***> uPF,
  * The following checks orthogonality of basis functions on each cell.
  * Returns error if orthogonality is not met.
  **/
-void ModalBasis::CheckOrthogonality( Kokkos::View<double***> uPF, GridStructure& Grid )
+void ModalBasis::CheckOrthogonality( Kokkos::View<double***> uPF,
+                                     GridStructure& Grid )
 {
 
   const unsigned int ilo = Grid.Get_ilo( );
@@ -393,7 +396,8 @@ void ModalBasis::CheckOrthogonality( Kokkos::View<double***> uPF, GridStructure&
  * ? If so, how do I expand this ?
  * ? I would need to compute and store more GL nodes, weights ?
  **/
-void ModalBasis::ComputeMassMatrix( Kokkos::View<double***> uPF, GridStructure& Grid )
+void ModalBasis::ComputeMassMatrix( Kokkos::View<double***> uPF,
+                                    GridStructure& Grid )
 {
   const unsigned int ilo    = Grid.Get_ilo( );
   const unsigned int ihi    = Grid.Get_ihi( );

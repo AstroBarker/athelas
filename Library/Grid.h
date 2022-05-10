@@ -19,7 +19,6 @@
 
 #include "Kokkos_Core.hpp"
 
-
 #include "Error.h"
 #include "QuadratureLibrary.h"
 

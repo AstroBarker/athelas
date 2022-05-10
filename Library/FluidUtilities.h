@@ -3,7 +3,8 @@
 
 #include "Kokkos_Core.hpp"
 
-void ComputePrimitiveFromConserved( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
+void ComputePrimitiveFromConserved( Kokkos::View<double***> uCF,
+                                    Kokkos::View<double***> uPF,
                                     ModalBasis& Basis, GridStructure& Grid );
 double Flux_Fluid( double V, double P, unsigned int iCF );
 double Fluid( double Tau, double V, double Em_T, int iCF );

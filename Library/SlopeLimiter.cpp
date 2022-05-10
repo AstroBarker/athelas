@@ -36,7 +36,8 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder,
       CharacteristicLimiting_Option( CharacteristicLimitingOption ),
       TCI_Option( TCIOption ), TCI_Threshold( TCI_Threshold_val ),
       D( "TCI", 3, Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) ),
-      LimitedCell( "LimitedCell", Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) )
+      LimitedCell( "LimitedCell",
+                   Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) )
 {
 }
 
@@ -44,8 +45,8 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder,
  * Apply the Troubled Cell Indicator of Fu & Shu (2017)
  * to flag cells for limiting
  **/
-void SlopeLimiter::DetectTroubledCells( Kokkos::View<double***> U, GridStructure& Grid,
-                                        ModalBasis& Basis )
+void SlopeLimiter::DetectTroubledCells( Kokkos::View<double***> U,
+                                        GridStructure& Grid, ModalBasis& Basis )
 {
   const unsigned int ilo = Grid.Get_ilo( );
   const unsigned int ihi = Grid.Get_ihi( );
@@ -93,8 +94,8 @@ void SlopeLimiter::DetectTroubledCells( Kokkos::View<double***> U, GridStructure
 /**
  * Apply the slope limiter. We use a vertex based, heirarchical slope limiter.
  **/
-void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U, GridStructure& Grid,
-                                      ModalBasis& Basis )
+void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
+                                      GridStructure& Grid, ModalBasis& Basis )
 {
 
   // Do not apply for first order method. No slopes!
@@ -115,7 +116,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U, GridStructure& 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
 
-    LimitedCell(iX) = 0;
+    LimitedCell( iX ) = 0;
 
     // Check if TCI val is less than TCI_Threshold
     int j = 0;
@@ -128,7 +129,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U, GridStructure& 
     if ( j == 0 && TCI_Option ) continue;
 
     /* Note we have limited this cell */
-    LimitedCell(iX) = 1;
+    LimitedCell( iX ) = 1;
 
     for ( int i = 0; i < 3; i++ )
     {
@@ -333,9 +334,10 @@ void SlopeLimiter::LimitQuadratic( Kokkos::View<double***> U, ModalBasis& Basis,
  *  -1 : Extrapolate polynomial from iX+1 into iX
  *  +1 : Extrapolate polynomial from iX-1 into iX
  **/
-double SlopeLimiter::CellAverage( Kokkos::View<double***> U, GridStructure& Grid,
-                                  ModalBasis& Basis, unsigned int iCF,
-                                  unsigned int iX, int extrapolate )
+double SlopeLimiter::CellAverage( Kokkos::View<double***> U,
+                                  GridStructure& Grid, ModalBasis& Basis,
+                                  unsigned int iCF, unsigned int iX,
+                                  int extrapolate )
 {
   const unsigned int nNodes = Grid.Get_nNodes( );
 
@@ -379,4 +381,7 @@ double SlopeLimiter::CellAverage( Kokkos::View<double***> U, GridStructure& Grid
 }
 
 // LimitedCell accessor
-int SlopeLimiter::Get_Limited( unsigned int iX ) const { return LimitedCell[iX]; }
+int SlopeLimiter::Get_Limited( unsigned int iX ) const
+{
+  return LimitedCell[iX];
+}

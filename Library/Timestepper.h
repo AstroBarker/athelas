@@ -9,12 +9,11 @@
  * Purpose  : Class for SSPRK timestepping
  **/
 
-
 typedef void myFuncType( Kokkos::View<double***>, GridStructure&, ModalBasis&,
-                         Kokkos::View<double***>, Kokkos::View<double***>, Kokkos::View<double**>,
+                         Kokkos::View<double***>, Kokkos::View<double***>,
                          Kokkos::View<double**>, Kokkos::View<double**>,
-                         Kokkos::View<double*>, Kokkos::View<double*>,
-                         const std::string );
+                         Kokkos::View<double**>, Kokkos::View<double*>,
+                         Kokkos::View<double*>, const std::string );
 
 class TimeStepper
 {
@@ -26,9 +25,9 @@ class TimeStepper
 
   void InitializeTimestepper( );
 
-  void UpdateFluid( myFuncType ComputeIncrement, double dt, Kokkos::View<double***> U,
-                    GridStructure& Grid, ModalBasis& Basis,
-                    SlopeLimiter& S_Limiter );
+  void UpdateFluid( myFuncType ComputeIncrement, double dt,
+                    Kokkos::View<double***> U, GridStructure& Grid,
+                    ModalBasis& Basis, SlopeLimiter& S_Limiter );
 
  private:
   const unsigned int mSize;
@@ -60,7 +59,6 @@ class TimeStepper
 
   Kokkos::View<double**> Flux_U;
   Kokkos::View<double*> Flux_P;
-
 };
 
 #endif

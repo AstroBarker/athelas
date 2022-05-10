@@ -21,8 +21,9 @@ typedef double BasisFuncType( unsigned int, double, double );
 class ModalBasis
 {
  public:
-  ModalBasis( Kokkos::View<double***> uCF, GridStructure& Grid, unsigned int pOrder,
-              unsigned int nN, unsigned int nElements, unsigned int nGuard );
+  ModalBasis( Kokkos::View<double***> uCF, GridStructure& Grid,
+              unsigned int pOrder, unsigned int nN, unsigned int nElements,
+              unsigned int nGuard );
   double Taylor( unsigned int order, double eta, double eta_c );
   double dTaylor( unsigned int order, double eta, double eta_c );
   double OrthoTaylor( unsigned int order, unsigned int iX, unsigned int i_eta,
@@ -34,10 +35,12 @@ class ModalBasis
                        double eta_c, Kokkos::View<double***> uCF,
                        GridStructure& Grid );
   void InitializeTaylorBasis( Kokkos::View<double***> U, GridStructure& Grid );
-  void InitializeLegendreBasis( Kokkos::View<double***> uCF, GridStructure& Grid );
+  void InitializeLegendreBasis( Kokkos::View<double***> uCF,
+                                GridStructure& Grid );
   void CheckOrthogonality( Kokkos::View<double***> uCF, GridStructure& Grid );
-  double BasisEval( Kokkos::View<double***> U, unsigned int iX, unsigned int iCF,
-                    unsigned int i_eta, bool DerivativeOption ) const;
+  double BasisEval( Kokkos::View<double***> U, unsigned int iX,
+                    unsigned int iCF, unsigned int i_eta,
+                    bool DerivativeOption ) const;
   void ComputeMassMatrix( Kokkos::View<double***> uCF, GridStructure& Grid );
 
   double Get_Phi( unsigned int iX, unsigned int i_eta, unsigned int k ) const;

@@ -30,8 +30,8 @@ class SlopeLimiter
   void ApplySlopeLimiter( Kokkos::View<double***> U, GridStructure& Grid,
                           ModalBasis& Basis );
 
-  void LimitQuadratic( Kokkos::View<double***> U, ModalBasis& Basis, double* d2w,
-                       unsigned int iX, unsigned int nNodes );
+  void LimitQuadratic( Kokkos::View<double***> U, ModalBasis& Basis,
+                       double* d2w, unsigned int iX, unsigned int nNodes );
 
   void DetectTroubledCells( Kokkos::View<double***> U, GridStructure& Grid,
                             ModalBasis& Basis );

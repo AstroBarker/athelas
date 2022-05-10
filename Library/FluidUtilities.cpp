@@ -22,7 +22,8 @@
  * from conserved quantities. Primitive quantities are stored at Gauss-Legendre
  * nodes.
  **/
-void ComputePrimitiveFromConserved( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
+void ComputePrimitiveFromConserved( Kokkos::View<double***> uCF,
+                                    Kokkos::View<double***> uPF,
                                     ModalBasis& Basis, GridStructure& Grid )
 {
   const unsigned int nNodes = Grid.Get_nNodes( );
