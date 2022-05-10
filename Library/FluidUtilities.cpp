@@ -14,7 +14,6 @@
 #include "Error.h"
 #include "Grid.h"
 #include "PolynomialBasis.h"
-#include "DataStructures.h"
 #include "EquationOfStateLibrary_IDEAL.h"
 #include "FluidUtilities.h"
 
@@ -23,7 +22,7 @@
  * from conserved quantities. Primitive quantities are stored at Gauss-Legendre
  * nodes.
  **/
-void ComputePrimitiveFromConserved( DataStructure3D& uCF, DataStructure3D& uPF,
+void ComputePrimitiveFromConserved( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
                                     ModalBasis& Basis, GridStructure& Grid )
 {
   const unsigned int nNodes = Grid.Get_nNodes( );
@@ -129,7 +128,7 @@ void NumericalFlux_HLLC( double vL, double vR, double pL, double pR, double cL,
 /**
  * Compute the fluid timestep.
  **/
-double ComputeTimestep_Fluid( DataStructure3D& U, GridStructure& Grid,
+double ComputeTimestep_Fluid( Kokkos::View<double***> U, GridStructure& Grid,
                               const double CFL )
 {
 

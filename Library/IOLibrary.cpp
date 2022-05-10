@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-#include "DataStructures.h"
 #include "Grid.h"
 #include "H5Cpp.h"
 #include "PolynomialBasis.h"
@@ -78,8 +77,8 @@ void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
 }
 
 // TODO: add Time
-void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
-                 DataStructure3D& uAF, GridStructure& Grid, SlopeLimiter& SL,
+void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
+                 Kokkos::View<double***> uAF, GridStructure& Grid, SlopeLimiter& SL,
                  const std::string ProblemName )
 {
 

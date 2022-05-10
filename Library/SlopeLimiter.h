@@ -27,20 +27,20 @@ class SlopeLimiter
                 bool CharacteristicLimitingOption, bool TCIOption,
                 double TCI_Threshold_val );
 
-  void ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
+  void ApplySlopeLimiter( Kokkos::View<double***> U, GridStructure& Grid,
                           ModalBasis& Basis );
 
-  void LimitQuadratic( DataStructure3D& U, ModalBasis& Basis, double* d2w,
+  void LimitQuadratic( Kokkos::View<double***> U, ModalBasis& Basis, double* d2w,
                        unsigned int iX, unsigned int nNodes );
 
-  void DetectTroubledCells( DataStructure3D& U, GridStructure& Grid,
+  void DetectTroubledCells( Kokkos::View<double***> U, GridStructure& Grid,
                             ModalBasis& Basis );
 
-  double CellAverage( DataStructure3D& U, GridStructure& Grid,
+  double CellAverage( Kokkos::View<double***> U, GridStructure& Grid,
                       ModalBasis& Basis, unsigned int iCF, unsigned int iX,
                       int extrapolate );
 
-  int Get_Limited( unsigned int iX );
+  int Get_Limited( unsigned int iX ) const;
 
   ~SlopeLimiter( ) {}
 
@@ -95,8 +95,8 @@ class SlopeLimiter
   double Mult2[3];
   double Mult3[3];
 
-  DataStructure2D D;
-  std::vector<int> LimitedCell;
+  Kokkos::View<double**> D;
+  Kokkos::View<int*> LimitedCell;
 };
 
 #endif

@@ -35,8 +35,8 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder,
       alpha( alpha_val ),
       CharacteristicLimiting_Option( CharacteristicLimitingOption ),
       TCI_Option( TCIOption ), TCI_Threshold( TCI_Threshold_val ),
-      D( 3, Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) ),
-      LimitedCell( Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ), 0 )
+      D( "TCI", 3, Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) ),
+      LimitedCell( "LimitedCell", Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) )
 {
 }
 
@@ -44,7 +44,7 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder,
  * Apply the Troubled Cell Indicator of Fu & Shu (2017)
  * to flag cells for limiting
  **/
-void SlopeLimiter::DetectTroubledCells( DataStructure3D& U, GridStructure& Grid,
+void SlopeLimiter::DetectTroubledCells( Kokkos::View<double***> U, GridStructure& Grid,
                                         ModalBasis& Basis )
 {
   const unsigned int ilo = Grid.Get_ilo( );
@@ -93,7 +93,7 @@ void SlopeLimiter::DetectTroubledCells( DataStructure3D& U, GridStructure& Grid,
 /**
  * Apply the slope limiter. We use a vertex based, heirarchical slope limiter.
  **/
-void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
+void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U, GridStructure& Grid,
                                       ModalBasis& Basis )
 {
 
@@ -115,7 +115,7 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
 
-    LimitedCell[iX] = 0;
+    LimitedCell(iX) = 0;
 
     // Check if TCI val is less than TCI_Threshold
     int j = 0;
@@ -128,7 +128,7 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
     if ( j == 0 && TCI_Option ) continue;
 
     /* Note we have limited this cell */
-    LimitedCell[iX] = 1;
+    LimitedCell(iX) = 1;
 
     for ( int i = 0; i < 3; i++ )
     {
@@ -259,7 +259,7 @@ void SlopeLimiter::ApplySlopeLimiter( DataStructure3D& U, GridStructure& Grid,
 /**
  * Limit the quadratic term.
  **/
-void SlopeLimiter::LimitQuadratic( DataStructure3D& U, ModalBasis& Basis,
+void SlopeLimiter::LimitQuadratic( Kokkos::View<double***> U, ModalBasis& Basis,
                                    double* d2w, unsigned int iX,
                                    unsigned int nNodes )
 {
@@ -333,7 +333,7 @@ void SlopeLimiter::LimitQuadratic( DataStructure3D& U, ModalBasis& Basis,
  *  -1 : Extrapolate polynomial from iX+1 into iX
  *  +1 : Extrapolate polynomial from iX-1 into iX
  **/
-double SlopeLimiter::CellAverage( DataStructure3D& U, GridStructure& Grid,
+double SlopeLimiter::CellAverage( Kokkos::View<double***> U, GridStructure& Grid,
                                   ModalBasis& Basis, unsigned int iCF,
                                   unsigned int iX, int extrapolate )
 {
@@ -379,4 +379,4 @@ double SlopeLimiter::CellAverage( DataStructure3D& U, GridStructure& Grid,
 }
 
 // LimitedCell accessor
-int SlopeLimiter::Get_Limited( unsigned int iX ) { return LimitedCell[iX]; }
+int SlopeLimiter::Get_Limited( unsigned int iX ) const { return LimitedCell[iX]; }

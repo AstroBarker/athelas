@@ -42,7 +42,6 @@ set( ATHELAS_SOURCES
   "Library/Timer.cpp"
   "Library/BoundaryConditionsLibrary.cpp"
   "Library/CharacteristicDecomposition.cpp"
-  "Library/DataStructures.cpp"
   "Library/EquationOfStateLibrary_IDEAL.cpp"
   "Library/FluidUtilities.cpp"
   "Library/Fluid_Discretization.cpp"

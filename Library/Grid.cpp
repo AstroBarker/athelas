@@ -13,17 +13,16 @@
 
 #include "Grid.h"
 #include "Constants.h"
-#include "omp.h"
 #include <math.h> /* atan */
 
 GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
                               double left, double right, bool Geom )
     : nElements( nX ), nNodes( nN ), nGhost( nG ),
       mSize( nElements + 2 * nGhost ), xL( left ), xR( right ),
-      Geometry( Geom ), Nodes( nNodes ), Weights( nNodes ),
-      Centers( mSize, 0.0 ), Widths( mSize, 0.0 ), X_L( mSize, 0.0 ),
-      Mass( mSize, 0.0 ), CenterOfMass( mSize, 0.0 ),
-      Grid( mSize * nNodes, 0.0 )
+      Geometry( Geom ), Nodes( "Nodes", nNodes ), Weights( "Weights", nNodes ),
+      Centers( "Cetners", mSize ), Widths( "Widths", mSize ), X_L( "Left Interface", mSize ),
+      Mass( "Cell Mass", mSize ), CenterOfMass( "Center of Mass", mSize ),
+      Grid( "Grid", mSize, nNodes )
 {
   // TODO: Allow LG_Quadrature to take in vectors.
   double* tmp_nodes   = new double[nNodes];
@@ -39,8 +38,8 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
 
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
-    Nodes[iN]   = tmp_nodes[iN];
-    Weights[iN] = tmp_weights[iN];
+    Nodes(iN)   = tmp_nodes[iN];
+    Weights(iN) = tmp_weights[iN];
   }
 
   CreateGrid( );
@@ -50,7 +49,7 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
 }
 
 // linear shape function on the reference element
-double ShapeFunction( int interface, double eta )
+const double ShapeFunction( int interface, double eta )
 {
   double mult = 1.0;
 
@@ -65,30 +64,30 @@ double ShapeFunction( int interface, double eta )
 // Give physical grid coordinate from a node.
 double GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN ) const
 {
-  return X_L[iC] * ShapeFunction( 0, Nodes[iN] ) +
-         X_L[iC + 1] * ShapeFunction( 1, Nodes[iN] );
+  return X_L(iC) * ShapeFunction( 0, Nodes(iN) ) +
+         X_L(iC + 1) * ShapeFunction( 1, Nodes(iN) );
 }
 
 // Return cell center
-double GridStructure::Get_Centers( unsigned int iC ) const { return Centers[iC]; }
+double GridStructure::Get_Centers( unsigned int iC ) const { return Centers(iC); }
 
 // Return cell width
-double GridStructure::Get_Widths( unsigned int iC ) const { return Widths[iC]; }
+double GridStructure::Get_Widths( unsigned int iC ) const { return Widths(iC); }
 
 // Return cell mass
-double GridStructure::Get_Mass( unsigned int iX ) const { return Mass[iX]; }
+double GridStructure::Get_Mass( unsigned int iX ) const { return Mass(iX); }
 
 // Return cell reference Center of Mass
 double GridStructure::Get_CenterOfMass( unsigned int iX ) const
 {
-  return CenterOfMass[iX];
+  return CenterOfMass(iX);
 }
 
 // Return given quadrature node
-double GridStructure::Get_Nodes( unsigned int nN ) const { return Nodes[nN]; }
+double GridStructure::Get_Nodes( unsigned int nN ) const { return Nodes(nN); }
 
 // Return given quadrature weight
-double GridStructure::Get_Weights( unsigned int nN ) const { return Weights[nN]; }
+double GridStructure::Get_Weights( unsigned int nN ) const { return Weights(nN); }
 
 // Acessor for xL
 double GridStructure::Get_xL( ) const { return xL; }
@@ -101,7 +100,6 @@ double GridStructure::Get_SqrtGm( double X ) const
 {
   if ( Geometry )
   {
-    // return 4.0 * PI() * X * X;
     return X * X;
   }
   else
@@ -111,7 +109,7 @@ double GridStructure::Get_SqrtGm( double X ) const
 }
 
 // Accessor for X_L
-double GridStructure::Get_LeftInterface( unsigned int iX ) const { return X_L[iX]; }
+double GridStructure::Get_LeftInterface( unsigned int iX ) const { return X_L(iX); }
 
 // Return nNodes
 int GridStructure::Get_nNodes( ) const { return nNodes; }
@@ -141,35 +139,35 @@ void GridStructure::CreateGrid( )
 
   for ( unsigned int i = 0; i < nElements + 2 * nGhost; i++ )
   {
-    Widths[i] = ( xR - xL ) / nElements;
+    Widths(i) = ( xR - xL ) / nElements;
   }
 
-  X_L[nGhost] = xL;
+  X_L(nGhost) = xL;
   for ( unsigned int iX = 2; iX < nElements + 2 * nGhost; iX++ )
   {
-    X_L[iX] = X_L[iX - 1] + Widths[iX - 1];
+    X_L(iX) = X_L(iX - 1) + Widths(iX - 1);
   }
 
-  Centers[ilo] = xL + 0.5 * Widths[ilo];
+  Centers(ilo) = xL + 0.5 * Widths(ilo);
   for ( unsigned int i = ilo + 1; i <= ihi; i++ )
   {
-    Centers[i] = Centers[i - 1] + Widths[i - 1];
+    Centers(i) = Centers(i - 1) + Widths(i - 1);
   }
 
   for ( int i = ilo - 1; i >= 0; i-- )
   {
-    Centers[i] = Centers[i + 1] - Widths[i + 1];
+    Centers(i) = Centers(i + 1) - Widths(i + 1);
   }
   for ( unsigned int i = ihi + 1; i < nElements + nGhost + 1; i++ )
   {
-    Centers[i] = Centers[i - 1] + Widths[i - 1];
+    Centers(i) = Centers(i - 1) + Widths(i - 1);
   }
 
   for ( unsigned int iC = ilo; iC <= ihi; iC++ )
   {
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      Grid[iC * nNodes + iN] = NodeCoordinate( iC, iN );
+      Grid( iC, iN ) = NodeCoordinate( iC, iN );
     }
   }
 }
@@ -177,7 +175,7 @@ void GridStructure::CreateGrid( )
 /**
  * Compute cell masses
  **/
-void GridStructure::ComputeMass( DataStructure3D& uPF )
+void GridStructure::ComputeMass( Kokkos::View<double***> uPF )
 {
   const unsigned int nNodes = Get_nNodes( );
   const unsigned int ilo    = Get_ilo( );
@@ -192,24 +190,24 @@ void GridStructure::ComputeMass( DataStructure3D& uPF )
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
       X = NodeCoordinate( iX, iN );
-      mass += Weights[iN] * Get_SqrtGm( X ) * uPF( 0, iX, iN );
+      mass += Weights(iN) * Get_SqrtGm( X ) * uPF( 0, iX, iN );
     }
-    mass *= Widths[iX];
-    Mass[iX] = mass;
+    mass *= Widths(iX);
+    Mass(iX) = mass;
   }
 
   // Guard cells
   for ( unsigned int iX = 0; iX < ilo; iX++ )
   {
-    Mass[ilo - 1 - iX] = Mass[ilo + iX];
-    Mass[ihi + 1 + iX] = Mass[ihi - iX];
+    Mass(ilo - 1 - iX) = Mass(ilo + iX);
+    Mass(ihi + 1 + iX) = Mass(ihi - iX);
   }
 }
 
 /**
  * Compute cell centers of masses reference coordinates
  **/
-void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
+void GridStructure::ComputeCenterOfMass( Kokkos::View<double***> uPF )
 {
   const unsigned int nNodes = Get_nNodes( );
   const unsigned int ilo    = Get_ilo( );
@@ -224,43 +222,41 @@ void GridStructure::ComputeCenterOfMass( DataStructure3D& uPF )
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
       X = NodeCoordinate( iX, iN );
-      com += Nodes[iN] * Weights[iN] * Get_SqrtGm( X ) * uPF( 0, iX, iN );
+      com += Nodes(iN) * Weights(iN) * Get_SqrtGm( X ) * uPF( 0, iX, iN );
     }
-    com *= Widths[iX];
-    CenterOfMass[iX] = com / Mass[iX];
+    com *= Widths(iX);
+    CenterOfMass(iX) = com / Mass(iX);
   }
 
   // Guard cells
   for ( unsigned int iX = 0; iX < ilo; iX++ )
   {
-    CenterOfMass[ilo - 1 - iX] = CenterOfMass[ilo + iX];
-    CenterOfMass[ihi + 1 + iX] = CenterOfMass[ihi - iX];
+    CenterOfMass(ilo - 1 - iX) = CenterOfMass(ilo + iX);
+    CenterOfMass(ihi + 1 + iX) = CenterOfMass(ihi - iX);
   }
 }
 
 /**
  * Update grid coordinates using interface velocities.
  **/
-void GridStructure::UpdateGrid( std::vector<double>& SData )
+void GridStructure::UpdateGrid( Kokkos::View<double*> SData )
 {
 
   const unsigned int ilo = Get_ilo( );
   const unsigned int ihi = Get_ihi( );
 
-  // #pragma omp parallel for
   for ( unsigned int iX = ilo; iX <= ihi + 1; iX++ )
   {
-    X_L[iX]     = SData[iX];
-    Widths[iX]  = SData[iX + 1] - SData[iX];
-    Centers[iX] = 0.5 * ( SData[iX + 1] + SData[iX] );
+    X_L(iX)     = SData(iX);
+    Widths(iX)  = SData(iX + 1) - SData(iX);
+    Centers(iX) = 0.5 * ( SData(iX + 1) + SData(iX) );
   }
 
-  // #pragma omp parallel for
   for ( unsigned int iC = ilo; iC <= ihi; iC++ )
   {
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      Grid[iC * nNodes + iN] = NodeCoordinate( iC, iN );
+      Grid( iC, iN ) = NodeCoordinate( iC, iN );
     }
   }
 }
@@ -268,10 +264,10 @@ void GridStructure::UpdateGrid( std::vector<double>& SData )
 // Access by (element, node)
 double& GridStructure::operator( )( unsigned int i, unsigned int j )
 {
-  return Grid[i * nNodes + j];
+  return Grid( i, j );
 }
 
 double GridStructure::operator( )( unsigned int i, unsigned int j ) const
 {
-  return Grid[i * nNodes + j];
+  return Grid( i, j );
 }

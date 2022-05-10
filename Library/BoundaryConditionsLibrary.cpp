@@ -9,12 +9,13 @@
 #include <iostream>
 #include <string>
 
-#include "DataStructures.h"
+#include "Kokkos_Core.hpp"
+
 #include "Grid.h"
 #include "BoundaryConditionsLibrary.h"
 
 // Apply Boundary Conditions to fluid fields
-void ApplyBC_Fluid( DataStructure3D& uCF, GridStructure& Grid,
+void ApplyBC_Fluid( Kokkos::View<double***> uCF, GridStructure& Grid,
                     unsigned int order, const std::string BC )
 {
 

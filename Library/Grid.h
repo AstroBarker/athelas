@@ -17,7 +17,9 @@
 #include <iostream>
 #include <vector>
 
-#include "DataStructures.h"
+#include "Kokkos_Core.hpp"
+
+
 #include "Error.h"
 #include "QuadratureLibrary.h"
 
@@ -47,10 +49,10 @@ class GridStructure
   int Get_nElements( ) const;
 
   void CreateGrid( );
-  void UpdateGrid( std::vector<double>& SData );
-  void ComputeMass( DataStructure3D& uPF );
-  void ComputeCenterOfMass( DataStructure3D& uPF );
-  void ComputeCenterOfMass_Radius( DataStructure3D& uPF );
+  void UpdateGrid( Kokkos::View<double*> SData );
+  void ComputeMass( Kokkos::View<double***> uPF );
+  void ComputeCenterOfMass( Kokkos::View<double***> uPF );
+  void ComputeCenterOfMass_Radius( Kokkos::View<double***> uPF );
 
   double& operator( )( unsigned int i, unsigned int j );
   double operator( )( unsigned int i, unsigned int j ) const;
@@ -66,17 +68,17 @@ class GridStructure
 
   bool Geometry;
 
-  std::vector<double> Nodes;
-  std::vector<double> Weights;
+  Kokkos::View<double*> Nodes;
+  Kokkos::View<double*> Weights;
 
-  std::vector<double> Centers;
-  std::vector<double> Widths;
-  std::vector<double> X_L; // left interface coordinate
+  Kokkos::View<double*> Centers;
+  Kokkos::View<double*> Widths;
+  Kokkos::View<double*> X_L; // left interface coordinate
 
-  std::vector<double> Mass;
-  std::vector<double> CenterOfMass;
+  Kokkos::View<double*> Mass;
+  Kokkos::View<double*> CenterOfMass;
 
-  std::vector<double> Grid;
+  Kokkos::View<double**> Grid;
 };
 
 #endif

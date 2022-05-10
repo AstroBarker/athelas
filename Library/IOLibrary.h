@@ -1,6 +1,8 @@
 #ifndef IOLIBRARY_H
 #define IOLIBRARY_H
 
+#include "Kokkos_Core.hpp"
+
 struct GridType
 {
   double r{ };
@@ -11,8 +13,8 @@ struct DataType
   double x{ };
 };
 
-void WriteState( DataStructure3D& uCF, DataStructure3D& uPF,
-                 DataStructure3D& uAF, GridStructure& Grid, SlopeLimiter& SL,
+void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
+                 Kokkos::View<double***> uAF, GridStructure& Grid, SlopeLimiter& SL,
                  const std::string ProblemName );
 
 void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,

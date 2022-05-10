@@ -15,7 +15,6 @@
 #include "Kokkos_Core.hpp"
 
 #include "Error.h"
-#include "DataStructures.h"
 #include "Grid.h"
 #include "PolynomialBasis.h"
 #include "Fluid_Discretization.h"
@@ -26,11 +25,10 @@
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence(
-    DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
-    DataStructure3DType& dU, DataStructure3D& Flux_q, DataStructure2D& dFlux_num,
-    DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R,
-    std::vector<double>& Flux_U, std::vector<double>& Flux_P,
-    std::vector<double> uCF_L, std::vector<double> uCF_R )
+    Kokkos::View<double***> U, GridStructure& Grid, ModalBasis& Basis,
+    Kokkos::View<double***> dU, Kokkos::View<double***> Flux_q, Kokkos::View<double**> dFlux_num,
+    Kokkos::View<double**> uCF_F_L, Kokkos::View<double**> uCF_F_R,
+    Kokkos::View<double*> Flux_U, Kokkos::View<double*> Flux_P )
 {
   const unsigned int nNodes = Grid.Get_nNodes( );
   const unsigned int order  = Basis.Get_Order( );
@@ -47,7 +45,6 @@ void ComputeIncrement_Fluid_Divergence(
 
   // Left/Right face states
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-    // #pragma omp parallel for
     for ( unsigned int iX = ilo; iX <= ihi + 1; iX++ )
     {
       uCF_F_L( iCF, iX ) = Basis.BasisEval( U, iX - 1, iCF, nNodes + 1, false );
@@ -55,43 +52,39 @@ void ComputeIncrement_Fluid_Divergence(
     }
 
   // --- Calc numerical flux at all faces
-  // #pragma omp parallel for private( rho_L, rho_R, P_L, P_R, Cs_L, Cs_R,
-  // lam_L, lam_R )
+  // Kokkos::parallel_for( Kokkos::RangePolicy<>(ilo, ihi+1), KOKKOS_LAMBDA ( unsigned int iX ) {
   for ( unsigned int iX = ilo; iX <= ihi + 1; iX++ )
   {
-    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-    {
-      uCF_L[iCF] = uCF_F_L( iCF, iX );
-      uCF_R[iCF] = uCF_F_R( iCF, iX );
-    }
 
-    rho_L = 1.0 / uCF_L[0];
-    rho_R = 1.0 / uCF_R[0];
+    auto uCF_L = Kokkos::subview( uCF_F_L, Kokkos::ALL, iX );
+    auto uCF_R = Kokkos::subview( uCF_F_R, Kokkos::ALL, iX );
 
-    P_L  = ComputePressureFromConserved_IDEAL( uCF_L[0], uCF_L[1], uCF_L[2] );
-    Cs_L = ComputeSoundSpeedFromConserved_IDEAL( uCF_L[0], uCF_L[1], uCF_L[2] );
-    lam_L = Cs_L * rho_L;
+    double rho_L = 1.0 / uCF_L(0);
+    double rho_R = 1.0 / uCF_R(0);
 
-    P_R  = ComputePressureFromConserved_IDEAL( uCF_R[0], uCF_R[1], uCF_R[2] );
-    Cs_R = ComputeSoundSpeedFromConserved_IDEAL( uCF_R[0], uCF_R[1], uCF_R[2] );
-    lam_R = Cs_R * rho_R;
+    double P_L  = ComputePressureFromConserved_IDEAL( uCF_L(0), uCF_L(1), uCF_L(2) );
+    double Cs_L = ComputeSoundSpeedFromConserved_IDEAL( uCF_L(0), uCF_L(1), uCF_L(2) );
+    double lam_L = Cs_L * rho_L;
+
+    double P_R  = ComputePressureFromConserved_IDEAL( uCF_R(0), uCF_R(1), uCF_R(2) );
+    double Cs_R = ComputeSoundSpeedFromConserved_IDEAL( uCF_R(0), uCF_R(1), uCF_R(2) );
+    double lam_R = Cs_R * rho_R;
 
     // --- Numerical Fluxes ---
 
     // Riemann Problem
-    NumericalFlux_Gudonov( uCF_L[1], uCF_R[1], P_L, P_R, lam_L, lam_R,
-                           Flux_U[iX], Flux_P[iX] );
+    NumericalFlux_Gudonov( uCF_L(1), uCF_R(1), P_L, P_R, lam_L, lam_R,
+                           Flux_U(iX), Flux_P(iX) );
 
     // TODO: Clean This Up
-    dFlux_num( 0, iX ) = -Flux_U[iX];
-    dFlux_num( 1, iX ) = +Flux_P[iX];
-    dFlux_num( 2, iX ) = +Flux_U[iX] * Flux_P[iX];
+    dFlux_num( 0, iX ) = -Flux_U(iX);
+    dFlux_num( 1, iX ) = +Flux_P(iX);
+    dFlux_num( 2, iX ) = +Flux_U(iX) * Flux_P(iX);
   }
+  // });
 
   // --- Surface Term ---
-  // #pragma omp parallel for private( Poly_L, Poly_R, X_L, X_R, SqrtGm_L, SqrtGm_R )
-  Kokkos::parallel_for( 3, KOKKOS_LAMBDA ( unsigned int iCF ) {
-  // for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  Kokkos::parallel_for( "Surface Term", 3, KOKKOS_LAMBDA ( unsigned int iCF ) {
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < order; k++ )
       {
@@ -109,7 +102,7 @@ void ComputeIncrement_Fluid_Divergence(
   });
 
   // --- Compute Flux_q everywhere for the Volume term ---
-  // #pragma omp parallel for private( P )
+  Kokkos::parallel_for( 3, KOKKOS_LAMBDA ( unsigned int iCF ) {
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int iN = 0; iN < nNodes; iN++ )
@@ -121,12 +114,12 @@ void ComputeIncrement_Fluid_Divergence(
         Flux_q( iCF, iX, iN ) =
             Flux_Fluid( Basis.BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
       }
+  });
+      
 
   // --- Volume Term ---
 
-  // #pragma omp parallel for
   Kokkos::parallel_for( 3, KOKKOS_LAMBDA ( unsigned int iCF ) {
-  // for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < order; k++ )
       {
@@ -148,8 +141,8 @@ void ComputeIncrement_Fluid_Divergence(
 /**
  * Compute fluid increment from geometry in spherical symmetry
  **/
-void ComputeIncrement_Fluid_Geometry( DataStructure3D& U, GridStructure& Grid,
-                                      ModalBasis& Basis, DataStructure3DType& dU )
+void ComputeIncrement_Fluid_Geometry( Kokkos::View<double***> U, GridStructure& Grid,
+                                      ModalBasis& Basis, Kokkos::View<double***> dU )
 {
   const unsigned int nNodes = Grid.Get_nNodes( );
   const unsigned int order  = Basis.Get_Order( );
@@ -198,11 +191,11 @@ void ComputeIncrement_Fluid_Geometry( DataStructure3D& U, GridStructure& Grid,
  * BC               : (string) boundary condition type
  **/
 void Compute_Increment_Explicit(
-    DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
-    DataStructure3DType& dU, DataStructure3D& Flux_q, DataStructure2D& dFlux_num,
-    DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R,
-    std::vector<double>& Flux_U, std::vector<double>& Flux_P,
-    std::vector<double> uCF_L, std::vector<double> uCF_R, const std::string BC )
+    Kokkos::View<double***> U, GridStructure& Grid, ModalBasis& Basis,
+    Kokkos::View<double***> dU, Kokkos::View<double***> Flux_q, Kokkos::View<double**> dFlux_num,
+    Kokkos::View<double**> uCF_F_L, Kokkos::View<double**> uCF_F_R,
+    Kokkos::View<double*> Flux_U, Kokkos::View<double*> Flux_P, 
+    const std::string BC )
 {
 
   const unsigned int order = Basis.Get_Order( );
@@ -218,7 +211,7 @@ void Compute_Increment_Explicit(
   // --- Compute Increment for new solution ---
 
   // --- First: Zero out dU  ---
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  Kokkos::parallel_for( 3, KOKKOS_LAMBDA ( unsigned int iCF ) {
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
     {
       for ( unsigned int k = 0; k < order; k++ )
@@ -226,24 +219,24 @@ void Compute_Increment_Explicit(
         dU( iCF, iX, k ) = 0.0;
       }
     }
+  });
+
   // #pragma omp parallel for
-  for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
-  {
-    Flux_U[iX] = 0.0;
-  }
+  Kokkos::parallel_for( ihi + 1, KOKKOS_LAMBDA ( unsigned int iX ) {
+    Flux_U(iX) = 0.0;
+  });
 
   // --- Fluid Increment : Divergence ---
   ComputeIncrement_Fluid_Divergence( U, Grid, Basis, dU, Flux_q, dFlux_num,
-                                     uCF_F_L, uCF_F_R, Flux_U, Flux_P, uCF_L,
-                                     uCF_R );
+                                     uCF_F_L, uCF_F_R, Flux_U, Flux_P );
 
-  // #pragma omp parallel for
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  Kokkos::parallel_for( 3, KOKKOS_LAMBDA ( unsigned int iCF ) {
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < order; k++ )
       {
         dU( iCF, iX, k ) /= ( Basis.Get_MassMatrix( iX, k ) );
       }
+  });
 
   // --- Increment from Geometry ---
   if ( Grid.DoGeometry( ) )

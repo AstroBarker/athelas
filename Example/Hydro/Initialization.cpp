@@ -10,8 +10,9 @@
 #include <math.h> /* sin */
 #include <string>
 
+#include "Kokkos_Core.hpp"
+
 #include "Constants.h"
-#include "DataStructures.h"
 #include "Error.h"
 #include "Grid.h"
 #include "Initialization.h"
@@ -21,7 +22,7 @@
  * TODO: For now I initialize constant on each cell. Is there a better way?
  * TODO: iNodeX and order separation
  **/
-void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
+void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
                        GridStructure& Grid, const unsigned int pOrder,
                        const double GAMMA_IDEAL, const std::string ProblemName )
 {

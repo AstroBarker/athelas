@@ -14,7 +14,6 @@
 
 #include "Kokkos_Core.hpp"
 
-#include "DataStructures.h"
 #include "Grid.h"
 #include "BoundaryConditionsLibrary.h"
 #include "SlopeLimiter.h"
@@ -24,14 +23,12 @@
 #include "FluidUtilities.h"
 #include "Timestepper.h"
 #include "Error.h"
-#include "Timer.h"
 #include "Driver.h"
 
 int main( int argc, char* argv[] )
 {
   // --- Timer ---
-  Timer timer;
-  timer.start( );
+  Kokkos::Timer timer;
 
   /* --- Problem Parameters --- */
   const std::string ProblemName = "Sod";
@@ -67,10 +64,10 @@ int main( int argc, char* argv[] )
   GridStructure Grid( nNodes, nX, nGuard, xL, xR, Geometry );
 
   // --- Create the data structures ---
-  DataStructure3D uCF( 3, nX + 2 * nGuard, order );
-  DataStructure3D uPF( 3, nX + 2 * nGuard, nNodes );
+  Kokkos::View<double***> uCF( "uCF", 3, nX + 2 * nGuard, order );
+  Kokkos::View<double***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes );
 
-  DataStructure3D uAF( 3, nX + 2 * nGuard, order );
+  Kokkos::View<double***> uAF( "uAF", 3, nX + 2 * nGuard, order );
 
   if ( not Restart )
   {
@@ -136,8 +133,8 @@ int main( int argc, char* argv[] )
   }
 
   // --- Finalize timer ---
-  timer.stop( );
-  std::printf( "Done! Elapsed time: %f seconds.\n", timer.elapsedSeconds( ) );
+  double time = timer.seconds();
+  std::printf( "Done! Elapsed time: %f seconds.\n", time );
   ApplyBC_Fluid( uCF, Grid, order, BC );
   WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName );
 
