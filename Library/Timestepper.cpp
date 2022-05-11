@@ -211,8 +211,6 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
   const unsigned int ilo   = Grid.Get_ilo( );
   const unsigned int ihi   = Grid.Get_ihi( );
 
-  // double sum_x = 0.0;
-
   unsigned short int i;
   Kokkos::parallel_for(
       3, KOKKOS_LAMBDA( unsigned int iCF ) {
@@ -233,6 +231,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
             U_s( 0, iCF, iX, k ) = U( iCF, iX, k );
           }
       } );
+
   Grid_s[0] = Grid;
   // StageData holds left interface positions
   Kokkos::parallel_for(
@@ -290,7 +289,6 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
           } );
     }
 
-    // U_s[iS]       = SumVar_U;
     Kokkos::parallel_for(
         3, KOKKOS_LAMBDA( unsigned int iCF ) {
           for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
@@ -299,7 +297,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
               U_s( iS, iCF, iX, k ) = SumVar_U( iCF, iX, k );
             }
         } );
-    // StageData[iS] = SumVar_X;
+
     auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
     Grid_s[iS].UpdateGrid( StageDataj );
 
@@ -307,7 +305,6 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
     // S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], Basis );
   }
 
-  // U = U_s[nStages - 0];
   Kokkos::parallel_for(
       3, KOKKOS_LAMBDA( unsigned int iCF ) {
         for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )

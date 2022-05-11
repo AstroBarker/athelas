@@ -16,7 +16,6 @@
 #include <math.h>    /* pow */
 #include <cstdlib>   /* abs */
 
-// #include "DataStructures.h"
 #include "Grid.h"
 #include "LinearAlgebraModules.h"
 #include "QuadratureLibrary.h"
