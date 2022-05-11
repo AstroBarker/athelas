@@ -156,10 +156,9 @@ double ComputeTimestep_Fluid( Kokkos::View<double***> U, GridStructure& Grid,
             ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
         double eigval = Cs;
 
-        lmin = std::abs( dr ) / std::abs( eigval );
+        double dt_old = std::abs( dr ) / std::abs( eigval );
 
-        lmin          = std::min( lmin, dt_old );
-        double dt_old = lmin;
+        if ( dt_old < lmin ) lmin = dt_old;
       },
       Kokkos::Min<double>( dt ) );
 
