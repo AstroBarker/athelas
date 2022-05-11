@@ -1,4 +1,5 @@
-# athelas (A radiaTion-Hydrodynamics codE for modeLing supernovA Systems (WIP) )
+# athelas (A radiaTion-Hydrodynamics codE for modeLing sphericAl Supernovae )
+
 <p align="center">sypherically symmetric Lagrangian radiation-hydrodynamics solver written in C++ </p>
 
 <p align="center">
