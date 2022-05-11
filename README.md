@@ -5,11 +5,18 @@
 <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL-blue.svg"></a>
 </p>
 
-Currently, `athelas` solves the 1D Cartesian Lagrangian equation of non-relativistic hydrodynamics using a discontinuous Galerkin scheme. 
-It will be extended to spherical symmetry, special relativistic hydrodynamics.
+Currently, `athelas` solves the 1D Lagrangian equation of non-relativistic hydrodynamics using a discontinuous Galerkin scheme. It includes planar geometry and spherical symmetry.
+It will be extended to special relativistic hydrodynamics.
 For now, it includes an ideal gas equation of state.
 
-Future work will implement a finite element Poisson solver for Gravity and multiground flux-limited diffusion for radiation.
+Future work will implement gravity and multigroup two moment radiation.
+
+
+# In Progress: Kokkos
+We use Kokkos for parallelism. 
+Currently, most significant data structures use `Kokkos::Views` and loops are parallelised with Kokkos.
+More work to port other parts of the code.
+You need to install Kokkos (instructions will be included in time).
 
 # Installation:
 `athelas` is installed using cmake. From the root directory of `athelas`, run the following:
@@ -23,22 +30,15 @@ cmake --build .
 This will create a directory `bin` in the root directory that contains the executable.
 
 ## NOTE: 
-The build system may not be perfect yet. I have hard coded in paths to my libraries for HDF5, LAPACK, and BLAS as cmake had some issues finding them. You may overwrite those lines, or comment them out and try to let `find_package()` do the work.
-
-# In Progress: Kokkos
-Porting to Kokkos to handle data structures and parallelism.
-This will increase code complexity, but ultimately improve performance.
-Currently I have a basic compilation and made dU a View object.
-More work to port other objects to Views.
+The build system may not be perfect yet. Your mileage may vary.
 
 
 # Future Work
 
-- We will want to extend beyond the minmod limiter to something which allows us to retain high order information.
+- Grey M1 radiation
 - Relativistic hydro
-- Parallelism
-- Poisson solver
-- Multigroup flux-limited diffusion
+- Gravity
+- Multigroup radiation
 
 
 # BUGS: 
@@ -47,6 +47,7 @@ More work to port other objects to Views.
 - [x] Issues with Characteristic Limiting
 
 # Dependencies
+* Kokkos
 * LAPACKE
 * cBLAS
 * HDF5
@@ -65,33 +66,10 @@ Simply call `Tools/Bash/format.sh` to format the `.h` and `.cpp` files.
 
 
 # TODO: Transitioning to modal basis
- - [x] 4th order timestepper
  - [ ] Output overhaul - write basis terms and all coefficients
-   - partially done
- - [x] Write Taylor functions
- - [x] Write functions to orthogonalize them
-
- - [x] Separate out nNodes from order where they should be distinct.
-    - Broken
- - [x] We need to replace instances of Lagrange with Taylor, etc
-    - [x] SlopeLimiter needs changes, FluidDiscretization... 
-    - [x] Initialization?
-    - [x] Node Coordinate? Grid?
- - [x] Fix BoundaryConditions
 
 # TODO:
  - [ ] Initialize with input file at runtime
- - [ ] Create DataStructure1D?
- - [x] **We need a build system....**
- - [x] TimeStepper class (main purpose: hold U_s, SumVar, etc)
- - [x] Update Grid to depend opn GridStructures
- - [x] Start with Lagrange and Legendre polynomial bases
-    - [x] We need to put in LG (and LGL) quadratures.
-- [x] Make directory for test problem and setup
-- [x] Use LAPACKE for lapack calls (more portable)
-- [x] Add UpdateGrid()
-- [x] Add SlopeLimiter
-- [x] Add TroubledCellIndicator
 
 ## Reader
  - [ ] Need to extend Reader to compute solution at arbitrary points using basis
