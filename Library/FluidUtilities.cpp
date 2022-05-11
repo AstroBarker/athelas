@@ -140,40 +140,34 @@ double ComputeTimestep_Fluid( Kokkos::View<double***> U, GridStructure& Grid,
   const unsigned int ilo = Grid.Get_ilo( );
   const unsigned int ihi = Grid.Get_ihi( );
 
-  double Cs     = 0.0;
-  double eigval = 0.0;
-
-  // hold cell averages
-  double tau_x  = 0.0;
-  double vel_x  = 0.0;
-  double eint_x = 0.0;
-
-  double dr = 0.0;
 
   double dt = 0.0;
 
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-  {
+  Kokkos::parallel_reduce( "Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ), 
+    KOKKOS_LAMBDA (const int& iX, double& lmin) {
+  // for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  // {
 
     // --- Compute Cell Averages ---
-    tau_x  = U( 0, iX, 0 );
-    vel_x  = U( 1, iX, 0 );
-    eint_x = U( 2, iX, 0 );
+    double tau_x  = U( 0, iX, 0 );
+    double vel_x  = U( 1, iX, 0 );
+    double eint_x = U( 2, iX, 0 );
 
-    dr = Grid.Get_Widths( iX );
+    double dr = Grid.Get_Widths( iX );
 
-    Cs     = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
-    eigval = Cs;
+    double Cs     = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
+    double eigval = Cs;
 
-    dt = std::abs( dr ) / std::abs( eigval );
+    lmin = std::abs( dr ) / std::abs( eigval );
 
-    dt     = std::min( dt, dt_old );
-    dt_old = dt;
-  }
+    lmin     = std::min( lmin, dt_old );
+    double dt_old = lmin;
+  }, Kokkos::Min<double>(dt));
 
   dt = std::max( CFL * dt, MIN_DT );
   dt = std::min( dt, MAX_DT );
 
+  // Triggers on NaN
   if ( dt != dt )
   {
     throw Error( "nan encountered in ComputeTimestep.\n" );
