@@ -301,7 +301,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
     auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
     Grid_s[iS].UpdateGrid( StageDataj );
 
-    // ! This will give poor performance. Why? !
+    // ! This will give poor performance. Why? ! But also helps with Sedov..
     // S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], Basis );
   }
 

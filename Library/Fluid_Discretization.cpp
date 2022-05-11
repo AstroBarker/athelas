@@ -143,6 +143,7 @@ void ComputeIncrement_Fluid_Divergence(
             dU( iCF, iX, k ) += local_sum;
           }
       } );
+
 }
 
 /**

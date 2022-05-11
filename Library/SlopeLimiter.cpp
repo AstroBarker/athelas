@@ -61,24 +61,23 @@ void SlopeLimiter::DetectTroubledCells( Kokkos::View<double***> U,
   double cell_avg_L   = 0.0;
   double cell_avg_R   = 0.0;
 
-  // #pragma parallel for
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
     {
 
       if ( iCF == 1 ) continue; /* skip velocit */
 
-      result   = 0.0;
-      cell_avg = U( iCF, iX, 0 );
+      double result   = 0.0;
+      double cell_avg = U( iCF, iX, 0 );
 
       // Extrapolate neighboring poly representations into current cell
       // and compute the new cell averages
-      cell_avg_L_T =
+      double cell_avg_L_T =
           CellAverage( U, Grid, Basis, iCF, iX + 1, -1 ); // from right
-      cell_avg_R_T =
+      double cell_avg_R_T =
           CellAverage( U, Grid, Basis, iCF, iX - 1, +1 ); // from left
-      cell_avg_L = U( iCF, iX - 1, 0 );                   // native left
-      cell_avg_R = U( iCF, iX + 1, 0 );                   // native right
+      double cell_avg_L = U( iCF, iX - 1, 0 );                   // native left
+      double cell_avg_R = U( iCF, iX + 1, 0 );                   // native right
 
       result += ( std::abs( cell_avg - cell_avg_L_T ) +
                   std::abs( cell_avg - cell_avg_R_T ) );
@@ -123,7 +122,9 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
       if ( D( iCF, iX ) > TCI_Threshold && TCI_Option )
+      {
         j++; // ! What is the appropriate data layout for D !
+      }
     }
 
     if ( j == 0 && TCI_Option ) continue;
@@ -253,6 +254,8 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
         U( iCF, iX, 1 ) = dU[iCF];
         if ( order >= 3 ) U( iCF, iX, 2 ) = d2U[iCF];
       }
+      /* Note we have limited this cell */
+      LimitedCell[iX] = 1;
     }
   }
 }
