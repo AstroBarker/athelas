@@ -16,7 +16,6 @@
 #include <math.h>    /* pow */
 #include <cstdlib>   /* abs */
 
-#include "DataStructures.h"
 #include "Grid.h"
 #include "LinearAlgebraModules.h"
 #include "QuadratureLibrary.h"
@@ -28,14 +27,14 @@
  * Constructor creates necessary matrices and bases, etc.
  * This has to be called after the problem is initialized.
  **/
-ModalBasis::ModalBasis( DataStructure3D& uPF, GridStructure& Grid,
+ModalBasis::ModalBasis( Kokkos::View<double***> uPF, GridStructure& Grid,
                         unsigned int pOrder, unsigned int nN,
                         unsigned int nElements, unsigned int nGuard )
     : nX( nElements ), order( pOrder ), nNodes( nN ),
       mSize( ( nN ) * ( nN + 2 ) * ( nElements + 2 * nGuard ) ),
-      MassMatrix( nElements + 2 * nGuard, pOrder ),
-      Phi( nElements + 2 * nGuard, 3 * nN + 2, pOrder ),
-      dPhi( nElements + 2 * nGuard, 3 * nN + 2, pOrder )
+      MassMatrix( "MassMatrix", nElements + 2 * nGuard, pOrder ),
+      Phi( "Phi", nElements + 2 * nGuard, 3 * nN + 2, pOrder ),
+      dPhi( "dPhi", nElements + 2 * nGuard, 3 * nN + 2, pOrder )
 {
   // --- Compute grid quantities ---
   Grid.ComputeMass( uPF );
@@ -117,7 +116,8 @@ double ModalBasis::dTaylor( unsigned int order, double eta, double eta_c )
  **/
 double ModalBasis::InnerProduct( unsigned int m, unsigned int n,
                                  unsigned int iX, double eta_c,
-                                 DataStructure3D& uPF, GridStructure& Grid )
+                                 Kokkos::View<double***> uPF,
+                                 GridStructure& Grid )
 {
   double result = 0.0;
   double eta_q  = 0.0;
@@ -142,7 +142,8 @@ double ModalBasis::InnerProduct( unsigned int m, unsigned int n,
  * <f,g> = \sum_q \rho_q f_q g_q j^0 w_q
  **/
 double ModalBasis::InnerProduct( unsigned int n, unsigned int iX, double eta_c,
-                                 DataStructure3D& uPF, GridStructure& Grid )
+                                 Kokkos::View<double***> uPF,
+                                 GridStructure& Grid )
 {
   double result = 0.0;
   double X      = 0.0;
@@ -162,8 +163,8 @@ double ModalBasis::InnerProduct( unsigned int n, unsigned int iX, double eta_c,
 // TODO: OrthoTaylor: Clean up derivative options?
 double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
                                 unsigned int i_eta, double eta, double eta_c,
-                                DataStructure3D& uPF, GridStructure& Grid,
-                                bool derivative_option )
+                                Kokkos::View<double***> uPF,
+                                GridStructure& Grid, bool derivative_option )
 {
 
   double result      = 0.0;
@@ -207,7 +208,7 @@ double ModalBasis::OrthoTaylor( unsigned int order, unsigned int iX,
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
  **/
-void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
+void ModalBasis::InitializeTaylorBasis( Kokkos::View<double***> uPF,
                                         GridStructure& Grid )
 {
   const unsigned int n_eta = 3 * nNodes + 2;
@@ -282,7 +283,7 @@ void ModalBasis::InitializeTaylorBasis( DataStructure3D& uPF,
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
  **/
-void ModalBasis::InitializeLegendreBasis( DataStructure3D& uPF,
+void ModalBasis::InitializeLegendreBasis( Kokkos::View<double***> uPF,
                                           GridStructure& Grid )
 {
   const unsigned int n_eta = 3 * nNodes + 2;
@@ -351,7 +352,8 @@ void ModalBasis::InitializeLegendreBasis( DataStructure3D& uPF,
  * The following checks orthogonality of basis functions on each cell.
  * Returns error if orthogonality is not met.
  **/
-void ModalBasis::CheckOrthogonality( DataStructure3D& uPF, GridStructure& Grid )
+void ModalBasis::CheckOrthogonality( Kokkos::View<double***> uPF,
+                                     GridStructure& Grid )
 {
 
   const unsigned int ilo = Grid.Get_ilo( );
@@ -393,7 +395,8 @@ void ModalBasis::CheckOrthogonality( DataStructure3D& uPF, GridStructure& Grid )
  * ? If so, how do I expand this ?
  * ? I would need to compute and store more GL nodes, weights ?
  **/
-void ModalBasis::ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid )
+void ModalBasis::ComputeMassMatrix( Kokkos::View<double***> uPF,
+                                    GridStructure& Grid )
 {
   const unsigned int ilo    = Grid.Get_ilo( );
   const unsigned int ihi    = Grid.Get_ihi( );
@@ -423,7 +426,7 @@ void ModalBasis::ComputeMassMatrix( DataStructure3D& uPF, GridStructure& Grid )
  * Evaluate (modal) basis on element iX for quantity iCF.
  * If DerivativeOption is true, evaluate the derivative.
  **/
-double ModalBasis::BasisEval( DataStructure3D& U, unsigned int iX,
+double ModalBasis::BasisEval( Kokkos::View<double***> U, unsigned int iX,
                               unsigned int iCF, unsigned int i_eta,
                               bool DerivativeOption ) const
 {

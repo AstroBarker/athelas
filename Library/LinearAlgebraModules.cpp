@@ -15,41 +15,6 @@
 #include "lapacke.h"
 #include <cblas.h>
 
-/**
- * Construct an n by m matrix allocated on the heap.
- *
- * Parameters:
- *
- *   int rows
- *   int cols
- **/
-// ! Flag For Removal: Replaced !
-double** AllocateMatrix( int rows, int cols )
-{
-  double** mat;
-  mat = new double*[rows];
-  for ( int i = 0; i < rows; i++ )
-  {
-    mat[i] = new double[cols];
-  }
-  return mat;
-}
-
-/**
- * Deallocate array memory.
- */
-// ! Flag For Removal: Replaced !
-void DeallocateMatrix( double** A, int rows )
-{
-  // Deallocate each sub-array
-  for ( int i = 0; i < rows; ++i )
-  {
-    delete[] A[i];
-  }
-  // Deallocate the array of pointers
-  delete[] A;
-}
-
 // Fill identity matrix
 void IdentityMatrix( double* Mat, unsigned int n )
 {

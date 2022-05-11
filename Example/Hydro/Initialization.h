@@ -1,7 +1,7 @@
 #ifndef INITIALIZATION_H
 #define INITIALIZATION_H
 
-void InitializeFields( DataStructure3D& uCF, DataStructure3D& uPF,
+void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
                        GridStructure& Grid, const unsigned int pOrder,
                        const double GAMMA_IDEAL,
                        const std::string ProblemName );

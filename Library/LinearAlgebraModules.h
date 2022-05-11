@@ -1,8 +1,6 @@
 #ifndef LINEARALGEBRAMODULES_H
 #define LINEARALGEBRAMODULES_H
 
-double** AllocateMatrix( int n, int m );
-void DeallocateMatrix( double** A, int rows );
 void IdentityMatrix( double* Mat, unsigned int n );
 double** matmul( double** A, double** B, int rows_A, int cols_A, int rows_B,
                  int cols_B );

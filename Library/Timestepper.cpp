@@ -9,11 +9,8 @@
 #include <iostream>
 #include <vector>
 
-#include "omp.h"
-
 #include "Error.h"
 #include "Grid.h"
-#include "DataStructures.h"
 #include "SlopeLimiter.h"
 #include "Fluid_Discretization.h"
 #include "PolynomialBasis.h"
@@ -27,20 +24,20 @@ TimeStepper::TimeStepper( unsigned int nS, unsigned int tO, unsigned int pOrder,
                           GridStructure& Grid, bool Geometry,
                           std::string BCond )
     : mSize( Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) ), nStages( nS ),
-      tOrder( tO ), BC( BCond ), a_jk( nStages, nStages ),
-      b_jk( nStages, nStages ), SumVar_U( 3, mSize + 1, pOrder ),
-      SumVar_X( mSize + 1, 0.0 ),
-      U_s( nStages + 1, DataStructure3D( 3, mSize, pOrder ) ),
-      dU_s( nStages + 1, DataStructure3D( 3, mSize, pOrder ) ),
+      tOrder( tO ), BC( BCond ), a_jk( "RK a_jk", nStages, nStages ),
+      b_jk( "RK b_jk", nStages, nStages ), SumVar_X( "SumVar_X", mSize + 1 ),
+      U_s( "U_s", nStages + 1, 3, mSize + 1, pOrder ),
+      dU_s( "dU_s", nStages + 1, 3, mSize + 1, pOrder ),
+      SumVar_U( "SumVar_U", 3, mSize + 1, pOrder ),
       Grid_s( nStages + 1,
               GridStructure( Grid.Get_nNodes( ), Grid.Get_nElements( ),
                              Grid.Get_Guard( ), Grid.Get_xL( ), Grid.Get_xR( ),
                              Geometry ) ),
-      StageData( nStages + 1, std::vector<double>( mSize + 1, 0.0 ) ),
-      Flux_q( 3, mSize + 1, Grid.Get_nNodes( ) ), dFlux_num( 3, mSize + 1 ),
-      uCF_F_L( 3, mSize ), uCF_F_R( 3, mSize ),
-      Flux_U( nStages + 1, std::vector<double>( mSize + 1, 0.0 ) ),
-      Flux_P( mSize + 1, 0.0 ), uCF_L( 3, 0.0 ), uCF_R( 3, 0.0 )
+      StageData( "StageData", nStages + 1, mSize + 1 ),
+      Flux_q( "Flux_q", 3, mSize + 1, Grid.Get_nNodes( ) ),
+      dFlux_num( "Numerical Flux", 3, mSize + 1 ),
+      uCF_F_L( "Face L", 3, mSize ), uCF_F_R( "Face R", 3, mSize ),
+      Flux_U( "Flux_U", nStages + 1, mSize + 1 ), Flux_P( "Flux_P", mSize + 1 )
 {
 
   // --- Call Initialization ---
@@ -162,24 +159,42 @@ void TimeStepper::InitializeTimestepper( )
     }
     else if ( tOrder == 4 )
     {
-      a_jk( 0, 0 ) = 1.0;
-      a_jk( 1, 0 ) = 0.44437049406734;
-      a_jk( 2, 0 ) = 0.62010185138540;
-      a_jk( 3, 0 ) = 0.17807995410773;
-      a_jk( 4, 0 ) = 0.00683325884039;
-      a_jk( 1, 1 ) = 0.55562950593266;
-      a_jk( 2, 2 ) = 0.37989814861460;
-      a_jk( 4, 2 ) = 0.51723167208978;
-      a_jk( 3, 3 ) = 0.82192004589227;
-      a_jk( 4, 3 ) = 0.12759831133288;
-      a_jk( 4, 4 ) = 0.34833675773694;
+      // a_jk( 0, 0 ) = 1.0;
+      // a_jk( 1, 0 ) = 0.44437049406734;
+      // a_jk( 2, 0 ) = 0.62010185138540;
+      // a_jk( 3, 0 ) = 0.17807995410773;
+      // a_jk( 4, 0 ) = 0.00683325884039;
+      // a_jk( 1, 1 ) = 0.55562950593266;
+      // a_jk( 2, 2 ) = 0.37989814861460;
+      // a_jk( 4, 2 ) = 0.51723167208978;
+      // a_jk( 3, 3 ) = 0.82192004589227;
+      // a_jk( 4, 3 ) = 0.12759831133288;
+      // a_jk( 4, 4 ) = 0.34833675773694;
 
-      b_jk( 0, 0 ) = 0.39175222700392;
-      b_jk( 1, 1 ) = 0.36841059262959;
-      b_jk( 2, 2 ) = 0.25189177424738;
-      b_jk( 3, 3 ) = 0.54497475021237;
-      b_jk( 4, 3 ) = 0.08460416338212;
-      b_jk( 4, 4 ) = 0.22600748319395;
+      // b_jk( 0, 0 ) = 0.39175222700392;
+      // b_jk( 1, 1 ) = 0.36841059262959;
+      // b_jk( 2, 2 ) = 0.25189177424738;
+      // b_jk( 3, 3 ) = 0.54497475021237;
+      // b_jk( 4, 3 ) = 0.08460416338212;
+      // b_jk( 4, 4 ) = 0.22600748319395;
+      a_jk( 0, 0 ) = 1.0;
+      a_jk( 1, 0 ) = 0.444370493651235;
+      a_jk( 2, 0 ) = 0.620101851488403;
+      a_jk( 3, 0 ) = 0.178079954393132;
+      a_jk( 4, 0 ) = 0.000000000000000;
+      a_jk( 1, 1 ) = 0.555629506348765;
+      a_jk( 2, 2 ) = 0.379898148511597;
+      a_jk( 4, 2 ) = 0.517231671970585;
+      a_jk( 3, 3 ) = 0.821920045606868;
+      a_jk( 4, 3 ) = 0.096059710526147;
+      a_jk( 4, 4 ) = 0.386708617503269;
+
+      b_jk( 0, 0 ) = 0.391752226571890;
+      b_jk( 1, 1 ) = 0.368410593050371;
+      b_jk( 2, 2 ) = 0.251891774271694;
+      b_jk( 3, 3 ) = 0.544974750228521;
+      b_jk( 4, 3 ) = 0.063692468666290;
+      b_jk( 4, 4 ) = 0.226007483236906;
     }
   }
 }
@@ -188,7 +203,7 @@ void TimeStepper::InitializeTimestepper( )
  * Update Solution with SSPRK methods
  **/
 void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
-                               DataStructure3D& U, GridStructure& Grid,
+                               Kokkos::View<double***> U, GridStructure& Grid,
                                ModalBasis& Basis, SlopeLimiter& S_Limiter )
 {
 
@@ -196,66 +211,108 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
   const unsigned int ilo   = Grid.Get_ilo( );
   const unsigned int ihi   = Grid.Get_ihi( );
 
-  // double sum_x = 0.0;
-
   unsigned short int i;
+  Kokkos::parallel_for(
+      3, KOKKOS_LAMBDA( unsigned int iCF ) {
+        for ( unsigned int iX = 0; iX < SumVar_U.extent( 1 ); iX++ )
+        {
+          for ( unsigned int k = 0; k < order; k++ )
+          {
+            SumVar_U( iCF, iX, k ) = 0.0;
+          }
+        }
+      } );
 
-  SumVar_U.zero( );
+  Kokkos::parallel_for(
+      3, KOKKOS_LAMBDA( unsigned int iCF ) {
+        for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
+          for ( unsigned int k = 0; k < order; k++ )
+          {
+            U_s( 0, iCF, iX, k ) = U( iCF, iX, k );
+          }
+      } );
 
-  U_s[0]    = U;
   Grid_s[0] = Grid;
   // StageData holds left interface positions
-  for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
-  {
-    StageData[0][iX] = Grid.Get_LeftInterface( iX );
-  }
+  Kokkos::parallel_for(
+      ihi + 2, KOKKOS_LAMBDA( unsigned int iX ) {
+        StageData( 0, iX ) = Grid.Get_LeftInterface( iX );
+      } );
 
   for ( unsigned short int iS = 1; iS <= nStages; iS++ )
   {
     i = iS - 1;
     // re-zero the summation variables `SumVar`
-    SumVar_U.zero( );
+    Kokkos::parallel_for(
+        3, KOKKOS_LAMBDA( unsigned int iCF ) {
+          for ( unsigned int iX = 0; iX < SumVar_U.extent( 1 ); iX++ )
+          {
+            for ( unsigned int k = 0; k < order; k++ )
+            {
+              SumVar_U( iCF, iX, k ) = 0.0;
+            }
+          }
+        } );
 
-    for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
-    {
-      SumVar_X[iX] = 0.0;
-    }
+    Kokkos::parallel_for(
+        ihi + 2, KOKKOS_LAMBDA( unsigned int iX ) { SumVar_X( iX ) = 0.0; } );
 
     // --- Inner update loop ---
 
     for ( unsigned int j = 0; j < iS; j++ )
     {
-      ComputeIncrement( U_s[j], Grid_s[j], Basis, dU_s[j], Flux_q, dFlux_num,
-                        uCF_F_L, uCF_F_R, Flux_U[j], Flux_P, uCF_L, uCF_R, BC );
+      auto Usj =
+          Kokkos::subview( U_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
+      auto dUsj =
+          Kokkos::subview( dU_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
+      auto Flux_Uj = Kokkos::subview( Flux_U, j, Kokkos::ALL );
+      ComputeIncrement( Usj, Grid_s[j], Basis, dUsj, Flux_q, dFlux_num, uCF_F_L,
+                        uCF_F_R, Flux_Uj, Flux_P, BC );
 
       // inner sum
-      #pragma omp parallel for
-      for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-        for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
-          for ( unsigned int k = 0; k < order; k++ )
-          {
-            SumVar_U( iCF, iX, k ) += a_jk( i, j ) * U_s[j]( iCF, iX, k ) +
-                                      dt * b_jk( i, j ) * dU_s[j]( iCF, iX, k );
-          }
+      Kokkos::parallel_for(
+          3, KOKKOS_LAMBDA( unsigned int iCF ) {
+            for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
+              for ( unsigned int k = 0; k < order; k++ )
+              {
+                SumVar_U( iCF, iX, k ) +=
+                    a_jk( i, j ) * U_s( j, iCF, iX, k ) +
+                    dt * b_jk( i, j ) * dU_s( j, iCF, iX, k );
+              }
+          } );
 
-      #pragma omp parallel for
-      for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
-      {
-        // std::printf("%d %f %f\n", iX, StageData[j][iX], Flux_U[j][iX] );
-        SumVar_X[iX] +=
-            a_jk( i, j ) * StageData[j][iX] + dt * b_jk( i, j ) * Flux_U[j][iX];
-      }
+      Kokkos::parallel_for(
+          ihi + 2, KOKKOS_LAMBDA( unsigned int iX ) {
+            SumVar_X( iX ) += a_jk( i, j ) * StageData( j, iX ) +
+                              dt * b_jk( i, j ) * Flux_U( j, iX );
+            StageData( iS, iX ) = SumVar_X( iX );
+          } );
     }
 
-    U_s[iS]       = SumVar_U;
-    StageData[iS] = SumVar_X;
-    Grid_s[iS].UpdateGrid( StageData[iS] );
+    Kokkos::parallel_for(
+        3, KOKKOS_LAMBDA( unsigned int iCF ) {
+          for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
+            for ( unsigned int k = 0; k < order; k++ )
+            {
+              U_s( iS, iCF, iX, k ) = SumVar_U( iCF, iX, k );
+            }
+        } );
+
+    auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
+    Grid_s[iS].UpdateGrid( StageDataj );
 
     // ! This will give poor performance. Why? ! But also helps with Sedov..
     // S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], Basis );
   }
 
-  U = U_s[nStages - 0];
+  Kokkos::parallel_for(
+      3, KOKKOS_LAMBDA( unsigned int iCF ) {
+        for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
+          for ( unsigned int k = 0; k < order; k++ )
+          {
+            U( iCF, iX, k ) = U_s( nStages, iCF, iX, k );
+          }
+      } );
 
   Grid = Grid_s[nStages];
   S_Limiter.ApplySlopeLimiter( U, Grid, Basis );

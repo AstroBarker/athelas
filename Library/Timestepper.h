@@ -9,12 +9,11 @@
  * Purpose  : Class for SSPRK timestepping
  **/
 
-typedef void myFuncType( DataStructure3D&, GridStructure&, ModalBasis&,
-                         DataStructure3D&, DataStructure3D&, DataStructure2D&,
-                         DataStructure2D&, DataStructure2D&,
-                         std::vector<double>&, std::vector<double>&,
-                         std::vector<double>, std::vector<double>,
-                         const std::string );
+typedef void myFuncType( Kokkos::View<double***>, GridStructure&, ModalBasis&,
+                         Kokkos::View<double***>, Kokkos::View<double***>,
+                         Kokkos::View<double**>, Kokkos::View<double**>,
+                         Kokkos::View<double**>, Kokkos::View<double*>,
+                         Kokkos::View<double*>, const std::string );
 
 class TimeStepper
 {
@@ -26,9 +25,9 @@ class TimeStepper
 
   void InitializeTimestepper( );
 
-  void UpdateFluid( myFuncType ComputeIncrement, double dt, DataStructure3D& U,
-                    GridStructure& Grid, ModalBasis& Basis,
-                    SlopeLimiter& S_Limiter );
+  void UpdateFluid( myFuncType ComputeIncrement, double dt,
+                    Kokkos::View<double***> U, GridStructure& Grid,
+                    ModalBasis& Basis, SlopeLimiter& S_Limiter );
 
  private:
   const unsigned int mSize;
@@ -37,32 +36,29 @@ class TimeStepper
   const std::string BC;
 
   // SSP coefficients
-  DataStructure2D a_jk;
-  DataStructure2D b_jk;
+  Kokkos::View<double**> a_jk;
+  Kokkos::View<double**> b_jk;
 
   // Summations
-  DataStructure3D SumVar_U;
-  std::vector<double> SumVar_X;
+  Kokkos::View<double***> SumVar_U;
+  Kokkos::View<double*> SumVar_X;
 
   // Hold stage data
-  std::vector<DataStructure3D> U_s;
-  std::vector<DataStructure3D> dU_s;
+  Kokkos::View<double****> U_s;
+  Kokkos::View<double****> dU_s;
   std::vector<GridStructure> Grid_s;
-  std::vector<std::vector<double>> StageData;
+  Kokkos::View<double**> StageData;
   // StageData Holds cell left interface positions
 
   // Variables to pass to update step
-  DataStructure3D Flux_q;
+  Kokkos::View<double***> Flux_q;
 
-  DataStructure2D dFlux_num;
-  DataStructure2D uCF_F_L;
-  DataStructure2D uCF_F_R;
+  Kokkos::View<double**> dFlux_num;
+  Kokkos::View<double**> uCF_F_L;
+  Kokkos::View<double**> uCF_F_R;
 
-  std::vector<std::vector<double>> Flux_U;
-  std::vector<double> Flux_P;
-
-  std::vector<double> uCF_L;
-  std::vector<double> uCF_R;
+  Kokkos::View<double**> Flux_U;
+  Kokkos::View<double*> Flux_P;
 };
 
 #endif

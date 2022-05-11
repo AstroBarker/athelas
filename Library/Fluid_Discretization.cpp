@@ -11,10 +11,9 @@
 #include <algorithm>
 #include <math.h> /* atan */
 
-#include "omp.h"
+#include "Kokkos_Core.hpp"
 
 #include "Error.h"
-#include "DataStructures.h"
 #include "Grid.h"
 #include "PolynomialBasis.h"
 #include "Fluid_Discretization.h"
@@ -25,11 +24,11 @@
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence(
-    DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
-    DataStructure3D& dU, DataStructure3D& Flux_q, DataStructure2D& dFlux_num,
-    DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R,
-    std::vector<double>& Flux_U, std::vector<double>& Flux_P,
-    std::vector<double> uCF_L, std::vector<double> uCF_R )
+    Kokkos::View<double***> U, GridStructure& Grid, ModalBasis& Basis,
+    Kokkos::View<double***> dU, Kokkos::View<double***> Flux_q,
+    Kokkos::View<double**> dFlux_num, Kokkos::View<double**> uCF_F_L,
+    Kokkos::View<double**> uCF_F_R, Kokkos::View<double*> Flux_U,
+    Kokkos::View<double*> Flux_P )
 {
   const unsigned int nNodes = Grid.Get_nNodes( );
   const unsigned int order  = Basis.Get_Order( );
@@ -45,136 +44,143 @@ void ComputeIncrement_Fluid_Divergence(
   // --- Interpolate Conserved Variable to Interfaces ---
 
   // Left/Right face states
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-    #pragma omp parallel for
-    for ( unsigned int iX = ilo; iX <= ihi + 1; iX++ )
-    {
-      uCF_F_L( iCF, iX ) = Basis.BasisEval( U, iX - 1, iCF, nNodes + 1, false );
-      uCF_F_R( iCF, iX ) = Basis.BasisEval( U, iX, iCF, 0, false );
-    }
+  Kokkos::parallel_for(
+      "Surface Term", 3, KOKKOS_LAMBDA( unsigned int iCF ) {
+        for ( unsigned int iX = ilo; iX <= ihi + 1; iX++ )
+        {
+          uCF_F_L( iCF, iX ) =
+              Basis.BasisEval( U, iX - 1, iCF, nNodes + 1, false );
+          uCF_F_R( iCF, iX ) = Basis.BasisEval( U, iX, iCF, 0, false );
+        }
+      } );
 
   // --- Calc numerical flux at all faces
-  // #pragma omp parallel for private( rho_L, rho_R, P_L, P_R, Cs_L, Cs_R,
-  // lam_L, lam_R )
-  for ( unsigned int iX = ilo; iX <= ihi + 1; iX++ )
-  {
-    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-    {
-      uCF_L[iCF] = uCF_F_L( iCF, iX );
-      uCF_R[iCF] = uCF_F_R( iCF, iX );
-    }
+  Kokkos::parallel_for(
+      "Numerical Fluxes", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
+      KOKKOS_LAMBDA( unsigned int iX ) {
+        auto uCF_L = Kokkos::subview( uCF_F_L, Kokkos::ALL, iX );
+        auto uCF_R = Kokkos::subview( uCF_F_R, Kokkos::ALL, iX );
 
-    rho_L = 1.0 / uCF_L[0];
-    rho_R = 1.0 / uCF_R[0];
+        double rho_L = 1.0 / uCF_L( 0 );
+        double rho_R = 1.0 / uCF_R( 0 );
 
-    P_L  = ComputePressureFromConserved_IDEAL( uCF_L[0], uCF_L[1], uCF_L[2] );
-    Cs_L = ComputeSoundSpeedFromConserved_IDEAL( uCF_L[0], uCF_L[1], uCF_L[2] );
-    lam_L = Cs_L * rho_L;
+        double P_L = ComputePressureFromConserved_IDEAL( uCF_L( 0 ), uCF_L( 1 ),
+                                                         uCF_L( 2 ) );
+        double Cs_L = ComputeSoundSpeedFromConserved_IDEAL(
+            uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ) );
+        double lam_L = Cs_L * rho_L;
 
-    P_R  = ComputePressureFromConserved_IDEAL( uCF_R[0], uCF_R[1], uCF_R[2] );
-    Cs_R = ComputeSoundSpeedFromConserved_IDEAL( uCF_R[0], uCF_R[1], uCF_R[2] );
-    lam_R = Cs_R * rho_R;
+        double P_R = ComputePressureFromConserved_IDEAL( uCF_R( 0 ), uCF_R( 1 ),
+                                                         uCF_R( 2 ) );
+        double Cs_R = ComputeSoundSpeedFromConserved_IDEAL(
+            uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ) );
+        double lam_R = Cs_R * rho_R;
 
-    // --- Numerical Fluxes ---
+        // --- Numerical Fluxes ---
 
-    // Riemann Problem
-    NumericalFlux_Gudonov( uCF_L[1], uCF_R[1], P_L, P_R, lam_L, lam_R,
-                           Flux_U[iX], Flux_P[iX] );
+        // Riemann Problem
+        NumericalFlux_Gudonov( uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, lam_L, lam_R,
+                               Flux_U( iX ), Flux_P( iX ) );
 
-    // TODO: Clean This Up
-    dFlux_num( 0, iX ) = -Flux_U[iX];
-    dFlux_num( 1, iX ) = +Flux_P[iX];
-    dFlux_num( 2, iX ) = +Flux_U[iX] * Flux_P[iX];
-  }
+        // TODO: Clean This Up
+        dFlux_num( 0, iX ) = -Flux_U( iX );
+        dFlux_num( 1, iX ) = +Flux_P( iX );
+        dFlux_num( 2, iX ) = +Flux_U( iX ) * Flux_P( iX );
+      } );
 
   // --- Surface Term ---
-  #pragma omp parallel for private( Poly_L, Poly_R, X_L, X_R, SqrtGm_L, SqrtGm_R )
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-      for ( unsigned int k = 0; k < order; k++ )
-      {
+  Kokkos::parallel_for(
+      "Surface Term", 3, KOKKOS_LAMBDA( unsigned int iCF ) {
+        for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+          for ( unsigned int k = 0; k < order; k++ )
+          {
 
-        Poly_L   = Basis.Get_Phi( iX, 0, k );
-        Poly_R   = Basis.Get_Phi( iX, nNodes + 1, k );
-        X_L      = Grid.Get_LeftInterface( iX );
-        X_R      = Grid.Get_LeftInterface( iX + 1 );
-        SqrtGm_L = Grid.Get_SqrtGm( X_L );
-        SqrtGm_R = Grid.Get_SqrtGm( X_R );
+            double Poly_L   = Basis.Get_Phi( iX, 0, k );
+            double Poly_R   = Basis.Get_Phi( iX, nNodes + 1, k );
+            double X_L      = Grid.Get_LeftInterface( iX );
+            double X_R      = Grid.Get_LeftInterface( iX + 1 );
+            double SqrtGm_L = Grid.Get_SqrtGm( X_L );
+            double SqrtGm_R = Grid.Get_SqrtGm( X_R );
 
-        dU( iCF, iX, k ) -= ( +dFlux_num( iCF, iX + 1 ) * Poly_R * SqrtGm_R -
-                              dFlux_num( iCF, iX + 0 ) * Poly_L * SqrtGm_L );
-      }
+            dU( iCF, iX, k ) -=
+                ( +dFlux_num( iCF, iX + 1 ) * Poly_R * SqrtGm_R -
+                  dFlux_num( iCF, iX + 0 ) * Poly_L * SqrtGm_L );
+          }
+      } );
 
   // --- Compute Flux_q everywhere for the Volume term ---
-  #pragma omp parallel for private( P )
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-      for ( unsigned int iN = 0; iN < nNodes; iN++ )
-      {
-        P = ComputePressureFromConserved_IDEAL(
-            Basis.BasisEval( U, iX, 0, iN + 1, false ),
-            Basis.BasisEval( U, iX, 1, iN + 1, false ),
-            Basis.BasisEval( U, iX, 2, iN + 1, false ) );
-        Flux_q( iCF, iX, iN ) =
-            Flux_Fluid( Basis.BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
-      }
+  Kokkos::parallel_for(
+      3, KOKKOS_LAMBDA( unsigned int iCF ) {
+        for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+          for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+            for ( unsigned int iN = 0; iN < nNodes; iN++ )
+            {
+              double P = ComputePressureFromConserved_IDEAL(
+                  Basis.BasisEval( U, iX, 0, iN + 1, false ),
+                  Basis.BasisEval( U, iX, 1, iN + 1, false ),
+                  Basis.BasisEval( U, iX, 2, iN + 1, false ) );
+              Flux_q( iCF, iX, iN ) = Flux_Fluid(
+                  Basis.BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
+            }
+      } );
 
   // --- Volume Term ---
+  Kokkos::parallel_for(
+      3, KOKKOS_LAMBDA( unsigned int iCF ) {
+        for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+          for ( unsigned int k = 0; k < order; k++ )
+          {
+            double local_sum = 0.0;
+            double X         = 0.0;
+            for ( unsigned int iN = 0; iN < nNodes; iN++ )
+            {
+              X = Grid.NodeCoordinate( iX, iN );
+              local_sum += Grid.Get_Weights( iN ) * Flux_q( iCF, iX, iN ) *
+                           Basis.Get_dPhi( iX, iN + 1, k ) *
+                           Grid.Get_SqrtGm( X );
+            }
 
-  #pragma omp parallel for
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-      for ( unsigned int k = 0; k < order; k++ )
-      {
-        double local_sum = 0.0;
-        double X         = 0.0;
-        // local_sum = 0.0;
-        for ( unsigned int iN = 0; iN < nNodes; iN++ )
-        {
-          X = Grid.NodeCoordinate( iX, iN );
-          local_sum += Grid.Get_Weights( iN ) * Flux_q( iCF, iX, iN ) *
-                       Basis.Get_dPhi( iX, iN + 1, k ) * Grid.Get_SqrtGm( X );
-        }
+            dU( iCF, iX, k ) += local_sum;
+          }
+      } );
 
-        dU( iCF, iX, k ) += local_sum;
-      }
 }
 
 /**
  * Compute fluid increment from geometry in spherical symmetry
  **/
-void ComputeIncrement_Fluid_Geometry( DataStructure3D& U, GridStructure& Grid,
-                                      ModalBasis& Basis, DataStructure3D& dU )
+void ComputeIncrement_Fluid_Geometry( Kokkos::View<double***> U,
+                                      GridStructure& Grid, ModalBasis& Basis,
+                                      Kokkos::View<double***> dU )
 {
   const unsigned int nNodes = Grid.Get_nNodes( );
   const unsigned int order  = Basis.Get_Order( );
   const unsigned int ilo    = Grid.Get_ilo( );
   const unsigned int ihi    = Grid.Get_ihi( );
 
-  double local_sum = 0.0;
-  double P         = 0.0;
-  double X         = 0.0;
+  Kokkos::parallel_for(
+      "Numerical Fluxes", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
+      KOKKOS_LAMBDA( unsigned int iX ) {
+        for ( unsigned int k = 0; k < order; k++ )
+        {
+          double local_sum = 0.0;
+          for ( unsigned int iN = 0; iN < nNodes; iN++ )
+          {
+            double P = ComputePressureFromConserved_IDEAL(
+                Basis.BasisEval( U, iX, 0, iN + 1, false ),
+                Basis.BasisEval( U, iX, 1, iN + 1, false ),
+                Basis.BasisEval( U, iX, 2, iN + 1, false ) );
 
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-    for ( unsigned int k = 0; k < order; k++ )
-    {
-      local_sum = 0.0;
-      for ( unsigned int iN = 0; iN < nNodes; iN++ )
-      {
-        P = ComputePressureFromConserved_IDEAL(
-            Basis.BasisEval( U, iX, 0, iN + 1, false ),
-            Basis.BasisEval( U, iX, 1, iN + 1, false ),
-            Basis.BasisEval( U, iX, 2, iN + 1, false ) );
+            double X = Grid.NodeCoordinate( iX, iN );
 
-        X = Grid.NodeCoordinate( iX, iN );
+            local_sum +=
+                Grid.Get_Weights( iN ) * P * Basis.Get_Phi( iX, iN + 1, k ) * X;
+          }
 
-        local_sum +=
-            Grid.Get_Weights( iN ) * P * Basis.Get_Phi( iX, iN + 1, k ) * X;
-      }
-
-      dU( 1, iX, k ) += ( 2.0 * local_sum * Grid.Get_Widths( iX ) ) /
-                        Basis.Get_MassMatrix( iX, k );
-    }
+          dU( 1, iX, k ) += ( 2.0 * local_sum * Grid.Get_Widths( iX ) ) /
+                            Basis.Get_MassMatrix( iX, k );
+        }
+      } );
 }
 
 /** Compute dU for timestep update. e.g., U = U + dU * dt
@@ -193,11 +199,11 @@ void ComputeIncrement_Fluid_Geometry( DataStructure3D& U, GridStructure& Grid,
  * BC               : (string) boundary condition type
  **/
 void Compute_Increment_Explicit(
-    DataStructure3D& U, GridStructure& Grid, ModalBasis& Basis,
-    DataStructure3D& dU, DataStructure3D& Flux_q, DataStructure2D& dFlux_num,
-    DataStructure2D& uCF_F_L, DataStructure2D& uCF_F_R,
-    std::vector<double>& Flux_U, std::vector<double>& Flux_P,
-    std::vector<double> uCF_L, std::vector<double> uCF_R, const std::string BC )
+    Kokkos::View<double***> U, GridStructure& Grid, ModalBasis& Basis,
+    Kokkos::View<double***> dU, Kokkos::View<double***> Flux_q,
+    Kokkos::View<double**> dFlux_num, Kokkos::View<double**> uCF_F_L,
+    Kokkos::View<double**> uCF_F_R, Kokkos::View<double*> Flux_U,
+    Kokkos::View<double*> Flux_P, const std::string BC )
 {
 
   const unsigned int order = Basis.Get_Order( );
@@ -213,25 +219,33 @@ void Compute_Increment_Explicit(
   // --- Compute Increment for new solution ---
 
   // --- First: Zero out dU  ---
-  dU.zero( );
-  #pragma omp parallel for
-  for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
-  {
-    Flux_U[iX] = 0.0;
-  }
+  Kokkos::parallel_for(
+      3, KOKKOS_LAMBDA( unsigned int iCF ) {
+        for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+        {
+          for ( unsigned int k = 0; k < order; k++ )
+          {
+            dU( iCF, iX, k ) = 0.0;
+          }
+        }
+      } );
+
+  Kokkos::parallel_for(
+      ihi + 1, KOKKOS_LAMBDA( unsigned int iX ) { Flux_U( iX ) = 0.0; } );
 
   // --- Fluid Increment : Divergence ---
   ComputeIncrement_Fluid_Divergence( U, Grid, Basis, dU, Flux_q, dFlux_num,
-                                     uCF_F_L, uCF_F_R, Flux_U, Flux_P, uCF_L,
-                                     uCF_R );
+                                     uCF_F_L, uCF_F_R, Flux_U, Flux_P );
 
-  #pragma omp parallel for
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-      for ( unsigned int k = 0; k < order; k++ )
-      {
-        dU( iCF, iX, k ) /= ( Basis.Get_MassMatrix( iX, k ) );
-      }
+  // --- Divide update by mass mastrix ---
+  Kokkos::parallel_for(
+      3, KOKKOS_LAMBDA( unsigned int iCF ) {
+        for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+          for ( unsigned int k = 0; k < order; k++ )
+          {
+            dU( iCF, iX, k ) /= ( Basis.Get_MassMatrix( iX, k ) );
+          }
+      } );
 
   // --- Increment from Geometry ---
   if ( Grid.DoGeometry( ) )

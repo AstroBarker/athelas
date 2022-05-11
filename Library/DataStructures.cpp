@@ -10,6 +10,7 @@
  * Contains : DataStructures2D, DataStructures3D
  **/
 
+#include "Kokkos_Core.hpp"
 #include "DataStructures.h"
 #include <vector>
 

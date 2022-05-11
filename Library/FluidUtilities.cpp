@@ -14,7 +14,6 @@
 #include "Error.h"
 #include "Grid.h"
 #include "PolynomialBasis.h"
-#include "DataStructures.h"
 #include "EquationOfStateLibrary_IDEAL.h"
 #include "FluidUtilities.h"
 
@@ -23,7 +22,8 @@
  * from conserved quantities. Primitive quantities are stored at Gauss-Legendre
  * nodes.
  **/
-void ComputePrimitiveFromConserved( DataStructure3D& uCF, DataStructure3D& uPF,
+void ComputePrimitiveFromConserved( Kokkos::View<double***> uCF,
+                                    Kokkos::View<double***> uPF,
                                     ModalBasis& Basis, GridStructure& Grid )
 {
   const unsigned int nNodes = Grid.Get_nNodes( );
@@ -129,7 +129,7 @@ void NumericalFlux_HLLC( double vL, double vR, double pL, double pR, double cL,
 /**
  * Compute the fluid timestep.
  **/
-double ComputeTimestep_Fluid( DataStructure3D& U, GridStructure& Grid,
+double ComputeTimestep_Fluid( Kokkos::View<double***> U, GridStructure& Grid,
                               const double CFL )
 {
 
@@ -140,40 +140,33 @@ double ComputeTimestep_Fluid( DataStructure3D& U, GridStructure& Grid,
   const unsigned int ilo = Grid.Get_ilo( );
   const unsigned int ihi = Grid.Get_ihi( );
 
-  double Cs     = 0.0;
-  double eigval = 0.0;
-
-  // hold cell averages
-  double tau_x  = 0.0;
-  double vel_x  = 0.0;
-  double eint_x = 0.0;
-
-  double dr = 0.0;
-
   double dt = 0.0;
 
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-  {
+  Kokkos::parallel_reduce(
+      "Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+      KOKKOS_LAMBDA( const int& iX, double& lmin ) {
+        // --- Compute Cell Averages ---
+        double tau_x  = U( 0, iX, 0 );
+        double vel_x  = U( 1, iX, 0 );
+        double eint_x = U( 2, iX, 0 );
 
-    // --- Compute Cell Averages ---
-    tau_x  = U( 0, iX, 0 );
-    vel_x  = U( 1, iX, 0 );
-    eint_x = U( 2, iX, 0 );
+        double dr = Grid.Get_Widths( iX );
 
-    dr = Grid.Get_Widths( iX );
+        double Cs =
+            ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
+        double eigval = Cs;
 
-    Cs     = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
-    eigval = Cs;
+        lmin = std::abs( dr ) / std::abs( eigval );
 
-    dt = std::abs( dr ) / std::abs( eigval );
-
-    dt     = std::min( dt, dt_old );
-    dt_old = dt;
-  }
+        lmin          = std::min( lmin, dt_old );
+        double dt_old = lmin;
+      },
+      Kokkos::Min<double>( dt ) );
 
   dt = std::max( CFL * dt, MIN_DT );
   dt = std::min( dt, MAX_DT );
 
+  // Triggers on NaN
   if ( dt != dt )
   {
     throw Error( "nan encountered in ComputeTimestep.\n" );
