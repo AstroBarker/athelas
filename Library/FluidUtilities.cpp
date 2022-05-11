@@ -140,29 +140,28 @@ double ComputeTimestep_Fluid( Kokkos::View<double***> U, GridStructure& Grid,
   const unsigned int ilo = Grid.Get_ilo( );
   const unsigned int ihi = Grid.Get_ihi( );
 
-
   double dt = 0.0;
 
-  Kokkos::parallel_reduce( "Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ), 
-    KOKKOS_LAMBDA (const int& iX, double& lmin) {
-  // for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-  // {
+  Kokkos::parallel_reduce(
+      "Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+      KOKKOS_LAMBDA( const int& iX, double& lmin ) {
+        // --- Compute Cell Averages ---
+        double tau_x  = U( 0, iX, 0 );
+        double vel_x  = U( 1, iX, 0 );
+        double eint_x = U( 2, iX, 0 );
 
-    // --- Compute Cell Averages ---
-    double tau_x  = U( 0, iX, 0 );
-    double vel_x  = U( 1, iX, 0 );
-    double eint_x = U( 2, iX, 0 );
+        double dr = Grid.Get_Widths( iX );
 
-    double dr = Grid.Get_Widths( iX );
+        double Cs =
+            ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
+        double eigval = Cs;
 
-    double Cs     = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
-    double eigval = Cs;
+        lmin = std::abs( dr ) / std::abs( eigval );
 
-    lmin = std::abs( dr ) / std::abs( eigval );
-
-    lmin     = std::min( lmin, dt_old );
-    double dt_old = lmin;
-  }, Kokkos::Min<double>(dt));
+        lmin          = std::min( lmin, dt_old );
+        double dt_old = lmin;
+      },
+      Kokkos::Min<double>( dt ) );
 
   dt = std::max( CFL * dt, MIN_DT );
   dt = std::min( dt, MAX_DT );
