@@ -109,7 +109,8 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
             {
               uCF( iCF_Tau, iX, 0 ) = 1.0 / D_L;
               uCF( iCF_V, iX, 0 )   = V0;
-              uCF( iCF_E, iX, 0 )   = ( P_L / 0.4 ) * uCF( iCF_Tau, iX, 0 ) + 0.5*V0*V0;
+              uCF( iCF_E, iX, 0 ) =
+                  ( P_L / 0.4 ) * uCF( iCF_Tau, iX, 0 ) + 0.5 * V0 * V0;
             }
 
             uPF( iPF_D, iX, iNodeX ) = D_L;
@@ -118,9 +119,10 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
           { // right domain
             if ( k == 0 )
             {
-              uCF( iCF_Tau, iX, 0 ) = 1.0 / ( 1.0 + 0.2 * sin( 5.0 * PI( ) * X1 ) );
-              uCF( iCF_V, iX, 0 )   = 0.0;
-              uCF( iCF_E, iX, 0 )   = ( P_R / 0.4 ) * uCF( iCF_Tau, iX, 0 );
+              uCF( iCF_Tau, iX, 0 ) =
+                  1.0 / ( 1.0 + 0.2 * sin( 5.0 * PI( ) * X1 ) );
+              uCF( iCF_V, iX, 0 ) = 0.0;
+              uCF( iCF_E, iX, 0 ) = ( P_R / 0.4 ) * uCF( iCF_Tau, iX, 0 );
             }
 
             uPF( iPF_D, iX, iNodeX ) = ( 1.0 + 0.2 * sin( 5.0 * PI( ) * X1 ) );
@@ -227,13 +229,13 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   else if ( ProblemName == "Sedov" )
   {
     // Smooth advection problem
-    const double V0  = 0.0;
-    const double D0  = 1.0;
-    const double E0  = 0.3;
+    const double V0 = 0.0;
+    const double D0 = 1.0;
+    const double E0 = 0.3;
 
-    const int origin = Grid.Get_nElements() / 2;
+    const int origin = Grid.Get_nElements( ) / 2;
 
-    const double P0  = ( 5.0/3.0 - 1.0 ) * E0 / Grid.Get_Widths( origin );
+    const double P0 = ( 5.0 / 3.0 - 1.0 ) * E0 / Grid.Get_Widths( origin );
 
     double X1 = 0.0;
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
@@ -251,14 +253,18 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
           else
           {
             uCF( iCF_Tau, iX, k ) = 1.0 / D0;
-            uCF( iCF_V, iX, k ) = V0;
+            uCF( iCF_V, iX, k )   = V0;
             if ( iX == origin || iX == origin + 1 )
             {
-              uCF( iCF_E, iX, k ) = ( P0 / (5.0/3.0 - 1.0) ) * uCF( iCF_Tau, iX, k ) + 0.5 * V0 * V0;
+              uCF( iCF_E, iX, k ) =
+                  ( P0 / ( 5.0 / 3.0 - 1.0 ) ) * uCF( iCF_Tau, iX, k ) +
+                  0.5 * V0 * V0;
             }
             else
             {
-              uCF( iCF_E, iX, k ) = ( 1.0e-6 / (5.0/3.0 - 1.0) ) * uCF( iCF_Tau, iX, k ) + 0.5 * V0 * V0;
+              uCF( iCF_E, iX, k ) =
+                  ( 1.0e-6 / ( 5.0 / 3.0 - 1.0 ) ) * uCF( iCF_Tau, iX, k ) +
+                  0.5 * V0 * V0;
             }
           }
           uPF( iPF_D, iX, iNodeX ) = D0;
@@ -336,7 +342,7 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1 = Grid.Get_Centers( iX );
+          X1                    = Grid.Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
           uCF( iCF_E, iX, k )   = 0.0;
@@ -359,7 +365,6 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
             uCF( iCF_Tau, iX, k ) = 0.0;
             uCF( iCF_V, iX, k )   = 0.0;
             uCF( iCF_E, iX, k )   = uCF( iCF_V, iX, 1 ) * uCF( iCF_V, iX, 1 );
-            // uCF( iCF_E, iX, 0 ) -= uCF( iCF_E, iX, 2 ) * ( -0.08333333333333333333333333 );// - 2.0*uCF( iCF_E, iX, 2 ) * (0.066666666666667);
           }
           else
           {
@@ -381,51 +386,57 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   else if ( ProblemName == "SmoothFlow" )
   {
 
-    double X1 = 0.0;
+    double X1  = 0.0;
     double amp = 0.999999999999999999999999999999999995;
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1 = Grid.Get_Centers( iX );
+          X1                    = Grid.Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
           uCF( iCF_E, iX, k )   = 0.0;
 
           if ( k == 0 )
           {
-            double D = (1.0 + amp * sin(PI()*X1) );
+            double D              = ( 1.0 + amp * sin( PI( ) * X1 ) );
             uCF( iCF_Tau, iX, 0 ) = 1.0 / D;
             uCF( iCF_V, iX, 0 )   = 0.0;
-            uCF( iCF_E, iX, 0 ) = ( D*D*D / 0.4 ) * uCF( iCF_Tau, iX, 0 );
+            uCF( iCF_E, iX, 0 )   = ( D * D * D / 0.4 ) * uCF( iCF_Tau, iX, 0 );
           }
           else if ( k == 1 )
           {
-            double D = (1.0 + amp * sin( PI()*X1) );
-            double dD = (amp * PI() * cos( PI()*X1) );
-            uCF( iCF_Tau, iX, k ) = (- 1 / (D*D)) * dD * Grid.Get_Widths( iX );
-            uCF( iCF_V, iX, k )   = 0.0;
-            uCF( iCF_E, iX, k )   = (( 2.0 / 0.4 ) * D) * dD * Grid.Get_Widths( iX );
+            double D  = ( 1.0 + amp * sin( PI( ) * X1 ) );
+            double dD = ( amp * PI( ) * cos( PI( ) * X1 ) );
+            uCF( iCF_Tau, iX, k ) =
+                ( -1 / ( D * D ) ) * dD * Grid.Get_Widths( iX );
+            uCF( iCF_V, iX, k ) = 0.0;
+            uCF( iCF_E, iX, k ) =
+                ( ( 2.0 / 0.4 ) * D ) * dD * Grid.Get_Widths( iX );
           }
           else if ( k == 2 )
           {
-            double D = (1.0 + amp * sin( PI()*X1) );
-            double dD = (amp * PI() * cos( PI()*X1) );
-            double ddD = - ( amp * PI() * PI() ) * sin( PI()*X1 );
-            uCF( iCF_Tau, iX, k ) = ( 2.0 / (D*D*D)) * ddD * Grid.Get_Widths( iX ) * Grid.Get_Widths( iX );
-            uCF( iCF_V, iX, k )   = 0.0;
-            uCF( iCF_E, iX, k )   = ( 2.0 / 0.4 ) * ddD * Grid.Get_Widths( iX ) * Grid.Get_Widths( iX );
-
+            double D   = ( 1.0 + amp * sin( PI( ) * X1 ) );
+            double dD  = ( amp * PI( ) * cos( PI( ) * X1 ) );
+            double ddD = -( amp * PI( ) * PI( ) ) * sin( PI( ) * X1 );
+            uCF( iCF_Tau, iX, k ) = ( 2.0 / ( D * D * D ) ) * ddD *
+                                    Grid.Get_Widths( iX ) *
+                                    Grid.Get_Widths( iX );
+            uCF( iCF_V, iX, k ) = 0.0;
+            uCF( iCF_E, iX, k ) = ( 2.0 / 0.4 ) * ddD * Grid.Get_Widths( iX ) *
+                                  Grid.Get_Widths( iX );
           }
           else if ( k == 3 )
           {
-            double D = (1.0 + amp * sin( PI()*X1) );
-            double dD = (amp * PI() * cos( PI()*X1) );
-            double ddD = - ( amp * PI() * PI() ) * sin( PI()*X1);
-            double dddD = - ( amp * PI() * PI() * PI() ) * cos( PI()*X1);
-            uCF( iCF_Tau, iX, k ) = ( - 6.0 / (D*D*D*D)) * dddD * Grid.Get_Widths( iX ) * Grid.Get_Widths( iX ) * Grid.Get_Widths( iX );
-            uCF( iCF_V, iX, k )   = 0.0;
-            uCF( iCF_E, iX, k )   = 0.0;
+            double D    = ( 1.0 + amp * sin( PI( ) * X1 ) );
+            double dD   = ( amp * PI( ) * cos( PI( ) * X1 ) );
+            double ddD  = -( amp * PI( ) * PI( ) ) * sin( PI( ) * X1 );
+            double dddD = -( amp * PI( ) * PI( ) * PI( ) ) * cos( PI( ) * X1 );
+            uCF( iCF_Tau, iX, k ) =
+                ( -6.0 / ( D * D * D * D ) ) * dddD * Grid.Get_Widths( iX ) *
+                Grid.Get_Widths( iX ) * Grid.Get_Widths( iX );
+            uCF( iCF_V, iX, k ) = 0.0;
+            uCF( iCF_E, iX, k ) = 0.0;
           }
           else
           {
@@ -434,7 +445,7 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
             uCF( iCF_E, iX, k )   = 0.0;
           }
 
-          uPF( iPF_D, iX, iNodeX ) = (1.0 + amp * sin(PI()*X1) );
+          uPF( iPF_D, iX, iNodeX ) = ( 1.0 + amp * sin( PI( ) * X1 ) );
         }
     // Fill density in guard cells
     for ( unsigned int iX = 0; iX < ilo; iX++ )

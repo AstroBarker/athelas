@@ -45,7 +45,7 @@ void ComputeIncrement_Fluid_Divergence(
 
   // Left/Right face states
   Kokkos::parallel_for(
-      "Surface Term", 3, KOKKOS_LAMBDA( unsigned int iCF ) {
+      "Interface States", 3, KOKKOS_LAMBDA( unsigned int iCF ) {
         for ( unsigned int iX = ilo; iX <= ihi + 1; iX++ )
         {
           uCF_F_L( iCF, iX ) =
@@ -81,6 +81,8 @@ void ComputeIncrement_Fluid_Divergence(
         // Riemann Problem
         NumericalFlux_Gudonov( uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, lam_L, lam_R,
                                Flux_U( iX ), Flux_P( iX ) );
+        // NumericalFlux_HLLC( uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, Cs_L, Cs_R,
+        //  rho_L, rho_R, Flux_U( iX ), Flux_P( iX ) );
 
         // TODO: Clean This Up
         dFlux_num( 0, iX ) = -Flux_U( iX );
@@ -110,23 +112,22 @@ void ComputeIncrement_Fluid_Divergence(
 
   // --- Compute Flux_q everywhere for the Volume term ---
   Kokkos::parallel_for(
-      3, KOKKOS_LAMBDA( unsigned int iCF ) {
-        for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-          for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-            for ( unsigned int iN = 0; iN < nNodes; iN++ )
-            {
-              double P = ComputePressureFromConserved_IDEAL(
-                  Basis.BasisEval( U, iX, 0, iN + 1, false ),
-                  Basis.BasisEval( U, iX, 1, iN + 1, false ),
-                  Basis.BasisEval( U, iX, 2, iN + 1, false ) );
-              Flux_q( iCF, iX, iN ) = Flux_Fluid(
-                  Basis.BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
-            }
+      "Flux_q", 3, KOKKOS_LAMBDA( unsigned int iCF ) {
+        for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+          for ( unsigned int iN = 0; iN < nNodes; iN++ )
+          {
+            double P = ComputePressureFromConserved_IDEAL(
+                Basis.BasisEval( U, iX, 0, iN + 1, false ),
+                Basis.BasisEval( U, iX, 1, iN + 1, false ),
+                Basis.BasisEval( U, iX, 2, iN + 1, false ) );
+            Flux_q( iCF, iX, iN ) = Flux_Fluid(
+                Basis.BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
+          }
       } );
 
   // --- Volume Term ---
   Kokkos::parallel_for(
-      3, KOKKOS_LAMBDA( unsigned int iCF ) {
+      "Volume Term", 3, KOKKOS_LAMBDA( unsigned int iCF ) {
         for ( unsigned int iX = ilo; iX <= ihi; iX++ )
           for ( unsigned int k = 0; k < order; k++ )
           {
@@ -143,7 +144,6 @@ void ComputeIncrement_Fluid_Divergence(
             dU( iCF, iX, k ) += local_sum;
           }
       } );
-
 }
 
 /**
@@ -159,7 +159,7 @@ void ComputeIncrement_Fluid_Geometry( Kokkos::View<double***> U,
   const unsigned int ihi    = Grid.Get_ihi( );
 
   Kokkos::parallel_for(
-      "Numerical Fluxes", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
+      "Geometry Term", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
       KOKKOS_LAMBDA( unsigned int iX ) {
         for ( unsigned int k = 0; k < order; k++ )
         {
@@ -221,7 +221,7 @@ void Compute_Increment_Explicit(
   // --- First: Zero out dU  ---
   Kokkos::parallel_for(
       3, KOKKOS_LAMBDA( unsigned int iCF ) {
-        for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+        for ( unsigned int iX = 0; iX <= ihi + 1; iX++ )
         {
           for ( unsigned int k = 0; k < order; k++ )
           {
@@ -231,7 +231,7 @@ void Compute_Increment_Explicit(
       } );
 
   Kokkos::parallel_for(
-      ihi + 1, KOKKOS_LAMBDA( unsigned int iX ) { Flux_U( iX ) = 0.0; } );
+      ihi + 2, KOKKOS_LAMBDA( unsigned int iX ) { Flux_U( iX ) = 0.0; } );
 
   // --- Fluid Increment : Divergence ---
   ComputeIncrement_Fluid_Divergence( U, Grid, Basis, dU, Flux_q, dFlux_num,
@@ -244,6 +244,7 @@ void Compute_Increment_Explicit(
           for ( unsigned int k = 0; k < order; k++ )
           {
             dU( iCF, iX, k ) /= ( Basis.Get_MassMatrix( iX, k ) );
+            if ( iCF == 0 && k == 2 )
           }
       } );
 

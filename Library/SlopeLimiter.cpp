@@ -76,8 +76,8 @@ void SlopeLimiter::DetectTroubledCells( Kokkos::View<double***> U,
           CellAverage( U, Grid, Basis, iCF, iX + 1, -1 ); // from right
       double cell_avg_R_T =
           CellAverage( U, Grid, Basis, iCF, iX - 1, +1 ); // from left
-      double cell_avg_L = U( iCF, iX - 1, 0 );                   // native left
-      double cell_avg_R = U( iCF, iX + 1, 0 );                   // native right
+      double cell_avg_L = U( iCF, iX - 1, 0 );            // native left
+      double cell_avg_R = U( iCF, iX + 1, 0 );            // native right
 
       result += ( std::abs( cell_avg - cell_avg_L_T ) +
                   std::abs( cell_avg - cell_avg_R_T ) );
@@ -123,7 +123,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
     {
       if ( D( iCF, iX ) > TCI_Threshold && TCI_Option )
       {
-        j++; // ! What is the appropriate data layout for D !
+        j++;
       }
     }
 
