@@ -244,7 +244,6 @@ void Compute_Increment_Explicit(
           for ( unsigned int k = 0; k < order; k++ )
           {
             dU( iCF, iX, k ) /= ( Basis.Get_MassMatrix( iX, k ) );
-            if ( iCF == 0 && k == 2 )
           }
       } );
 
