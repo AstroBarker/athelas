@@ -79,13 +79,25 @@ void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
 // TODO: add Time
 void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
                  Kokkos::View<double***> uAF, GridStructure& Grid,
-                 SlopeLimiter& SL, const std::string ProblemName )
+                 SlopeLimiter& SL, const std::string ProblemName,
+                 double time, unsigned int order, int i_write )
 {
 
   std::string fn = "athelas_";
+  auto suffix = std::to_string( i_write );
   fn.append( ProblemName );
+  fn.append( "_" );
+  if ( i_write != -1 )
+  {
+    fn.append( suffix );
+  }
+  else
+  {
+    fn.append( "final" );
+  }
   fn.append( ".h5" );
 
+  // conversion to make HDF5 happy
   const char* fn2 = fn.c_str( );
 
   const unsigned int nX     = Grid.Get_nElements( );
@@ -95,33 +107,23 @@ void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
 
   const H5std_string FILE_NAME( fn );
   const H5std_string DATASET_NAME( "Grid" );
-  const int size = ( nX ); // * nNodes; // dataset dimensions
+  const int size = ( nX * order ); // dataset dimensions
 
   std::vector<DataType> tau( size );
   std::vector<DataType> vel( size );
   std::vector<DataType> eint( size );
-  std::vector<DataType> grid( size );
-  std::vector<DataType> limiter( size );
+  std::vector<DataType> grid( nX );
+  std::vector<DataType> limiter( nX );
 
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-  {
-    grid[( iX - ilo )].x    = Grid.Get_Centers( iX );
-    limiter[( iX - ilo )].x = SL.Get_Limited( iX );
-    tau[( iX - ilo )].x     = uCF( 0, iX, 0 );
-    vel[( iX - ilo )].x     = uCF( 1, iX, 0 );
-    eint[( iX - ilo )].x    = uCF( 2, iX, 0 );
-  }
-
-  // Tell HDF5 how to use my datatype
-  // H5::CompType mtype_CF(sizeof(DataType));
-
-  // Define the datatype to pass HDF5
-  // mtype_grid.insertMember( "Grid", HOFFSET(DataType, x),
-  // H5::PredType::NATIVE_DOUBLE ); mtype_CF.insertMember( "Specific Volume",
-  // HOFFSET(DataType, x), H5::PredType::NATIVE_DOUBLE ); mtype_CF.insertMember(
-  // "Velocity", HOFFSET(DataType, y), H5::PredType::NATIVE_DOUBLE );
-  // mtype_CF.insertMember( "Specific Internal Energy", HOFFSET(DataType, z),
-  // H5::PredType::NATIVE_DOUBLE );
+  for ( unsigned int k = 0; k < order; k++ )
+    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+    {
+      grid[( iX - ilo )].x    = Grid.Get_Centers( iX );
+      limiter[( iX - ilo )].x = SL.Get_Limited( iX );
+      tau[( iX - ilo ) + k*nX].x     = uCF( 0, iX, k );
+      vel[( iX - ilo ) + k*nX].x     = uCF( 1, iX, k );
+      eint[( iX - ilo ) + k*nX].x    = uCF( 2, iX, k );
+    }
 
   // preparation of a dataset and a file.
   hsize_t dim[1];
@@ -129,15 +131,32 @@ void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   const int rank = sizeof( dim ) / sizeof( hsize_t );
   H5::DataSpace space( rank, dim );
 
+  hsize_t dim_grid[1];
+  dim_grid[0]         = grid.size( ); // using vector::size()
+  const int rank_grid = sizeof( dim_grid ) / sizeof( hsize_t );
+  H5::DataSpace space_grid( rank_grid, dim_grid );
+
+  hsize_t len = 1;
+  hsize_t dim_md[1] = {len};
+  const int rank_md = 1;
+  H5::DataSpace md_space( rank_md, dim_md ); 
+
   H5::H5File file( fn2, H5F_ACC_TRUNC );
   // Groups
+  H5::Group group_md   = file.createGroup( "/Metadata" );
   H5::Group group_grid = file.createGroup( "/Spatial Grid" );
   H5::Group group_CF   = file.createGroup( "/Conserved Fields" );
-  H5::Group group_LF   = file.createGroup( "/Diagnostic Fields" );
+  H5::Group group_DF   = file.createGroup( "/Diagnostic Fields" );
 
   // DataSets
+  H5::DataSet dataset_nx( file.createDataSet(
+      "/Metadata/nX", H5::PredType::NATIVE_INT, md_space ) );
+  H5::DataSet dataset_order( file.createDataSet(
+      "/Metadata/Order", H5::PredType::NATIVE_INT, md_space ) );
+  H5::DataSet dataset_time( file.createDataSet(
+      "/Metadata/Time", H5::PredType::NATIVE_DOUBLE, md_space ) );
   H5::DataSet dataset_grid( file.createDataSet(
-      "/Spatial Grid/Grid", H5::PredType::NATIVE_DOUBLE, space ) );
+      "/Spatial Grid/Grid", H5::PredType::NATIVE_DOUBLE, space_grid ) );
   H5::DataSet dataset_tau(
       file.createDataSet( "/Conserved Fields/Specific Volume",
                           H5::PredType::NATIVE_DOUBLE, space ) );
@@ -148,7 +167,12 @@ void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
                           H5::PredType::NATIVE_DOUBLE, space ) );
 
   H5::DataSet dataset_limiter( file.createDataSet(
-      "/Diagnostic Fields/Limiter", H5::PredType::NATIVE_DOUBLE, space ) );
+      "/Diagnostic Fields/Limiter", H5::PredType::NATIVE_DOUBLE, space_grid ) );
+
+  // --- Write data ---
+  dataset_nx.write( &nX, H5::PredType::NATIVE_INT );
+  dataset_order.write( &order, H5::PredType::NATIVE_INT );  
+  dataset_time.write( &time, H5::PredType::NATIVE_DOUBLE );  
 
   dataset_grid.write( grid.data( ), H5::PredType::NATIVE_DOUBLE );
   dataset_limiter.write( limiter.data( ), H5::PredType::NATIVE_DOUBLE );

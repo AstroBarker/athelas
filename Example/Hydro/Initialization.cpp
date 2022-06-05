@@ -402,7 +402,7 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
             double D              = ( 1.0 + amp * sin( PI( ) * X1 ) );
             uCF( iCF_Tau, iX, 0 ) = 1.0 / D;
             uCF( iCF_V, iX, 0 )   = 0.0;
-            uCF( iCF_E, iX, 0 )   = ( D * D * D / 0.4 ) * uCF( iCF_Tau, iX, 0 );
+            uCF( iCF_E, iX, 0 )   = ( D * D * D / 2.0 ) * uCF( iCF_Tau, iX, 0 );
           }
           else if ( k == 1 )
           {
@@ -412,7 +412,7 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
                 ( -1 / ( D * D ) ) * dD * Grid.Get_Widths( iX );
             uCF( iCF_V, iX, k ) = 0.0;
             uCF( iCF_E, iX, k ) =
-                ( ( 2.0 / 0.4 ) * D ) * dD * Grid.Get_Widths( iX );
+                ( ( 2.0 / 2.0 ) * D ) * dD * Grid.Get_Widths( iX );
           }
           else if ( k == 2 )
           {
@@ -423,7 +423,7 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
                                     Grid.Get_Widths( iX ) *
                                     Grid.Get_Widths( iX );
             uCF( iCF_V, iX, k ) = 0.0;
-            uCF( iCF_E, iX, k ) = ( 2.0 / 0.4 ) * ddD * Grid.Get_Widths( iX ) *
+            uCF( iCF_E, iX, k ) = ( 2.0 / 2.0 ) * ddD * Grid.Get_Widths( iX ) *
                                   Grid.Get_Widths( iX );
           }
           else if ( k == 3 )

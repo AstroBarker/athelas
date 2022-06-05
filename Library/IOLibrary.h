@@ -15,7 +15,8 @@ struct DataType
 
 void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
                  Kokkos::View<double***> uAF, GridStructure& Grid,
-                 SlopeLimiter& SL, const std::string ProblemName );
+                 SlopeLimiter& SL, const std::string ProblemName,
+                 double time, unsigned int order, int i_write );
 
 void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
                                 unsigned int tOrder, unsigned int nStages,

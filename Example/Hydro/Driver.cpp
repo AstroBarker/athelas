@@ -31,29 +31,29 @@ int main( int argc, char* argv[] )
   Kokkos::Timer timer;
 
   /* --- Problem Parameters --- */
-  const std::string ProblemName = "Sod";
+  const std::string ProblemName = "SmoothFlow";
 
-  const unsigned int nX      = 512;
-  const unsigned int order   = 3;
+  const unsigned int nX      = 1024;
+  const unsigned int order   = 2;
   const unsigned int nNodes  = NumNodes( order ) + 0;
-  const unsigned int nStages = 3;
-  const unsigned int tOrder  = 3;
+  const unsigned int nStages = 2;
+  const unsigned int tOrder  = 2;
 
   const unsigned int nGuard = 1;
 
-  const double xL = 0.0;
-  const double xR = 1.0;
+  const double xL = -1.0;
+  const double xR = +1.0;
 
-  const double GAMMA_IDEAL = 1.4;
+  const double GAMMA_IDEAL = 3.0;
 
   double t           = 0.0;
   double dt          = 0.0;
-  const double t_end = 0.2;
+  const double t_end = 0.1;
 
   bool Restart = false;
 
   bool Geometry  = false; /* false: Cartesian, true: Spherical */
-  std::string BC = "Sod";
+  std::string BC = "Periodic";
 
   const double CFL = ComputeCFL( 0.5, order, nStages, tOrder );
 
@@ -76,7 +76,7 @@ int main( int argc, char* argv[] )
 
       ApplyBC_Fluid( uCF, Grid, order, BC );
     }
-    // WriteState( uCF, uPF, uAF, Grid, ProblemName );
+    // WriteState( uCF, uPF, uAF, Grid, ProblemName, 0.0, order, 0 );
 
     // --- Datastructure for modal basis ---
     ModalBasis Basis( uPF, Grid, order, nNodes, nX, nGuard );
@@ -89,8 +89,8 @@ int main( int argc, char* argv[] )
     // --- Initialize Slope Limiter ---
     const double alpha                       = 1.0;
     const double SlopeLimiter_Threshold      = 0.0;
-    const double TCI_Threshold               = 0.01;
-    const bool CharacteristicLimiting_Option = true;
+    const double TCI_Threshold               = 0.1;
+    const bool CharacteristicLimiting_Option = false;
     const bool TCI_Option                    = true;
 
     SlopeLimiter S_Limiter( Grid, nNodes, SlopeLimiter_Threshold, alpha,
@@ -98,7 +98,7 @@ int main( int argc, char* argv[] )
                             TCI_Threshold );
 
     // --- Limit the initial conditions ---
-    // S_Limiter.ApplySlopeLimiter( uCF, Grid, Basis );
+    S_Limiter.ApplySlopeLimiter( uCF, Grid, Basis );
 
     // -- print run parameters ---
     PrintSimulationParameters( Grid, order, tOrder, nStages, CFL, alpha,
@@ -107,7 +107,9 @@ int main( int argc, char* argv[] )
 
     // --- Evolution loop ---
     unsigned int iStep   = 0;
-    unsigned int i_write = 10;
+    unsigned int i_print = 100;
+    unsigned int i_write = -1;
+    unsigned int i_out   = 1;
     std::cout << "Step\tt\tdt" << std::endl;
     while ( t < t_end && iStep >= 0 )
     {
@@ -119,7 +121,7 @@ int main( int argc, char* argv[] )
         dt = t_end - t;
       }
 
-      if ( iStep % i_write == 0 )
+      if ( iStep % i_print == 0 )
       {
         std::printf( "%d \t %.5e \t %.5e\n", iStep, t, dt );
       }
@@ -129,6 +131,13 @@ int main( int argc, char* argv[] )
 
       t += dt;
 
+      // Write state
+      if ( iStep % i_write == 0 )
+      {
+        WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName, t, order, i_out );
+        i_out += 1;
+      }
+
       iStep++;
     }
 
@@ -136,7 +145,7 @@ int main( int argc, char* argv[] )
     double time = timer.seconds( );
     std::printf( "Done! Elapsed time: %f seconds.\n", time );
     ApplyBC_Fluid( uCF, Grid, order, BC );
-    WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName );
+    WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName, t, order, -1 );
   }
   Kokkos::finalize( );
 
