@@ -276,18 +276,20 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
               for ( unsigned int k = 0; k < order; k++ )
               {
                 SumVar_U( iCF, iX, k ) +=
-                    a_jk( i, j ) * U_s( j, iCF, iX, k ) +
-                    dt * b_jk( i, j ) * dU_s( j, iCF, iX, k );
+                    a_jk( i, j ) * Usj( iCF, iX, k ) +
+                    dt * b_jk( i, j ) * dUsj( iCF, iX, k );
               }
           } );
 
       Kokkos::parallel_for(
           ihi + 2, KOKKOS_LAMBDA( unsigned int iX ) {
-            SumVar_X( iX ) += a_jk( i, j ) * StageData( j, iX ) +
-                              dt * b_jk( i, j ) * Flux_U( j, iX );
+            SumVar_X( iX ) +=
+                a_jk( i, j ) * StageData( j, iX ) +
+                dt * b_jk( i, j ) * Flux_Uj( iX ); //* Flux_U( j, iX );
             StageData( iS, iX ) = SumVar_X( iX );
           } );
     }
+    // End inner loop
 
     Kokkos::parallel_for(
         3, KOKKOS_LAMBDA( unsigned int iCF ) {
