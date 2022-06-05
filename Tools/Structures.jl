@@ -7,16 +7,26 @@ Prerequisites:
 None
 """
 
+"""
+Holds the similation state at a given time.
+"""
 struct State
+  time::Float64
 
-  time :: Float64
+  r::Array{Float64}
 
-  r   :: Array{Float64}
+  uCF::Array{Float64,3}
+  uPF::Array{Float64,3}
+  uAF::Array{Float64,3}
 
-  uCF :: Matrix{Float64}
-  uPF :: Matrix{Float64}
-  uAF :: Matrix{Float64}
-  
-  SLopeLimiter :: Array{Int64}
+  SLopeLimiter::Array{Int64}
+end
 
+"""
+Holds the polynomial basis
+"""
+struct BasisType
+  order::Int64
+
+  Phi::Array{Float64,3}
 end

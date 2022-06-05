@@ -5,146 +5,69 @@ Simple reader routines for loading output data.
 Prerequisites:
 --------------
 HDF5.jl
+FastGaussQuadrature.jl
 """
 
 using HDF5
 using PyPlot
-using DataFrames
 pygui(:qt5)
 
 using FastGaussQuadrature
 
 include("Structures.jl")
-include("ReadThornado.jl")
+include("Basis.jl")
 
 """
 Simple load routine for Athelas data.
 """
-function Load_Output( Dir::AbstractString, filenumber::AbstractString; run::AbstractString = "RiemannProblem" )
-
-  # fn :: String = string(Dir, "/", run, "_FluidFields_", filenumber, ".h5")
-  # fn :: String = "../Example/Hydro/Executable/Athelas_MovingContact.h5"
-  fn :: String = "../bin/athelas_Sod.h5"
-  # fn :: String = "../Example/Hydro/Executable/Athelas_SmoothAdvection.h5"
-
-  fid = h5open( fn, "r" )
+function Load_Output(Dir::AbstractString,
+                     filenumber::AbstractString;
+                     run::AbstractString = "RiemannProblem")
+  fn::String = Dir * "athelas_" * run * "_" * filenumber * ".h5"
+  println(fn)
+  fid = h5open(fn, "r")
 
   # Time
-  time :: Float64 = 0.0
+  time::Float64 = fid["/Metadata/Time"][1]
+  order::Int64 = fid["/Metadata/Order"][1]
+  nX::Int64 = fid["/Metadata/nX"][1]
 
-  x1   :: Array{Float64,1} = fid["/Spatial Grid/Grid"][:] 
+  x1::Array{Float64,1} = fid["/Spatial Grid/Grid"][:]
 
-  uCF  :: Matrix{Float64} = zeros( length(x1), 3 )
-  uCF[:,1] = fid["/Conserved Fields/Specific Volume"][:]
-  uCF[:,2] = fid["/Conserved Fields/Velocity"][:]
-  uCF[:,3] = fid["/Conserved Fields/Specific Internal Energy"][:]
+  uCF::Array{Float64,3} = zeros(order, nX, 3)
 
-  SlopeLimiter :: Array{Int64,1} = fid["/Diagnostic Fields/Limiter"][:] 
-
-  uPF :: Matrix{Float64} = zeros( length(x1), 3 )
-  uAF :: Matrix{Float64} = zeros( length(x1), 3 )
-
-  state = State( time, x1, uCF, uPF, uAF, SlopeLimiter )
-
-  close( fid )
-
-  return state
-
-end
-
-
-"""
-Compute the n-point Gauss-Legendre quadrature.
-"""
-function ComputeQuadrature( nNodes::Int64 )
-  nodes, weights = gausslegendre( nNodes );
-  return nodes / 2.0, weights / 2.0
-end
-
-
-"""
-Main cell average function.
-"""
-function CellAverage( Quantity::Array{Float64,1}, Weights::Array{Float64,1} )
-
-  n  :: Int64 = length(Quantity)
-  n2 :: Int64 = floor(Int, length(Quantity)/length(Weights))
-  
-  Avg    :: Array{Float64,1} = zeros( n2 )
-  SumVar :: Float64 = 0.0
-  iN     :: Int64 = 1
-  iAvg   ::Int64 = 1
-  @inbounds for iX in 1:n
-
-    SumVar += Weights[iN] * Quantity[iX]
-
-
-    iN += 1
-    if ( iN > length(Weights) )
-      Avg[iAvg] = SumVar
-      iAvg += 1
-      iN = 1
-      SumVar = 0.0
-    end
-
+  for i in 1:order
+    uCF[i, :, 1] = fid["/Conserved Fields/Specific Volume"][((i - 1) * nX + 1):(i * nX)]
+    uCF[i, :, 2] = fid["/Conserved Fields/Velocity"][((i - 1) * nX + 1):(i * nX)]
+    uCF[i, :, 3] = fid["/Conserved Fields/Specific Internal Energy"][((i - 1) * nX + 1):(i * nX)]
   end
 
-  return Avg
+  SlopeLimiter::Array{Int64,1} = fid["/Diagnostic Fields/Limiter"][:]
 
+  uPF::Array{Float64,3} = zeros(order, nX, 3)
+  uAF::Array{Float64,3} = zeros(order, nX, 3)
+
+  state = State(time, x1, uCF, uPF, uAF, SlopeLimiter)
+
+  close(fid)
+
+  return state, order
 end
 
 """
-Cell average of quantity in nodal basis.
+Load athelas basis
 """
-function CellAverageData( Data::Matrix{Float64}, iCF::Int64, Weights::Array{Float64,1} )
+function LoadBasis(Dir::AbstractString, ProblemName::AbstractString,
+                   order::Int64)
+  fn::String = Dir * "athelas_basis_" * ProblemName * ".h5"
+  println(fn)
+  fid = h5open(fn, "r")
 
-  Quantity = Data[:,iCF]
+  data::Array{Float64,3} = permutedims(fid["Basis"][:, :, :], [3, 2, 1])
 
-  return CellAverage( Quantity, Weights )
+  Basis = BasisType(order, data)
+
+  close(fid)
+
+  return Basis
 end
-
-
-"""
-Compute pressure from conserved Lagrangian variables.
-"""
-function ComputePressure( Tau, Vel, EmT, GAMMA=1.4 )
-
-  Em = EmT - 0.5 * Vel.*Vel
-  Ev = Em ./ Tau
-  P = (GAMMA - 1.0) .* Ev
-
-  return P
-
-end
-
-# === testing ===
-
-nNodes = 3
-Data = Load_Output( "bleh", "000000" )
-
-# reference, _ = load_thornado_single( ".", "000100", run="RiemannProblemSod" )
-
-Nodes, Weights = ComputeQuadrature( nNodes )
-
-Rad = Data.r
-Tau = Data.uCF[:,1]
-Vel = Data.uCF[:,2]
-EmT = Data.uCF[:,3]
-
-Em = EmT - 0.5 * Vel .* Vel
-
-fig, ax = subplots()
-
-alpha = 0.5 * Data.SLopeLimiter + 0.5 * ones( length(Tau) )
-println(Data.SLopeLimiter)
-
-ax.scatter( Rad, 1.0 ./ Tau, marker="o", label="Density", color="orchid", alpha = alpha )
-ax.scatter( Rad, Vel, marker="o", label="Velocity", color="tomato", alpha = alpha )
-# ax.plot( Rad, EmT, marker=" ", ls="--", lw=2.0, label="Total Specific Energy", color="teal" )
-# ax.plot( Rad, ComputePressure(Tau, Vel, EmT), "o", ls="--", lw=1.0, label="Pressure" )
-
-# ax.plot( reference.x1, reference.uCF_D, lw=1.0, label="Reference", color="black" )
-# ax.plot( reference.x1, reference.uPF_V1, lw=1.0, label="Reference", color="black" )
-ax.legend()
-
-show()
