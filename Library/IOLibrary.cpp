@@ -113,12 +113,14 @@ void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   std::vector<DataType> vel( size );
   std::vector<DataType> eint( size );
   std::vector<DataType> grid( nX );
+  std::vector<DataType> dr( nX );
   std::vector<DataType> limiter( nX );
 
   for ( unsigned int k = 0; k < order; k++ )
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
     {
       grid[( iX - ilo )].x    = Grid.Get_Centers( iX );
+      dr[( iX - ilo )].x      = Grid.Get_Widths( iX );
       limiter[( iX - ilo )].x = SL.Get_Limited( iX );
       tau[( iX - ilo ) + k*nX].x     = uCF( 0, iX, k );
       vel[( iX - ilo ) + k*nX].x     = uCF( 1, iX, k );
@@ -157,6 +159,8 @@ void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
       "/Metadata/Time", H5::PredType::NATIVE_DOUBLE, md_space ) );
   H5::DataSet dataset_grid( file.createDataSet(
       "/Spatial Grid/Grid", H5::PredType::NATIVE_DOUBLE, space_grid ) );
+  H5::DataSet dataset_width( file.createDataSet(
+      "/Spatial Grid/Widths", H5::PredType::NATIVE_DOUBLE, space_grid ) );
   H5::DataSet dataset_tau(
       file.createDataSet( "/Conserved Fields/Specific Volume",
                           H5::PredType::NATIVE_DOUBLE, space ) );
@@ -175,6 +179,7 @@ void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   dataset_time.write( &time, H5::PredType::NATIVE_DOUBLE );  
 
   dataset_grid.write( grid.data( ), H5::PredType::NATIVE_DOUBLE );
+  dataset_width.write( dr.data( ), H5::PredType::NATIVE_DOUBLE );
   dataset_limiter.write( limiter.data( ), H5::PredType::NATIVE_DOUBLE );
   dataset_tau.write( tau.data( ), H5::PredType::NATIVE_DOUBLE );
   dataset_vel.write( vel.data( ), H5::PredType::NATIVE_DOUBLE );
