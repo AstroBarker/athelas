@@ -26,20 +26,22 @@ function SmoothFlow( r::Float64, t::Float64 )
     J[2,2] = 1.0 + sqrt(3) * pi * a * t * cos( pi * (r - x[2]*t) )
   end
   return nlsolve(f!, j!, [-1.0, 1.0]).zero
+end
 
-  # function f(x)
-  #   return -sqrt(3) * (1.0 - a * sin(pi * (r - x*t)))
-  # end
-  # function j(x)
-  #   return -sqrt(3) * pi * a * t * cos( pi * (r - x*t) )
-  # end
 
-  # xn = 1.0
-  # for _ in 1:200
-  #   xnp1 = xn - f(xn) / j(xn)
-  #   xn = xnp1
-  # end
-  # return xn
+"""
+SmoothFlow problem (array)
+"""
+function SmoothFlow(r::Array{Float64,1}, t::Float64)
+  N::Integer = length(r)
+  sol::Array{Float64,1} = zeros(N)
+  a::Float64 = 0.0
+  b::Float64 = 0.0
+  for i in 1:N
+    a, b = SmoothFlow(- r[i], t)
+    @inbounds sol[i] = - ( a + b ) / 2.0
+  end
+  return sol
 end
 
 """

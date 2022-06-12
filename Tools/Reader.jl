@@ -33,6 +33,7 @@ function Load_Output(Dir::AbstractString,
   nX::Int64 = fid["/Metadata/nX"][1]
 
   x1::Array{Float64,1} = fid["/Spatial Grid/Grid"][:]
+  dr::Array{Float64,1} = fid["/Spatial Grid/Widths"][:]
 
   uCF::Array{Float64,3} = zeros(order, nX, 3)
 
@@ -47,11 +48,12 @@ function Load_Output(Dir::AbstractString,
   uPF::Array{Float64,3} = zeros(order, nX, 3)
   uAF::Array{Float64,3} = zeros(order, nX, 3)
 
-  state = State(time, x1, uCF, uPF, uAF, SlopeLimiter)
+  state::State = State(time, uCF, uPF, uAF, SlopeLimiter)
+  grid ::GridType = GridType(x1,dr) 
 
   close(fid)
 
-  return state, order
+  return state, grid, order
 end
 
 """
@@ -63,7 +65,7 @@ function LoadBasis(Dir::AbstractString, ProblemName::AbstractString,
   println(fn)
   fid = h5open(fn, "r")
 
-  data::Array{Float64,3} = permutedims(fid["Basis"][:, :, :], [3, 2, 1])
+  data::Array{Float64,3} = permutedims(fid["Basis"][:, :, :], [1, 3, 2])
 
   Basis = BasisType(order, data)
 
