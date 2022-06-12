@@ -41,12 +41,6 @@ The build system may not be perfect yet. Your mileage may vary.
 - Gravity
 - Multigroup radiation
 
-
-# BUGS: 
-- [ ] nNodes > order, crash when SlopeLimiter applied.
-- [x] Issue with TCI
-- [x] Issues with Characteristic Limiting
-
 # Dependencies
 * Kokkos
 * LAPACKE
@@ -60,18 +54,13 @@ We use clang format for code cleanliness.
 The current version of `clang-format` used is `clang-format-13`.
 Simply call `Tools/Bash/format.sh` to format the `.h` and `.cpp` files.
 
-
-# TODO: Spherical Symetry
- - [x] Ensure mass conservation...
- - Done?
-
-
-# TODO: Transitioning to modal basis
- - [ ] Output overhaul - write basis terms and all coefficients
-
 # TODO:
  - [ ] Initialize with input file at runtime
+ - [ ] Bound enforcing limiter
+ - [ ] New TCI
 
-## Reader
- - [ ] Need to extend Reader to compute solution at arbitrary points using basis
-    - Have to output the full solution and basis first.
+
+# BUGS: 
+- [ ] nNodes > order, crash when SlopeLimiter applied.
+- [x] Issue with TCI
+- [x] Issues with Characteristic Limiting
