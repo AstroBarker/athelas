@@ -47,8 +47,9 @@ class TimeStepper
   Kokkos::View<double****> U_s;
   Kokkos::View<double****> dU_s;
   std::vector<GridStructure> Grid_s;
-  Kokkos::View<double**> StageData;
+  
   // StageData Holds cell left interface positions
+  Kokkos::View<double**> StageData;
 
   // Variables to pass to update step
   Kokkos::View<double***> Flux_q;

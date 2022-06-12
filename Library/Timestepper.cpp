@@ -285,7 +285,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
           ihi + 2, KOKKOS_LAMBDA( unsigned int iX ) {
             SumVar_X( iX ) +=
                 a_jk( i, j ) * StageData( j, iX ) +
-                dt * b_jk( i, j ) * Flux_Uj( iX ); //* Flux_U( j, iX );
+                dt * b_jk( i, j ) * Flux_Uj( iX );
             StageData( iS, iX ) = SumVar_X( iX );
           } );
     }
@@ -303,8 +303,10 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
     auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
     Grid_s[iS].UpdateGrid( StageDataj );
 
-    // ! This will give poor performance. Why? ! But also helps with Sedov..
-    // S_Limiter.ApplySlopeLimiter( U_s[iS], Grid_s[iS], Basis );
+    // ! This may give poor performance. Why? ! But also helps with Sedov..
+    auto Usj =
+          Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
+    S_Limiter.ApplySlopeLimiter( Usj, Grid_s[iS], Basis );
   }
 
   Kokkos::parallel_for(
