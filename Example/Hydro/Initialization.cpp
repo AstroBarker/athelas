@@ -254,7 +254,7 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
           {
             uCF( iCF_Tau, iX, k ) = 1.0 / D0;
             uCF( iCF_V, iX, k )   = V0;
-            if ( iX == origin || iX == origin + 1 )
+            if ( iX == origin - 1 || iX == origin )
             {
               uCF( iCF_E, iX, k ) =
                   ( P0 / ( 5.0 / 3.0 - 1.0 ) ) * uCF( iCF_Tau, iX, k ) +
