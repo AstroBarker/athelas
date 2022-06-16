@@ -8,14 +8,17 @@
 
 #include <math.h> /* sqrt */
 
+#include "PolynomialBasis.h"
+#include "EquationOfStateLibrary_IDEAL.h"
+
 // Compute pressure assuming an ideal gas
-double ComputePressureFromPrimitive_IDEAL( double Ev, double GAMMA = 1.4 )
+double ComputePressureFromPrimitive_IDEAL( double Ev, double GAMMA )
 {
   return ( GAMMA - 1.0 ) * Ev;
 }
 
 double ComputePressureFromConserved_IDEAL( double Tau, double V, double Em_T,
-                                           double GAMMA = 1.4 )
+                                           double GAMMA )
 {
   double Em = Em_T - 0.5 * V * V;
   double Ev = Em / Tau;
@@ -25,11 +28,28 @@ double ComputePressureFromConserved_IDEAL( double Tau, double V, double Em_T,
 }
 
 double ComputeSoundSpeedFromConserved_IDEAL( double Tau, double V, double Em_T,
-                                             double GAMMA = 1.4 )
+                                             double GAMMA )
 {
   double Em = Em_T - 0.5 * V * V;
 
   double Cs = sqrt( GAMMA * ( GAMMA - 1.0 ) * Em );
   //  / ( D + GAMMA * Ev ) )
   return Cs;
+}
+
+// nodal specific internal energy
+double ComputeInternalEnergy( Kokkos::View<double***> U,
+                              const ModalBasis& Basis, const unsigned int iX,
+                              const unsigned int iN )
+{
+  double Vel = Basis.BasisEval( U, iX, 1, iN, false );
+  double EmT = Basis.BasisEval( U, iX, 2, iN, false );
+
+  return EmT - 0.5 * Vel * Vel;
+}
+
+// cell average specific internal energy
+double ComputeInternalEnergy( Kokkos::View<double***> U, const unsigned int iX )
+{
+  return U( 2, iX, 0 ) - 0.5 * U( 1, iX, 0 ) * U( 1, iX, 0 );
 }

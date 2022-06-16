@@ -14,6 +14,7 @@
 #include "SlopeLimiter.h"
 #include "Fluid_Discretization.h"
 #include "PolynomialBasis.h"
+#include "BoundEnforcingLimiter.h"
 #include "Timestepper.h"
 
 /**
@@ -283,9 +284,8 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
 
       Kokkos::parallel_for(
           ihi + 2, KOKKOS_LAMBDA( unsigned int iX ) {
-            SumVar_X( iX ) +=
-                a_jk( i, j ) * StageData( j, iX ) +
-                dt * b_jk( i, j ) * Flux_Uj( iX );
+            SumVar_X( iX ) += a_jk( i, j ) * StageData( j, iX ) +
+                              dt * b_jk( i, j ) * Flux_Uj( iX );
             StageData( iS, iX ) = SumVar_X( iX );
           } );
     }
@@ -305,8 +305,9 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
 
     // ! This may give poor performance. Why? ! But also helps with Sedov..
     auto Usj =
-          Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
+        Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
     S_Limiter.ApplySlopeLimiter( Usj, Grid_s[iS], Basis );
+    ApplyBoundEnforcingLimiter( Usj, Basis );
   }
 
   Kokkos::parallel_for(
@@ -320,4 +321,5 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
 
   Grid = Grid_s[nStages];
   S_Limiter.ApplySlopeLimiter( U, Grid, Basis );
+  ApplyBoundEnforcingLimiter( U, Basis );
 }

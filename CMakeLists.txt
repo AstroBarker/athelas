@@ -40,6 +40,7 @@ include_directories(athelas PUBLIC
 set( ATHELAS_SOURCES 
   "${HYDRO_DIR}/Initialization.cpp" 
   "Library/Timer.cpp"
+  "Library/Utilities.cpp"
   "Library/BoundaryConditionsLibrary.cpp"
   "Library/CharacteristicDecomposition.cpp"
   "Library/EquationOfStateLibrary_IDEAL.cpp"
@@ -51,8 +52,9 @@ set( ATHELAS_SOURCES
   "Library/PolynomialBasis.cpp"
   "Library/QuadratureLibrary.cpp"
   "Library/SlopeLimiter.cpp"
+  "Library/BoundEnforcingLimiter.cpp"
   "Library/SlopeLimiter_Utilities.cpp"
-  "Library/Timestepper.cpp")
+  "Library/Timestepper.cpp" )
 
 add_library(libathelas ${ATHELAS_SOURCES})
 set_target_properties(libathelas
