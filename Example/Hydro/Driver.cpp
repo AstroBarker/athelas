@@ -6,8 +6,6 @@
  * Purpose : Main driver routine
  **/
 
-#include <chrono>
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -31,9 +29,9 @@ int main( int argc, char* argv[] )
   Kokkos::Timer timer;
 
   /* --- Problem Parameters --- */
-  const std::string ProblemName = "SmoothFlow";
+  const std::string ProblemName = "Sod";
 
-  const unsigned int nX      = 1024;
+  const unsigned int nX      = 128;
   const unsigned int order   = 2;
   const unsigned int nNodes  = NumNodes( order ) + 0;
   const unsigned int nStages = 2;
@@ -41,21 +39,21 @@ int main( int argc, char* argv[] )
 
   const unsigned int nGuard = 1;
 
-  const double xL = -1.0;
+  const double xL = +0.0;
   const double xR = +1.0;
 
-  const double GAMMA_IDEAL = 3.0;
+  const double GAMMA_IDEAL = 1.4;
 
   double t           = 0.0;
   double dt          = 0.0;
-  const double t_end = 0.1;
+  const double t_end = 0.2;
 
   bool Restart = false;
 
   bool Geometry  = false; /* false: Cartesian, true: Spherical */
-  std::string BC = "Periodic";
+  std::string BC = "Homogenous";
 
-  const double CFL = ComputeCFL( 0.5, order, nStages, tOrder );
+  const double CFL = ComputeCFL( 0.35, order, nStages, tOrder );
 
   Kokkos::initialize( argc, argv );
   {
@@ -90,8 +88,8 @@ int main( int argc, char* argv[] )
     const double alpha                       = 1.0;
     const double SlopeLimiter_Threshold      = 0.0;
     const double TCI_Threshold               = 0.1;
-    const bool CharacteristicLimiting_Option = false;
-    const bool TCI_Option                    = true;
+    const bool CharacteristicLimiting_Option = true;
+    const bool TCI_Option                    = false;
 
     SlopeLimiter S_Limiter( Grid, nNodes, SlopeLimiter_Threshold, alpha,
                             CharacteristicLimiting_Option, TCI_Option,
@@ -134,7 +132,8 @@ int main( int argc, char* argv[] )
       // Write state
       if ( iStep % i_write == 0 )
       {
-        WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName, t, order, i_out );
+        WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName, t, order,
+                    i_out );
         i_out += 1;
       }
 
