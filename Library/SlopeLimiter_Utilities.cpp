@@ -20,7 +20,6 @@
 #include "DataStructures.h"
 #include "SlopeLimiter_Utilities.h"
 
-
 // Standard minmod function
 double minmod( double a, double b, double c )
 {
