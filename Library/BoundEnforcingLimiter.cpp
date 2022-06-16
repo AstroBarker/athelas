@@ -5,8 +5,8 @@
  * Author   : Brandon L. Barker
  * Purpose  : Limit solution to maintain physicality
  * TODO: Bisection / process not getting sutiable theta
- * TODO: Can some functions here be simplified? 
-  *   ? If I pass U, iX, iCF, iN... why not just the value 
+ * TODO: Can some functions here be simplified?
+ *   ? If I pass U, iX, iCF, iN... why not just the value
  **/
 
 #include <iostream>
@@ -27,31 +27,28 @@ void LimitDensity( Kokkos::View<double***> U, const ModalBasis& Basis )
   const unsigned int order = Basis.Get_Order( );
 
   if ( order == 1 ) return;
-  
+
   Kokkos::parallel_for(
       "Limit Density", Kokkos::RangePolicy<>( 1, U.extent( 1 ) ),
       KOKKOS_LAMBDA( unsigned int iX ) {
-      
-      double theta1 = 100000.0;
-      double nodal  = 0.0;
-      double frac   = 0.0;
-      double avg    = U( 0, iX, 0 );
+        double theta1 = 100000.0;
+        double nodal  = 0.0;
+        double frac   = 0.0;
+        double avg    = U( 0, iX, 0 );
 
-      for ( unsigned int iN = 0; iN <= order; iN++ )
-      {
-        nodal  = Basis.BasisEval( U, iX, 0, iN, false );
-        frac   = std::abs( ( avg - EPSILON ) / ( avg - nodal ) );
-        theta1 = std::min( theta1, std::min( 1.0, frac ) );
-      }
+        for ( unsigned int iN = 0; iN <= order; iN++ )
+        {
+          nodal  = Basis.BasisEval( U, iX, 0, iN, false );
+          frac   = std::abs( ( avg - EPSILON ) / ( avg - nodal ) );
+          theta1 = std::min( theta1, std::min( 1.0, frac ) );
+        }
 
-      for ( unsigned int k = 1; k < order; k++ )
-      {
-        U( 0, iX, k ) *= theta1;
-      }
-
-  } );
+        for ( unsigned int k = 1; k < order; k++ )
+        {
+          U( 0, iX, k ) *= theta1;
+        }
+      } );
 }
-
 
 void LimitInternalEnergy( Kokkos::View<double***> U, const ModalBasis& Basis )
 {
@@ -60,8 +57,8 @@ void LimitInternalEnergy( Kokkos::View<double***> U, const ModalBasis& Basis )
   if ( order == 1 ) return;
 
   Kokkos::parallel_for(
-    "Limit Internal Energy", Kokkos::RangePolicy<>( 1, U.extent( 1 ) ),
-    KOKKOS_LAMBDA( unsigned int iX ) {
+      "Limit Internal Energy", Kokkos::RangePolicy<>( 1, U.extent( 1 ) ),
+      KOKKOS_LAMBDA( unsigned int iX ) {
         double theta2 = 10000000.0;
         double nodal  = 0.0;
         double temp   = 0.0;
@@ -69,7 +66,7 @@ void LimitInternalEnergy( Kokkos::View<double***> U, const ModalBasis& Basis )
 
         for ( unsigned int iN = 0; iN <= order + 1; iN++ )
         {
-          nodal  = ComputeInternalEnergy( U, Basis, iX, iN );
+          nodal = ComputeInternalEnergy( U, Basis, iX, iN );
 
           if ( nodal >= 0.0 )
           {
@@ -78,7 +75,7 @@ void LimitInternalEnergy( Kokkos::View<double***> U, const ModalBasis& Basis )
           else
           {
             // TODO: This is hacked and Does Not Really Work
-            temp = Bisection(U, Basis, iX, iN ) / 2.0;
+            temp = Bisection( U, Basis, iX, iN ) / 2.0;
           }
           theta2 = std::min( theta2, temp );
         }
@@ -89,11 +86,10 @@ void LimitInternalEnergy( Kokkos::View<double***> U, const ModalBasis& Basis )
           U( 1, iX, k ) *= theta2;
           U( 2, iX, k ) *= theta2;
         }
-    } );
+      } );
 }
 
-
-void ApplyBoundEnforcingLimiter( Kokkos::View<double***> U, 
+void ApplyBoundEnforcingLimiter( Kokkos::View<double***> U,
                                  const ModalBasis& Basis )
 
 {
@@ -101,14 +97,12 @@ void ApplyBoundEnforcingLimiter( Kokkos::View<double***> U,
   LimitInternalEnergy( U, Basis );
 }
 
-
 /* --- Utility Functions --- */
 
-
 // ( 1 - theta ) U_bar + theta U_q
-double ComputeThetaState( const Kokkos::View<double***> U, 
-                          const ModalBasis& Basis, const double theta, 
-                          const unsigned int iCF, const unsigned int iX, 
+double ComputeThetaState( const Kokkos::View<double***> U,
+                          const ModalBasis& Basis, const double theta,
+                          const unsigned int iCF, const unsigned int iX,
                           const unsigned int iN )
 {
   double result = Basis.BasisEval( U, iX, iCF, iN, false );
@@ -118,22 +112,20 @@ double ComputeThetaState( const Kokkos::View<double***> U,
   return result;
 }
 
-
-double TargetFunc( const Kokkos::View<double***> U, 
-                   const ModalBasis& Basis, const double theta, 
-                   const unsigned int iX, const unsigned int iN )
+double TargetFunc( const Kokkos::View<double***> U, const ModalBasis& Basis,
+                   const double theta, const unsigned int iX,
+                   const unsigned int iN )
 {
   const double w  = std::min( 1.0e-13, ComputeInternalEnergy( U, iX ) );
   const double s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
   const double s2 = ComputeThetaState( U, Basis, theta, 2, iX, iN );
 
-  double e  = s2 - 0.5 * s1 * s1;
+  double e = s2 - 0.5 * s1 * s1;
 
   return e - w;
 }
 
-
-double Bisection( const Kokkos::View<double***> U, const ModalBasis& Basis, 
+double Bisection( const Kokkos::View<double***> U, const ModalBasis& Basis,
                   const unsigned int iX, const unsigned int iN )
 {
   const double TOL             = 1e-10;
@@ -163,7 +155,7 @@ double Bisection( const Kokkos::View<double***> U, const ModalBasis& Basis,
     }
 
     // new interval
-    if ( sgn(fc) == sgn(fa) )
+    if ( sgn( fc ) == sgn( fa ) )
     {
       a = c;
     }

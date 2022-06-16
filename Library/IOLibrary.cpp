@@ -79,12 +79,12 @@ void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
 // TODO: add Time
 void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
                  Kokkos::View<double***> uAF, GridStructure& Grid,
-                 SlopeLimiter& SL, const std::string ProblemName,
-                 double time, unsigned int order, int i_write )
+                 SlopeLimiter& SL, const std::string ProblemName, double time,
+                 unsigned int order, int i_write )
 {
 
   std::string fn = "athelas_";
-  auto suffix = std::to_string( i_write );
+  auto suffix    = std::to_string( i_write );
   fn.append( ProblemName );
   fn.append( "_" );
   if ( i_write != -1 )
@@ -119,12 +119,12 @@ void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   for ( unsigned int k = 0; k < order; k++ )
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
     {
-      grid[( iX - ilo )].x    = Grid.Get_Centers( iX );
-      dr[( iX - ilo )].x      = Grid.Get_Widths( iX );
-      limiter[( iX - ilo )].x = SL.Get_Limited( iX );
-      tau[( iX - ilo ) + k*nX].x     = uCF( 0, iX, k );
-      vel[( iX - ilo ) + k*nX].x     = uCF( 1, iX, k );
-      eint[( iX - ilo ) + k*nX].x    = uCF( 2, iX, k );
+      grid[( iX - ilo )].x          = Grid.Get_Centers( iX );
+      dr[( iX - ilo )].x            = Grid.Get_Widths( iX );
+      limiter[( iX - ilo )].x       = SL.Get_Limited( iX );
+      tau[( iX - ilo ) + k * nX].x  = uCF( 0, iX, k );
+      vel[( iX - ilo ) + k * nX].x  = uCF( 1, iX, k );
+      eint[( iX - ilo ) + k * nX].x = uCF( 2, iX, k );
     }
 
   // preparation of a dataset and a file.
@@ -138,10 +138,10 @@ void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   const int rank_grid = sizeof( dim_grid ) / sizeof( hsize_t );
   H5::DataSpace space_grid( rank_grid, dim_grid );
 
-  hsize_t len = 1;
-  hsize_t dim_md[1] = {len};
+  hsize_t len       = 1;
+  hsize_t dim_md[1] = { len };
   const int rank_md = 1;
-  H5::DataSpace md_space( rank_md, dim_md ); 
+  H5::DataSpace md_space( rank_md, dim_md );
 
   H5::H5File file( fn2, H5F_ACC_TRUNC );
   // Groups
@@ -175,8 +175,8 @@ void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
 
   // --- Write data ---
   dataset_nx.write( &nX, H5::PredType::NATIVE_INT );
-  dataset_order.write( &order, H5::PredType::NATIVE_INT );  
-  dataset_time.write( &time, H5::PredType::NATIVE_DOUBLE );  
+  dataset_order.write( &order, H5::PredType::NATIVE_INT );
+  dataset_time.write( &time, H5::PredType::NATIVE_DOUBLE );
 
   dataset_grid.write( grid.data( ), H5::PredType::NATIVE_DOUBLE );
   dataset_width.write( dr.data( ), H5::PredType::NATIVE_DOUBLE );

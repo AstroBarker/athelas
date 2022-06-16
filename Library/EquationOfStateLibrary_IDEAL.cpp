@@ -37,17 +37,16 @@ double ComputeSoundSpeedFromConserved_IDEAL( double Tau, double V, double Em_T,
   return Cs;
 }
 
-
 // nodal specific internal energy
-double ComputeInternalEnergy( Kokkos::View<double***> U, const ModalBasis& Basis, 
-                              const unsigned int iX, const unsigned int iN )
+double ComputeInternalEnergy( Kokkos::View<double***> U,
+                              const ModalBasis& Basis, const unsigned int iX,
+                              const unsigned int iN )
 {
   double Vel = Basis.BasisEval( U, iX, 1, iN, false );
   double EmT = Basis.BasisEval( U, iX, 2, iN, false );
 
   return EmT - 0.5 * Vel * Vel;
 }
-
 
 // cell average specific internal energy
 double ComputeInternalEnergy( Kokkos::View<double***> U, const unsigned int iX )
