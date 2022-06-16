@@ -14,5 +14,7 @@ double TargetFunc( const Kokkos::View<double***> U, const ModalBasis& Basis,
                    const unsigned int iN );
 double Bisection( const Kokkos::View<double***> U, const ModalBasis& Basis,
                   const unsigned int iX, const unsigned int iN );
+double Backtrace( const Kokkos::View<double***> U, const ModalBasis& Basis,
+                  const unsigned int iX, const unsigned int iN );
 
 #endif

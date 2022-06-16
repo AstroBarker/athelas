@@ -74,8 +74,11 @@ void LimitInternalEnergy( Kokkos::View<double***> U, const ModalBasis& Basis )
           }
           else
           {
+            // TODO: Backtracing may be working okay...
+            temp = Backtrace( U, Basis, iX, iN );
+            std::printf("%f\n", temp);
             // TODO: This is hacked and Does Not Really Work
-            temp = Bisection( U, Basis, iX, iN ) / 2.0;
+            // temp = Bisection( U, Basis, iX, iN ) / 2.0;
           }
           theta2 = std::min( theta2, temp );
         }
@@ -125,6 +128,7 @@ double TargetFunc( const Kokkos::View<double***> U, const ModalBasis& Basis,
   return e - w;
 }
 
+
 double Bisection( const Kokkos::View<double***> U, const ModalBasis& Basis,
                   const unsigned int iX, const unsigned int iN )
 {
@@ -169,4 +173,21 @@ double Bisection( const Kokkos::View<double***> U, const ModalBasis& Basis,
 
   std::printf( "Max Iters Reach In Bisection\n" );
   return c;
+}
+
+
+double Backtrace( const Kokkos::View<double***> U, const ModalBasis& Basis,
+                  const unsigned int iX, const unsigned int iN )
+{
+  double theta = 1.0;
+  double nodal = - 1.0;
+
+  while ( theta >= 0.01 && nodal < 0.0 )
+  {
+    nodal = TargetFunc( U, Basis, theta, iX, iN );
+
+    theta -= 0.05;
+  }
+
+  return theta;
 }
