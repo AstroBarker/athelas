@@ -14,6 +14,7 @@
 #include "SlopeLimiter.h"
 #include "Fluid_Discretization.h"
 #include "PolynomialBasis.h"
+#include "BoundEnforcingLimiter.h"
 #include "Timestepper.h"
 
 /**
@@ -307,6 +308,8 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
     auto Usj =
           Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
     S_Limiter.ApplySlopeLimiter( Usj, Grid_s[iS], Basis );
+    ApplyBoundEnforcingLimiter( Usj, Basis );
+    // std::printf("%f\n", Usj(0,1,1));
   }
 
   Kokkos::parallel_for(
@@ -320,4 +323,6 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
 
   Grid = Grid_s[nStages];
   S_Limiter.ApplySlopeLimiter( U, Grid, Basis );
+  ApplyBoundEnforcingLimiter( U, Basis );
+  // std::printf("%.12f\n", U(0,1,1));
 }
