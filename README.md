@@ -56,11 +56,9 @@ Simply call `Tools/Bash/format.sh` to format the `.h` and `.cpp` files.
 
 # TODO:
  - [ ] Initialize with input file at runtime
- - [ ] Bound enforcing limiter
+ - [x] Bound enforcing limiter
  - [ ] New TCI
 
 
 # BUGS: 
 - [ ] nNodes > order, crash when SlopeLimiter applied.
-- [x] Issue with TCI
-- [x] Issues with Characteristic Limiting
