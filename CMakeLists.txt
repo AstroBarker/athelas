@@ -39,7 +39,6 @@ include_directories(athelas PUBLIC
 # --- Source Files ---
 set( ATHELAS_SOURCES 
   "${HYDRO_DIR}/Initialization.cpp" 
-  "Library/Timer.cpp"
   "Library/Utilities.cpp"
   "Library/BoundaryConditionsLibrary.cpp"
   "Library/CharacteristicDecomposition.cpp"

@@ -11,10 +11,7 @@
 #include <algorithm> /* std::min, std::max */
 #include <cstdlib>   /* abs */
 
-#include "omp.h"
-
 #include "CharacteristicDecomposition.h"
-#include "DataStructures.h"
 #include "Error.h"
 #include "Grid.h"
 #include "LinearAlgebraModules.h"

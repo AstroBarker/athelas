@@ -17,7 +17,6 @@
 #include <cstdlib>   /* abs */
 
 #include "Utilities.h"
-#include "DataStructures.h"
 #include "SlopeLimiter_Utilities.h"
 
 // Standard minmod function

@@ -13,7 +13,6 @@
 #include <iostream>
 #include <vector>
 
-#include "DataStructures.h"
 #include "Error.h"
 #include "Grid.h"
 #include "PolynomialBasis.h"
