@@ -101,7 +101,6 @@ void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   const char* fn2 = fn.c_str( );
 
   const unsigned int nX     = Grid.Get_nElements( );
-  const unsigned int nGuard = Grid.Get_Guard( );
   const unsigned int ilo    = Grid.Get_ilo( );
   const unsigned int ihi    = Grid.Get_ihi( );
 

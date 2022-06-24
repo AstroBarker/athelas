@@ -46,11 +46,11 @@ class SlopeLimiter
  private:
   unsigned int order;
   double SlopeLimiter_Threshold;
+  double alpha;
   bool CharacteristicLimiting_Option;
   bool TCI_Option;
   double TCI_Threshold;
 
-  double alpha;
   double Phi1;
   double Phi2;
 

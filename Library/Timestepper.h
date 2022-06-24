@@ -39,13 +39,12 @@ class TimeStepper
   Kokkos::View<double**> a_jk;
   Kokkos::View<double**> b_jk;
 
-  // Summations
-  Kokkos::View<double***> SumVar_U;
   Kokkos::View<double*> SumVar_X;
 
   // Hold stage data
   Kokkos::View<double****> U_s;
   Kokkos::View<double****> dU_s;
+  Kokkos::View<double***> SumVar_U;
   std::vector<GridStructure> Grid_s;
 
   // StageData Holds cell left interface positions

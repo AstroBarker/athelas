@@ -62,7 +62,6 @@ void LimitInternalEnergy( Kokkos::View<double***> U, const ModalBasis& Basis )
         double theta2 = 10000000.0;
         double nodal  = 0.0;
         double temp   = 0.0;
-        double avg    = ComputeInternalEnergy( U, iX );
 
         for ( unsigned int iN = 0; iN <= order + 1; iN++ )
         {
@@ -149,7 +148,6 @@ double Bisection( const Kokkos::View<double***> U, const ModalBasis& Basis,
     c = ( a + b ) / 2.0;
 
     fa = TargetFunc( U, Basis, a, iX, iN );
-    fb = TargetFunc( U, Basis, b, iX, iN );
     fc = TargetFunc( U, Basis, c, iX, iN );
 
     if ( std::abs( fc <= TOL / 10.0 ) || ( b - a ) / 2.0 < TOL )

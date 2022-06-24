@@ -32,11 +32,7 @@ void ComputeIncrement_Fluid_Divergence(
   const unsigned int ilo    = Grid.Get_ilo( );
   const unsigned int ihi    = Grid.Get_ihi( );
 
-  double rho_L, rho_R, P_L, P_R, Cs_L, Cs_R, lam_L, lam_R, P;
-
-  double Poly_L, Poly_R;
-  double X_L, X_R;
-  double SqrtGm_L, SqrtGm_R;
+  // double rho_L, rho_R, P_L, P_R, Cs_L, Cs_R, lam_L, lam_R, P;
 
   // --- Interpolate Conserved Variable to Interfaces ---
 

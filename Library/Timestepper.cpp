@@ -209,7 +209,6 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
 {
 
   const unsigned int order = Basis.Get_Order( );
-  const unsigned int ilo   = Grid.Get_ilo( );
   const unsigned int ihi   = Grid.Get_ihi( );
 
   unsigned short int i;

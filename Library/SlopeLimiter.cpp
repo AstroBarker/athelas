@@ -48,16 +48,11 @@ void SlopeLimiter::DetectTroubledCells( Kokkos::View<double***> U,
   const unsigned int ilo = Grid.Get_ilo( );
   const unsigned int ihi = Grid.Get_ihi( );
 
-  double result      = 0.0;
-  double cell_avg    = 0.0;
   double denominator = 0.0;
 
   // Cell averages by extrapolating L and R neighbors into current cell
-  double cell_avg_L_T = 0.0;
-  double cell_avg_R_T = 0.0;
-  double cell_avg_L   = 0.0;
-  double cell_avg_R   = 0.0;
 
+  // TODO: Kokkos
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
     {
