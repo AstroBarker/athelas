@@ -139,7 +139,6 @@ double Bisection( const Kokkos::View<double***> U, const ModalBasis& Basis,
   double c = 0.5;
 
   double fa = 0.0; // f(a) etc
-  double fb = 0.0;
   double fc = 0.0;
 
   unsigned int n = 0;

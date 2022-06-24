@@ -10,8 +10,6 @@
 #include <math.h> /* sin */
 #include <string>
 
-#include "Kokkos_Core.hpp"
-
 #include "Constants.h"
 #include "Error.h"
 #include "Grid.h"
@@ -233,16 +231,14 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
     const double D0 = 1.0;
     const double E0 = 0.3;
 
-    const int origin = Grid.Get_nElements( ) / 2;
+    const unsigned int origin = Grid.Get_nElements( ) / 2;
 
     const double P0 = ( 5.0 / 3.0 - 1.0 ) * E0 / Grid.Get_Widths( origin );
 
-    double X1 = 0.0;
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1 = Grid.Get_Centers( iX );
 
           if ( k != 0 )
           {
@@ -335,7 +331,6 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   {
     const double D   = 1.0;
     const double E_M = 1.0;
-    const double P   = ( GAMMA_IDEAL - 1.0 ) * E_M * D;
 
     double X1 = 0.0;
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
@@ -417,7 +412,6 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
           else if ( k == 2 )
           {
             double D   = ( 1.0 + amp * sin( PI( ) * X1 ) );
-            double dD  = ( amp * PI( ) * cos( PI( ) * X1 ) );
             double ddD = -( amp * PI( ) * PI( ) ) * sin( PI( ) * X1 );
             uCF( iCF_Tau, iX, k ) = ( 2.0 / ( D * D * D ) ) * ddD *
                                     Grid.Get_Widths( iX ) *
@@ -429,8 +423,6 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
           else if ( k == 3 )
           {
             double D    = ( 1.0 + amp * sin( PI( ) * X1 ) );
-            double dD   = ( amp * PI( ) * cos( PI( ) * X1 ) );
-            double ddD  = -( amp * PI( ) * PI( ) ) * sin( PI( ) * X1 );
             double dddD = -( amp * PI( ) * PI( ) * PI( ) ) * cos( PI( ) * X1 );
             uCF( iCF_Tau, iX, k ) =
                 ( -6.0 / ( D * D * D * D ) ) * dddD * Grid.Get_Widths( iX ) *

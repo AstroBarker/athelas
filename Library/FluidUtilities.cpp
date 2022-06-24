@@ -135,7 +135,6 @@ double ComputeTimestep_Fluid( Kokkos::View<double***> U, GridStructure& Grid,
 
   const double MIN_DT = 0.000000005;
   const double MAX_DT = 1.0;
-  double dt_old       = 10000.0;
 
   const unsigned int ilo = Grid.Get_ilo( );
   const unsigned int ihi = Grid.Get_ihi( );
