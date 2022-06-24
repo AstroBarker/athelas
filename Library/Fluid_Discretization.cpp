@@ -8,8 +8,6 @@
  **/
 
 #include <iostream>
-#include <algorithm>
-#include <math.h> /* atan */
 
 #include "Kokkos_Core.hpp"
 
@@ -20,7 +18,6 @@
 #include "BoundaryConditionsLibrary.h"
 #include "EquationOfStateLibrary_IDEAL.h"
 #include "FluidUtilities.h"
-#include "Constants.h"
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence(
@@ -211,7 +208,7 @@ void Compute_Increment_Explicit(
 
   // --- First: Zero out dU  ---
   Kokkos::parallel_for(
-      "Volume Term",
+      "Zero dU",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                               { 3, ihi + 1, order } ),
       KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
