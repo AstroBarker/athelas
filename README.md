@@ -12,14 +12,19 @@ For now, it includes an ideal gas equation of state.
 
 Future work will implement gravity and multigroup two moment radiation.
 
-
-# In Progress: Kokkos
-We use Kokkos for parallelism. 
-Currently, most significant data structures use `Kokkos::Views` and loops are parallelised with Kokkos.
+# Kokkos
+We use `Kokkos` for parallelism. 
+Currently, most significant data structures use `Kokkos::Views` and loops are parallelised with `Kokkos`.
 More work to port other parts of the code.
-You need to install Kokkos (instructions will be included in time).
 
-# Installation:
+# Installation
+`athelas` uses submodules to include `Kokkos` as a dependency. 
+The best way to get the source is the following 
+```sh
+git clone --recursive git@github.com:AstroBarker/athelas.git
+```
+
+# Building
 `athelas` is installed using cmake. From the root directory of `athelas`, run the following:
 
 ```sh
@@ -58,6 +63,8 @@ Simply call `Tools/Bash/format.sh` to format the `.h` and `.cpp` files.
  - [ ] Initialize with input file at runtime
  - [x] Bound enforcing limiter
  - [ ] New TCI
+ - [ ] linter
+ - [ ] format on make
 
 
 # BUGS: 
