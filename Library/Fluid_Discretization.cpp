@@ -91,7 +91,7 @@ void ComputeIncrement_Fluid_Divergence(
 
   // --- Surface Term ---
   Kokkos::parallel_for(
-      "Surface",
+      "Surface Term",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                               { 3, ihi + 1, order } ),
       KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
