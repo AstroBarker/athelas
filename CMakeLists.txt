@@ -7,10 +7,30 @@ cmake_minimum_required( VERSION 3.10 )
 cmake_policy(SET CMP0074 NEW)
 
 set( CMAKE_BUILD_TYPE RELEASE )
-if (NOT CMAKE_BUILD_TYPE)
-    message(STATUS "No build type selected, default to Release")
-    set(CMAKE_BUILD_TYPE "Release")
+
+# If the user doesn't specify a build type, prefer RelWithDebInfo
+set(default_build_type "RelWithDebInfo")
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
+    STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
+
+# If this is a debug build, set kokkos debug on
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  message(STATUS "Enabling Kokkos debug mode")
+  set(Kokkos_ENABLE_DEBUG ON CACHE BOOL "Most general debug settings")
+  set(Kokkos_ENABLE_DEBUG_BOUNDS_CHECK ON CACHE BOOL
+     "Bounds checking on Kokkos views")
+  set(Kokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK ON CACHE BOOL
+      "Sanity checks on Kokkos DualView")
+endif()
+
+set(Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION ON CACHE BOOL
+    "Kokkos aggressive vectorization" FORCE)
 
 ### c++11 standards
 set(CMAKE_CXX_STANDARD 17)
@@ -22,10 +42,28 @@ set(CMAKE_FIND_APPBUNDLE NEVER)
 
 set( CMAKE_PREFIX_PATH "/usr/local")
 
-# set( Kokkos_DIR "/home/barker/opt/Kokkos/" )
-
 project( athelas VERSION 0.2 LANGUAGES CXX )
 enable_language(CXX)
+
+include(CTest)
+option(ATHELAS_ENABLE_UNIT_TESTS "Enable unit tests" OFF)               # Future
+option(ATHELAS_ENABLE_INTEGRATION_TESTS "Enable integration tests" OFF) # Future
+option(ATHELAS_ENABLE_REGRESSION_TESTS "Enable regression tests" OFF)   # Future
+
+# Don't allow in-source builds
+file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
+if(EXISTS "${LOC_PATH}")
+  message(FATAL_ERROR
+    "You cannot build in a source directory (or any directory with a CMakeLists.txt file). "
+    "Please make a build subdirectory. Feel free to remove CMakeCache.txt and CMakeFiles.")
+endif()
+
+# Default to an external Kokkos package if the submodule is not populated
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/External/Kokkos/CMakeLists.txt" AND NOT EXISTS "${Kokkos_ROOT}/CMakeLists.txt")
+    option(ATHELAS_IMPORT_KOKKOS "If ON, attempt to link to an external Kokkos library. If OFF, build Kokkos from source and package with ATHELAS" ON)
+else()
+    option(ATHELAS_IMPORT_KOKKOS "If ON, attempt to link to an external Kokkos library. If OFF, build Kokkos from source and package with ATHELAS" OFF)
+endif()
 
 set(HYDRO_DIR "${PROJECT_SOURCE_DIR}/Example/Hydro")
 message(STATUS "HYDRO_DIR = ${HYDRO_DIR}")
@@ -77,51 +115,54 @@ if (OPENMP_FOUND)
     else()
         message(STATUS "Not using OpenMP 4.5 directives: ${OpenMP_C_VERSION_MAJOR} ${OpenMP_C_VERSION_MINOR}")
     endif()
+    set(ENABLE_OPENMP ON)
+    set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "Allow Kokkos to use OpenMP as execution space.")
 endif(OPENMP_FOUND)
 
-
-# TODO: Need a better handling of HDF5/LAPACKE/cBLAS. 
-# My system is finding versions of these that don't work (e.g., LAPACK from miniconda....)
-# HDF5
-find_package ( HDF5 REQUIRED COMPONENTS CXX HL )
-# set( HDF5_INCLUDE_DIRS "/usr/local/Cellar/hdf5/1.12.1/include" )
-# set( HDF5_C_LIBRARIES "/usr/local/Cellar/hdf5/1.12.1/lib/libhdf5_cpp.dylib" )
-# set( HDF5_LIBRARIES "/usr/local/Cellar/hdf5/1.12.1/lib/libhdf5.dylib")
-
-# Check BLAS/LAPACK
-
-find_package( LAPACK REQUIRED  )
-#set( LAPACK_LIBRARIES /usr/local/opt/lapack/lib/liblapacke.3.dylib )
-#set( LAPACK_INCLUDE_DIRS /usr/local/opt/lapack/include )
-
-find_package( BLAS REQUIRED  )
-#set( BLAS_LIBRARIES /usr/local/opt/openblas/lib/libopenblas.dylib )
-#set( BLAS_INCLUDE_DIRS /usr/local/opt/openblas/include )
+set(ENABLE_COMPILER_WARNINGS False)
+if (ENABLE_COMPILER_WARNINGS)
+  message(STATUS "Enabling -Wall and setting Kokkos_ENABLE_COMPILER_WARNINGS=True")
+  set(Kokkos_ENABLE_COMPILER_WARNINGS True CACHE BOOL
+      "Make the compiler warn us about things")
+  add_compile_options(-Wall)
+endif()
 
 # Kokkos
-find_package( Kokkos REQUIRED )
-target_link_libraries( libathelas Kokkos::kokkos)
+if (NOT TARGET Kokkos::kokkos)
+  if (ATHELAS_IMPORT_KOKKOS)
+    find_package(Kokkos 3)
+    if (NOT Kokkos_FOUND)
+      unset(ATHELAS_IMPORT_KOKKOS CACHE)
+      message(FATAL_ERROR "Could not find external Kokkos. Consider importing a Kokkos installation into your environment or disabling external Kokkos with e.g. -DATHELAS_IMPORT_KOKKOS=OFF")
+    endif()
+  else()
+    if (EXISTS ${Kokkos_ROOT}/CMakeLists.txt)
+      add_subdirectory(${Kokkos_ROOT} Kokkos)
+      message(STATUS "Using Kokkos source from Kokkos_ROOT=${Kokkos_ROOT}")
+    elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/External/Kokkos/CMakeLists.txt)
+      add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/External/Kokkos ${PROJECT_SOURCE_DIR}/build/Kokkos)
+      message(STATUS "Using Kokkos source from Athelas submodule at ${CMAKE_CURRENT_SOURCE_DIR}/external/Kokkos")
+    else()
+      message(FATAL_ERROR "Could not find Kokkos source. Consider running `git submodule update --init`, providing the path to a Kokkos source directory with Kokkos_ROOT, or setting ATHELAS_IMPORT_KOKKOS=ON to link to an external Kokkos installation.")
+    endif()
+  endif()
+endif()
 
-
-target_link_libraries( libathelas ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES} )
-# target_include_directories( libathelas PRIVATE ${HDF5_INCLUDE_DIRS})
-
+# HDF5
+find_package ( HDF5 REQUIRED COMPONENTS CXX HL )
 message(STATUS "HDF5_LIBRARIES = ${HDF5_CXX_LIBRARIES}")
 
-target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
-# target_include_directories( libathelas PRIVATE ${LAPACK_INCLUDE_DIRS})
+# LAPACK
+find_package( LAPACK REQUIRED  )
 message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
 
-
-target_link_libraries( libathelas ${BLAS_LIBRARIES} )
-# target_include_directories( libathelas PRIVATE ${BLAS_INCLUDE_DIRS})
+#BLAS
+find_package( BLAS REQUIRED  )
 message( STATUS "BLAS_LIBRARIES: ${BLAS_LIBRARIES}" )
-
-install(TARGETS libathelas DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 
 # --- main ---
 
-add_executable( main ${HYDRO_DIR}/Driver.cpp )
+add_executable( main ${HYDRO_DIR}/Driver.cpp ${ATHELAS_SOURCES} )
 set_target_properties(main
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib"
@@ -129,7 +170,9 @@ set_target_properties(main
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
 )
 
+target_link_libraries( libathelas Kokkos::kokkos )
+
 target_compile_options( main PRIVATE -fPIC -O2 -Wall -std=c++17 )
 add_dependencies( main libathelas )
-target_link_libraries( main libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} Kokkos::kokkos )
-target_link_libraries( main Kokkos::kokkos )
+
+target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} Kokkos::kokkos )
