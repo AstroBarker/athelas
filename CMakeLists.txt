@@ -153,15 +153,16 @@ find_package ( HDF5 REQUIRED COMPONENTS CXX HL )
 message(STATUS "HDF5_LIBRARIES = ${HDF5_CXX_LIBRARIES}")
 include_directories(${HDF5_INCLUDE_DIRS}) # seems to be needed for compilation on github actions...
 
-#BLAS
-find_package( BLAS REQUIRED  )
-message( STATUS "BLAS_LIBRARIES: ${BLAS_LIBRARIES}" )
-include_directories(${BLAS_INCLUDE_DIRS})
-
 # LAPACK
 find_package( LAPACK REQUIRED  )
 message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
 include_directories(${LAPACK_INCLUDE_DIRS})
+target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
+
+#BLAS
+find_package( BLAS REQUIRED  )
+message( STATUS "BLAS_LIBRARIES: ${BLAS_LIBRARIES}" )
+include_directories(${BLAS_INCLUDE_DIRS})
 
 # --- main ---
 
@@ -174,9 +175,9 @@ set_target_properties(main
 )
 
 target_link_libraries( libathelas Kokkos::kokkos )
-target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} )
+target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} )
 
 target_compile_options( main PRIVATE -fPIC -O2 -Wall -std=c++17 )
 add_dependencies( main libathelas )
 
-target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos )
+target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} Kokkos::kokkos )
