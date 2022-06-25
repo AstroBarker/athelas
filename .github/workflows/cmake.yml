@@ -22,7 +22,7 @@ jobs:
       with:
         submodules: recursive
     - run: sudo apt-get update -y
-    - run: sudo apt-get install -y build-dep hdf5 liblapack-dev
+    - run: sudo apt-get install -y libhdf5 liblapack-dev
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
