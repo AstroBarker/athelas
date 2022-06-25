@@ -13,6 +13,8 @@
 #include <iostream>
 #include <vector>
 
+#include "Kokkos_Core.hpp"
+
 #include "Error.h"
 #include "Grid.h"
 #include "PolynomialBasis.h"
@@ -30,7 +32,8 @@ class SlopeLimiter
                           ModalBasis& Basis );
 
   void LimitQuadratic( Kokkos::View<double***> U, ModalBasis& Basis,
-                       double* d2w, unsigned int iX, unsigned int nNodes );
+                       Kokkos::View<double[3]> d2w, unsigned int iX,
+                       unsigned int nNodes );
 
   void DetectTroubledCells( Kokkos::View<double***> U, GridStructure& Grid,
                             ModalBasis& Basis );
@@ -54,45 +57,45 @@ class SlopeLimiter
   double Phi1;
   double Phi2;
 
-  double R[9];
-  double R_inv[9];
+  Kokkos::View<double[3][3]> R;
+  Kokkos::View<double[3][3]> R_inv;
 
-  double SlopeDifference[3];
-  double dU[3];
-  double d2U[3];
-  double d2w[3];
+  Kokkos::View<double[3]> SlopeDifference;
+  Kokkos::View<double[3]> dU;
+  Kokkos::View<double[3]> d2U;
+  Kokkos::View<double[3]> d2w;
 
   // --- Slope limiter quantities ---
 
-  double U_c_L[3];
-  double U_c_T[3];
-  double U_c_R[3];
-  double U_v_L[3];
-  double U_v_R[3];
+  Kokkos::View<double[3]> U_c_L;
+  Kokkos::View<double[3]> U_c_T;
+  Kokkos::View<double[3]> U_c_R;
+  Kokkos::View<double[3]> U_v_L;
+  Kokkos::View<double[3]> U_v_R;
 
-  double dU_c_L[3];
-  double dU_c_T[3];
-  double dU_c_R[3];
-  double dU_v_L[3];
-  double dU_v_R[3];
+  Kokkos::View<double[3]> dU_c_L;
+  Kokkos::View<double[3]> dU_c_T;
+  Kokkos::View<double[3]> dU_c_R;
+  Kokkos::View<double[3]> dU_v_L;
+  Kokkos::View<double[3]> dU_v_R;
 
   // characteristic forms
-  double w_c_L[3];
-  double w_c_T[3];
-  double w_c_R[3];
-  double w_v_L[3];
-  double w_v_R[3];
+  Kokkos::View<double[3]> w_c_L;
+  Kokkos::View<double[3]> w_c_T;
+  Kokkos::View<double[3]> w_c_R;
+  Kokkos::View<double[3]> w_v_L;
+  Kokkos::View<double[3]> w_v_R;
 
-  double dw_c_L[3];
-  double dw_c_T[3];
-  double dw_c_R[3];
-  double dw_v_L[3];
-  double dw_v_R[3];
+  Kokkos::View<double[3]> dw_c_L;
+  Kokkos::View<double[3]> dw_c_T;
+  Kokkos::View<double[3]> dw_c_R;
+  Kokkos::View<double[3]> dw_v_L;
+  Kokkos::View<double[3]> dw_v_R;
 
   // matrix mult scratch scape
-  double Mult1[3];
-  double Mult2[3];
-  double Mult3[3];
+  Kokkos::View<double[3]> Mult1;
+  Kokkos::View<double[3]> Mult2;
+  Kokkos::View<double[3]> Mult3;
 
   Kokkos::View<double**> D;
   Kokkos::View<int*> LimitedCell;

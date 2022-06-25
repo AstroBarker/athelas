@@ -11,6 +11,8 @@
 #include <algorithm> /* std::min, std::max */
 #include <cstdlib>   /* abs */
 
+#include "Kokkos_Core.hpp"
+
 #include "CharacteristicDecomposition.h"
 #include "Error.h"
 #include "Grid.h"
@@ -32,6 +34,15 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder,
       alpha( alpha_val ),
       CharacteristicLimiting_Option( CharacteristicLimitingOption ),
       TCI_Option( TCIOption ), TCI_Threshold( TCI_Threshold_val ),
+      R( "R Matrix" ), R_inv( "invR Matrix" ), SlopeDifference( "SlopeDiff" ),
+      dU( "dU" ), d2U( "d2U" ), d2w( "d2w" ), U_c_L( "U_c_L" ),
+      U_c_T( "U_c_T" ), U_c_R( "U_c_R" ), U_v_L( "U_v_L" ), U_v_R( "U_v_R" ),
+      dU_c_L( "dU_c_L" ), dU_c_T( "dU_c_T" ), dU_c_R( "dU_c_R" ),
+      dU_v_L( "dU_v_L" ), dU_v_R( "dU_v_R" ), w_c_L( "w_c_L" ),
+      w_c_T( "w_c_T" ), w_c_R( "w_c_R" ), w_v_L( "w_v_L" ), w_v_R( "U_v_R" ),
+      dw_c_L( "dw_c_L" ), dw_c_T( "dw_c_T" ), dw_c_R( "dw_c_R" ),
+      dw_v_L( "dw_v_L" ), dw_v_R( "dw_v_R" ), Mult1( "Mult1" ),
+      Mult2( "Mult2" ), Mult3( "Mult3" ),
       D( "TCI", 3, Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) ),
       LimitedCell( "LimitedCell",
                    Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) )
@@ -126,10 +137,10 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
 
     for ( int i = 0; i < 3; i++ )
     {
-      d2w[i]   = 0.0;
-      Mult1[i] = 0.0;
-      Mult2[i] = 0.0;
-      Mult3[i] = 0.0;
+      d2w( i )   = 0.0;
+      Mult1( i ) = 0.0;
+      Mult2( i ) = 0.0;
+      Mult3( i ) = 0.0;
     }
 
     // --- Characteristic Limiting Matrices ---
@@ -139,7 +150,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
     {
       for ( int iCF = 0; iCF < 3; iCF++ )
       {
-        Mult2[iCF] = U( iCF, iX, 0 );
+        Mult2( iCF ) = U( iCF, iX, 0 );
       }
       ComputeCharacteristicDecomposition( Mult2, R, R_inv );
     }
@@ -156,9 +167,9 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
     {
       for ( int iCF = 0; iCF < 3; iCF++ )
       {
-        Mult1[iCF] = U( iCF, iX, 2 );
+        Mult1( iCF ) = U( iCF, iX, 2 );
       }
-      MatMul( 3, 1, 3, 1.0, R_inv, 3, Mult1, 1, 1.0, d2w, 1 );
+      MatMul( 1.0, R_inv, Mult1, 1.0, d2w );
 
       LimitQuadratic( U, Basis, d2w, iX, nNodes );
     }
@@ -166,66 +177,66 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
     // --- Compute info for limiter ---
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
-      Mult1[iCF] = 0.0;
-      Mult2[iCF] = 0.0;
-      Mult3[iCF] = 0.0;
+      Mult1( iCF ) = 0.0;
+      Mult2( iCF ) = 0.0;
+      Mult3( iCF ) = 0.0;
 
-      U_c_L[iCF] = U( iCF, iX - 1, 0 );
-      U_c_T[iCF] = U( iCF, iX, 0 );
-      U_c_R[iCF] = U( iCF, iX + 1, 0 );
+      U_c_L( iCF ) = U( iCF, iX - 1, 0 );
+      U_c_T( iCF ) = U( iCF, iX, 0 );
+      U_c_R( iCF ) = U( iCF, iX + 1, 0 );
 
-      dU_c_T[iCF] = U( iCF, iX, 1 );
+      dU_c_T( iCF ) = U( iCF, iX, 1 );
 
-      U_v_L[iCF] = Basis.BasisEval( U, iX, iCF, 0, false );
-      U_v_R[iCF] = Basis.BasisEval( U, iX, iCF, nNodes + 1, false );
+      U_v_L( iCF ) = Basis.BasisEval( U, iX, iCF, 0, false );
+      U_v_R( iCF ) = Basis.BasisEval( U, iX, iCF, nNodes + 1, false );
 
       // initialize characteristic forms
-      w_c_L[iCF] = 0.0;
-      w_c_T[iCF] = 0.0;
-      w_c_R[iCF] = 0.0;
+      w_c_L( iCF ) = 0.0;
+      w_c_T( iCF ) = 0.0;
+      w_c_R( iCF ) = 0.0;
 
-      w_v_L[iCF] = 0.0;
-      w_v_R[iCF] = 0.0;
+      w_v_L( iCF ) = 0.0;
+      w_v_R( iCF ) = 0.0;
 
-      dw_c_T[iCF] = 0.0;
+      dw_c_T( iCF ) = 0.0;
     }
 
     // --- Map limiter variables to characteristics ---
 
     // store w_.. = invR @ U_..
-    MatMul( 3, 1, 3, 1.0, R_inv, 3, U_c_L, 1, 1.0, w_c_L, 1 );
-    MatMul( 3, 1, 3, 1.0, R_inv, 3, U_c_T, 1, 1.0, w_c_T, 1 );
-    MatMul( 3, 1, 3, 1.0, R_inv, 3, U_c_R, 1, 1.0, w_c_R, 1 );
+    MatMul( 1.0, R_inv, U_c_L, 1.0, w_c_L );
+    MatMul( 1.0, R_inv, U_c_T, 1.0, w_c_T );
+    MatMul( 1.0, R_inv, U_c_R, 1.0, w_c_R );
 
-    MatMul( 3, 1, 3, 1.0, R_inv, 3, U_v_L, 1, 1.0, w_v_L, 1 );
-    MatMul( 3, 1, 3, 1.0, R_inv, 3, U_v_R, 1, 1.0, w_v_R, 1 );
+    MatMul( 1.0, R_inv, U_v_L, 1.0, w_v_L );
+    MatMul( 1.0, R_inv, U_v_R, 1.0, w_v_R );
 
-    MatMul( 3, 1, 3, 1.0, R_inv, 3, dU_c_T, 1, 1.0, dw_c_T, 1 );
+    MatMul( 1.0, R_inv, dU_c_T, 1.0, dw_c_T );
 
     // Limited Slopes
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
-      Phi1 = BarthJespersen( w_v_L[iCF], w_v_R[iCF], w_c_L[iCF], w_c_T[iCF],
-                             w_c_R[iCF], alpha );
+      Phi1 = BarthJespersen( w_v_L( iCF ), w_v_R( iCF ), w_c_L( iCF ),
+                             w_c_T( iCF ), w_c_R( iCF ), alpha );
 
-      dU[iCF] = Phi1 * dw_c_T[iCF];                 // Multiply slope by Phi1
-      if ( order >= 3 ) d2U[iCF] = Phi1 * d2w[iCF]; // 2nd derivative
+      dU( iCF ) = Phi1 * dw_c_T( iCF ); // Multiply slope by Phi1
+      if ( order >= 3 ) d2U( iCF ) = Phi1 * d2w( iCF ); // 2nd derivative
     }
 
     // Transform back to conserved quantities
     if ( CharacteristicLimiting_Option )
     {
       // dU -> R dU
-      MatMul( 3, 1, 3, 1.0, R, 3, dU, 1, 1.0, Mult1, 1 );
+      MatMul( 1.0, R, dU, 1.0, Mult1 );
       // d2U -> R d2U
       if ( order >= 3 )
       {
-        MatMul( 3, 1, 3, 1.0, R, 3, d2U, 1, 1.0, Mult2, 1 );
+        MatMul( 1.0, R, d2U, 1.0, Mult2 );
       }
       for ( unsigned int iCF = 0; iCF < 3; iCF++ )
       {
-        dU[iCF] = Mult1[iCF];
-        if ( order >= 3 ) d2U[iCF] = Mult2[iCF];
+        dU( iCF ) = Mult1( iCF );
+        if ( order >= 3 ) d2U( iCF ) = Mult2( iCF );
       }
     }
 
@@ -233,21 +244,21 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
 
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
-      SlopeDifference[iCF] = std::abs( U( iCF, iX, 1 ) - dU[iCF] );
+      SlopeDifference( iCF ) = std::abs( U( iCF, iX, 1 ) - dU( iCF ) );
 
       // if slopes differ too much, replace
-      if ( SlopeDifference[iCF] >
+      if ( SlopeDifference( iCF ) >
            SlopeLimiter_Threshold * std::abs( U( iCF, iX, 0 ) ) )
       {
         for ( unsigned int k = 1; k < order; k++ )
         {
           U( iCF, iX, k ) = 0.0;
         }
-        U( iCF, iX, 1 ) = dU[iCF];
-        if ( order >= 3 ) U( iCF, iX, 2 ) = d2U[iCF];
+        U( iCF, iX, 1 ) = dU( iCF );
+        if ( order >= 3 ) U( iCF, iX, 2 ) = d2U( iCF );
       }
       /* Note we have limited this cell */
-      LimitedCell[iX] = 1;
+      LimitedCell( iX ) = 1;
     }
   }
 }
@@ -256,7 +267,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
  * Limit the quadratic term.
  **/
 void SlopeLimiter::LimitQuadratic( Kokkos::View<double***> U, ModalBasis& Basis,
-                                   double* d2w, unsigned int iX,
+                                   Kokkos::View<double[3]> d2w, unsigned int iX,
                                    unsigned int nNodes )
 {
 
@@ -264,61 +275,61 @@ void SlopeLimiter::LimitQuadratic( Kokkos::View<double***> U, ModalBasis& Basis,
 
   for ( unsigned int i = 0; i < 3; i++ )
   {
-    Mult2[i] = 0.0;
+    Mult2( i ) = 0.0;
   }
 
   // --- Compute info for limiter ---
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   {
-    dU_c_L[iCF] = U( iCF, iX - 1, 1 );
-    dU_c_T[iCF] = U( iCF, iX, 1 );
-    dU_c_R[iCF] = U( iCF, iX + 1, 1 );
+    dU_c_L( iCF ) = U( iCF, iX - 1, 1 );
+    dU_c_T( iCF ) = U( iCF, iX, 1 );
+    dU_c_R( iCF ) = U( iCF, iX + 1, 1 );
 
-    dU_v_L[iCF] = Basis.BasisEval( U, iX, iCF, 0, true );
-    dU_v_R[iCF] = Basis.BasisEval( U, iX, iCF, nNodes + 1, true );
+    dU_v_L( iCF ) = Basis.BasisEval( U, iX, iCF, 0, true );
+    dU_v_R( iCF ) = Basis.BasisEval( U, iX, iCF, nNodes + 1, true );
 
     // initialize characteristic forms
-    dw_c_L[iCF] = 0.0;
-    dw_c_T[iCF] = 0.0;
-    dw_c_R[iCF] = 0.0;
+    dw_c_L( iCF ) = 0.0;
+    dw_c_T( iCF ) = 0.0;
+    dw_c_R( iCF ) = 0.0;
 
-    dw_v_L[iCF] = 0.0;
-    dw_v_R[iCF] = 0.0;
+    dw_v_L( iCF ) = 0.0;
+    dw_v_R( iCF ) = 0.0;
   }
 
   // --- Map limiter variables to characteristics ---
 
   // store w_.. = invR @ U_..
-  MatMul( 3, 1, 3, 1.0, R_inv, 3, dU_c_L, 1, 1.0, dw_c_L, 1 );
-  MatMul( 3, 1, 3, 1.0, R_inv, 3, dU_c_T, 1, 1.0, dw_c_T, 1 );
-  MatMul( 3, 1, 3, 1.0, R_inv, 3, dU_c_R, 1, 1.0, dw_c_R, 1 );
+  MatMul( 1.0, R_inv, dU_c_L, 1.0, dw_c_L );
+  MatMul( 1.0, R_inv, dU_c_T, 1.0, dw_c_T );
+  MatMul( 1.0, R_inv, dU_c_R, 1.0, dw_c_R );
 
-  MatMul( 3, 1, 3, 1.0, R_inv, 3, dU_v_L, 1, 1.0, dw_v_L, 1 );
-  MatMul( 3, 1, 3, 1.0, R_inv, 3, dU_v_R, 1, 1.0, dw_v_R, 1 );
+  MatMul( 1.0, R_inv, dU_v_L, 1.0, dw_v_L );
+  MatMul( 1.0, R_inv, dU_v_R, 1.0, dw_v_R );
 
   // Limited Slopes
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   {
-    Phi2 = BarthJespersen( dw_v_L[iCF], dw_v_R[iCF], dw_c_L[iCF], dw_c_T[iCF],
-                           dw_c_R[iCF], alpha );
-    d2U[iCF] = Phi2 * d2w[iCF]; // 2nd derivative
+    Phi2       = BarthJespersen( dw_v_L( iCF ), dw_v_R( iCF ), dw_c_L( iCF ),
+                                 dw_c_T( iCF ), dw_c_R( iCF ), alpha );
+    d2U( iCF ) = Phi2 * d2w( iCF ); // 2nd derivative
   }
 
   // Transform back to conserved quantities
   if ( CharacteristicLimiting_Option )
   {
     // d2U -> R d2U
-    MatMul( 3, 1, 3, 1.0, R, 3, d2U, 1, 1.0, Mult2, 1 );
+    MatMul( 1.0, R, d2U, 1.0, Mult2 );
 
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
-      d2U[iCF] = Mult2[iCF];
+      d2U( iCF ) = Mult2( iCF );
     }
   }
 
   for ( unsigned int iCF = 0; iCF < 3; iCF++ )
   {
-    U( iCF, iX, 2 ) = d2U[iCF];
+    U( iCF, iX, 2 ) = d2U( iCF );
   }
 }
 
@@ -378,5 +389,5 @@ double SlopeLimiter::CellAverage( Kokkos::View<double***> U,
 // LimitedCell accessor
 int SlopeLimiter::Get_Limited( unsigned int iX ) const
 {
-  return LimitedCell[iX];
+  return LimitedCell( iX );
 }

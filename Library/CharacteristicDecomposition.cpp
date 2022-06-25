@@ -13,12 +13,14 @@
 #include "Error.h"
 // #include "EquationOfStateLibrary_IDEAL.h"
 
-void ComputeCharacteristicDecomposition( double* U, double* R, double* R_inv )
+void ComputeCharacteristicDecomposition( Kokkos::View<double[3]> U,
+                                         Kokkos::View<double[3][3]> R,
+                                         Kokkos::View<double[3][3]> R_inv )
 {
 
-  const double Tau  = U[0];
-  const double V    = U[1];
-  const double Em_T = U[2];
+  const double Tau  = U( 0 );
+  const double V    = U( 1 );
+  const double Em_T = U( 2 );
 
   // const double P  = ComputePressureFromConserved_IDEAL( Tau, V, Em_T );
   // const double Cs = ComputeSoundSpeedFromConserved_IDEAL( Tau, V, Em_T );
@@ -43,30 +45,31 @@ void ComputeCharacteristicDecomposition( double* U, double* R, double* R_inv )
   /*  --- Compute Matrix Elements --- */
 
   for ( int i = 0; i < 3; i++ )
-    R[i] = 1.0;
+    R( 0, i ) = 1.0;
 
-  R[3] = +sqrt_e * k * InvTau;
-  R[4] = +0.0;
-  R[5] = -sqrt_e * k * InvTau;
+  R( 1, 0 ) = +sqrt_e * k * InvTau;
+  R( 1, 1 ) = +0.0;
+  R( 1, 2 ) = -sqrt_e * k * InvTau;
 
-  R[6] = ( Em + sqrt_e * k * V - Em * GAMMA ) * InvTau;
-  R[7] = ( Em * InvTau );
-  R[8] = ( Em - sqrt_e * k * V - Em * GAMMA ) * InvTau;
+  R( 2, 0 ) = ( Em + sqrt_e * k * V - Em * GAMMA ) * InvTau;
+  R( 2, 1 ) = ( Em * InvTau );
+  R( 2, 2 ) = ( Em - sqrt_e * k * V - Em * GAMMA ) * InvTau;
 
-  R_inv[0] = 0.5;
-  R_inv[1] = Tau * ( k * V + sqrt_e * GAMMA ) / ( 2.0 * Em * k );
-  R_inv[2] = -Tau / ( 2.0 * Em );
+  R_inv( 0, 0 ) = 0.5;
+  R_inv( 0, 1 ) = Tau * ( k * V + sqrt_e * GAMMA ) / ( 2.0 * Em * k );
+  R_inv( 0, 2 ) = -Tau / ( 2.0 * Em );
 
-  R_inv[3] = GAMMA - 1.0;
-  R_inv[4] = -V * Tau / Em;
-  R_inv[5] = Tau / Em;
+  R_inv( 1, 0 ) = GAMMA - 1.0;
+  R_inv( 1, 1 ) = -V * Tau / Em;
+  R_inv( 1, 2 ) = Tau / Em;
 
-  R_inv[6] = 0.5;
-  R_inv[7] = Tau * ( k * V - sqrt_e * GAMMA ) / ( 2.0 * Em * k );
-  R_inv[8] = -Tau / ( 2.0 * Em );
+  R_inv( 2, 0 ) = 0.5;
+  R_inv( 2, 1 ) = Tau * ( k * V - sqrt_e * GAMMA ) / ( 2.0 * Em * k );
+  R_inv( 2, 2 ) = -Tau / ( 2.0 * Em );
 
-  for ( int i = 0; i < 9; i++ )
-  {
-    R_inv[i] /= GAMMA;
-  }
+  for ( int i = 0; i < 3; i++ )
+    for ( int j = 0; j < 3; j++ )
+    {
+      R_inv( i, j ) /= GAMMA;
+    }
 }

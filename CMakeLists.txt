@@ -144,12 +144,16 @@ if (NOT TARGET Kokkos::kokkos)
       message(STATUS "Using Kokkos source from Kokkos_ROOT=${Kokkos_ROOT}")
     elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/External/Kokkos/CMakeLists.txt)
       add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/External/Kokkos ${PROJECT_SOURCE_DIR}/build/Kokkos)
-      message(STATUS "Using Kokkos source from Athelas submodule at ${CMAKE_CURRENT_SOURCE_DIR}/external/Kokkos")
+      message(STATUS "Using Kokkos source from Athelas submodule at ${CMAKE_CURRENT_SOURCE_DIR}/External/Kokkos")
     else()
       message(FATAL_ERROR "Could not find Kokkos source. Consider running `git submodule update --init`, providing the path to a Kokkos source directory with Kokkos_ROOT, or setting ATHELAS_IMPORT_KOKKOS=ON to link to an external Kokkos installation.")
     endif()
   endif()
 endif()
+
+# Kokkos-Kernels
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/External/kokkos-kernels ${PROJECT_SOURCE_DIR}/build/kokkos-kernels)
+# message(STATUS "Using Kokkos-kernels source from Athelas submodule at ${CMAKE_CURRENT_SOURCE_DIR}/External/Kokkos-kernels")
 
 # HDF5
 find_package ( HDF5 REQUIRED COMPONENTS CXX HL )
@@ -170,11 +174,6 @@ else()
 endif()
 include_directories(${LAPACK_INCLUDE_DIRS})
 
-#BLAS
-find_package( BLAS REQUIRED  )
-message( STATUS "BLAS_LIBRARIES: ${BLAS_LIBRARIES}" )
-include_directories(${BLAS_INCLUDE_DIRS})
-
 # --- main ---
 
 add_executable( main ${HYDRO_DIR}/Driver.cpp ${ATHELAS_SOURCES} )
@@ -185,10 +184,13 @@ set_target_properties(main
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
 )
 
+# -- finalize ---
+# yeah it's a mess but it works
+
 target_link_libraries( libathelas Kokkos::kokkos )
-target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} )
+target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} )
 
 target_compile_options( main PRIVATE -fPIC -O2 -Wall -std=c++17 )
 add_dependencies( main libathelas )
 
-target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} Kokkos::kokkos )
+target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos )

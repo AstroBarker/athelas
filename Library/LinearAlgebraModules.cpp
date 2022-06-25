@@ -10,24 +10,25 @@
 #include <iostream>
 #include <vector>
 
+#include <Kokkos_Core.hpp>
+
 #include "Error.h"
 #include "LinearAlgebraModules.h"
 #include "lapacke.h"
-#include <cblas.h>
 
 // Fill identity matrix
-void IdentityMatrix( double* Mat, unsigned int n )
+void IdentityMatrix( Kokkos::View<double**> Mat, unsigned int n )
 {
   for ( unsigned int i = 0; i < n; i++ )
     for ( unsigned int j = 0; j < n; j++ )
     {
       if ( i == j )
       {
-        Mat[i + n * j] = 1.0;
+        Mat( i, j ) = 1.0;
       }
       else
       {
-        Mat[i + n * j] = 0.0;
+        Mat( i, j ) = 0.0;
       }
     }
 }
@@ -102,17 +103,22 @@ void InvertMatrix( double* M, unsigned int n )
 }
 
 /**
- * Matrix multiplication using cBLAS.
+ * Matrix vector multiplication
  *
  * Parameters:
  * -----------
  * see, e.g.,
  * https://www.netlib.org/blas/
  **/
-void MatMul( int m, int n, int k, double alpha, double A[], int lda, double B[],
-             int ldb, double beta, double C[], int ldc )
+void MatMul( double alpha, Kokkos::View<double[3][3]> A,
+             Kokkos::View<double[3]> x, double beta, Kokkos::View<double[3]> y )
 {
-  // Calculate A*B=C
-  cblas_dgemm( CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A,
-               lda, B, ldb, beta, C, ldc );
+  // Calculate A*x=y
+  for ( int i = 0; i < 3; i++ )
+  {
+    for ( int j = 0; j < 3; j++ )
+    {
+      y( i ) += ( A( i, j ) * x( j ) );
+    }
+  }
 }

@@ -100,9 +100,9 @@ void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   // conversion to make HDF5 happy
   const char* fn2 = fn.c_str( );
 
-  const unsigned int nX     = Grid.Get_nElements( );
-  const unsigned int ilo    = Grid.Get_ilo( );
-  const unsigned int ihi    = Grid.Get_ihi( );
+  const unsigned int nX  = Grid.Get_nElements( );
+  const unsigned int ilo = Grid.Get_ilo( );
+  const unsigned int ihi = Grid.Get_ihi( );
 
   const H5std_string FILE_NAME( fn );
   const H5std_string DATASET_NAME( "Grid" );
