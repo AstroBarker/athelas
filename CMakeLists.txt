@@ -50,6 +50,9 @@ option(ATHELAS_ENABLE_UNIT_TESTS "Enable unit tests" OFF)               # Future
 option(ATHELAS_ENABLE_INTEGRATION_TESTS "Enable integration tests" OFF) # Future
 option(ATHELAS_ENABLE_REGRESSION_TESTS "Enable regression tests" OFF)   # Future
 
+option( MACHINE_OS "ARCH" )
+message( "Building On ${MACHINE_OS} ")
+
 # Don't allow in-source builds
 file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
 if(EXISTS "${LOC_PATH}")
@@ -154,10 +157,18 @@ message(STATUS "HDF5_LIBRARIES = ${HDF5_CXX_LIBRARIES}")
 include_directories(${HDF5_INCLUDE_DIRS}) # seems to be needed for compilation on github actions...
 
 # LAPACK
-find_package( LAPACK REQUIRED  )
-message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
+# ubuntu's openblas does not include the necessary lapacke headers...
+if (${MACHINE_OS} STREQUAL "UBUNTU")
+    set(LAPACK_LIBRARIES "/usr/lib/x86_64-linux-gnu/liblapacke.so;-lm;-ldl")
+    message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
+    target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
+else()
+    find_package( LAPACK REQUIRED  )
+    message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
+    include_directories(${LAPACK_INCLUDE_DIRS})
+    target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
+endif()
 include_directories(${LAPACK_INCLUDE_DIRS})
-target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
 
 #BLAS
 find_package( BLAS REQUIRED  )
