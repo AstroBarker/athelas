@@ -178,4 +178,4 @@ target_link_libraries( libathelas Kokkos::kokkos )
 target_compile_options( main PRIVATE -fPIC -O2 -Wall -std=c++17 )
 add_dependencies( main libathelas )
 
-target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} Kokkos::kokkos )
+target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos )
