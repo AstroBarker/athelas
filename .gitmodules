@@ -1,3 +1,6 @@
 [submodule "External/Kokkos"]
 	path = External/Kokkos
 	url = https://github.com/kokkos/kokkos.git
+[submodule "External/kokkos-kernels"]
+	path = External/kokkos-kernels
+	url = https://github.com/kokkos/kokkos-kernels.git
