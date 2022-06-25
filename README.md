@@ -2,6 +2,7 @@
 
 <p align="center">sypherically symmetric Lagrangian radiation-hydrodynamics solver written in C++ </p>
 
+[![Build](https://github.com/AstroBarker/athelas/actions/workflows/cmake.yml/badge.svg)](https://github.com/AstroBarker/athelas/actions/workflows/cmake.yml)
 <p align="center">
 <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL-blue.svg"></a>
 </p>
