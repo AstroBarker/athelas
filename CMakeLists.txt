@@ -153,15 +153,15 @@ find_package ( HDF5 REQUIRED COMPONENTS CXX HL )
 message(STATUS "HDF5_LIBRARIES = ${HDF5_CXX_LIBRARIES}")
 include_directories(${HDF5_INCLUDE_DIRS}) # seems to be needed for compilation on github actions...
 
-# LAPACK
-find_package( LAPACK REQUIRED  )
-message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
-include_directories(${LAPACK_INCLUDE_DIRS})
-
 #BLAS
 find_package( BLAS REQUIRED  )
 message( STATUS "BLAS_LIBRARIES: ${BLAS_LIBRARIES}" )
 include_directories(${BLAS_INCLUDE_DIRS})
+
+# LAPACK
+find_package( LAPACK REQUIRED  )
+message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
+include_directories(${LAPACK_INCLUDE_DIRS})
 
 # --- main ---
 
