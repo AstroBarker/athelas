@@ -24,10 +24,9 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update -qq
-        sudo apt-get install -qq --no-install-recommends tzdata
         sudo apt-get install -qq git
         sudo apt-get install -qq make cmake g++
-        sudo apt-get install -qq libhdf5-dev liblapacke-dev libblas-dev
+        sudo apt-get install -qq libhdf5-dev liblapack-dev liblapacke-dev libopenblas-dev
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
