@@ -159,7 +159,7 @@ include_directories(${HDF5_INCLUDE_DIRS}) # seems to be needed for compilation o
 # LAPACK
 # ubuntu's openblas does not include the necessary lapacke headers...
 if (${MACHINE_OS} STREQUAL "UBUNTU")
-    set(LAPACK_LIBRARIES "/usr/lib/x86_64-linux-gnu/liblapacke.so;-lm;-ldl")
+    set(LAPACK_LIBRARIES "/usr/lib/x86_64-linux-gnu/liblapacke.so.3;-lm;-ldl")
     message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
     target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
 else()
