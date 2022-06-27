@@ -104,11 +104,6 @@ void InvertMatrix( double* M, unsigned int n )
 
 /**
  * Matrix vector multiplication
- *
- * Parameters:
- * -----------
- * see, e.g.,
- * https://www.netlib.org/blas/
  **/
 void MatMul( double alpha, Kokkos::View<double[3][3]> A,
              Kokkos::View<double[3]> x, double beta, Kokkos::View<double[3]> y )
