@@ -6,8 +6,6 @@
 cmake_minimum_required( VERSION 3.10 )
 cmake_policy(SET CMP0074 NEW)
 
-set( CMAKE_BUILD_TYPE RELEASE )
-
 # If the user doesn't specify a build type, prefer RelWithDebInfo
 set(default_build_type "RelWithDebInfo")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -39,8 +37,6 @@ set(CMAKE_CXX_EXTENSIONS False)
 
 set(CMAKE_FIND_FRAMEWORK NEVER)
 set(CMAKE_FIND_APPBUNDLE NEVER)
-
-set( CMAKE_PREFIX_PATH "/usr/local")
 
 project( athelas VERSION 0.2 LANGUAGES CXX )
 enable_language(CXX)
@@ -150,10 +146,6 @@ if (NOT TARGET Kokkos::kokkos)
     endif()
   endif()
 endif()
-
-# Kokkos-Kernels
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/External/kokkos-kernels ${PROJECT_SOURCE_DIR}/build/kokkos-kernels)
-# message(STATUS "Using Kokkos-kernels source from Athelas submodule at ${CMAKE_CURRENT_SOURCE_DIR}/External/Kokkos-kernels")
 
 # HDF5
 find_package ( HDF5 REQUIRED COMPONENTS CXX HL )
