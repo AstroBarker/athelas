@@ -29,7 +29,7 @@ void LimitDensity( Kokkos::View<double***> U, const ModalBasis& Basis )
   if ( order == 1 ) return;
 
   Kokkos::parallel_for(
-      "Limit Density", Kokkos::RangePolicy<>( 1, U.extent( 1 ) ),
+      "Limit Density", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
       KOKKOS_LAMBDA( unsigned int iX ) {
         double theta1 = 100000.0;
         double nodal  = 0.0;
@@ -57,7 +57,7 @@ void LimitInternalEnergy( Kokkos::View<double***> U, const ModalBasis& Basis )
   if ( order == 1 ) return;
 
   Kokkos::parallel_for(
-      "Limit Internal Energy", Kokkos::RangePolicy<>( 1, U.extent( 1 ) ),
+      "Limit Internal Energy", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
       KOKKOS_LAMBDA( unsigned int iX ) {
         double theta2 = 10000000.0;
         double nodal  = 0.0;
