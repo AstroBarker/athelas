@@ -8,9 +8,9 @@ void ComputePrimitiveFromConserved( Kokkos::View<double***> uCF,
                                     ModalBasis& Basis, GridStructure& Grid );
 double Flux_Fluid( double V, double P, unsigned int iCF );
 double Fluid( double Tau, double V, double Em_T, int iCF );
-void NumericalFlux_Gudonov( double vL, double vR, double pL, double pR,
-                            double zL, double zR, double& Flux_U,
-                            double& Flux_P );
+void NumericalFlux_Gudonov( const double vL, const double vR, const double pL, 
+                            const double pR, const double zL, const double zR, 
+                            double& Flux_U, double& Flux_P );
 void NumericalFlux_HLLC( double vL, double vR, double pL, double pR, double cL,
                          double cR, double rhoL, double rhoR, double& Flux_U,
                          double& Flux_P );

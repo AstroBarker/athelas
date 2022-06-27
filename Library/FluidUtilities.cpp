@@ -102,9 +102,9 @@ double Flux_Fluid( double V, double P, unsigned int iCF )
 /**
  * Gudonov style numerical flux. Constucts v* and p* states.
  **/
-void NumericalFlux_Gudonov( double vL, double vR, double pL, double pR,
-                            double zL, double zR, double& Flux_U,
-                            double& Flux_P )
+void NumericalFlux_Gudonov( const double vL, const double vR, const double pL, 
+                            const double pR, const double zL, const double zR, 
+                            double& Flux_U, double& Flux_P )
 {
   Flux_U = ( pL - pR + zR * vR + zL * vL ) / ( zR + zL );
   Flux_P = ( zR * pL + zL * pR + zL * zR * ( vL - vR ) ) / ( zR + zL );
