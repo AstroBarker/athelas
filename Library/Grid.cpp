@@ -49,7 +49,8 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
 }
 
 // linear shape function on the reference element
-const double ShapeFunction( int interface, double eta )
+KOKKOS_INLINE_FUNCTION
+const double ShapeFunction( const int interface, const double eta )
 {
   double mult = 1.0;
 
@@ -257,20 +258,22 @@ void GridStructure::UpdateGrid( Kokkos::View<double*> SData )
   const unsigned int ilo = Get_ilo( );
   const unsigned int ihi = Get_ihi( );
 
-  for ( unsigned int iX = ilo; iX <= ihi + 1; iX++ )
-  {
+  Kokkos::parallel_for(
+      "Limit Density", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+      KOKKOS_LAMBDA( unsigned int iX ) {
     X_L( iX )     = SData( iX );
     Widths( iX )  = SData( iX + 1 ) - SData( iX );
     Centers( iX ) = 0.5 * ( SData( iX + 1 ) + SData( iX ) );
-  }
+  } );
 
-  for ( unsigned int iC = ilo; iC <= ihi; iC++ )
-  {
+  Kokkos::parallel_for(
+      "Limit Density", Kokkos::RangePolicy<>( ilo, ihi + 1),
+      KOKKOS_LAMBDA( unsigned int iX ) {
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
-      Grid( iC, iN ) = NodeCoordinate( iC, iN );
+      Grid( iX, iN ) = NodeCoordinate( iX, iN );
     }
-  }
+  } );
 }
 
 // Access by (element, node)
