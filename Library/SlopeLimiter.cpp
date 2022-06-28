@@ -54,7 +54,8 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder,
  * to flag cells for limiting
  **/
 void SlopeLimiter::DetectTroubledCells( Kokkos::View<double***> U,
-                                        GridStructure& Grid, ModalBasis& Basis )
+                                        const GridStructure& Grid, 
+                                        const ModalBasis& Basis )
 {
   const unsigned int ilo = Grid.Get_ilo( );
   const unsigned int ihi = Grid.Get_ihi( );
@@ -97,7 +98,7 @@ void SlopeLimiter::DetectTroubledCells( Kokkos::View<double***> U,
  * Apply the slope limiter. We use a vertex based, heirarchical slope limiter.
  **/
 void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
-                                      GridStructure& Grid, ModalBasis& Basis )
+                                      const GridStructure& Grid, const ModalBasis& Basis )
 {
 
   // Do not apply for first order method. No slopes!
@@ -106,9 +107,9 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
     return;
   }
 
-  const unsigned int ilo    = Grid.Get_ilo( );
-  const unsigned int ihi    = Grid.Get_ihi( );
-  const unsigned int nNodes = Grid.Get_nNodes( );
+  const unsigned int &ilo    = Grid.Get_ilo( );
+  const unsigned int &ihi    = Grid.Get_ihi( );
+  const unsigned int &nNodes = Grid.Get_nNodes( );
 
   // --- Apply troubled cell indicator ---
   // Exit if we don't need to limit slopes
@@ -241,7 +242,6 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
     }
 
     // --- Compare Limited to Original Slopes ---
-
     for ( unsigned int iCF = 0; iCF < 3; iCF++ )
     {
       SlopeDifference( iCF ) = std::abs( U( iCF, iX, 1 ) - dU( iCF ) );
@@ -260,13 +260,13 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
       /* Note we have limited this cell */
       LimitedCell( iX ) = 1;
     }
-  }
+  } 
 }
 
 /**
  * Limit the quadratic term.
  **/
-void SlopeLimiter::LimitQuadratic( Kokkos::View<double***> U, ModalBasis& Basis,
+void SlopeLimiter::LimitQuadratic( Kokkos::View<double***> U, const ModalBasis& Basis,
                                    Kokkos::View<double[3]> d2w, unsigned int iX,
                                    unsigned int nNodes )
 {
@@ -341,7 +341,8 @@ void SlopeLimiter::LimitQuadratic( Kokkos::View<double***> U, ModalBasis& Basis,
  *  +1 : Extrapolate polynomial from iX-1 into iX
  **/
 double SlopeLimiter::CellAverage( Kokkos::View<double***> U,
-                                  GridStructure& Grid, ModalBasis& Basis,
+                                  const GridStructure& Grid, 
+                                  const ModalBasis& Basis,
                                   unsigned int iCF, unsigned int iX,
                                   int extrapolate )
 {
