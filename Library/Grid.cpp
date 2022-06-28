@@ -261,19 +261,19 @@ void GridStructure::UpdateGrid( Kokkos::View<double*> SData )
   Kokkos::parallel_for(
       "Limit Density", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
       KOKKOS_LAMBDA( unsigned int iX ) {
-    X_L( iX )     = SData( iX );
-    Widths( iX )  = SData( iX + 1 ) - SData( iX );
-    Centers( iX ) = 0.5 * ( SData( iX + 1 ) + SData( iX ) );
-  } );
+        X_L( iX )     = SData( iX );
+        Widths( iX )  = SData( iX + 1 ) - SData( iX );
+        Centers( iX ) = 0.5 * ( SData( iX + 1 ) + SData( iX ) );
+      } );
 
   Kokkos::parallel_for(
-      "Limit Density", Kokkos::RangePolicy<>( ilo, ihi + 1),
+      "Limit Density", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
       KOKKOS_LAMBDA( unsigned int iX ) {
-    for ( unsigned int iN = 0; iN < nNodes; iN++ )
-    {
-      Grid( iX, iN ) = NodeCoordinate( iX, iN );
-    }
-  } );
+        for ( unsigned int iN = 0; iN < nNodes; iN++ )
+        {
+          Grid( iX, iN ) = NodeCoordinate( iX, iN );
+        }
+      } );
 }
 
 // Access by (element, node)

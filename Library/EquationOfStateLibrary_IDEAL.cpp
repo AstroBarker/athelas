@@ -12,13 +12,14 @@
 #include "EquationOfStateLibrary_IDEAL.h"
 
 // Compute pressure assuming an ideal gas
-double ComputePressureFromPrimitive_IDEAL( double Ev, double GAMMA )
+double ComputePressureFromPrimitive_IDEAL( const double Ev, const double GAMMA )
 {
   return ( GAMMA - 1.0 ) * Ev;
 }
 
-double ComputePressureFromConserved_IDEAL( double Tau, double V, double Em_T,
-                                           double GAMMA )
+double ComputePressureFromConserved_IDEAL( const double Tau, const double V,
+                                           const double Em_T,
+                                           const double GAMMA )
 {
   double Em = Em_T - 0.5 * V * V;
   double Ev = Em / Tau;
@@ -27,8 +28,9 @@ double ComputePressureFromConserved_IDEAL( double Tau, double V, double Em_T,
   return P;
 }
 
-double ComputeSoundSpeedFromConserved_IDEAL( double Tau, double V, double Em_T,
-                                             double GAMMA )
+double ComputeSoundSpeedFromConserved_IDEAL( const double Tau, const double V,
+                                             const double Em_T,
+                                             const double GAMMA )
 {
   double Em = Em_T - 0.5 * V * V;
 
@@ -38,7 +40,7 @@ double ComputeSoundSpeedFromConserved_IDEAL( double Tau, double V, double Em_T,
 }
 
 // nodal specific internal energy
-double ComputeInternalEnergy( Kokkos::View<double***> U,
+double ComputeInternalEnergy( const Kokkos::View<double***> U,
                               const ModalBasis& Basis, const unsigned int iX,
                               const unsigned int iN )
 {
@@ -49,7 +51,8 @@ double ComputeInternalEnergy( Kokkos::View<double***> U,
 }
 
 // cell average specific internal energy
-double ComputeInternalEnergy( Kokkos::View<double***> U, const unsigned int iX )
+double ComputeInternalEnergy( const Kokkos::View<double***> U,
+                              const unsigned int iX )
 {
   return U( 2, iX, 0 ) - 0.5 * U( 1, iX, 0 ) * U( 1, iX, 0 );
 }

@@ -21,16 +21,16 @@
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence(
-    Kokkos::View<double***> U, GridStructure& Grid, ModalBasis& Basis,
-    Kokkos::View<double***> dU, Kokkos::View<double***> Flux_q,
-    Kokkos::View<double**> dFlux_num, Kokkos::View<double**> uCF_F_L,
-    Kokkos::View<double**> uCF_F_R, Kokkos::View<double*> Flux_U,
-    Kokkos::View<double*> Flux_P )
+    const Kokkos::View<double***> U, const GridStructure& Grid,
+    const ModalBasis& Basis, Kokkos::View<double***> dU,
+    Kokkos::View<double***> Flux_q, Kokkos::View<double**> dFlux_num,
+    Kokkos::View<double**> uCF_F_L, Kokkos::View<double**> uCF_F_R,
+    Kokkos::View<double*> Flux_U, Kokkos::View<double*> Flux_P )
 {
-  const unsigned int nNodes = Grid.Get_nNodes( );
-  const unsigned int order  = Basis.Get_Order( );
-  const unsigned int ilo    = Grid.Get_ilo( );
-  const unsigned int ihi    = Grid.Get_ihi( );
+  const unsigned int& nNodes = Grid.Get_nNodes( );
+  const unsigned int& order  = Basis.Get_Order( );
+  const unsigned int& ilo    = Grid.Get_ilo( );
+  const unsigned int& ihi    = Grid.Get_ihi( );
 
   // double rho_L, rho_R, P_L, P_R, Cs_L, Cs_R, lam_L, lam_R, P;
 
@@ -136,7 +136,8 @@ void ComputeIncrement_Fluid_Divergence(
  * Compute fluid increment from geometry in spherical symmetry
  **/
 void ComputeIncrement_Fluid_Geometry( Kokkos::View<double***> U,
-                                      GridStructure& Grid, ModalBasis& Basis,
+                                      const GridStructure& Grid,
+                                      const ModalBasis& Basis,
                                       Kokkos::View<double***> dU )
 {
   const unsigned int nNodes = Grid.Get_nNodes( );
@@ -183,16 +184,17 @@ void ComputeIncrement_Fluid_Geometry( Kokkos::View<double***> U,
  * BC               : (string) boundary condition type
  **/
 void Compute_Increment_Explicit(
-    Kokkos::View<double***> U, GridStructure& Grid, ModalBasis& Basis,
-    Kokkos::View<double***> dU, Kokkos::View<double***> Flux_q,
-    Kokkos::View<double**> dFlux_num, Kokkos::View<double**> uCF_F_L,
-    Kokkos::View<double**> uCF_F_R, Kokkos::View<double*> Flux_U,
-    Kokkos::View<double*> Flux_P, const std::string BC )
+    const Kokkos::View<double***> U, const GridStructure& Grid,
+    const ModalBasis& Basis, Kokkos::View<double***> dU,
+    Kokkos::View<double***> Flux_q, Kokkos::View<double**> dFlux_num,
+    Kokkos::View<double**> uCF_F_L, Kokkos::View<double**> uCF_F_R,
+    Kokkos::View<double*> Flux_U, Kokkos::View<double*> Flux_P,
+    const std::string BC )
 {
 
-  const unsigned int order = Basis.Get_Order( );
-  const unsigned int ilo   = Grid.Get_ilo( );
-  const unsigned int ihi   = Grid.Get_ihi( );
+  const unsigned int& order = Basis.Get_Order( );
+  const unsigned int& ilo   = Grid.Get_ilo( );
+  const unsigned int& ihi   = Grid.Get_ihi( );
 
   // --- Apply BC ---
   ApplyBC_Fluid( U, Grid, order, BC );

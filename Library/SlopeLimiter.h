@@ -28,22 +28,20 @@ class SlopeLimiter
                 bool CharacteristicLimitingOption, bool TCIOption,
                 double TCI_Threshold_val );
 
-  void ApplySlopeLimiter( Kokkos::View<double***> U,
-                          const GridStructure& Grid, const ModalBasis& Basis );
+  void ApplySlopeLimiter( Kokkos::View<double***> U, const GridStructure& Grid,
+                          const ModalBasis& Basis );
 
   void LimitQuadratic( Kokkos::View<double***> U, const ModalBasis& Basis,
                        Kokkos::View<double[3]> d2w, unsigned int iX,
                        unsigned int nNodes );
 
   void DetectTroubledCells( Kokkos::View<double***> U,
-                            const GridStructure& Grid, 
+                            const GridStructure& Grid,
                             const ModalBasis& Basis );
 
-  double CellAverage( Kokkos::View<double***> U,
-                      const GridStructure& Grid, 
-                      const ModalBasis& Basis,
-                      unsigned int iCF, unsigned int iX,
-                      int extrapolate );
+  double CellAverage( Kokkos::View<double***> U, const GridStructure& Grid,
+                      const ModalBasis& Basis, unsigned int iCF,
+                      unsigned int iX, int extrapolate );
 
   int Get_Limited( unsigned int iX ) const;
 

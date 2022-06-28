@@ -203,9 +203,10 @@ void TimeStepper::InitializeTimestepper( )
 /**
  * Update Solution with SSPRK methods
  **/
-void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, double dt,
+void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const double dt,
                                Kokkos::View<double***> U, GridStructure& Grid,
-                               ModalBasis& Basis, SlopeLimiter& S_Limiter )
+                               const ModalBasis& Basis,
+                               SlopeLimiter& S_Limiter )
 {
 
   const unsigned int order = Basis.Get_Order( );

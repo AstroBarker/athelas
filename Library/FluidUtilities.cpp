@@ -78,7 +78,7 @@ double Fluid( double Tau, double V, double Em_T, int iCF )
  * Return a component iCF of the flux vector.
  * TODO: Flux_Fluid needs streamlining
  **/
-double Flux_Fluid( double V, double P, unsigned int iCF )
+double Flux_Fluid( const double V, const double P, const unsigned int iCF )
 {
   if ( iCF == 0 )
   {
@@ -102,8 +102,8 @@ double Flux_Fluid( double V, double P, unsigned int iCF )
 /**
  * Gudonov style numerical flux. Constucts v* and p* states.
  **/
-void NumericalFlux_Gudonov( const double vL, const double vR, const double pL, 
-                            const double pR, const double zL, const double zR, 
+void NumericalFlux_Gudonov( const double vL, const double vR, const double pL,
+                            const double pR, const double zL, const double zR,
                             double& Flux_U, double& Flux_P )
 {
   Flux_U = ( pL - pR + zR * vR + zL * vL ) / ( zR + zL );
@@ -129,15 +129,15 @@ void NumericalFlux_HLLC( double vL, double vR, double pL, double pR, double cL,
 /**
  * Compute the fluid timestep.
  **/
-double ComputeTimestep_Fluid( Kokkos::View<double***> U, GridStructure& Grid,
-                              const double CFL )
+double ComputeTimestep_Fluid( const Kokkos::View<double***> U,
+                              const GridStructure& Grid, const double CFL )
 {
 
   const double MIN_DT = 0.000000005;
   const double MAX_DT = 1.0;
 
-  const unsigned int ilo = Grid.Get_ilo( );
-  const unsigned int ihi = Grid.Get_ihi( );
+  const unsigned int& ilo = Grid.Get_ilo( );
+  const unsigned int& ihi = Grid.Get_ihi( );
 
   double dt = 0.0;
 

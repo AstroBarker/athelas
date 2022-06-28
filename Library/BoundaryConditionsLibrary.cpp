@@ -15,8 +15,8 @@
 #include "BoundaryConditionsLibrary.h"
 
 // Apply Boundary Conditions to fluid fields
-void ApplyBC_Fluid( Kokkos::View<double***> uCF, GridStructure& Grid,
-                    unsigned int order, const std::string BC )
+void ApplyBC_Fluid( Kokkos::View<double***> uCF, const GridStructure& Grid,
+                    const unsigned int order, const std::string BC )
 {
 
   const unsigned int ilo = Grid.Get_ilo( );
