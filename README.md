@@ -48,10 +48,9 @@ The build system may not be perfect yet. Your mileage may vary.
 - Multigroup radiation
 
 # Dependencies
-* Kokkos
 * LAPACKE
-* cBLAS
 * HDF5
+* Kokkos (asavilable as a submodule)
 
 
 ## Clang-format
