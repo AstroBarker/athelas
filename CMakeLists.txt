@@ -17,6 +17,15 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
+# export compile flags for clangd LSP
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+        ${CMAKE_BINARY_DIR}/compile_commands.json
+        ${CMAKE_SOURCE_DIR}/compile_commands.json
+)
+
 # If this is a debug build, set kokkos debug on
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   message(STATUS "Enabling Kokkos debug mode")
@@ -186,3 +195,5 @@ target_compile_options( main PRIVATE -fPIC -O2 -Wall -std=c++17 )
 add_dependencies( main libathelas )
 
 target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos )
+
+
