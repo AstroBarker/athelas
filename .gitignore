@@ -1,3 +1,6 @@
+# output
+*.h5
+
 # Prerequisites
 *.d
 
@@ -35,3 +38,13 @@
 build/
 bin/
 lib/
+compile_commands.json
+
+# journal things
+*.db
+
+# lsp
+.ccls-cache/
+
+# analysis
+matplotlibrc
