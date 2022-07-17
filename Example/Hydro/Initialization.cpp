@@ -449,6 +449,6 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   }
   else
   {
-    throw Error( "Please choose a valid ProblemName" );
+    throw Error( " ! Please choose a valid ProblemName" );
   }
 }

@@ -68,7 +68,7 @@ void Tri_Sym_Diag( int n, double* d, double* e, double* array )
 
   if ( info != 0 )
   {
-    throw Error( "Issue occured in initializing quadrature in Tri_Sym_Diag." );
+    throw Error( " ! Issue occured in initializing quadrature in Tri_Sym_Diag." );
   }
 
   // Matrix multiply ev' * array. Only Array[0] is nonzero.
@@ -98,7 +98,7 @@ void InvertMatrix( double* M, unsigned int n )
 
   if ( info1 != 0 || info2 != 0 )
   {
-    throw Error( "Issue occured in matrix inversion." );
+    throw Error( " ! Issue occured in matrix inversion." );
   }
 }
 

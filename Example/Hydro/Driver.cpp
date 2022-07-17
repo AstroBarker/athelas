@@ -108,7 +108,7 @@ int main( int argc, char* argv[] )
     unsigned int i_print = 100;
     unsigned int i_write = -1;
     unsigned int i_out   = 1;
-    std::cout << "Step\tt\tdt" << std::endl;
+    std::cout << " ~ Step\tt\tdt" << std::endl;
     while ( t < t_end && iStep >= 0 )
     {
 
@@ -121,7 +121,7 @@ int main( int argc, char* argv[] )
 
       if ( iStep % i_print == 0 )
       {
-        std::printf( "%d \t %.5e \t %.5e\n", iStep, t, dt );
+        std::printf( " ~ %d \t %.5e \t %.5e\n", iStep, t, dt );
       }
 
       SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, Grid, Basis,
@@ -142,7 +142,7 @@ int main( int argc, char* argv[] )
 
     // --- Finalize timer ---
     double time = timer.seconds( );
-    std::printf( "Done! Elapsed time: %f seconds.\n", time );
+    std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC_Fluid( uCF, Grid, order, BC );
     WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName, t, order, -1 );
   }

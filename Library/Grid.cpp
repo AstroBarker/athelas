@@ -57,7 +57,7 @@ const double ShapeFunction( const int interface, const double eta )
   if ( interface == 0 ) mult = -1.0;
   if ( interface == 1 ) mult = +1.0;
   if ( interface != 0 && interface != 1 )
-    throw Error( "Invalid shape func params" );
+    throw Error( " ! Invalid shape func params" );
 
   return 0.5 + mult * eta;
 }

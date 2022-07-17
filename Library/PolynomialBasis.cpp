@@ -58,7 +58,7 @@ ModalBasis::ModalBasis( Kokkos::View<double***> uPF, GridStructure& Grid,
 double ModalBasis::Taylor( unsigned int order, double eta, double eta_c )
 {
 
-  if ( order < 0 ) throw Error( "Please enter a valid polynomial order.\n" );
+  if ( order < 0 ) throw Error( "! Please enter a valid polynomial order.\n" );
 
   // Handle constant and linear terms separately -- no need to exponentiate.
   if ( order == 0 )
@@ -86,7 +86,7 @@ double ModalBasis::Taylor( unsigned int order, double eta, double eta_c )
 double ModalBasis::dTaylor( unsigned int order, double eta, double eta_c )
 {
 
-  if ( order < 0 ) throw Error( "Please enter a valid polynomial order.\n" );
+  if ( order < 0 ) throw Error( " ! Please enter a valid polynomial order.\n" );
 
   // Handle first few terms separately -- no need to call std::pow
   if ( order == 0 )
@@ -381,12 +381,12 @@ void ModalBasis::CheckOrthogonality( const Kokkos::View<double***> uPF,
 
         if ( k1 == k2 && result == 0.0 )
         {
-          throw Error( "Basis not orthogonal: Diagonal term equal to zero.\n" );
+          throw Error( " ! Basis not orthogonal: Diagonal term equal to zero.\n" );
         }
         if ( k1 != k2 && std::abs( result ) > 1e-10 )
         {
           std::printf( "%d %d %.3e \n", k1, k2, result );
-          throw Error( "Basis not orthogonal: Off diagonal term non-zero.\n" );
+          throw Error( " ! Basis not orthogonal: Off diagonal term non-zero.\n" );
         }
       }
 }

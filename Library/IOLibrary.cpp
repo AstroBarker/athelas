@@ -30,49 +30,49 @@ void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
   const unsigned int nX     = Grid.Get_nElements( );
   const unsigned int nNodes = Grid.Get_nNodes( );
 
-  std::printf( "--- Order Parameters --- \n" );
-  std::printf( "Spatial Order  : %d\n", pOrder );
-  std::printf( "Temporal Order : %d\n", tOrder );
-  std::printf( "RK Stages      : %d\n", nStages );
+  std::printf( " ~ --- Order Parameters --- \n" );
+  std::printf( " ~ Spatial Order  : %d\n", pOrder );
+  std::printf( " ~ Temporal Order : %d\n", tOrder );
+  std::printf( " ~ RK Stages      : %d\n", nStages );
   std::printf( "\n" );
 
-  std::printf( "--- Grid Parameters --- \n" );
-  std::printf( "Mesh Elements  : %d\n", nX );
-  std::printf( "Number Nodes   : %d\n", nNodes );
-  std::printf( "Lower Boudnary : %f\n", Grid.Get_xL( ) );
-  std::printf( "Upper Boudnary : %f\n", Grid.Get_xR( ) );
+  std::printf( " ~ --- Grid Parameters --- \n" );
+  std::printf( " ~ Mesh Elements  : %d\n", nX );
+  std::printf( " ~ Number Nodes   : %d\n", nNodes );
+  std::printf( " ~ Lower Boudnary : %f\n", Grid.Get_xL( ) );
+  std::printf( " ~ Upper Boudnary : %f\n", Grid.Get_xR( ) );
   std::printf( "\n" );
 
-  std::printf( "--- Limiter Parameters --- \n" );
+  std::printf( " ~ --- Limiter Parameters --- \n" );
   if ( pOrder == 1 )
   {
-    printf( "Spatial Order 1: Slope limiter not applied.\n" );
+    printf( " ~ Spatial Order 1: Slope limiter not applied.\n" );
   }
   else
   {
-    std::printf( "Alpha          : %f\n", alpha );
+    std::printf( " ~ Alpha          : %f\n", alpha );
   }
   if ( TCI_Option )
   {
-    std::printf( "TCI Value      : %f\n", TCI );
+    std::printf( " ~ TCI Value      : %f\n", TCI );
   }
   else
   {
-    std::printf( "TCI Not Used.\n" );
+    std::printf( " ~ TCI Not Used.\n" );
   }
   if ( Char_option )
   {
-    std::printf( "Limiting       : Characteristic \n" );
+    std::printf( " ~ Limiting       : Characteristic \n" );
   }
   else
   {
-    std::printf( "Limiting       : Componentwise\n" );
+    std::printf( " ~ Limiting       : Componentwise\n" );
   }
   std::printf( "\n" );
 
-  std::printf( "--- Other --- \n" );
-  std::cout << "ProblemName    : " << ProblemName << std::endl;
-  std::printf( "CFL            : %f\n", CFL );
+  std::printf( " ~ --- Other --- \n" );
+  std::cout << " ~ ProblemName    : " << ProblemName << std::endl;
+  std::printf( " ~ CFL            : %f\n", CFL );
   std::printf( "\n" );
 }
 

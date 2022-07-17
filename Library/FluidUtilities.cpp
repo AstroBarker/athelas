@@ -69,7 +69,7 @@ double Fluid( double Tau, double V, double Em_T, int iCF )
   }
   else
   { // Error case. Shouldn't ever trigger.
-    throw Error( "Please input a valid iCF! (0,1,2). " );
+    throw Error( " ! Please input a valid iCF! (0,1,2). " );
     return -1; // just a formality.
   }
 }
@@ -94,7 +94,7 @@ double Flux_Fluid( const double V, const double P, const unsigned int iCF )
   }
   else
   { // Error case. Shouldn't ever trigger.
-    throw Error( "Please input a valid iCF! (0,1,2). " );
+    throw Error( " ! Please input a valid iCF! (0,1,2). " );
     return -1.0; // just a formality.
   }
 }
@@ -167,7 +167,7 @@ double ComputeTimestep_Fluid( const Kokkos::View<double***> U,
   // Triggers on NaN
   if ( dt != dt )
   {
-    throw Error( "nan encountered in ComputeTimestep.\n" );
+    throw Error( " ! nan encountered in ComputeTimestep.\n" );
   }
 
   return dt;

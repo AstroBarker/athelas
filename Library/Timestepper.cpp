@@ -52,8 +52,8 @@ void TimeStepper::InitializeTimestepper( )
 
   if ( tOrder == 1 and nStages > 1 )
   {
-    throw Error( "\n === \n \
-      Issue in setting SSPRK coefficients.\n \
+    throw Error( "\n \
+      ! Issue in setting SSPRK coefficients.\n \
       Please enter an appropriate SSPRK temporal order and nStages\n \
       combination. We support first through fourth order timesteppers\n \
       using 1-3 stages for first-thrid order and 5 stages for second\n \
@@ -61,8 +61,8 @@ void TimeStepper::InitializeTimestepper( )
   }
   if ( ( nStages != tOrder && nStages != 5 ) )
   {
-    throw Error( "\n === \n \
-      Issue in setting SSPRK coefficients.\n \
+    throw Error( "\n \
+      ! Issue in setting SSPRK coefficients.\n \
       Please enter an appropriate SSPRK temporal order and nStages\n \
       combination. We support first through fourth order timesteppers\n \
       using 1-3 stages for first-thrid order and 5 stages for second\n \
@@ -116,8 +116,8 @@ void TimeStepper::InitializeTimestepper( )
   {
     if ( tOrder == 1 )
     {
-      throw Error( "\n === We do support a 1st order, 5 stage SSPRK "
-                   "integrator. === \n" );
+      throw Error( "\n ! We do support a 1st order, 5 stage SSPRK "
+                   "integrator. \n" );
     }
     else if ( tOrder == 2 )
     {
