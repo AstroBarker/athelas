@@ -140,9 +140,8 @@ double ComputeTimestep_Fluid( const Kokkos::View<double***> U,
   const unsigned int& ihi = Grid.Get_ihi( );
 
   double dt = 0.0;
-
   Kokkos::parallel_reduce(
-      "Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+      "Compute Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
       KOKKOS_LAMBDA( const int& iX, double& lmin ) {
         // --- Compute Cell Averages ---
         double tau_x  = U( 0, iX, 0 );
