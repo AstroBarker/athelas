@@ -55,7 +55,7 @@ option(ATHELAS_ENABLE_UNIT_TESTS "Enable unit tests" OFF)               # Future
 option(ATHELAS_ENABLE_INTEGRATION_TESTS "Enable integration tests" OFF) # Future
 option(ATHELAS_ENABLE_REGRESSION_TESTS "Enable regression tests" OFF)   # Future
 
-option( MACHINE_OS "ARCH" )
+set( MACHINE_OS "MACOS" )
 message( "Building On ${MACHINE_OS} ")
 
 # Don't allow in-source builds
@@ -167,6 +167,13 @@ if (${MACHINE_OS} STREQUAL "UBUNTU")
     set(LAPACK_LIBRARIES "/usr/lib/x86_64-linux-gnu/liblapacke.so.3;-lm;-ldl")
     message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
     target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
+elseif( ${MACHINE_OS} STREQUAL "MACOS" )
+    set( LAPACK_LIBRARIES "/usr/local/Cellar/lapack/3.10.1/lib/liblapacke.3.dylib;-lm;-ldl;-llapack" )
+    set( LAPACK_INCLUDE "/usr/local/Cellar/lapack/3.10.1/include/" )
+    include_directories( ${LAPACK_INCLUDE} )
+    #set( LAPACK_LIBRARIES "/usr/local/Cellar/openblas/0.3.20/lib/libopenblas.dylib;-lm;-ldl;-llapack" )
+    message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
+    target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
 else()
     find_package( LAPACK REQUIRED  )
     message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
@@ -191,7 +198,7 @@ set_target_properties(main
 target_link_libraries( libathelas Kokkos::kokkos )
 target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} )
 
-target_compile_options( main PRIVATE -fPIC -O2 -Wall -std=c++17 )
+target_compile_options( main PRIVATE -fPIC -O2 -Wall -std=c++17 -llapack )
 add_dependencies( main libathelas )
 
 target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos )
