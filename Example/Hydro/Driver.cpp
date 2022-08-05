@@ -31,11 +31,11 @@ int main( int argc, char* argv[] )
   /* --- Problem Parameters --- */
   const std::string ProblemName = "Sod";
 
-  const unsigned int nX      = 128;
+  const unsigned int nX      = 256;
   const unsigned int order   = 2;
   const unsigned int nNodes  = NumNodes( order ) + 0;
-  const unsigned int nStages = 2;
-  const unsigned int tOrder  = 2;
+  const unsigned int nStages = 3;
+  const unsigned int tOrder  = 3;
 
   const unsigned int nGuard = 1;
 
@@ -62,10 +62,9 @@ int main( int argc, char* argv[] )
     GridStructure Grid( nNodes, nX, nGuard, xL, xR, Geometry );
 
     // --- Create the data structures ---
-    Kokkos::View<double***> uCF( "uCF", 3, nX + 2 * nGuard, order );
-    Kokkos::View<double***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes );
-
-    Kokkos::View<double***> uAF( "uAF", 3, nX + 2 * nGuard, order );
+    Kokkos::View<double**[3]> uCF( "uCF", nX + 2 * nGuard, order );
+    Kokkos::View<double**[3]> uPF( "uPF", nX + 2 * nGuard, nNodes );
+    Kokkos::View<double**[3]> uAF( "uAF", nX + 2 * nGuard, order );
 
     if ( not Restart )
     {

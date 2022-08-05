@@ -45,7 +45,7 @@ void LimitDensity( Kokkos::View<double***> U, const ModalBasis& Basis )
 
         for ( unsigned int k = 1; k < order; k++ )
         {
-          U( 0, iX, k ) *= theta1;
+          U( iX, k, 0 ) *= theta1;
         }
       } );
 }
@@ -84,9 +84,9 @@ void LimitInternalEnergy( Kokkos::View<double***> U, const ModalBasis& Basis )
 
         for ( unsigned int k = 1; k < order; k++ )
         {
-          U( 0, iX, k ) *= theta2;
-          U( 1, iX, k ) *= theta2;
-          U( 2, iX, k ) *= theta2;
+          U( iX, k, 0 ) *= theta2;
+          U( iX, k, 1 ) *= theta2;
+          U( iX, k, 2 ) *= theta2;
         }
       } );
 }
@@ -108,9 +108,9 @@ double ComputeThetaState( const Kokkos::View<double***> U,
                           const unsigned int iN )
 {
   double result = Basis.BasisEval( U, iX, iCF, iN, false );
-  result -= U( iCF, iX, 0 );
+  result -= U( iX, 0, iCF );
   result *= theta;
-  result += U( iCF, iX, 0 );
+  result += U( iX, 0, iCF );
   return result;
 }
 

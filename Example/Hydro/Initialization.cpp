@@ -49,39 +49,39 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
           X1                    = Grid.Get_Centers( iX );
-          uCF( iCF_Tau, iX, k ) = 0.0;
-          uCF( iCF_V, iX, k )   = 0.0;
-          uCF( iCF_E, iX, k )   = 0.0;
+          uCF( iX, k, 0 ) = 0.0;
+          uCF( iX, k, 1 ) = 0.0;
+          uCF( iX, k, 2 ) = 0.0;
 
           if ( X1 <= 0.5 )
           {
             if ( k == 0 )
             {
-              uCF( iCF_Tau, iX, 0 ) = 1.0 / D_L;
-              uCF( iCF_V, iX, 0 )   = V0;
-              uCF( iCF_E, iX, 0 )   = ( P_L / 0.4 ) * uCF( iCF_Tau, iX, 0 );
+              uCF( iX, 0, 0 ) = 1.0 / D_L;
+              uCF( iX, 0, 1 )   = V0;
+              uCF( iX, 0, 2 )   = ( P_L / 0.4 ) * uCF( iX, 0, 0 );
             }
 
-            uPF( iPF_D, iX, iNodeX ) = D_L;
+            uPF( iX, iNodeX, iPF_D ) = D_L;
           }
           else
           { // right domain
             if ( k == 0 )
             {
-              uCF( iCF_Tau, iX, 0 ) = 1.0 / D_R;
-              uCF( iCF_V, iX, 0 )   = V0;
-              uCF( iCF_E, iX, 0 )   = ( P_R / 0.4 ) * uCF( iCF_Tau, iX, 0 );
+              uCF( iX, 0, 0 ) = 1.0 / D_R;
+              uCF( iX, 0, 1 )   = V0;
+              uCF( iX, 0, 2 )   = ( P_R / 0.4 ) * uCF( iX, 0, 0 );
             }
 
-            uPF( iPF_D, iX, iNodeX ) = D_R;
+            uPF( iX, iNodeX, iPF_D ) = D_R;
           }
         }
     // Fill density in guard cells
     for ( unsigned int iX = 0; iX < ilo; iX++ )
       for ( unsigned int iN = 0; iN < nNodes; iN++ )
       {
-        uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
-        uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
+        uPF( ilo - 1 - iX, iN, 0 ) = uPF( ilo + iX, nNodes - iN - 1, 0 );
+        uPF( ihi + 1 + iX, iN, 0 ) = uPF( ihi - iX, nNodes - iN - 1, 0 );
       }
   }
   else if ( ProblemName == "ShuOsher" )

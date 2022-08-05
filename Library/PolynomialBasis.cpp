@@ -128,7 +128,7 @@ double ModalBasis::InnerProduct( const unsigned int m, const unsigned int n,
     eta_q = Grid.Get_Nodes( iN );
     X     = Grid.NodeCoordinate( iX, iN );
     result += Taylor( n, eta_q, eta_c ) * Phi( iX, iN + 1, m ) *
-              Grid.Get_Weights( iN ) * uPF( 0, iX, iN ) *
+              Grid.Get_Weights( iN ) * uPF( iX, iN, 0 ) *
               Grid.Get_Widths( iX ) * Grid.Get_SqrtGm( X );
   }
 
@@ -153,7 +153,7 @@ double ModalBasis::InnerProduct( const unsigned int n, const unsigned int iX,
   {
     X = Grid.NodeCoordinate( iX, iN );
     result += Phi( iX, iN + 1, n ) * Phi( iX, iN + 1, n ) *
-              Grid.Get_Weights( iN ) * uPF( 0, iX, iN ) *
+              Grid.Get_Weights( iN ) * uPF( iX, iN, 0 ) *
               Grid.Get_Widths( iX ) * Grid.Get_SqrtGm( X );
   }
 
@@ -375,7 +375,7 @@ void ModalBasis::CheckOrthogonality( const Kokkos::View<double***> uPF,
           X = Grid.NodeCoordinate( iX, i_eta - 1 );
           // Not using an InnerProduct function because their API is odd..
           result += Phi( iX, i_eta, k1 ) * Phi( iX, i_eta, k2 ) *
-                    uPF( 0, iX, i_eta - 1 ) * Grid.Get_Weights( i_eta - 1 ) *
+                    uPF( iX, i_eta - 1, 0 ) * Grid.Get_Weights( i_eta - 1 ) *
                     Grid.Get_Widths( iX ) * Grid.Get_SqrtGm( X );
         }
 
@@ -418,7 +418,7 @@ void ModalBasis::ComputeMassMatrix( const Kokkos::View<double***> uPF,
         X = Grid.NodeCoordinate( iX, iN );
         result += Phi( iX, iN + 1, k ) * Phi( iX, iN + 1, k ) *
                   Grid.Get_Weights( iN ) * Grid.Get_Widths( iX ) *
-                  Grid.Get_SqrtGm( X ) * uPF( 0, iX, iN );
+                  Grid.Get_SqrtGm( X ) * uPF( iX, iN, 0 );
       }
       MassMatrix( iX, k ) = result;
     }
@@ -438,14 +438,14 @@ double ModalBasis::BasisEval( Kokkos::View<double***> U, const unsigned int iX,
   {
     for ( unsigned int k = 0; k < order; k++ )
     {
-      result += dPhi( iX, i_eta, k ) * U( iCF, iX, k );
+      result += dPhi( iX, i_eta, k ) * U( iX, k, iCF );
     }
   }
   else
   {
     for ( unsigned int k = 0; k < order; k++ )
     {
-      result += Phi( iX, i_eta, k ) * U( iCF, iX, k );
+      result += Phi( iX, i_eta, k ) * U( iX, k, iCF );
     }
   }
   return result;

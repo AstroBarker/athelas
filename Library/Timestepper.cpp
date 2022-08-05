@@ -27,17 +27,17 @@ TimeStepper::TimeStepper( unsigned int nS, unsigned int tO, unsigned int pOrder,
     : mSize( Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) ), nStages( nS ),
       tOrder( tO ), BC( BCond ), a_jk( "RK a_jk", nStages, nStages ),
       b_jk( "RK b_jk", nStages, nStages ), SumVar_X( "SumVar_X", mSize + 1 ),
-      U_s( "U_s", nStages + 1, 3, mSize + 1, pOrder ),
-      dU_s( "dU_s", nStages + 1, 3, mSize + 1, pOrder ),
-      SumVar_U( "SumVar_U", 3, mSize + 1, pOrder ),
+      U_s( "U_s", nStages + 1, mSize + 1, pOrder, 3 ),
+      dU_s( "dU_s", nStages + 1, mSize + 1, pOrder, 3 ),
+      SumVar_U( "SumVar_U", mSize + 1, pOrder, 3 ),
       Grid_s( nStages + 1,
               GridStructure( Grid.Get_nNodes( ), Grid.Get_nElements( ),
                              Grid.Get_Guard( ), Grid.Get_xL( ), Grid.Get_xR( ),
                              Geometry ) ),
       StageData( "StageData", nStages + 1, mSize + 1 ),
-      Flux_q( "Flux_q", 3, mSize + 1, Grid.Get_nNodes( ) ),
+      Flux_q( "Flux_q", mSize + 1, Grid.Get_nNodes( ), 3 ),
       dFlux_num( "Numerical Flux", 3, mSize + 1 ),
-      uCF_F_L( "Face L", 3, mSize ), uCF_F_R( "Face R", 3, mSize ),
+      uCF_F_L( "Face L", mSize, 3 ), uCF_F_R( "Face R", mSize, 3 ),
       Flux_U( "Flux_U", nStages + 1, mSize + 1 ), Flux_P( "Flux_P", mSize + 1 )
 {
 
@@ -218,7 +218,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const double dt,
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                               { 3, ihi + 2, order } ),
       KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
-        SumVar_U( iCF, iX, k ) = 0.0;
+        SumVar_U( iX, k, iCF ) = 0.0;
       } );
 
   Kokkos::parallel_for(
@@ -226,7 +226,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const double dt,
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                               { 3, ihi + 2, order } ),
       KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
-        U_s( 0, iCF, iX, k ) = U( iCF, iX, k );
+        U_s( 0, iX, k, iCF ) = U( iX, k, iCF );
       } );
 
   Grid_s[0] = Grid;
@@ -245,7 +245,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const double dt,
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                                 { 3, ihi + 1, order } ),
         KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
-          SumVar_U( iCF, iX, k ) = 0.0;
+          SumVar_U( iX, k, iCF ) = 0.0;
         } );
 
     Kokkos::parallel_for(
@@ -269,8 +269,8 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const double dt,
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                                   { 3, ihi + 2, order } ),
           KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
-            SumVar_U( iCF, iX, k ) += a_jk( i, j ) * Usj( iCF, iX, k ) +
-                                      dt * b_jk( i, j ) * dUsj( iCF, iX, k );
+            SumVar_U( iX, k, iCF ) += a_jk( i, j ) * Usj( iX, k, iCF ) +
+                                      dt * b_jk( i, j ) * dUsj( iX, k, iCF );
           } );
 
       Kokkos::parallel_for(
@@ -287,7 +287,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const double dt,
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                                 { 3, ihi + 2, order } ),
         KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
-          U_s( iS, iCF, iX, k ) = SumVar_U( iCF, iX, k );
+          U_s( iS, iX, k, iCF ) = SumVar_U( iX, k, iCF );
         } );
 
     auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
@@ -305,7 +305,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const double dt,
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                               { 3, ihi + 2, order } ),
       KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
-        U( iCF, iX, k ) = U_s( nStages, iCF, iX, k );
+        U( iX, k, iCF ) = U_s( nStages, iX, k, iCF );
       } );
 
   Grid = Grid_s[nStages];

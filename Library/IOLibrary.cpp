@@ -121,9 +121,9 @@ void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
       grid[( iX - ilo )].x          = Grid.Get_Centers( iX );
       dr[( iX - ilo )].x            = Grid.Get_Widths( iX );
       limiter[( iX - ilo )].x       = SL.Get_Limited( iX );
-      tau[( iX - ilo ) + k * nX].x  = uCF( 0, iX, k );
-      vel[( iX - ilo ) + k * nX].x  = uCF( 1, iX, k );
-      eint[( iX - ilo ) + k * nX].x = uCF( 2, iX, k );
+      tau[( iX - ilo ) + k * nX].x  = uCF( iX, k, 0 );
+      vel[( iX - ilo ) + k * nX].x  = uCF( iX, k, 1 );
+      eint[( iX - ilo ) + k * nX].x = uCF( iX, k, 2 );
     }
 
   // preparation of a dataset and a file.
