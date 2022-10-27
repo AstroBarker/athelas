@@ -1,7 +1,9 @@
 #ifndef QUADRATURELIBRARY_H
 #define QUADRATURELIBRARY_H
 
-double Jacobi_Matrix( int m, double* aj, double* bj );
-void LG_Quadrature( int m, double* nodes, double* weights );
+#include "Abstractions.hpp"
+
+Real Jacobi_Matrix( int m, Real* aj, Real* bj );
+void LG_Quadrature( int m, Real* nodes, Real* weights );
 
 #endif

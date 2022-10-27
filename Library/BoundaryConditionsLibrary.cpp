@@ -15,8 +15,7 @@
 #include "BoundaryConditionsLibrary.h"
 
 // Apply Boundary Conditions to fluid fields
-// TODO: Optimize the loops.
-void ApplyBC_Fluid( Kokkos::View<double***> uCF, const GridStructure& Grid,
+void ApplyBC_Fluid( Kokkos::View<Real***> uCF, const GridStructure& Grid,
                     const unsigned int order, const std::string BC )
 {
 
@@ -37,13 +36,13 @@ void ApplyBC_Fluid( Kokkos::View<double***> uCF, const GridStructure& Grid,
         {
           if ( iCF != 1 )
           {
-            if ( k == 0 ) uCF( iX, k, iCF ) = +uCF( ilo, k, iCF );
-            if ( k != 0 ) uCF( iX, k, iCF ) = -uCF( ilo, k, iCF );
+            if ( k == 0 ) uCF( iCF, iX, k ) = +uCF( iCF, ilo, k );
+            if ( k != 0 ) uCF( iCF, iX, k ) = -uCF( iCF, ilo, k );
           }
           else
           {
-            if ( k == 0 ) uCF( iX, 0, 1 ) = -uCF( ilo, 0, 1 );
-            if ( k != 0 ) uCF( iX, k, 1 ) = +uCF( ilo, k, 1 );
+            if ( k == 0 ) uCF( 1, iX, 0 ) = -uCF( 1, ilo, 0 );
+            if ( k != 0 ) uCF( 1, iX, k ) = +uCF( 1, ilo, k );
           }
         }
 
@@ -53,11 +52,11 @@ void ApplyBC_Fluid( Kokkos::View<double***> uCF, const GridStructure& Grid,
         {
           if ( iCF != 1 )
           {
-            uCF( iX, k, iCF ) = uCF( ihi, k, iCF );
+            uCF( iCF, iX, k ) = uCF( iCF, ihi, k );
           }
           else
           {
-            uCF( iX, k, iCF ) = -uCF( ihi, k, 1 );
+            uCF( iCF, iX, k ) = -uCF( 1, ihi, k );
           }
         }
     }
@@ -68,8 +67,8 @@ void ApplyBC_Fluid( Kokkos::View<double***> uCF, const GridStructure& Grid,
       for ( unsigned int iX = 0; iX < ilo; iX++ )
         for ( unsigned int k = 0; k < order; k++ )
         {
-          uCF( ilo - 1 - iX, k, iCF ) = uCF( ihi - iX, k, iCF );
-          uCF( ihi + 1 + iX, k, iCF ) = uCF( ilo + iX, k, iCF );
+          uCF( iCF, ilo - 1 - iX, k ) = uCF( iCF, ihi - iX, k );
+          uCF( iCF, ihi + 1 + iX, k ) = uCF( iCF, ilo + iX, k );
         }
   }
   else if ( BC == "ShocklessNoh" ) /* Special case for ShocklessNoh test */
@@ -82,66 +81,66 @@ void ApplyBC_Fluid( Kokkos::View<double***> uCF, const GridStructure& Grid,
         if ( k == 0 )
         {
 
-          uCF( ilo - 1 - iX, k, 0 ) = uCF( ilo + iX, k, 0 );
-          uCF( ihi + 1 + iX, k, 0 ) = uCF( ihi - iX, k, 0 );
+          uCF( 0, ilo - 1 - iX, k ) = uCF( 0, ilo + iX, k );
+          uCF( 0, ihi + 1 + iX, k ) = uCF( 0, ihi - iX, k );
 
-          uCF( ilo - 1 - iX, k, 1 ) = -uCF( ilo + iX, k, 1 );
-          uCF( ihi + 1 + iX, k, 1 ) =
-              uCF( ihi - iX, k, 1 ) +
-              ( uCF( ihi - iX - 1, k, 1 ) - uCF( ihi - iX - 2, k, 1 ) );
+          uCF( 1, ilo - 1 - iX, k ) = -uCF( 1, ilo + iX, k );
+          uCF( 1, ihi + 1 + iX, k ) =
+              uCF( 1, ihi - iX, k ) +
+              ( uCF( 1, ihi - iX - 1, k ) - uCF( 1, ihi - iX - 2, k ) );
 
           // Have to keep internal energy consistent with new velocities
-          uCF( ilo - 1 - iX, k, 2 ) =
-              uCF( ilo + iX, k, 2 ) -
-              0.5 * uCF( ilo + iX, k, 1 ) * uCF( ilo + iX, k, 1 ) +
-              0.5 * uCF( ilo - 1 - iX, k, 1 ) * uCF( ilo - 1 - iX, k, 1 );
-          uCF( ihi + 1 + iX, k, 2 ) =
-              uCF( ihi - iX, k, 2 ) -
-              0.5 * uCF( ihi - iX, k, 1 ) * uCF( ihi - iX, k, 1 ) +
-              0.5 * uCF( ihi + 1 + iX, k, 1 ) * uCF( ihi + 1 + iX, k, 1 );
+          uCF( 2, ilo - 1 - iX, k ) =
+              uCF( 2, ilo + iX, k ) -
+              0.5 * uCF( 1, ilo + iX, k ) * uCF( 1, ilo + iX, k ) +
+              0.5 * uCF( 1, ilo - 1 - iX, k ) * uCF( 1, ilo - 1 - iX, k );
+          uCF( 2, ihi + 1 + iX, k ) =
+              uCF( 2, ihi - iX, k ) -
+              0.5 * uCF( 1, ihi - iX, k ) * uCF( 1, ihi - iX, k ) +
+              0.5 * uCF( 1, ihi + 1 + iX, k ) * uCF( 1, ihi + 1 + iX, k );
         }
         else if ( k == 1 )
         {
-          uCF( ilo - 1 - iX, k, 0 ) = 0.0;
-          uCF( ihi + 1 + iX, k, 0 ) = 0.0;
+          uCF( 0, ilo - 1 - iX, k ) = 0.0;
+          uCF( 0, ihi + 1 + iX, k ) = 0.0;
 
-          uCF( ilo - 1 - iX, k, 1 ) = uCF( ilo + iX, k, 1 );
-          uCF( ihi + 1 + iX, k, 1 ) = uCF( ihi - iX, k, 1 );
+          uCF( 1, ilo - 1 - iX, k ) = uCF( 1, ilo + iX, k );
+          uCF( 1, ihi + 1 + iX, k ) = uCF( 1, ihi - iX, k );
 
-          uCF( ilo - 1 - iX, k, 2 ) =
-              -uCF( ilo + iX, 0, 1 ) * uCF( ilo + iX, 1, 1 );
-          uCF( ihi + 1 + iX, k, 2 ) =
-              uCF( ihi + 1 + iX, 0, 1 ) * uCF( ihi + 1 + iX, 1, 1 );
+          uCF( 2, ilo - 1 - iX, k ) =
+              -uCF( 1, ilo + iX, 0 ) * uCF( 1, ilo + iX, 1 );
+          uCF( 2, ihi + 1 + iX, k ) =
+              uCF( 1, ihi + 1 + iX, 0 ) * uCF( 1, ihi + 1 + iX, 1 );
         }
         else if ( k == 2 )
         {
 
           // uCF( iCF, ilo - 1 - iX, k ) = 0.0;
           // uCF( iCF, ihi + 1 + iX, k ) = 0.0;
-          uCF( ilo - 1 - iX, k, 0 ) = uCF( ilo + iX, k, 0 );
-          uCF( ihi + 1 + iX, k, 0 ) = uCF( ihi - iX, k, 0 );
+          uCF( 0, ilo - 1 - iX, k ) = uCF( 0, ilo + iX, k );
+          uCF( 0, ihi + 1 + iX, k ) = uCF( 0, ihi - iX, k );
 
           // uCF( iCF, ilo - 1 - iX, k ) = 0.0;
           // uCF( iCF, ihi + 1 + iX, k ) = 0.0;
-          uCF( ilo - 1 - iX, k, 1 ) = uCF( ilo + iX, k, 1 );
-          uCF( ihi + 1 + iX, k, 1 ) = uCF( ihi - iX, k, 1 );
+          uCF( 1, ilo - 1 - iX, k ) = uCF( 1, ilo + iX, k );
+          uCF( 1, ihi + 1 + iX, k ) = uCF( 1, ihi - iX, k );
 
           // Have to keep internal energy consistent with new velocities
-          uCF( ilo - 1 - iX, k, 2 ) =
-              uCF( ilo + iX, 2, 2 ); // * uCF( 1, ilo + iX, 1 );
-          uCF( ihi + 1 + iX, k, 2 ) =
-              uCF( ihi - iX, 2, 2 ); //* uCF( 1, ihi - iX, 1 );
+          uCF( 2, ilo - 1 - iX, k ) =
+              uCF( 2, ilo + iX, 2 ); // * uCF( 1, ilo + iX, 1 );
+          uCF( 2, ihi + 1 + iX, k ) =
+              uCF( 2, ihi - iX, 2 ); //* uCF( 1, ihi - iX, 1 );
         }
         else
         {
-          uCF( ilo - 1 - iX, k, 0 ) = 0.0; // uCF( 0, ilo + iX, k );
-          uCF( ihi + 1 + iX, k, 0 ) = 0.0; // uCF( 0, ihi - iX, k );
+          uCF( 0, ilo - 1 - iX, k ) = 0.0; // uCF( 0, ilo + iX, k );
+          uCF( 0, ihi + 1 + iX, k ) = 0.0; // uCF( 0, ihi - iX, k );
 
-          uCF( ilo - 1 - iX, k, 1 ) = uCF( ilo + iX, k, 1 );
-          uCF( ihi + 1 + iX, k, 1 ) = uCF( ihi - iX, k, 1 );
+          uCF( 1, ilo - 1 - iX, k ) = uCF( 1, ilo + iX, k );
+          uCF( 1, ihi + 1 + iX, k ) = uCF( 1, ihi - iX, k );
 
-          uCF( ilo - 1 - iX, k, 2 ) = -uCF( ilo + iX, k, 2 );
-          uCF( ihi + 1 + iX, k, 2 ) = uCF( ihi - iX, k, 2 );
+          uCF( 2, ilo - 1 - iX, k ) = -uCF( 2, ilo + iX, k );
+          uCF( 2, ihi + 1 + iX, k ) = uCF( 2, ihi - iX, k );
         }
       }
   }
@@ -151,8 +150,8 @@ void ApplyBC_Fluid( Kokkos::View<double***> uCF, const GridStructure& Grid,
       for ( unsigned int iX = 0; iX < ilo; iX++ )
         for ( unsigned int k = 0; k < order; k++ )
         {
-          uCF( ilo - 1 - iX, k, iCF ) = uCF( ilo + iX, k, iCF );
-          uCF( ihi + 1 + iX, k, iCF ) = uCF( ihi - iX, k, iCF );
+          uCF( iCF, ilo - 1 - iX, k ) = uCF( iCF, ilo + iX, k );
+          uCF( iCF, ihi + 1 + iX, k ) = uCF( iCF, ihi - iX, k );
         }
   }
 }
