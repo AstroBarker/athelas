@@ -39,15 +39,15 @@ void ComputePrimitiveFromConserved( Kokkos::View<double***> uCF,
     {
       // Density
       Tau              = Basis.BasisEval( uCF, 0, iX, iN + 1, false );
-      uPF( iX, iN, 0 ) = 1.0 / Tau;
+      uPF( 0, iX, iN ) = 1.0 / Tau;
 
       // Momentum
       Vel              = Basis.BasisEval( uCF, 1, iX, iN + 1, false );
-      uPF( iX, iN, 1 ) = uPF( 0, iX, iN ) * Vel;
+      uPF( 1, iX, iN ) = uPF( 0, iX, iN ) * Vel;
 
       // Specific Total Energy
       EmT              = Basis.BasisEval( uCF, 2, iX, iN + 1, false );
-      uPF( iX, iN, 2 ) = EmT / Tau;
+      uPF( 2, iX, iN ) = EmT / Tau;
     }
 }
 
@@ -144,9 +144,9 @@ double ComputeTimestep_Fluid( const Kokkos::View<double***> U,
       "Compute Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
       KOKKOS_LAMBDA( const int& iX, double& lmin ) {
         // --- Compute Cell Averages ---
-        double tau_x  = U( iX, 0, 0 );
-        double vel_x  = U( iX, 0, 1 );
-        double eint_x = U( iX, 0, 2 );
+        double tau_x  = U( 0, iX, 0 );
+        double vel_x  = U( 1, iX, 0 );
+        double eint_x = U( 2, iX, 0 );
 
         double dr = Grid.Get_Widths( iX );
 

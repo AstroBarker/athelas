@@ -54,5 +54,5 @@ double ComputeInternalEnergy( const Kokkos::View<double***> U,
 double ComputeInternalEnergy( const Kokkos::View<double***> U,
                               const unsigned int iX )
 {
-  return U( iX, 0, 2 ) - 0.5 * U( iX, 0, 1 ) * U( iX, 0, 1 );
+  return U( 2, iX, 0 ) - 0.5 * U( 1, iX, 0 ) * U( 1, iX, 0 );
 }

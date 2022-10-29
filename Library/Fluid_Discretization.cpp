@@ -41,17 +41,17 @@ void ComputeIncrement_Fluid_Divergence(
       "Interface States",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, ilo }, { 3, ihi + 2 } ),
       KOKKOS_LAMBDA( const int iCF, const int iX ) {
-        uCF_F_L( iX, iCF ) =
+        uCF_F_L( iCF, iX ) =
             Basis.BasisEval( U, iX - 1, iCF, nNodes + 1, false );
-        uCF_F_R( iX, iCF ) = Basis.BasisEval( U, iX, iCF, 0, false );
+        uCF_F_R( iCF, iX ) = Basis.BasisEval( U, iX, iCF, 0, false );
       } );
 
   // --- Calc numerical flux at all faces
   Kokkos::parallel_for(
       "Numerical Fluxes", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
       KOKKOS_LAMBDA( unsigned int iX ) {
-        auto uCF_L = Kokkos::subview( uCF_F_L, iX, Kokkos::ALL );
-        auto uCF_R = Kokkos::subview( uCF_F_R, iX, Kokkos::ALL );
+        auto uCF_L = Kokkos::subview( uCF_F_L, Kokkos::ALL, iX );
+        auto uCF_R = Kokkos::subview( uCF_F_R, Kokkos::ALL, iX );
 
         double rho_L = 1.0 / uCF_L( 0 );
         double rho_R = 1.0 / uCF_R( 0 );
@@ -95,7 +95,7 @@ void ComputeIncrement_Fluid_Divergence(
         double SqrtGm_L = Grid.Get_SqrtGm( X_L );
         double SqrtGm_R = Grid.Get_SqrtGm( X_R );
 
-        dU( iX, k, iCF ) -= ( +dFlux_num( iCF, iX + 1 ) * Poly_R * SqrtGm_R -
+        dU( iCF, iX, k ) -= ( +dFlux_num( iCF, iX + 1 ) * Poly_R * SqrtGm_R -
                               dFlux_num( iCF, iX + 0 ) * Poly_L * SqrtGm_L );
       } );
 
@@ -109,7 +109,7 @@ void ComputeIncrement_Fluid_Divergence(
             Basis.BasisEval( U, iX, 0, iN + 1, false ),
             Basis.BasisEval( U, iX, 1, iN + 1, false ),
             Basis.BasisEval( U, iX, 2, iN + 1, false ) );
-        Flux_q( iX, iN, iCF ) =
+        Flux_q( iCF, iX, iN ) =
             Flux_Fluid( Basis.BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
       } );
 
@@ -124,11 +124,11 @@ void ComputeIncrement_Fluid_Divergence(
         for ( unsigned int iN = 0; iN < nNodes; iN++ )
         {
           X = Grid.NodeCoordinate( iX, iN );
-          local_sum += Grid.Get_Weights( iN ) * Flux_q( iX, iN, iCF ) *
+          local_sum += Grid.Get_Weights( iN ) * Flux_q( iCF, iX, iN ) *
                        Basis.Get_dPhi( iX, iN + 1, k ) * Grid.Get_SqrtGm( X );
         }
 
-        dU( iX, k, iCF ) += local_sum;
+        dU( iCF, iX, k ) += local_sum;
       } );
 }
 
@@ -163,7 +163,7 @@ void ComputeIncrement_Fluid_Geometry( Kokkos::View<double***> U,
               Grid.Get_Weights( iN ) * P * Basis.Get_Phi( iX, iN + 1, k ) * X;
         }
 
-        dU( iX, k, 1 ) += ( 2.0 * local_sum * Grid.Get_Widths( iX ) ) /
+        dU( 1, iX, k ) += ( 2.0 * local_sum * Grid.Get_Widths( iX ) ) /
                           Basis.Get_MassMatrix( iX, k );
       } );
 }
@@ -210,7 +210,7 @@ void Compute_Increment_Explicit(
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                               { 3, ihi + 1, order } ),
       KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
-        dU( iX, k, iCF ) = 0.0;
+        dU( iCF, iX, k ) = 0.0;
       } );
 
   Kokkos::parallel_for(
@@ -226,7 +226,7 @@ void Compute_Increment_Explicit(
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                               { 3, ihi + 1, order } ),
       KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
-        dU( iX, k, iCF ) /= ( Basis.Get_MassMatrix( iX, k ) );
+        dU( iCF, iX, k ) /= ( Basis.Get_MassMatrix( iX, k ) );
       } );
 
   // --- Increment from Geometry ---
