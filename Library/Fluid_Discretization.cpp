@@ -39,8 +39,8 @@ void ComputeIncrement_Fluid_Divergence(
   // Left/Right face states
   Kokkos::parallel_for(
       "Interface States",
-      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, ilo }, { 3, ihi + 2 } ),
-      KOKKOS_LAMBDA( const int iCF, const int iX ) {
+      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, 3 } ),
+      KOKKOS_LAMBDA( const int iX, const int iCF ) {
         uCF_F_L( iCF, iX ) =
             Basis->BasisEval( U, iX - 1, iCF, nNodes + 1, false );
         uCF_F_R( iCF, iX ) = Basis->BasisEval( U, iX, iCF, 0, false );
@@ -86,8 +86,8 @@ void ComputeIncrement_Fluid_Divergence(
   Kokkos::parallel_for(
       "Surface Term",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { 3, ihi + 1, order } ),
-      KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+                                              { order, ihi + 1, 3 } ),
+      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         Real Poly_L   = Basis->Get_Phi( iX, 0, k );
         Real Poly_R   = Basis->Get_Phi( iX, nNodes + 1, k );
         Real X_L      = Grid->Get_LeftInterface( iX );
@@ -105,8 +105,8 @@ void ComputeIncrement_Fluid_Divergence(
   Kokkos::parallel_for(
       "Flux_q",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { 3, ihi + 1, nNodes } ),
-      KOKKOS_LAMBDA( const int iCF, const int iX, const int iN ) {
+                                              { nNodes, ihi + 1, 3 } ),
+      KOKKOS_LAMBDA( const int iN, const int iX, const int iCF ) {
         Real P = ComputePressureFromConserved_IDEAL(
             Basis->BasisEval( U, iX, 0, iN + 1, false ),
             Basis->BasisEval( U, iX, 1, iN + 1, false ),
@@ -120,8 +120,8 @@ void ComputeIncrement_Fluid_Divergence(
   Kokkos::parallel_for(
       "Volume Term",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { 3, ihi + 1, order } ),
-      KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+                                              { order, ihi + 1, 3 } ),
+      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         Real local_sum = 0.0;
         for ( unsigned int iN = 0; iN < nNodes; iN++ )
         {
@@ -150,8 +150,8 @@ void ComputeIncrement_Fluid_Geometry( Kokkos::View<Real***> U,
 
   Kokkos::parallel_for(
       "Geometry Term",
-      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 1, order } ),
-      KOKKOS_LAMBDA( const int iX, const int k ) {
+      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, ilo }, { order, ihi + 1 } ),
+      KOKKOS_LAMBDA( const int k, const int iX ) {
         Real local_sum = 0.0;
         for ( unsigned int iN = 0; iN < nNodes; iN++ )
         {
@@ -211,8 +211,8 @@ void Compute_Increment_Explicit(
   Kokkos::parallel_for(
       "Zero dU",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                              { 3, ihi + 1, order } ),
-      KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+                                              { order, ihi + 1, 3 } ),
+      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         dU( iCF, iX, k ) = 0.0;
       } );
 
@@ -227,8 +227,8 @@ void Compute_Increment_Explicit(
   Kokkos::parallel_for(
       "Divide Update / Mass Matrix",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { 3, ihi + 1, order } ),
-      KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+                                              { order, ihi + 1, 3 } ),
+      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         dU( iCF, iX, k ) /= ( Basis->Get_MassMatrix( iX, k ) );
       } );
 

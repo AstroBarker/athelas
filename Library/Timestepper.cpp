@@ -216,16 +216,16 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
   Kokkos::parallel_for(
       "Timestepper 1",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                              { 3, ihi + 2, order } ),
-      KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+                                              { order, ihi + 2, 3 } ),
+      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         SumVar_U( iCF, iX, k ) = 0.0;
       } );
 
   Kokkos::parallel_for(
       "Timestepper 2",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                              { 3, ihi + 2, order } ),
-      KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+                                              { order, ihi + 2, 3 } ),
+      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         U_s( 0, iCF, iX, k ) = U( iCF, iX, k );
       } );
 
@@ -243,8 +243,8 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
     Kokkos::parallel_for(
         "Timestepper 3",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                { 3, ihi + 1, order } ),
-        KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+                                                { order, ihi + 1, 3 } ),
+        KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
           SumVar_U( iCF, iX, k ) = 0.0;
         } );
 
@@ -267,8 +267,8 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
       Kokkos::parallel_for(
           "Timestepper 4",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                  { 3, ihi + 2, order } ),
-          KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+                                                  { order, ihi + 2, 3 } ),
+          KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
             SumVar_U( iCF, iX, k ) += a_jk( i, j ) * Usj( iCF, iX, k ) +
                                       dt * b_jk( i, j ) * dUsj( iCF, iX, k );
           } );
@@ -285,8 +285,8 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
     Kokkos::parallel_for(
         "Timestepper 5",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                { 3, ihi + 2, order } ),
-        KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+                                                { order, ihi + 2, 3 } ),
+        KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
           U_s( iS, iCF, iX, k ) = SumVar_U( iCF, iX, k );
         } );
 
@@ -303,8 +303,8 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
   Kokkos::parallel_for(
       "Timestepper Final",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                              { 3, ihi + 2, order } ),
-      KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+                                              { order, ihi + 2, 3 } ),
+      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         U( iCF, iX, k ) = U_s( nStages, iCF, iX, k );
       } );
 
