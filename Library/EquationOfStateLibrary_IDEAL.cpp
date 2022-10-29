@@ -12,47 +12,47 @@
 #include "EquationOfStateLibrary_IDEAL.h"
 
 // Compute pressure assuming an ideal gas
-Real ComputePressureFromPrimitive_IDEAL( const Real Ev, const Real GAMMA )
+double ComputePressureFromPrimitive_IDEAL( const double Ev, const double GAMMA )
 {
   return ( GAMMA - 1.0 ) * Ev;
 }
 
-Real ComputePressureFromConserved_IDEAL( const Real Tau, const Real V,
-                                           const Real Em_T,
-                                           const Real GAMMA )
+double ComputePressureFromConserved_IDEAL( const double Tau, const double V,
+                                           const double Em_T,
+                                           const double GAMMA )
 {
-  Real Em = Em_T - 0.5 * V * V;
-  Real Ev = Em / Tau;
-  Real P  = ( GAMMA - 1.0 ) * Ev;
+  double Em = Em_T - 0.5 * V * V;
+  double Ev = Em / Tau;
+  double P  = ( GAMMA - 1.0 ) * Ev;
 
   return P;
 }
 
-Real ComputeSoundSpeedFromConserved_IDEAL( const Real Tau, const Real V,
-                                             const Real Em_T,
-                                             const Real GAMMA )
+double ComputeSoundSpeedFromConserved_IDEAL( const double Tau, const double V,
+                                             const double Em_T,
+                                             const double GAMMA )
 {
-  Real Em = Em_T - 0.5 * V * V;
+  double Em = Em_T - 0.5 * V * V;
 
-  Real Cs = sqrt( GAMMA * ( GAMMA - 1.0 ) * Em );
+  double Cs = sqrt( GAMMA * ( GAMMA - 1.0 ) * Em );
   //  / ( D + GAMMA * Ev ) )
   return Cs;
 }
 
 // nodal specific internal energy
-Real ComputeInternalEnergy( const Kokkos::View<Real***> U,
+double ComputeInternalEnergy( const Kokkos::View<double***> U,
                               const ModalBasis& Basis, const unsigned int iX,
                               const unsigned int iN )
 {
-  Real Vel = Basis.BasisEval( U, iX, 1, iN, false );
-  Real EmT = Basis.BasisEval( U, iX, 2, iN, false );
+  double Vel = Basis.BasisEval( U, iX, 1, iN, false );
+  double EmT = Basis.BasisEval( U, iX, 2, iN, false );
 
   return EmT - 0.5 * Vel * Vel;
 }
 
 // cell average specific internal energy
-Real ComputeInternalEnergy( const Kokkos::View<Real***> U,
+double ComputeInternalEnergy( const Kokkos::View<double***> U,
                               const unsigned int iX )
 {
-  return U( 2, iX, 0 ) - 0.5 * U( 1, iX, 0 ) * U( 1, iX, 0 );
+  return U( iX, 0, 2 ) - 0.5 * U( iX, 0, 1 ) * U( iX, 0, 1 );
 }

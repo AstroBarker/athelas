@@ -13,34 +13,34 @@
 #include "Error.h"
 // #include "EquationOfStateLibrary_IDEAL.h"
 
-void ComputeCharacteristicDecomposition( Kokkos::View<Real[3]> U,
-                                         Kokkos::View<Real[3][3]> R,
-                                         Kokkos::View<Real[3][3]> R_inv )
+void ComputeCharacteristicDecomposition( Kokkos::View<double[3]> U,
+                                         Kokkos::View<double[3][3]> R,
+                                         Kokkos::View<double[3][3]> R_inv )
 {
 
-  const Real Tau  = U( 0 );
-  const Real V    = U( 1 );
-  const Real Em_T = U( 2 );
+  const double Tau  = U( 0 );
+  const double V    = U( 1 );
+  const double Em_T = U( 2 );
 
-  // const Real P  = ComputePressureFromConserved_IDEAL( Tau, V, Em_T );
-  // const Real Cs = ComputeSoundSpeedFromConserved_IDEAL( Tau, V, Em_T );
+  // const double P  = ComputePressureFromConserved_IDEAL( Tau, V, Em_T );
+  // const double Cs = ComputeSoundSpeedFromConserved_IDEAL( Tau, V, Em_T );
 
-  const Real Em = Em_T - 0.5 * V * V;
+  const double Em = Em_T - 0.5 * V * V;
 
   const float GAMMA = 1.4;
 
-  const Real k      = std::sqrt( GAMMA * ( GAMMA - 1.0 ) );
-  const Real sqrt_e = std::sqrt( Em );
-  const Real InvTau = 1.0 / Tau;
+  const double k      = std::sqrt( GAMMA * ( GAMMA - 1.0 ) );
+  const double sqrt_e = std::sqrt( Em );
+  const double InvTau = 1.0 / Tau;
 
   /* --- Thermodynamic Derivatives of Pressure --- */
 
-  // const Real P_Tau = - (GAMMA - 1.0) * Em / ( Tau * Tau );
-  // const Real P_Em  = + (GAMMA - 1.0) / Tau;
-  // const Real P_T_E = - Em / Tau; // ratio of derivatives
+  // const double P_Tau = - (GAMMA - 1.0) * Em / ( Tau * Tau );
+  // const double P_Em  = + (GAMMA - 1.0) / Tau;
+  // const double P_T_E = - Em / Tau; // ratio of derivatives
 
   // Eigenvalues are rho * Cs...
-  // const Real lam = std::sqrt( P * P_Em - P_Tau );
+  // const double lam = std::sqrt( P * P_Em - P_Tau );
 
   /*  --- Compute Matrix Elements --- */
 

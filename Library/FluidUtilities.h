@@ -2,20 +2,19 @@
 #define FLUIDUTILITIES_H
 
 #include "Kokkos_Core.hpp"
-#include "Abstractions.hpp"
 
-void ComputePrimitiveFromConserved( Kokkos::View<Real***> uCF,
-                                    Kokkos::View<Real***> uPF,
+void ComputePrimitiveFromConserved( Kokkos::View<double***> uCF,
+                                    Kokkos::View<double***> uPF,
                                     ModalBasis& Basis, GridStructure& Grid );
-Real Flux_Fluid( const Real V, const Real P, const unsigned int iCF );
-Real Fluid( Real Tau, Real V, Real Em_T, int iCF );
-void NumericalFlux_Gudonov( const Real vL, const Real vR, const Real pL,
-                            const Real pR, const Real zL, const Real zR,
-                            Real& Flux_U, Real& Flux_P );
-void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL,
-                         Real cR, Real rhoL, Real rhoR, Real& Flux_U,
-                         Real& Flux_P );
-Real ComputeTimestep_Fluid( const Kokkos::View<Real***> U,
-                              const GridStructure& Grid, const Real CFL );
+double Flux_Fluid( const double V, const double P, const unsigned int iCF );
+double Fluid( double Tau, double V, double Em_T, int iCF );
+void NumericalFlux_Gudonov( const double vL, const double vR, const double pL,
+                            const double pR, const double zL, const double zR,
+                            double& Flux_U, double& Flux_P );
+void NumericalFlux_HLLC( double vL, double vR, double pL, double pR, double cL,
+                         double cR, double rhoL, double rhoR, double& Flux_U,
+                         double& Flux_P );
+double ComputeTimestep_Fluid( const Kokkos::View<double***> U,
+                              const GridStructure& Grid, const double CFL );
 
 #endif

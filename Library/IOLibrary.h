@@ -2,26 +2,25 @@
 #define IOLIBRARY_H
 
 #include "Kokkos_Core.hpp"
-#include "Abstractions.hpp"
 
 struct GridType
 {
-  Real r{ };
+  double r{ };
 };
 
 struct DataType
 {
-  Real x{ };
+  double x{ };
 };
 
-void WriteState( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
-                 Kokkos::View<Real***> uAF, GridStructure& Grid,
-                 SlopeLimiter& SL, const std::string ProblemName, Real time,
+void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
+                 Kokkos::View<double***> uAF, GridStructure& Grid,
+                 SlopeLimiter& SL, const std::string ProblemName, double time,
                  unsigned int order, int i_write );
 
 void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
                                 unsigned int tOrder, unsigned int nStages,
-                                Real CFL, Real alpha, Real TCI,
+                                double CFL, double alpha, double TCI,
                                 bool Char_option, bool TCI_Option,
                                 std::string ProblemName );
 

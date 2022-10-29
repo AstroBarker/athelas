@@ -9,13 +9,11 @@
  * Purpose  : Class for SSPRK timestepping
  **/
 
-#include "Abstractions.hpp"
-
-typedef void myFuncType( const Kokkos::View<Real***>, const GridStructure&,
-                         const ModalBasis&, Kokkos::View<Real***>,
-                         Kokkos::View<Real***>, Kokkos::View<Real**>,
-                         Kokkos::View<Real**>, Kokkos::View<Real**>,
-                         Kokkos::View<Real*>, Kokkos::View<Real*>,
+typedef void myFuncType( const Kokkos::View<double***>, const GridStructure&,
+                         const ModalBasis&, Kokkos::View<double***>,
+                         Kokkos::View<double***>, Kokkos::View<double**>,
+                         Kokkos::View<double**>, Kokkos::View<double**>,
+                         Kokkos::View<double*>, Kokkos::View<double*>,
                          const std::string );
 
 class TimeStepper
@@ -28,8 +26,8 @@ class TimeStepper
 
   void InitializeTimestepper( );
 
-  void UpdateFluid( myFuncType ComputeIncrement, const Real dt,
-                    Kokkos::View<Real***> U, GridStructure& Grid,
+  void UpdateFluid( myFuncType ComputeIncrement, const double dt,
+                    Kokkos::View<double***> U, GridStructure& Grid,
                     const ModalBasis& Basis, SlopeLimiter& S_Limiter );
 
  private:
@@ -39,29 +37,29 @@ class TimeStepper
   const std::string BC;
 
   // SSP coefficients
-  Kokkos::View<Real**> a_jk;
-  Kokkos::View<Real**> b_jk;
+  Kokkos::View<double**> a_jk;
+  Kokkos::View<double**> b_jk;
 
-  Kokkos::View<Real*> SumVar_X;
+  Kokkos::View<double*> SumVar_X;
 
   // Hold stage data
-  Kokkos::View<Real****> U_s;
-  Kokkos::View<Real****> dU_s;
-  Kokkos::View<Real***> SumVar_U;
+  Kokkos::View<double****> U_s;
+  Kokkos::View<double****> dU_s;
+  Kokkos::View<double***> SumVar_U;
   std::vector<GridStructure> Grid_s;
 
   // StageData Holds cell left interface positions
-  Kokkos::View<Real**> StageData;
+  Kokkos::View<double**> StageData;
 
   // Variables to pass to update step
-  Kokkos::View<Real***> Flux_q;
+  Kokkos::View<double***> Flux_q;
 
-  Kokkos::View<Real**> dFlux_num;
-  Kokkos::View<Real**> uCF_F_L;
-  Kokkos::View<Real**> uCF_F_R;
+  Kokkos::View<double**> dFlux_num;
+  Kokkos::View<double**> uCF_F_L;
+  Kokkos::View<double**> uCF_F_R;
 
-  Kokkos::View<Real**> Flux_U;
-  Kokkos::View<Real*> Flux_P;
+  Kokkos::View<double**> Flux_U;
+  Kokkos::View<double*> Flux_P;
 };
 
 #endif

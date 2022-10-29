@@ -19,26 +19,25 @@
 
 #include "Kokkos_Core.hpp"
 
-#include "Abstractions.hpp"
 #include "Error.h"
 #include "QuadratureLibrary.h"
 
 class GridStructure
 {
  public:
-  GridStructure( unsigned int nN, unsigned int nX, unsigned int nG, Real left,
-                 Real right, bool Geom );
-  Real NodeCoordinate( unsigned int iC, unsigned int iN ) const;
-  Real Get_Centers( unsigned int iC ) const;
-  Real Get_Widths( unsigned int iC ) const;
-  Real Get_Nodes( unsigned int nN ) const;
-  Real Get_Weights( unsigned int nN ) const;
-  Real Get_Mass( unsigned int iX ) const;
-  Real Get_CenterOfMass( unsigned int iX ) const;
-  Real Get_xL( ) const;
-  Real Get_xR( ) const;
-  Real Get_SqrtGm( Real X ) const;
-  Real Get_LeftInterface( unsigned int iX ) const;
+  GridStructure( unsigned int nN, unsigned int nX, unsigned int nG, double left,
+                 double right, bool Geom );
+  double NodeCoordinate( unsigned int iC, unsigned int iN ) const;
+  double Get_Centers( unsigned int iC ) const;
+  double Get_Widths( unsigned int iC ) const;
+  double Get_Nodes( unsigned int nN ) const;
+  double Get_Weights( unsigned int nN ) const;
+  double Get_Mass( unsigned int iX ) const;
+  double Get_CenterOfMass( unsigned int iX ) const;
+  double Get_xL( ) const;
+  double Get_xR( ) const;
+  double Get_SqrtGm( double X ) const;
+  double Get_LeftInterface( unsigned int iX ) const;
 
   bool DoGeometry( ) const;
 
@@ -49,13 +48,13 @@ class GridStructure
   int Get_nElements( ) const;
 
   void CreateGrid( );
-  void UpdateGrid( Kokkos::View<Real*> SData );
-  void ComputeMass( Kokkos::View<Real***> uPF );
-  void ComputeCenterOfMass( Kokkos::View<Real***> uPF );
-  void ComputeCenterOfMass_Radius( Kokkos::View<Real***> uPF );
+  void UpdateGrid( Kokkos::View<double*> SData );
+  void ComputeMass( Kokkos::View<double***> uPF );
+  void ComputeCenterOfMass( Kokkos::View<double***> uPF );
+  void ComputeCenterOfMass_Radius( Kokkos::View<double***> uPF );
 
-  Real& operator( )( unsigned int i, unsigned int j );
-  Real operator( )( unsigned int i, unsigned int j ) const;
+  double& operator( )( unsigned int i, unsigned int j );
+  double operator( )( unsigned int i, unsigned int j ) const;
 
  private:
   unsigned int nElements;
@@ -63,22 +62,22 @@ class GridStructure
   unsigned int nGhost;
   unsigned int mSize;
 
-  Real xL;
-  Real xR;
+  double xL;
+  double xR;
 
   bool Geometry;
 
-  Kokkos::View<Real*> Nodes;
-  Kokkos::View<Real*> Weights;
+  Kokkos::View<double*> Nodes;
+  Kokkos::View<double*> Weights;
 
-  Kokkos::View<Real*> Centers;
-  Kokkos::View<Real*> Widths;
-  Kokkos::View<Real*> X_L; // left interface coordinate
+  Kokkos::View<double*> Centers;
+  Kokkos::View<double*> Widths;
+  Kokkos::View<double*> X_L; // left interface coordinate
 
-  Kokkos::View<Real*> Mass;
-  Kokkos::View<Real*> CenterOfMass;
+  Kokkos::View<double*> Mass;
+  Kokkos::View<double*> CenterOfMass;
 
-  Kokkos::View<Real**> Grid;
+  Kokkos::View<double**> Grid;
 };
 
 #endif

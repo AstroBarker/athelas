@@ -17,7 +17,7 @@
 #include "lapacke.h"
 
 // Fill identity matrix
-void IdentityMatrix( Kokkos::View<Real**> Mat, unsigned int n )
+void IdentityMatrix( Kokkos::View<double**> Mat, unsigned int n )
 {
   for ( unsigned int i = 0; i < n; i++ )
     for ( unsigned int j = 0; j < n; j++ )
@@ -43,7 +43,7 @@ void IdentityMatrix( Kokkos::View<Real**> Mat, unsigned int n )
  *   r: subdiagonal array (length n)
  *   array: product (Q*)z (in/output)
  **/
-void Tri_Sym_Diag( int n, Real* d, Real* e, Real* array )
+void Tri_Sym_Diag( int n, double* d, double* e, double* array )
 {
 
   // Parameters for LaPack
@@ -61,8 +61,8 @@ void Tri_Sym_Diag( int n, Real* d, Real* e, Real* array )
     work_dim = 2 * n - 2;
   }
 
-  Real* ev   = new Real[n * n];
-  Real* work = new Real[work_dim];
+  double* ev   = new double[n * n];
+  double* work = new double[work_dim];
 
   info = LAPACKE_dstev( LAPACK_COL_MAJOR, job, m, d, e, ev, ldz );
 
@@ -72,7 +72,7 @@ void Tri_Sym_Diag( int n, Real* d, Real* e, Real* array )
   }
 
   // Matrix multiply ev' * array. Only Array[0] is nonzero.
-  Real k = array[0];
+  double k = array[0];
   for ( int i = 0; i < n; i++ )
   {
     array[i] = k * ev[n * i];
@@ -85,7 +85,7 @@ void Tri_Sym_Diag( int n, Real* d, Real* e, Real* array )
 /**
  * Use LAPACKE to invert a matrix M using LU factorization.
  **/
-void InvertMatrix( Real* M, unsigned int n )
+void InvertMatrix( double* M, unsigned int n )
 {
   lapack_int info1, info2;
 
@@ -105,8 +105,8 @@ void InvertMatrix( Real* M, unsigned int n )
 /**
  * Matrix vector multiplication
  **/
-void MatMul( Real alpha, Kokkos::View<Real[3][3]> A,
-             Kokkos::View<Real[3]> x, Real beta, Kokkos::View<Real[3]> y )
+void MatMul( double alpha, Kokkos::View<double[3][3]> A,
+             Kokkos::View<double[3]> x, double beta, Kokkos::View<double[3]> y )
 {
   // Calculate A*x=y
   for ( int i = 0; i < 3; i++ )

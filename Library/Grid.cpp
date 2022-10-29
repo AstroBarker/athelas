@@ -16,7 +16,7 @@
 #include <math.h> /* atan */
 
 GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
-                              Real left, Real right, bool Geom )
+                              double left, double right, bool Geom )
     : nElements( nX ), nNodes( nN ), nGhost( nG ),
       mSize( nElements + 2 * nGhost ), xL( left ), xR( right ),
       Geometry( Geom ), Nodes( "Nodes", nNodes ), Weights( "Weights", nNodes ),
@@ -25,8 +25,8 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
       CenterOfMass( "Center of Mass", mSize ), Grid( "Grid", mSize, nNodes )
 {
   // TODO: Allow LG_Quadrature to take in vectors.
-  Real* tmp_nodes   = new Real[nNodes];
-  Real* tmp_weights = new Real[nNodes];
+  double* tmp_nodes   = new double[nNodes];
+  double* tmp_weights = new double[nNodes];
 
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
@@ -50,9 +50,9 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
 
 // linear shape function on the reference element
 KOKKOS_INLINE_FUNCTION
-const Real ShapeFunction( const int interface, const Real eta )
+const double ShapeFunction( const int interface, const double eta )
 {
-  Real mult = 1.0;
+  double mult = 1.0;
 
   if ( interface == 0 ) mult = -1.0;
   if ( interface == 1 ) mult = +1.0;
@@ -63,50 +63,50 @@ const Real ShapeFunction( const int interface, const Real eta )
 }
 
 // Give physical grid coordinate from a node.
-Real GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN ) const
+double GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN ) const
 {
   return X_L( iC ) * ShapeFunction( 0, Nodes( iN ) ) +
          X_L( iC + 1 ) * ShapeFunction( 1, Nodes( iN ) );
 }
 
 // Return cell center
-Real GridStructure::Get_Centers( unsigned int iC ) const
+double GridStructure::Get_Centers( unsigned int iC ) const
 {
   return Centers( iC );
 }
 
 // Return cell width
-Real GridStructure::Get_Widths( unsigned int iC ) const
+double GridStructure::Get_Widths( unsigned int iC ) const
 {
   return Widths( iC );
 }
 
 // Return cell mass
-Real GridStructure::Get_Mass( unsigned int iX ) const { return Mass( iX ); }
+double GridStructure::Get_Mass( unsigned int iX ) const { return Mass( iX ); }
 
 // Return cell reference Center of Mass
-Real GridStructure::Get_CenterOfMass( unsigned int iX ) const
+double GridStructure::Get_CenterOfMass( unsigned int iX ) const
 {
   return CenterOfMass( iX );
 }
 
 // Return given quadrature node
-Real GridStructure::Get_Nodes( unsigned int nN ) const { return Nodes( nN ); }
+double GridStructure::Get_Nodes( unsigned int nN ) const { return Nodes( nN ); }
 
 // Return given quadrature weight
-Real GridStructure::Get_Weights( unsigned int nN ) const
+double GridStructure::Get_Weights( unsigned int nN ) const
 {
   return Weights( nN );
 }
 
 // Acessor for xL
-Real GridStructure::Get_xL( ) const { return xL; }
+double GridStructure::Get_xL( ) const { return xL; }
 
 // Acessor for xR
-Real GridStructure::Get_xR( ) const { return xR; }
+double GridStructure::Get_xR( ) const { return xR; }
 
 // Acessor for SqrtGm
-Real GridStructure::Get_SqrtGm( Real X ) const
+double GridStructure::Get_SqrtGm( double X ) const
 {
   if ( Geometry )
   {
@@ -119,7 +119,7 @@ Real GridStructure::Get_SqrtGm( Real X ) const
 }
 
 // Accessor for X_L
-Real GridStructure::Get_LeftInterface( unsigned int iX ) const
+double GridStructure::Get_LeftInterface( unsigned int iX ) const
 {
   return X_L( iX );
 }
@@ -188,14 +188,14 @@ void GridStructure::CreateGrid( )
 /**
  * Compute cell masses
  **/
-void GridStructure::ComputeMass( Kokkos::View<Real***> uPF )
+void GridStructure::ComputeMass( Kokkos::View<double***> uPF )
 {
   const unsigned int nNodes = Get_nNodes( );
   const unsigned int ilo    = Get_ilo( );
   const unsigned int ihi    = Get_ihi( );
 
-  Real mass;
-  Real X;
+  double mass;
+  double X;
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
@@ -220,14 +220,14 @@ void GridStructure::ComputeMass( Kokkos::View<Real***> uPF )
 /**
  * Compute cell centers of masses reference coordinates
  **/
-void GridStructure::ComputeCenterOfMass( Kokkos::View<Real***> uPF )
+void GridStructure::ComputeCenterOfMass( Kokkos::View<double***> uPF )
 {
   const unsigned int nNodes = Get_nNodes( );
   const unsigned int ilo    = Get_ilo( );
   const unsigned int ihi    = Get_ihi( );
 
-  Real com;
-  Real X;
+  double com;
+  double X;
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
@@ -252,7 +252,7 @@ void GridStructure::ComputeCenterOfMass( Kokkos::View<Real***> uPF )
 /**
  * Update grid coordinates using interface velocities.
  **/
-void GridStructure::UpdateGrid( Kokkos::View<Real*> SData )
+void GridStructure::UpdateGrid( Kokkos::View<double*> SData )
 {
 
   const unsigned int ilo = Get_ilo( );
@@ -277,12 +277,12 @@ void GridStructure::UpdateGrid( Kokkos::View<Real*> SData )
 }
 
 // Access by (element, node)
-Real& GridStructure::operator( )( unsigned int i, unsigned int j )
+double& GridStructure::operator( )( unsigned int i, unsigned int j )
 {
   return Grid( i, j );
 }
 
-Real GridStructure::operator( )( unsigned int i, unsigned int j ) const
+double GridStructure::operator( )( unsigned int i, unsigned int j ) const
 {
   return Grid( i, j );
 }
