@@ -16,23 +16,23 @@
 
 // Apply Boundary Conditions to fluid fields
 void ApplyBC_Fluid( Kokkos::View<Real***> uCF, GridStructure *Grid,
-                    const unsigned int order, const std::string BC )
+                    const UInt order, const std::string BC )
 {
 
-  const unsigned int ilo = Grid->Get_ilo( );
-  const unsigned int ihi = Grid->Get_ihi( );
+  const UInt ilo = Grid->Get_ilo( );
+  const UInt ihi = Grid->Get_ihi( );
 
-  const unsigned int nX = Grid->Get_nElements( );
-  const unsigned int nG = Grid->Get_Guard( );
+  const UInt nX = Grid->Get_nElements( );
+  const UInt nG = Grid->Get_Guard( );
 
   // ! ? How to correctly implement reflecting BC ? !
   if ( BC == "Reflecting" )
   {
-    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+    for ( UInt iCF = 0; iCF < 3; iCF++ )
     {
       // Inner Boudnary
-      for ( unsigned int iX = 0; iX < ilo; iX++ )
-        for ( unsigned int k = 0; k < order; k++ )
+      for ( UInt iX = 0; iX < ilo; iX++ )
+        for ( UInt k = 0; k < order; k++ )
         {
           if ( iCF != 1 )
           {
@@ -47,8 +47,8 @@ void ApplyBC_Fluid( Kokkos::View<Real***> uCF, GridStructure *Grid,
         }
 
       // Outer Boundary
-      for ( unsigned int iX = ihi + 1; iX < nX + 2 * nG; iX++ )
-        for ( unsigned int k = 0; k < order; k++ )
+      for ( UInt iX = ihi + 1; iX < nX + 2 * nG; iX++ )
+        for ( UInt k = 0; k < order; k++ )
         {
           if ( iCF != 1 )
           {
@@ -63,9 +63,9 @@ void ApplyBC_Fluid( Kokkos::View<Real***> uCF, GridStructure *Grid,
   }
   else if ( BC == "Periodic" )
   {
-    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-      for ( unsigned int iX = 0; iX < ilo; iX++ )
-        for ( unsigned int k = 0; k < order; k++ )
+    for ( UInt iCF = 0; iCF < 3; iCF++ )
+      for ( UInt iX = 0; iX < ilo; iX++ )
+        for ( UInt k = 0; k < order; k++ )
         {
           uCF( iCF, ilo - 1 - iX, k ) = uCF( iCF, ihi - iX, k );
           uCF( iCF, ihi + 1 + iX, k ) = uCF( iCF, ilo + iX, k );
@@ -73,10 +73,10 @@ void ApplyBC_Fluid( Kokkos::View<Real***> uCF, GridStructure *Grid,
   }
   else if ( BC == "ShocklessNoh" ) /* Special case for ShocklessNoh test */
   {
-    // for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-    for ( unsigned int iX = 0; iX < ilo; iX++ )
-      for ( unsigned int k = 0; k < order; k++ )
-      // for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+    // for ( UInt iCF = 0; iCF < 3; iCF++ )
+    for ( UInt iX = 0; iX < ilo; iX++ )
+      for ( UInt k = 0; k < order; k++ )
+      // for ( UInt iCF = 0; iCF < 3; iCF++ )
       {
         if ( k == 0 )
         {
@@ -146,9 +146,9 @@ void ApplyBC_Fluid( Kokkos::View<Real***> uCF, GridStructure *Grid,
   }
   else
   {
-    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-      for ( unsigned int iX = 0; iX < ilo; iX++ )
-        for ( unsigned int k = 0; k < order; k++ )
+    for ( UInt iCF = 0; iCF < 3; iCF++ )
+      for ( UInt iX = 0; iX < ilo; iX++ )
+        for ( UInt k = 0; k < order; k++ )
         {
           uCF( iCF, ilo - 1 - iX, k ) = uCF( iCF, ilo + iX, k );
           uCF( iCF, ihi + 1 + iX, k ) = uCF( iCF, ihi - iX, k );

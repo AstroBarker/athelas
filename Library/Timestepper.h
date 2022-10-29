@@ -23,7 +23,7 @@ class TimeStepper
 
  public:
   // TODO: Is it possible to initialize Grid_s from Grid directly?
-  TimeStepper( unsigned int nS, unsigned int tO, unsigned int pO,
+  TimeStepper( UInt nS, UInt tO, UInt pO,
                GridStructure *Grid, bool Geometry, std::string BCond );
 
   void InitializeTimestepper( );
@@ -33,9 +33,9 @@ class TimeStepper
                     ModalBasis *Basis, SlopeLimiter *S_Limiter );
 
  private:
-  const unsigned int mSize;
-  const unsigned int nStages;
-  const unsigned int tOrder;
+  const UInt mSize;
+  const UInt nStages;
+  const UInt tOrder;
   const std::string BC;
 
   // SSP coefficients

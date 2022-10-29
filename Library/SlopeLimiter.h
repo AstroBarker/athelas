@@ -24,7 +24,7 @@ class SlopeLimiter
 {
 
  public:
-  SlopeLimiter( GridStructure *Grid, unsigned int pOrder,
+  SlopeLimiter( GridStructure *Grid, UInt pOrder,
                 Real SlopeLimiterThreshold, Real alpha_val,
                 bool CharacteristicLimitingOption, bool TCIOption,
                 Real TCI_Threshold_val );
@@ -33,23 +33,23 @@ class SlopeLimiter
                           ModalBasis *Basis );
 
   void LimitQuadratic( Kokkos::View<Real***> U, ModalBasis *Basis,
-                       Kokkos::View<Real[3]> d2w, unsigned int iX,
-                       unsigned int nNodes );
+                       Kokkos::View<Real[3]> d2w, UInt iX,
+                       UInt nNodes );
 
   void DetectTroubledCells( Kokkos::View<Real***> U,
                             GridStructure *Grid,
                             ModalBasis *Basis );
 
   Real CellAverage( Kokkos::View<Real***> U, GridStructure *Grid,
-                      ModalBasis *Basis, unsigned int iCF,
-                      unsigned int iX, int extrapolate );
+                      ModalBasis *Basis, UInt iCF,
+                      UInt iX, int extrapolate );
 
-  int Get_Limited( unsigned int iX ) const;
+  int Get_Limited( UInt iX ) const;
 
   ~SlopeLimiter( ) {}
 
  private:
-  unsigned int order;
+  UInt order;
   Real SlopeLimiter_Threshold;
   Real alpha;
   bool CharacteristicLimiting_Option;

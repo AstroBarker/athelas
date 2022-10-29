@@ -17,10 +17,10 @@
 #include "lapacke.h"
 
 // Fill identity matrix
-void IdentityMatrix( Kokkos::View<Real**> Mat, unsigned int n )
+void IdentityMatrix( Kokkos::View<Real**> Mat, UInt n )
 {
-  for ( unsigned int i = 0; i < n; i++ )
-    for ( unsigned int j = 0; j < n; j++ )
+  for ( UInt i = 0; i < n; i++ )
+    for ( UInt j = 0; j < n; j++ )
     {
       if ( i == j )
       {
@@ -85,7 +85,7 @@ void Tri_Sym_Diag( int n, Real* d, Real* e, Real* array )
 /**
  * Use LAPACKE to invert a matrix M using LU factorization.
  **/
-void InvertMatrix( Real* M, unsigned int n )
+void InvertMatrix( Real* M, UInt n )
 {
   lapack_int info1, info2;
 

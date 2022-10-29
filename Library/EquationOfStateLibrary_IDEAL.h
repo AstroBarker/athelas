@@ -12,9 +12,9 @@ Real ComputeSoundSpeedFromConserved_IDEAL( const Real Tau, const Real V,
                                            const Real Em_T,
                                            const Real GAMMA = 1.4 );
 Real ComputeInternalEnergy( const Kokkos::View<Real***> U,
-                            ModalBasis *Basis, const unsigned int iX,
-                            const unsigned int iN );
+                            ModalBasis *Basis, const UInt iX,
+                            const UInt iN );
 Real ComputeInternalEnergy( const Kokkos::View<Real***> U,
-                            const unsigned int iX );
+                            const UInt iX );
 
 #endif

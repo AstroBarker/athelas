@@ -19,25 +19,25 @@
 #include "Abstractions.hpp"
 #include "Grid.h"
 
-typedef Real BasisFuncType( unsigned int, Real, Real );
+typedef Real BasisFuncType( UInt, Real, Real );
 
 class ModalBasis
 {
  public:
   ModalBasis( Kokkos::View<Real***> uCF, GridStructure *Grid,
-              unsigned int pOrder, unsigned int nN, unsigned int nElements,
-              unsigned int nGuard );
-  Real Taylor( unsigned int order, Real eta, Real eta_c );
-  Real dTaylor( unsigned int order, Real eta, Real eta_c );
-  Real OrthoTaylor( const unsigned int order, const unsigned int iX,
-                      const unsigned int i_eta, const Real eta, Real eta_c,
+              UInt pOrder, UInt nN, UInt nElements,
+              UInt nGuard );
+  Real Taylor( UInt order, Real eta, Real eta_c );
+  Real dTaylor( UInt order, Real eta, Real eta_c );
+  Real OrthoTaylor( const UInt order, const UInt iX,
+                      const UInt i_eta, const Real eta, Real eta_c,
                       const Kokkos::View<Real***> uCF,
                       GridStructure *Grid, const bool derivative_option );
-  Real InnerProduct( const unsigned int n, const unsigned int iX,
+  Real InnerProduct( const UInt n, const UInt iX,
                        const Real eta_c, const Kokkos::View<Real***> uCF,
                        GridStructure *Grid );
-  Real InnerProduct( const unsigned int m, const unsigned int n,
-                       const unsigned int iX, const Real eta_c,
+  Real InnerProduct( const UInt m, const UInt n,
+                       const UInt iX, const Real eta_c,
                        const Kokkos::View<Real***> uCF,
                        GridStructure *Grid );
   void InitializeTaylorBasis( const Kokkos::View<Real***> U,
@@ -46,26 +46,26 @@ class ModalBasis
                                 GridStructure *Grid );
   void CheckOrthogonality( const Kokkos::View<Real***> uCF,
                            GridStructure *Grid );
-  Real BasisEval( Kokkos::View<Real***> U, const unsigned int iX,
-                    const unsigned int iCF, const unsigned int i_eta,
+  Real BasisEval( Kokkos::View<Real***> U, const UInt iX,
+                    const UInt iCF, const UInt i_eta,
                     const bool DerivativeOption ) const;
   void ComputeMassMatrix( const Kokkos::View<Real***> uCF,
                           GridStructure *Grid );
 
-  Real Get_Phi( unsigned int iX, unsigned int i_eta, unsigned int k ) const;
-  Real Get_dPhi( unsigned int iX, unsigned int i_eta, unsigned int k ) const;
-  Real Get_MassMatrix( unsigned int iX, unsigned int k ) const;
+  Real Get_Phi( UInt iX, UInt i_eta, UInt k ) const;
+  Real Get_dPhi( UInt iX, UInt i_eta, UInt k ) const;
+  Real Get_MassMatrix( UInt iX, UInt k ) const;
 
   int Get_Order( ) const;
 
-  Real Legendre( unsigned int order, Real x );
-  Real dLegendre( unsigned int order, Real x );
+  Real Legendre( UInt order, Real x );
+  Real dLegendre( UInt order, Real x );
 
  private:
-  unsigned int nX;
-  unsigned int order;
-  unsigned int nNodes;
-  unsigned int mSize;
+  UInt nX;
+  UInt order;
+  UInt nNodes;
+  UInt mSize;
 
   Kokkos::View<Real**> MassMatrix;
 

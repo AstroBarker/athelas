@@ -27,10 +27,10 @@ void ComputeIncrement_Fluid_Divergence(
     Kokkos::View<Real**> uCF_F_L, Kokkos::View<Real**> uCF_F_R,
     Kokkos::View<Real*> Flux_U, Kokkos::View<Real*> Flux_P )
 {
-  const unsigned int& nNodes = Grid->Get_nNodes( );
-  const unsigned int& order  = Basis->Get_Order( );
-  const unsigned int& ilo    = Grid->Get_ilo( );
-  const unsigned int& ihi    = Grid->Get_ihi( );
+  const UInt& nNodes = Grid->Get_nNodes( );
+  const UInt& order  = Basis->Get_Order( );
+  const UInt& ilo    = Grid->Get_ilo( );
+  const UInt& ihi    = Grid->Get_ihi( );
 
   // Real rho_L, rho_R, P_L, P_R, Cs_L, Cs_R, lam_L, lam_R, P;
 
@@ -49,7 +49,7 @@ void ComputeIncrement_Fluid_Divergence(
   // --- Calc numerical flux at all faces
   Kokkos::parallel_for(
       "Numerical Fluxes", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
-      KOKKOS_LAMBDA( unsigned int iX ) {
+      KOKKOS_LAMBDA( UInt iX ) {
         auto uCF_L = Kokkos::subview( uCF_F_L, Kokkos::ALL, iX );
         auto uCF_R = Kokkos::subview( uCF_F_R, Kokkos::ALL, iX );
 
@@ -123,7 +123,7 @@ void ComputeIncrement_Fluid_Divergence(
                                               { order, ihi + 1, 3 } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         Real local_sum = 0.0;
-        for ( unsigned int iN = 0; iN < nNodes; iN++ )
+        for ( UInt iN = 0; iN < nNodes; iN++ )
         {
           Real X = Grid->NodeCoordinate( iX, iN );
           local_sum += Grid->Get_Weights( iN ) * Flux_q( iCF, iX, iN ) *
@@ -143,17 +143,17 @@ void ComputeIncrement_Fluid_Geometry( Kokkos::View<Real***> U,
                                       ModalBasis *Basis,
                                       Kokkos::View<Real***> dU )
 {
-  const unsigned int nNodes = Grid->Get_nNodes( );
-  const unsigned int order  = Basis->Get_Order( );
-  const unsigned int ilo    = Grid->Get_ilo( );
-  const unsigned int ihi    = Grid->Get_ihi( );
+  const UInt nNodes = Grid->Get_nNodes( );
+  const UInt order  = Basis->Get_Order( );
+  const UInt ilo    = Grid->Get_ilo( );
+  const UInt ihi    = Grid->Get_ihi( );
 
   Kokkos::parallel_for(
       "Geometry Term",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, ilo }, { order, ihi + 1 } ),
       KOKKOS_LAMBDA( const int k, const int iX ) {
         Real local_sum = 0.0;
-        for ( unsigned int iN = 0; iN < nNodes; iN++ )
+        for ( UInt iN = 0; iN < nNodes; iN++ )
         {
           Real P = ComputePressureFromConserved_IDEAL(
               Basis->BasisEval( U, iX, 0, iN + 1, false ),
@@ -195,9 +195,9 @@ void Compute_Increment_Explicit(
     const std::string BC )
 {
 
-  const unsigned int& order = Basis->Get_Order( );
-  const unsigned int& ilo   = Grid->Get_ilo( );
-  const unsigned int& ihi   = Grid->Get_ihi( );
+  const UInt& order = Basis->Get_Order( );
+  const UInt& ilo   = Grid->Get_ilo( );
+  const UInt& ihi   = Grid->Get_ihi( );
 
   // --- Apply BC ---
   ApplyBC_Fluid( U, Grid, order, BC );
@@ -217,7 +217,7 @@ void Compute_Increment_Explicit(
       } );
 
   Kokkos::parallel_for(
-      ihi + 2, KOKKOS_LAMBDA( unsigned int iX ) { Flux_U( iX ) = 0.0; } );
+      ihi + 2, KOKKOS_LAMBDA( UInt iX ) { Flux_U( iX ) = 0.0; } );
 
   // --- Fluid Increment : Divergence ---
   ComputeIncrement_Fluid_Divergence( U, Grid, Basis, dU, Flux_q, dFlux_num,

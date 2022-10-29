@@ -41,8 +41,8 @@ Real ComputeSoundSpeedFromConserved_IDEAL( const Real Tau, const Real V,
 
 // nodal specific internal energy
 Real ComputeInternalEnergy( const Kokkos::View<Real***> U,
-                            ModalBasis *Basis, const unsigned int iX,
-                            const unsigned int iN )
+                            ModalBasis *Basis, const UInt iX,
+                            const UInt iN )
 {
   Real Vel = Basis->BasisEval( U, iX, 1, iN, false );
   Real EmT = Basis->BasisEval( U, iX, 2, iN, false );
@@ -52,7 +52,7 @@ Real ComputeInternalEnergy( const Kokkos::View<Real***> U,
 
 // cell average specific internal energy
 Real ComputeInternalEnergy( const Kokkos::View<Real***> U,
-                            const unsigned int iX )
+                            const UInt iX )
 {
   return U( 2, iX, 0 ) - 0.5 * U( 1, iX, 0 ) * U( 1, iX, 0 );
 }

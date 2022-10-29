@@ -21,7 +21,7 @@
  * The constructor creates the necessary data structures for time evolution.
  * Lots of structures used in Fluid Discretization live here.
  **/
-TimeStepper::TimeStepper( unsigned int nS, unsigned int tO, unsigned int pOrder,
+TimeStepper::TimeStepper( UInt nS, UInt tO, UInt pOrder,
                           GridStructure *Grid, bool Geometry,
                           std::string BCond )
     : mSize( Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ), nStages( nS ),
@@ -70,8 +70,8 @@ void TimeStepper::InitializeTimestepper( )
   }
 
   // Init to zero
-  for ( unsigned int i = 0; i < nStages; i++ )
-    for ( unsigned int j = 0; j < nStages; j++ )
+  for ( UInt i = 0; i < nStages; i++ )
+    for ( UInt j = 0; j < nStages; j++ )
     {
       a_jk( i, j ) = 0.0;
       b_jk( i, j ) = 0.0;
@@ -209,8 +209,8 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
                                SlopeLimiter *S_Limiter )
 {
 
-  const unsigned int order = Basis->Get_Order( );
-  const unsigned int ihi   = Grid->Get_ihi( );
+  const UInt order = Basis->Get_Order( );
+  const UInt ihi   = Grid->Get_ihi( );
 
   unsigned short int i;
   Kokkos::parallel_for(
@@ -232,7 +232,7 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
   Grid_s[0] = *Grid;
   // StageData holds left interface positions
   Kokkos::parallel_for(
-      ihi + 2, KOKKOS_LAMBDA( unsigned int iX ) {
+      ihi + 2, KOKKOS_LAMBDA( UInt iX ) {
         StageData( 0, iX ) = Grid->Get_LeftInterface( iX );
       } );
 
@@ -249,11 +249,11 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
         } );
 
     Kokkos::parallel_for(
-        ihi + 2, KOKKOS_LAMBDA( unsigned int iX ) { SumVar_X( iX ) = 0.0; } );
+        ihi + 2, KOKKOS_LAMBDA( UInt iX ) { SumVar_X( iX ) = 0.0; } );
 
     // --- Inner update loop ---
 
-    for ( unsigned int j = 0; j < iS; j++ )
+    for ( UInt j = 0; j < iS; j++ )
     {
       auto Usj =
           Kokkos::subview( U_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
@@ -274,7 +274,7 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
           } );
 
       Kokkos::parallel_for(
-          ihi + 2, KOKKOS_LAMBDA( unsigned int iX ) {
+          ihi + 2, KOKKOS_LAMBDA( UInt iX ) {
             SumVar_X( iX ) += a_jk( i, j ) * StageData( j, iX ) +
                               dt * b_jk( i, j ) * Flux_Uj( iX );
             StageData( iS, iX ) = SumVar_X( iX );

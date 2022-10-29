@@ -21,14 +21,14 @@
  * Write to standard output some initialization info
  * for the current simulation.
  **/
-void PrintSimulationParameters( GridStructure *Grid, unsigned int pOrder,
-                                unsigned int tOrder, unsigned int nStages,
+void PrintSimulationParameters( GridStructure *Grid, UInt pOrder,
+                                UInt tOrder, UInt nStages,
                                 Real CFL, Real alpha, Real TCI,
                                 bool Char_option, bool TCI_Option,
                                 std::string ProblemName )
 {
-  const unsigned int nX     = Grid->Get_nElements( );
-  const unsigned int nNodes = Grid->Get_nNodes( );
+  const UInt nX     = Grid->Get_nElements( );
+  const UInt nNodes = Grid->Get_nNodes( );
 
   std::printf( " ~ --- Order Parameters --- \n" );
   std::printf( " ~ Spatial Order  : %d\n", pOrder );
@@ -80,7 +80,7 @@ void PrintSimulationParameters( GridStructure *Grid, unsigned int pOrder,
 void WriteState( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
                  Kokkos::View<Real***> uAF, GridStructure *Grid,
                  SlopeLimiter *SL, const std::string ProblemName, Real time,
-                 unsigned int order, int i_write )
+                 UInt order, int i_write )
 {
 
   std::string fn = "athelas_";
@@ -100,9 +100,9 @@ void WriteState( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
   // conversion to make HDF5 happy
   const char* fn2 = fn.c_str( );
 
-  const unsigned int nX  = Grid->Get_nElements( );
-  const unsigned int ilo = Grid->Get_ilo( );
-  const unsigned int ihi = Grid->Get_ihi( );
+  const UInt nX  = Grid->Get_nElements( );
+  const UInt ilo = Grid->Get_ilo( );
+  const UInt ihi = Grid->Get_ihi( );
 
   const H5std_string FILE_NAME( fn );
   const H5std_string DATASET_NAME( "Grid" );
@@ -115,8 +115,8 @@ void WriteState( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
   std::vector<DataType> dr( nX );
   std::vector<DataType> limiter( nX );
 
-  for ( unsigned int k = 0; k < order; k++ )
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( UInt k = 0; k < order; k++ )
+    for ( UInt iX = ilo; iX <= ihi; iX++ )
     {
       grid[( iX - ilo )].x          = Grid->Get_Centers( iX );
       dr[( iX - ilo )].x            = Grid->Get_Widths( iX );
@@ -188,8 +188,8 @@ void WriteState( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
 /**
  * Write Modal Basis coefficients and mass matrix
  **/
-void WriteBasis( ModalBasis *Basis, unsigned int ilo, unsigned int ihi,
-                 unsigned int nNodes, unsigned int order,
+void WriteBasis( ModalBasis *Basis, UInt ilo, UInt ihi,
+                 UInt nNodes, UInt order,
                  std::string ProblemName )
 {
   std::string fn = "athelas_basis_";
@@ -202,9 +202,9 @@ void WriteBasis( ModalBasis *Basis, unsigned int ilo, unsigned int ihi,
   const H5std_string DATASET_NAME( "Basis" );
 
   Real* data = new Real[ihi * ( nNodes + 2 ) * order];
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-    for ( unsigned int iN = 0; iN < nNodes + 2; iN++ )
-      for ( unsigned int k = 0; k < order; k++ )
+  for ( UInt iX = ilo; iX <= ihi; iX++ )
+    for ( UInt iN = 0; iN < nNodes + 2; iN++ )
+      for ( UInt k = 0; k < order; k++ )
       {
         data[( ( iX - ilo ) * ( nNodes + 2 ) + iN ) * order + k] =
             Basis->Get_Phi( iX, iN, k );

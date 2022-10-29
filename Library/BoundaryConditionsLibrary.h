@@ -4,6 +4,6 @@
 #include "Abstractions.hpp"
 
 void ApplyBC_Fluid( Kokkos::View<Real***> uCF, GridStructure *Grid,
-                    const unsigned int order, const std::string BC );
+                    const UInt order, const std::string BC );
 
 #endif

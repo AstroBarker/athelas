@@ -26,16 +26,16 @@ void ComputePrimitiveFromConserved( Kokkos::View<Real***> uCF,
                                     Kokkos::View<Real***> uPF,
                                     ModalBasis *Basis, GridStructure *Grid )
 {
-  const unsigned int nNodes = Grid->Get_nNodes( );
-  const unsigned int ilo    = Grid->Get_ilo( );
-  const unsigned int ihi    = Grid->Get_ihi( );
+  const UInt nNodes = Grid->Get_nNodes( );
+  const UInt ilo    = Grid->Get_ilo( );
+  const UInt ihi    = Grid->Get_ihi( );
 
   Real Tau = 0.0;
   Real Vel = 0.0;
   Real EmT = 0.0;
 
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-    for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  for ( UInt iX = ilo; iX <= ihi; iX++ )
+    for ( UInt iN = 0; iN < nNodes; iN++ )
     {
       // Density
       Tau              = Basis->BasisEval( uCF, 0, iX, iN + 1, false );
@@ -56,7 +56,7 @@ void ComputePrimitiveFromConserved( Kokkos::View<Real***> uCF,
  * Return a component iCF of the flux vector.
  * TODO: Flux_Fluid needs streamlining
  **/
-Real Flux_Fluid( const Real V, const Real P, const unsigned int iCF )
+Real Flux_Fluid( const Real V, const Real P, const UInt iCF )
 {
   if ( iCF == 0 )
   {
@@ -114,8 +114,8 @@ Real ComputeTimestep_Fluid( const Kokkos::View<Real***> U,
   const Real MIN_DT = 0.000000005;
   const Real MAX_DT = 1.0;
 
-  const unsigned int& ilo = Grid->Get_ilo( );
-  const unsigned int& ihi = Grid->Get_ihi( );
+  const UInt& ilo = Grid->Get_ilo( );
+  const UInt& ihi = Grid->Get_ihi( );
 
   Real dt = 0.0;
   Kokkos::parallel_reduce(

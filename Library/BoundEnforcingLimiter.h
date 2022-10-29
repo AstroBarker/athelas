@@ -9,14 +9,14 @@ void ApplyBoundEnforcingLimiter( Kokkos::View<Real***> U,
                                  ModalBasis *Basis );
 Real ComputeThetaState( const Kokkos::View<Real***> U,
                         ModalBasis *Basis, const Real theta,
-                        const unsigned int iCF, const unsigned int iX,
-                        const unsigned int iN );
+                        const UInt iCF, const UInt iX,
+                        const UInt iN );
 Real TargetFunc( const Kokkos::View<Real***> U, ModalBasis *Basis,
-                 const Real theta, const unsigned int iX,
-                 const unsigned int iN );
+                 const Real theta, const UInt iX,
+                 const UInt iN );
 Real Bisection( const Kokkos::View<Real***> U, ModalBasis *Basis,
-                const unsigned int iX, const unsigned int iN );
+                const UInt iX, const UInt iN );
 Real Backtrace( const Kokkos::View<Real***> U, ModalBasis *Basis,
-                const unsigned int iX, const unsigned int iN );
+                const UInt iX, const UInt iN );
 
 #endif

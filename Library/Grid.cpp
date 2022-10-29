@@ -15,7 +15,7 @@
 #include "Constants.h"
 #include <math.h> /* atan */
 
-GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
+GridStructure::GridStructure( UInt nN, UInt nX, UInt nG,
                               Real left, Real right, bool Geom )
     : nElements( nX ), nNodes( nN ), nGhost( nG ),
       mSize( nElements + 2 * nGhost ), xL( left ), xR( right ),
@@ -28,7 +28,7 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
   Real* tmp_nodes   = new Real[nNodes];
   Real* tmp_weights = new Real[nNodes];
 
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  for ( UInt iN = 0; iN < nNodes; iN++ )
   {
     tmp_nodes[iN]   = 0.0;
     tmp_weights[iN] = 0.0;
@@ -36,7 +36,7 @@ GridStructure::GridStructure( unsigned int nN, unsigned int nX, unsigned int nG,
 
   LG_Quadrature( nNodes, tmp_nodes, tmp_weights );
 
-  for ( unsigned int iN = 0; iN < nNodes; iN++ )
+  for ( UInt iN = 0; iN < nNodes; iN++ )
   {
     Nodes( iN )   = tmp_nodes[iN];
     Weights( iN ) = tmp_weights[iN];
@@ -63,38 +63,38 @@ const Real ShapeFunction( const int interface, const Real eta )
 }
 
 // Give physical grid coordinate from a node.
-Real GridStructure::NodeCoordinate( unsigned int iC, unsigned int iN ) const
+Real GridStructure::NodeCoordinate( UInt iC, UInt iN ) const
 {
   return X_L( iC ) * ShapeFunction( 0, Nodes( iN ) ) +
          X_L( iC + 1 ) * ShapeFunction( 1, Nodes( iN ) );
 }
 
 // Return cell center
-Real GridStructure::Get_Centers( unsigned int iC ) const
+Real GridStructure::Get_Centers( UInt iC ) const
 {
   return Centers( iC );
 }
 
 // Return cell width
-Real GridStructure::Get_Widths( unsigned int iC ) const
+Real GridStructure::Get_Widths( UInt iC ) const
 {
   return Widths( iC );
 }
 
 // Return cell mass
-Real GridStructure::Get_Mass( unsigned int iX ) const { return Mass( iX ); }
+Real GridStructure::Get_Mass( UInt iX ) const { return Mass( iX ); }
 
 // Return cell reference Center of Mass
-Real GridStructure::Get_CenterOfMass( unsigned int iX ) const
+Real GridStructure::Get_CenterOfMass( UInt iX ) const
 {
   return CenterOfMass( iX );
 }
 
 // Return given quadrature node
-Real GridStructure::Get_Nodes( unsigned int nN ) const { return Nodes( nN ); }
+Real GridStructure::Get_Nodes( UInt nN ) const { return Nodes( nN ); }
 
 // Return given quadrature weight
-Real GridStructure::Get_Weights( unsigned int nN ) const
+Real GridStructure::Get_Weights( UInt nN ) const
 {
   return Weights( nN );
 }
@@ -119,7 +119,7 @@ Real GridStructure::Get_SqrtGm( Real X ) const
 }
 
 // Accessor for X_L
-Real GridStructure::Get_LeftInterface( unsigned int iX ) const
+Real GridStructure::Get_LeftInterface( UInt iX ) const
 {
   return X_L( iX );
 }
@@ -147,22 +147,22 @@ bool GridStructure::DoGeometry( ) const { return Geometry; }
 void GridStructure::CreateGrid( )
 {
 
-  const unsigned int ilo = nGhost;                 // first real zone
-  const unsigned int ihi = nElements + nGhost - 1; // last real zone
+  const UInt ilo = nGhost;                 // first real zone
+  const UInt ihi = nElements + nGhost - 1; // last real zone
 
-  for ( unsigned int i = 0; i < nElements + 2 * nGhost; i++ )
+  for ( UInt i = 0; i < nElements + 2 * nGhost; i++ )
   {
     Widths( i ) = ( xR - xL ) / nElements;
   }
 
   X_L( nGhost ) = xL;
-  for ( unsigned int iX = 2; iX < nElements + 2 * nGhost; iX++ )
+  for ( UInt iX = 2; iX < nElements + 2 * nGhost; iX++ )
   {
     X_L( iX ) = X_L( iX - 1 ) + Widths( iX - 1 );
   }
 
   Centers( ilo ) = xL + 0.5 * Widths( ilo );
-  for ( unsigned int i = ilo + 1; i <= ihi; i++ )
+  for ( UInt i = ilo + 1; i <= ihi; i++ )
   {
     Centers( i ) = Centers( i - 1 ) + Widths( i - 1 );
   }
@@ -171,14 +171,14 @@ void GridStructure::CreateGrid( )
   {
     Centers( i ) = Centers( i + 1 ) - Widths( i + 1 );
   }
-  for ( unsigned int i = ihi + 1; i < nElements + nGhost + 1; i++ )
+  for ( UInt i = ihi + 1; i < nElements + nGhost + 1; i++ )
   {
     Centers( i ) = Centers( i - 1 ) + Widths( i - 1 );
   }
 
-  for ( unsigned int iC = ilo; iC <= ihi; iC++ )
+  for ( UInt iC = ilo; iC <= ihi; iC++ )
   {
-    for ( unsigned int iN = 0; iN < nNodes; iN++ )
+    for ( UInt iN = 0; iN < nNodes; iN++ )
     {
       Grid( iC, iN ) = NodeCoordinate( iC, iN );
     }
@@ -190,17 +190,17 @@ void GridStructure::CreateGrid( )
  **/
 void GridStructure::ComputeMass( Kokkos::View<Real***> uPF )
 {
-  const unsigned int nNodes = Get_nNodes( );
-  const unsigned int ilo    = Get_ilo( );
-  const unsigned int ihi    = Get_ihi( );
+  const UInt nNodes = Get_nNodes( );
+  const UInt ilo    = Get_ilo( );
+  const UInt ihi    = Get_ihi( );
 
   Real mass;
   Real X;
 
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( UInt iX = ilo; iX <= ihi; iX++ )
   {
     mass = 0.0;
-    for ( unsigned int iN = 0; iN < nNodes; iN++ )
+    for ( UInt iN = 0; iN < nNodes; iN++ )
     {
       X = NodeCoordinate( iX, iN );
       mass += Weights( iN ) * Get_SqrtGm( X ) * uPF( 0, iX, iN );
@@ -210,7 +210,7 @@ void GridStructure::ComputeMass( Kokkos::View<Real***> uPF )
   }
 
   // Guard cells
-  for ( unsigned int iX = 0; iX < ilo; iX++ )
+  for ( UInt iX = 0; iX < ilo; iX++ )
   {
     Mass( ilo - 1 - iX ) = Mass( ilo + iX );
     Mass( ihi + 1 + iX ) = Mass( ihi - iX );
@@ -222,17 +222,17 @@ void GridStructure::ComputeMass( Kokkos::View<Real***> uPF )
  **/
 void GridStructure::ComputeCenterOfMass( Kokkos::View<Real***> uPF )
 {
-  const unsigned int nNodes = Get_nNodes( );
-  const unsigned int ilo    = Get_ilo( );
-  const unsigned int ihi    = Get_ihi( );
+  const UInt nNodes = Get_nNodes( );
+  const UInt ilo    = Get_ilo( );
+  const UInt ihi    = Get_ihi( );
 
   Real com;
   Real X;
 
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( UInt iX = ilo; iX <= ihi; iX++ )
   {
     com = 0.0;
-    for ( unsigned int iN = 0; iN < nNodes; iN++ )
+    for ( UInt iN = 0; iN < nNodes; iN++ )
     {
       X = NodeCoordinate( iX, iN );
       com += Nodes( iN ) * Weights( iN ) * Get_SqrtGm( X ) * uPF( 0, iX, iN );
@@ -242,7 +242,7 @@ void GridStructure::ComputeCenterOfMass( Kokkos::View<Real***> uPF )
   }
 
   // Guard cells
-  for ( unsigned int iX = 0; iX < ilo; iX++ )
+  for ( UInt iX = 0; iX < ilo; iX++ )
   {
     CenterOfMass( ilo - 1 - iX ) = CenterOfMass( ilo + iX );
     CenterOfMass( ihi + 1 + iX ) = CenterOfMass( ihi - iX );
@@ -255,12 +255,12 @@ void GridStructure::ComputeCenterOfMass( Kokkos::View<Real***> uPF )
 void GridStructure::UpdateGrid( Kokkos::View<Real*> SData )
 {
 
-  const unsigned int ilo = Get_ilo( );
-  const unsigned int ihi = Get_ihi( );
+  const UInt ilo = Get_ilo( );
+  const UInt ihi = Get_ihi( );
 
   Kokkos::parallel_for(
       "Limit Density", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
-      KOKKOS_LAMBDA( unsigned int iX ) {
+      KOKKOS_LAMBDA( UInt iX ) {
         X_L( iX )     = SData( iX );
         Widths( iX )  = SData( iX + 1 ) - SData( iX );
         Centers( iX ) = 0.5 * ( SData( iX + 1 ) + SData( iX ) );
@@ -268,8 +268,8 @@ void GridStructure::UpdateGrid( Kokkos::View<Real*> SData )
 
   Kokkos::parallel_for(
       "Limit Density", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
-      KOKKOS_LAMBDA( unsigned int iX ) {
-        for ( unsigned int iN = 0; iN < nNodes; iN++ )
+      KOKKOS_LAMBDA( UInt iX ) {
+        for ( UInt iN = 0; iN < nNodes; iN++ )
         {
           Grid( iX, iN ) = NodeCoordinate( iX, iN );
         }
@@ -277,12 +277,12 @@ void GridStructure::UpdateGrid( Kokkos::View<Real*> SData )
 }
 
 // Access by (element, node)
-Real& GridStructure::operator( )( unsigned int i, unsigned int j )
+Real& GridStructure::operator( )( UInt i, UInt j )
 {
   return Grid( i, j );
 }
 
-Real GridStructure::operator( )( unsigned int i, unsigned int j ) const
+Real GridStructure::operator( )( UInt i, UInt j ) const
 {
   return Grid( i, j );
 }

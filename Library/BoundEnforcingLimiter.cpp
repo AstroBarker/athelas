@@ -24,26 +24,26 @@
 void LimitDensity( Kokkos::View<Real***> U, ModalBasis *Basis )
 {
   const Real EPSILON     = 1.0e-13; // maybe make this smarter
-  const unsigned int order = Basis->Get_Order( );
+  const UInt order = Basis->Get_Order( );
 
   if ( order == 1 ) return;
 
   Kokkos::parallel_for(
       "Limit Density", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
-      KOKKOS_LAMBDA( unsigned int iX ) {
+      KOKKOS_LAMBDA( UInt iX ) {
         Real theta1 = 100000.0;
         Real nodal  = 0.0;
         Real frac   = 0.0;
         Real avg    = U( 0, iX, 0 );
 
-        for ( unsigned int iN = 0; iN <= order; iN++ )
+        for ( UInt iN = 0; iN <= order; iN++ )
         {
           nodal  = Basis->BasisEval( U, iX, 0, iN, false );
           frac   = std::abs( ( avg - EPSILON ) / ( avg - nodal ) );
           theta1 = std::min( theta1, std::min( 1.0, frac ) );
         }
 
-        for ( unsigned int k = 1; k < order; k++ )
+        for ( UInt k = 1; k < order; k++ )
         {
           U( 0, iX, k ) *= theta1;
         }
@@ -52,18 +52,18 @@ void LimitDensity( Kokkos::View<Real***> U, ModalBasis *Basis )
 
 void LimitInternalEnergy( Kokkos::View<Real***> U, ModalBasis *Basis )
 {
-  const unsigned int order = Basis->Get_Order( );
+  const UInt order = Basis->Get_Order( );
 
   if ( order == 1 ) return;
 
   Kokkos::parallel_for(
       "Limit Internal Energy", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
-      KOKKOS_LAMBDA( unsigned int iX ) {
+      KOKKOS_LAMBDA( UInt iX ) {
         Real theta2 = 10000000.0;
         Real nodal  = 0.0;
         Real temp   = 0.0;
 
-        for ( unsigned int iN = 0; iN <= order + 1; iN++ )
+        for ( UInt iN = 0; iN <= order + 1; iN++ )
         {
           nodal = ComputeInternalEnergy( U, Basis, iX, iN );
 
@@ -82,7 +82,7 @@ void LimitInternalEnergy( Kokkos::View<Real***> U, ModalBasis *Basis )
           theta2 = std::min( theta2, temp );
         }
 
-        for ( unsigned int k = 1; k < order; k++ )
+        for ( UInt k = 1; k < order; k++ )
         {
           U( 0, iX, k ) *= theta2;
           U( 1, iX, k ) *= theta2;
@@ -104,8 +104,8 @@ void ApplyBoundEnforcingLimiter( Kokkos::View<Real***> U,
 // ( 1 - theta ) U_bar + theta U_q
 Real ComputeThetaState( const Kokkos::View<Real***> U,
                         ModalBasis *Basis, const Real theta,
-                        const unsigned int iCF, const unsigned int iX,
-                        const unsigned int iN )
+                        const UInt iCF, const UInt iX,
+                        const UInt iN )
 {
   Real result = Basis->BasisEval( U, iX, iCF, iN, false );
   result -= U( iCF, iX, 0 );
@@ -115,8 +115,8 @@ Real ComputeThetaState( const Kokkos::View<Real***> U,
 }
 
 Real TargetFunc( const Kokkos::View<Real***> U, ModalBasis *Basis,
-                 const Real theta, const unsigned int iX,
-                 const unsigned int iN )
+                 const Real theta, const UInt iX,
+                 const UInt iN )
 {
   const Real w  = std::min( 1.0e-13, ComputeInternalEnergy( U, iX ) );
   const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
@@ -128,10 +128,10 @@ Real TargetFunc( const Kokkos::View<Real***> U, ModalBasis *Basis,
 }
 
 Real Bisection( const Kokkos::View<Real***> U, ModalBasis *Basis,
-                const unsigned int iX, const unsigned int iN )
+                const UInt iX, const UInt iN )
 {
   const Real TOL             = 1e-10;
-  const unsigned int MAX_ITERS = 100;
+  const UInt MAX_ITERS = 100;
 
   // bisection bounds on theta
   Real a = 0.0;
@@ -141,7 +141,7 @@ Real Bisection( const Kokkos::View<Real***> U, ModalBasis *Basis,
   Real fa = 0.0; // f(a) etc
   Real fc = 0.0;
 
-  unsigned int n = 0;
+  UInt n = 0;
   while ( n <= MAX_ITERS )
   {
     c = ( a + b ) / 2.0;
@@ -172,7 +172,7 @@ Real Bisection( const Kokkos::View<Real***> U, ModalBasis *Basis,
 }
 
 Real Backtrace( const Kokkos::View<Real***> U, ModalBasis *Basis,
-                const unsigned int iX, const unsigned int iN )
+                const UInt iX, const UInt iN )
 {
   Real theta = 1.0;
   Real nodal = -1.0;

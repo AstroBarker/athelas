@@ -26,7 +26,7 @@
  * The constructor creates the matrices structures for applying the slope
  *limiter
  **/
-SlopeLimiter::SlopeLimiter( GridStructure *Grid, unsigned int pOrder,
+SlopeLimiter::SlopeLimiter( GridStructure *Grid, UInt pOrder,
                             Real SlopeLimiterThreshold, Real alpha_val,
                             bool CharacteristicLimitingOption, bool TCIOption,
                             Real TCI_Threshold_val )
@@ -57,16 +57,16 @@ void SlopeLimiter::DetectTroubledCells( Kokkos::View<Real***> U,
                                         GridStructure *Grid,
                                         ModalBasis *Basis )
 {
-  const unsigned int ilo = Grid->Get_ilo( );
-  const unsigned int ihi = Grid->Get_ihi( );
+  const UInt ilo = Grid->Get_ilo( );
+  const UInt ihi = Grid->Get_ihi( );
 
   Real denominator = 0.0;
 
   // Cell averages by extrapolating L and R neighbors into current cell
 
   // TODO: Kokkos
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( UInt iCF = 0; iCF < 3; iCF++ )
+    for ( UInt iX = ilo; iX <= ihi; iX++ )
     {
 
       if ( iCF == 1 ) continue; /* skip velocit */
@@ -108,23 +108,23 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
     return;
   }
 
-  const unsigned int& ilo    = Grid->Get_ilo( );
-  const unsigned int& ihi    = Grid->Get_ihi( );
-  const unsigned int& nNodes = Grid->Get_nNodes( );
+  const UInt& ilo    = Grid->Get_ilo( );
+  const UInt& ihi    = Grid->Get_ihi( );
+  const UInt& nNodes = Grid->Get_nNodes( );
 
   // --- Apply troubled cell indicator ---
   // Exit if we don't need to limit slopes
 
   if ( TCI_Option ) DetectTroubledCells( U, Grid, Basis );
 
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+  for ( UInt iX = ilo; iX <= ihi; iX++ )
   {
 
     LimitedCell( iX ) = 0;
 
     // Check if TCI val is less than TCI_Threshold
     int j = 0;
-    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+    for ( UInt iCF = 0; iCF < 3; iCF++ )
     {
       if ( D( iCF, iX ) > TCI_Threshold && TCI_Option )
       {
@@ -177,7 +177,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
     }
 
     // --- Compute info for limiter ---
-    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+    for ( UInt iCF = 0; iCF < 3; iCF++ )
     {
       Mult1( iCF ) = 0.0;
       Mult2( iCF ) = 0.0;
@@ -216,7 +216,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
     MatMul( 1.0, R_inv, dU_c_T, 1.0, dw_c_T );
 
     // Limited Slopes
-    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+    for ( UInt iCF = 0; iCF < 3; iCF++ )
     {
       Phi1 = BarthJespersen( w_v_L( iCF ), w_v_R( iCF ), w_c_L( iCF ),
                              w_c_T( iCF ), w_c_R( iCF ), alpha );
@@ -235,7 +235,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
       {
         MatMul( 1.0, R, d2U, 1.0, Mult2 );
       }
-      for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+      for ( UInt iCF = 0; iCF < 3; iCF++ )
       {
         dU( iCF ) = Mult1( iCF );
         if ( order >= 3 ) d2U( iCF ) = Mult2( iCF );
@@ -243,7 +243,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
     }
 
     // --- Compare Limited to Original Slopes ---
-    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+    for ( UInt iCF = 0; iCF < 3; iCF++ )
     {
       SlopeDifference( iCF ) = std::abs( U( iCF, iX, 1 ) - dU( iCF ) );
 
@@ -251,7 +251,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
       if ( SlopeDifference( iCF ) >
            SlopeLimiter_Threshold * std::abs( U( iCF, iX, 0 ) ) )
       {
-        for ( unsigned int k = 1; k < order; k++ )
+        for ( UInt k = 1; k < order; k++ )
         {
           U( iCF, iX, k ) = 0.0;
         }
@@ -269,19 +269,19 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
  **/
 void SlopeLimiter::LimitQuadratic( Kokkos::View<Real***> U,
                                    ModalBasis *Basis,
-                                   Kokkos::View<Real[3]> d2w, unsigned int iX,
-                                   unsigned int nNodes )
+                                   Kokkos::View<Real[3]> d2w, UInt iX,
+                                   UInt nNodes )
 {
 
   Real Phi2 = 0.0;
 
-  for ( unsigned int i = 0; i < 3; i++ )
+  for ( UInt i = 0; i < 3; i++ )
   {
     Mult2( i ) = 0.0;
   }
 
   // --- Compute info for limiter ---
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  for ( UInt iCF = 0; iCF < 3; iCF++ )
   {
     dU_c_L( iCF ) = U( iCF, iX - 1, 1 );
     dU_c_T( iCF ) = U( iCF, iX, 1 );
@@ -310,7 +310,7 @@ void SlopeLimiter::LimitQuadratic( Kokkos::View<Real***> U,
   MatMul( 1.0, R_inv, dU_v_R, 1.0, dw_v_R );
 
   // Limited Slopes
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  for ( UInt iCF = 0; iCF < 3; iCF++ )
   {
     Phi2       = BarthJespersen( dw_v_L( iCF ), dw_v_R( iCF ), dw_c_L( iCF ),
                                  dw_c_T( iCF ), dw_c_R( iCF ), alpha );
@@ -323,13 +323,13 @@ void SlopeLimiter::LimitQuadratic( Kokkos::View<Real***> U,
     // d2U -> R d2U
     MatMul( 1.0, R, d2U, 1.0, Mult2 );
 
-    for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+    for ( UInt iCF = 0; iCF < 3; iCF++ )
     {
       d2U( iCF ) = Mult2( iCF );
     }
   }
 
-  for ( unsigned int iCF = 0; iCF < 3; iCF++ )
+  for ( UInt iCF = 0; iCF < 3; iCF++ )
   {
     U( iCF, iX, 2 ) = d2U( iCF );
   }
@@ -344,10 +344,10 @@ void SlopeLimiter::LimitQuadratic( Kokkos::View<Real***> U,
  **/
 Real SlopeLimiter::CellAverage( Kokkos::View<Real***> U,
                                   GridStructure *Grid,
-                                  ModalBasis *Basis, unsigned int iCF,
-                                  unsigned int iX, int extrapolate )
+                                  ModalBasis *Basis, UInt iCF,
+                                  UInt iX, int extrapolate )
 {
-  const unsigned int nNodes = Grid->Get_nNodes( );
+  const UInt nNodes = Grid->Get_nNodes( );
 
   Real avg  = 0.0;
   Real mass = 0.0;
@@ -355,8 +355,8 @@ Real SlopeLimiter::CellAverage( Kokkos::View<Real***> U,
 
   // Used to set loop bounds
   int mult           = 1;
-  unsigned int end   = nNodes;
-  unsigned int start = 0;
+  UInt end   = nNodes;
+  UInt start = 0;
 
   if ( extrapolate == -1 ) mult = 1;
   if ( extrapolate == +0 ) mult = 0;
@@ -372,7 +372,7 @@ Real SlopeLimiter::CellAverage( Kokkos::View<Real***> U,
   }
   end = start + nNodes - 1;
 
-  for ( unsigned int iN = start; iN < end; iN++ )
+  for ( UInt iN = start; iN < end; iN++ )
   {
     X = Grid->NodeCoordinate( iX + extrapolate,
                              iN ); // Need the metric on target cell
@@ -389,7 +389,7 @@ Real SlopeLimiter::CellAverage( Kokkos::View<Real***> U,
 }
 
 // LimitedCell accessor
-int SlopeLimiter::Get_Limited( unsigned int iX ) const
+int SlopeLimiter::Get_Limited( UInt iX ) const
 {
   return LimitedCell( iX );
 }

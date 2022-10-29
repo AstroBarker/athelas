@@ -2,5 +2,6 @@
 #define ABSTRACTIONS_H
 
 using Real = double;
+using UInt = unsigned int;
 
 #endif

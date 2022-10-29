@@ -26,19 +26,19 @@
 class GridStructure
 {
  public:
-  GridStructure( unsigned int nN, unsigned int nX, unsigned int nG, Real left,
+  GridStructure( UInt nN, UInt nX, UInt nG, Real left,
                  Real right, bool Geom );
-  Real NodeCoordinate( unsigned int iC, unsigned int iN ) const;
-  Real Get_Centers( unsigned int iC ) const;
-  Real Get_Widths( unsigned int iC ) const;
-  Real Get_Nodes( unsigned int nN ) const;
-  Real Get_Weights( unsigned int nN ) const;
-  Real Get_Mass( unsigned int iX ) const;
-  Real Get_CenterOfMass( unsigned int iX ) const;
+  Real NodeCoordinate( UInt iC, UInt iN ) const;
+  Real Get_Centers( UInt iC ) const;
+  Real Get_Widths( UInt iC ) const;
+  Real Get_Nodes( UInt nN ) const;
+  Real Get_Weights( UInt nN ) const;
+  Real Get_Mass( UInt iX ) const;
+  Real Get_CenterOfMass( UInt iX ) const;
   Real Get_xL( ) const;
   Real Get_xR( ) const;
   Real Get_SqrtGm( Real X ) const;
-  Real Get_LeftInterface( unsigned int iX ) const;
+  Real Get_LeftInterface( UInt iX ) const;
 
   bool DoGeometry( ) const;
 
@@ -54,14 +54,14 @@ class GridStructure
   void ComputeCenterOfMass( Kokkos::View<Real***> uPF );
   void ComputeCenterOfMass_Radius( Kokkos::View<Real***> uPF );
 
-  Real& operator( )( unsigned int i, unsigned int j );
-  Real operator( )( unsigned int i, unsigned int j ) const;
+  Real& operator( )( UInt i, UInt j );
+  Real operator( )( UInt i, UInt j ) const;
 
  private:
-  unsigned int nElements;
-  unsigned int nNodes;
-  unsigned int nGhost;
-  unsigned int mSize;
+  UInt nElements;
+  UInt nNodes;
+  UInt nGhost;
+  UInt mSize;
 
   Real xL;
   Real xR;
