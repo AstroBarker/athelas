@@ -11,8 +11,8 @@
 
 #include "Abstractions.hpp"
 
-typedef void myFuncType( const Kokkos::View<Real***>, const GridStructure&,
-                         const ModalBasis&, Kokkos::View<Real***>,
+typedef void myFuncType( const Kokkos::View<Real***>, GridStructure*,
+                         ModalBasis*, Kokkos::View<Real***>,
                          Kokkos::View<Real***>, Kokkos::View<Real**>,
                          Kokkos::View<Real**>, Kokkos::View<Real**>,
                          Kokkos::View<Real*>, Kokkos::View<Real*>,
@@ -24,13 +24,13 @@ class TimeStepper
  public:
   // TODO: Is it possible to initialize Grid_s from Grid directly?
   TimeStepper( unsigned int nS, unsigned int tO, unsigned int pO,
-               GridStructure& Grid, bool Geometry, std::string BCond );
+               GridStructure *Grid, bool Geometry, std::string BCond );
 
   void InitializeTimestepper( );
 
   void UpdateFluid( myFuncType ComputeIncrement, const Real dt,
-                    Kokkos::View<Real***> U, GridStructure& Grid,
-                    const ModalBasis& Basis, SlopeLimiter& S_Limiter );
+                    Kokkos::View<Real***> U, GridStructure *Grid,
+                    ModalBasis *Basis, SlopeLimiter& S_Limiter );
 
  private:
   const unsigned int mSize;

@@ -21,13 +21,13 @@
  * TODO: iNodeX and order separation
  **/
 void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
-                       GridStructure& Grid, const unsigned int pOrder,
+                       GridStructure *Grid, const unsigned int pOrder,
                        const Real GAMMA_IDEAL, const std::string ProblemName )
 {
 
-  const unsigned int ilo    = Grid.Get_ilo( );
-  const unsigned int ihi    = Grid.Get_ihi( );
-  const unsigned int nNodes = Grid.Get_nNodes( );
+  const unsigned int ilo    = Grid->Get_ilo( );
+  const unsigned int ihi    = Grid->Get_ihi( );
+  const unsigned int nNodes = Grid->Get_nNodes( );
 
   const unsigned int iCF_Tau = 0;
   const unsigned int iCF_V   = 1;
@@ -48,7 +48,7 @@ void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1                    = Grid.Get_Centers( iX );
+          X1                    = Grid->Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
           uCF( iCF_E, iX, k )   = 0.0;
@@ -96,7 +96,7 @@ void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1                    = Grid.Get_Centers( iX );
+          X1                    = Grid->Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
           uCF( iCF_E, iX, k )   = 0.0;
@@ -148,7 +148,7 @@ void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1                    = Grid.Get_Centers( iX );
+          X1                    = Grid->Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
           uCF( iCF_E, iX, k )   = 0.0;
@@ -198,7 +198,7 @@ void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1 = Grid.Get_Centers( iX );
+          X1 = Grid->Get_Centers( iX );
 
           if ( k != 0 )
           {
@@ -231,9 +231,9 @@ void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
     const Real D0 = 1.0;
     const Real E0 = 0.3;
 
-    const unsigned int origin = Grid.Get_nElements( ) / 2;
+    const unsigned int origin = Grid->Get_nElements( ) / 2;
 
-    const Real P0 = ( 5.0 / 3.0 - 1.0 ) * E0 / Grid.Get_Widths( origin );
+    const Real P0 = ( 5.0 / 3.0 - 1.0 ) * E0 / Grid->Get_Widths( origin );
 
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < pOrder; k++ )
@@ -287,7 +287,7 @@ void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1                    = Grid.NodeCoordinate( iX, iNodeX );
+          X1                    = Grid->NodeCoordinate( iX, iNodeX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
           uCF( iCF_E, iX, k )   = 0.0;
@@ -337,7 +337,7 @@ void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1                    = Grid.Get_Centers( iX );
+          X1                    = Grid->Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
           uCF( iCF_E, iX, k )   = 0.0;
@@ -352,8 +352,8 @@ void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
           else if ( k == 1 )
           {
             uCF( iCF_Tau, iX, k ) = 0.0;
-            uCF( iCF_V, iX, k )   = -Grid.Get_Widths( iX );
-            uCF( iCF_E, iX, k )   = ( -X1 ) * ( -Grid.Get_Widths( iX ) );
+            uCF( iCF_V, iX, k )   = -Grid->Get_Widths( iX );
+            uCF( iCF_E, iX, k )   = ( -X1 ) * ( -Grid->Get_Widths( iX ) );
           }
           else if ( k == 2 )
           {
@@ -387,7 +387,7 @@ void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
         {
-          X1                    = Grid.Get_Centers( iX );
+          X1                    = Grid->Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
           uCF( iCF_E, iX, k )   = 0.0;
@@ -404,29 +404,29 @@ void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
             Real D  = ( 1.0 + amp * sin( PI( ) * X1 ) );
             Real dD = ( amp * PI( ) * cos( PI( ) * X1 ) );
             uCF( iCF_Tau, iX, k ) =
-                ( -1 / ( D * D ) ) * dD * Grid.Get_Widths( iX );
+                ( -1 / ( D * D ) ) * dD * Grid->Get_Widths( iX );
             uCF( iCF_V, iX, k ) = 0.0;
             uCF( iCF_E, iX, k ) =
-                ( ( 2.0 / 2.0 ) * D ) * dD * Grid.Get_Widths( iX );
+                ( ( 2.0 / 2.0 ) * D ) * dD * Grid->Get_Widths( iX );
           }
           else if ( k == 2 )
           {
             Real D   = ( 1.0 + amp * sin( PI( ) * X1 ) );
             Real ddD = -( amp * PI( ) * PI( ) ) * sin( PI( ) * X1 );
             uCF( iCF_Tau, iX, k ) = ( 2.0 / ( D * D * D ) ) * ddD *
-                                    Grid.Get_Widths( iX ) *
-                                    Grid.Get_Widths( iX );
+                                    Grid->Get_Widths( iX ) *
+                                    Grid->Get_Widths( iX );
             uCF( iCF_V, iX, k ) = 0.0;
-            uCF( iCF_E, iX, k ) = ( 2.0 / 2.0 ) * ddD * Grid.Get_Widths( iX ) *
-                                  Grid.Get_Widths( iX );
+            uCF( iCF_E, iX, k ) = ( 2.0 / 2.0 ) * ddD * Grid->Get_Widths( iX ) *
+                                  Grid->Get_Widths( iX );
           }
           else if ( k == 3 )
           {
             Real D    = ( 1.0 + amp * sin( PI( ) * X1 ) );
             Real dddD = -( amp * PI( ) * PI( ) * PI( ) ) * cos( PI( ) * X1 );
             uCF( iCF_Tau, iX, k ) =
-                ( -6.0 / ( D * D * D * D ) ) * dddD * Grid.Get_Widths( iX ) *
-                Grid.Get_Widths( iX ) * Grid.Get_Widths( iX );
+                ( -6.0 / ( D * D * D * D ) ) * dddD * Grid->Get_Widths( iX ) *
+                Grid->Get_Widths( iX ) * Grid->Get_Widths( iX );
             uCF( iCF_V, iX, k ) = 0.0;
             uCF( iCF_E, iX, k ) = 0.0;
           }

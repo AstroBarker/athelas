@@ -15,15 +15,15 @@
 #include "BoundaryConditionsLibrary.h"
 
 // Apply Boundary Conditions to fluid fields
-void ApplyBC_Fluid( Kokkos::View<Real***> uCF, const GridStructure& Grid,
+void ApplyBC_Fluid( Kokkos::View<Real***> uCF, GridStructure *Grid,
                     const unsigned int order, const std::string BC )
 {
 
-  const unsigned int ilo = Grid.Get_ilo( );
-  const unsigned int ihi = Grid.Get_ihi( );
+  const unsigned int ilo = Grid->Get_ilo( );
+  const unsigned int ihi = Grid->Get_ihi( );
 
-  const unsigned int nX = Grid.Get_nElements( );
-  const unsigned int nG = Grid.Get_Guard( );
+  const unsigned int nX = Grid->Get_nElements( );
+  const unsigned int nG = Grid->Get_Guard( );
 
   // ! ? How to correctly implement reflecting BC ? !
   if ( BC == "Reflecting" )

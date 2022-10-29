@@ -70,19 +70,19 @@ int main( int argc, char* argv[] )
     if ( not Restart )
     {
       // --- Initialize fields ---
-      InitializeFields( uCF, uPF, Grid, order, GAMMA_IDEAL, ProblemName );
+      InitializeFields( uCF, uPF, &Grid, order, GAMMA_IDEAL, ProblemName );
 
-      ApplyBC_Fluid( uCF, Grid, order, BC );
+      ApplyBC_Fluid( uCF, &Grid, order, BC );
     }
     // WriteState( uCF, uPF, uAF, Grid, ProblemName, 0.0, order, 0 );
 
     // --- Datastructure for modal basis ---
-    ModalBasis Basis( uPF, Grid, order, nNodes, nX, nGuard );
+    ModalBasis Basis( uPF, &Grid, order, nNodes, nX, nGuard );
 
-    WriteBasis( Basis, nGuard, Grid.Get_ihi( ), nNodes, order, ProblemName );
+    WriteBasis( &Basis, nGuard, Grid.Get_ihi( ), nNodes, order, ProblemName );
 
     // --- Initialize timestepper ---
-    TimeStepper SSPRK( nStages, tOrder, order, Grid, Geometry, BC );
+    TimeStepper SSPRK( nStages, tOrder, order, &Grid, Geometry, BC );
 
     // --- Initialize Slope Limiter ---
     const Real alpha                       = 1.0;
@@ -91,15 +91,15 @@ int main( int argc, char* argv[] )
     const bool CharacteristicLimiting_Option = true;
     const bool TCI_Option                    = false;
 
-    SlopeLimiter S_Limiter( Grid, nNodes, SlopeLimiter_Threshold, alpha,
+    SlopeLimiter S_Limiter( &Grid, nNodes, SlopeLimiter_Threshold, alpha,
                             CharacteristicLimiting_Option, TCI_Option,
                             TCI_Threshold );
 
     // --- Limit the initial conditions ---
-    S_Limiter.ApplySlopeLimiter( uCF, Grid, Basis );
+    S_Limiter.ApplySlopeLimiter( uCF, &Grid, &Basis );
 
     // -- print run parameters ---
-    PrintSimulationParameters( Grid, order, tOrder, nStages, CFL, alpha,
+    PrintSimulationParameters( &Grid, order, tOrder, nStages, CFL, alpha,
                                TCI_Threshold, CharacteristicLimiting_Option,
                                TCI_Option, ProblemName );
 
@@ -112,7 +112,7 @@ int main( int argc, char* argv[] )
     while ( t < t_end && iStep >= 0 )
     {
 
-      dt = ComputeTimestep_Fluid( uCF, Grid, CFL );
+      dt = ComputeTimestep_Fluid( uCF, &Grid, CFL );
 
       if ( t + dt > t_end )
       {
@@ -124,7 +124,7 @@ int main( int argc, char* argv[] )
         std::printf( " ~ %d \t %.5e \t %.5e\n", iStep, t, dt );
       }
 
-      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, Grid, Basis,
+      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, &Grid, &Basis,
                          S_Limiter );
 
       t += dt;
@@ -132,7 +132,7 @@ int main( int argc, char* argv[] )
       // Write state
       if ( iStep % i_write == 0 )
       {
-        WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName, t, order,
+        WriteState( uCF, uPF, uAF, &Grid, S_Limiter, ProblemName, t, order,
                     i_out );
         i_out += 1;
       }
@@ -143,8 +143,8 @@ int main( int argc, char* argv[] )
     // --- Finalize timer ---
     Real time = timer.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
-    ApplyBC_Fluid( uCF, Grid, order, BC );
-    WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName, t, order, -1 );
+    ApplyBC_Fluid( uCF, &Grid, order, BC );
+    WriteState( uCF, uPF, uAF, &Grid, S_Limiter, ProblemName, t, order, -1 );
   }
   Kokkos::finalize( );
 

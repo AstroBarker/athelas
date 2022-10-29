@@ -22,20 +22,20 @@
  * Lots of structures used in Fluid Discretization live here.
  **/
 TimeStepper::TimeStepper( unsigned int nS, unsigned int tO, unsigned int pOrder,
-                          GridStructure& Grid, bool Geometry,
+                          GridStructure *Grid, bool Geometry,
                           std::string BCond )
-    : mSize( Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) ), nStages( nS ),
+    : mSize( Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ), nStages( nS ),
       tOrder( tO ), BC( BCond ), a_jk( "RK a_jk", nStages, nStages ),
       b_jk( "RK b_jk", nStages, nStages ), SumVar_X( "SumVar_X", mSize + 1 ),
       U_s( "U_s", nStages + 1, 3, mSize + 1, pOrder ),
       dU_s( "dU_s", nStages + 1, 3, mSize + 1, pOrder ),
       SumVar_U( "SumVar_U", 3, mSize + 1, pOrder ),
       Grid_s( nStages + 1,
-              GridStructure( Grid.Get_nNodes( ), Grid.Get_nElements( ),
-                             Grid.Get_Guard( ), Grid.Get_xL( ), Grid.Get_xR( ),
+              GridStructure( Grid->Get_nNodes( ), Grid->Get_nElements( ),
+                             Grid->Get_Guard( ), Grid->Get_xL( ), Grid->Get_xR( ),
                              Geometry ) ),
       StageData( "StageData", nStages + 1, mSize + 1 ),
-      Flux_q( "Flux_q", 3, mSize + 1, Grid.Get_nNodes( ) ),
+      Flux_q( "Flux_q", 3, mSize + 1, Grid->Get_nNodes( ) ),
       dFlux_num( "Numerical Flux", 3, mSize + 1 ),
       uCF_F_L( "Face L", 3, mSize ), uCF_F_R( "Face R", 3, mSize ),
       Flux_U( "Flux_U", nStages + 1, mSize + 1 ), Flux_P( "Flux_P", mSize + 1 )
@@ -204,13 +204,13 @@ void TimeStepper::InitializeTimestepper( )
  * Update Solution with SSPRK methods
  **/
 void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const Real dt,
-                               Kokkos::View<Real***> U, GridStructure& Grid,
-                               const ModalBasis& Basis,
+                               Kokkos::View<Real***> U, GridStructure *Grid,
+                               ModalBasis *Basis,
                                SlopeLimiter& S_Limiter )
 {
 
-  const unsigned int order = Basis.Get_Order( );
-  const unsigned int ihi   = Grid.Get_ihi( );
+  const unsigned int order = Basis->Get_Order( );
+  const unsigned int ihi   = Grid->Get_ihi( );
 
   unsigned short int i;
   Kokkos::parallel_for(
@@ -229,11 +229,11 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const Real dt,
         U_s( 0, iCF, iX, k ) = U( iCF, iX, k );
       } );
 
-  Grid_s[0] = Grid;
+  Grid_s[0] = *Grid;
   // StageData holds left interface positions
   Kokkos::parallel_for(
       ihi + 2, KOKKOS_LAMBDA( unsigned int iX ) {
-        StageData( 0, iX ) = Grid.Get_LeftInterface( iX );
+        StageData( 0, iX ) = Grid->Get_LeftInterface( iX );
       } );
 
   for ( unsigned short int iS = 1; iS <= nStages; iS++ )
@@ -260,7 +260,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const Real dt,
       auto dUsj =
           Kokkos::subview( dU_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto Flux_Uj = Kokkos::subview( Flux_U, j, Kokkos::ALL );
-      ComputeIncrement( Usj, Grid_s[j], Basis, dUsj, Flux_q, dFlux_num, uCF_F_L,
+      ComputeIncrement( Usj, &Grid_s[j], Basis, dUsj, Flux_q, dFlux_num, uCF_F_L,
                         uCF_F_R, Flux_Uj, Flux_P, BC );
 
       // inner sum
@@ -296,7 +296,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const Real dt,
     // ! This may give poor performance. Why? ! But also helps with Sedov..
     auto Usj =
         Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-    S_Limiter.ApplySlopeLimiter( Usj, Grid_s[iS], Basis );
+    S_Limiter.ApplySlopeLimiter( Usj, &Grid_s[iS], Basis );
     ApplyBoundEnforcingLimiter( Usj, Basis );
   }
 
@@ -308,7 +308,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const Real dt,
         U( iCF, iX, k ) = U_s( nStages, iCF, iX, k );
       } );
 
-  Grid = Grid_s[nStages];
+  Grid = &Grid_s[nStages];
   S_Limiter.ApplySlopeLimiter( U, Grid, Basis );
   ApplyBoundEnforcingLimiter( U, Basis );
 }

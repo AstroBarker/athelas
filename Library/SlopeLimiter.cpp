@@ -26,7 +26,7 @@
  * The constructor creates the matrices structures for applying the slope
  *limiter
  **/
-SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder,
+SlopeLimiter::SlopeLimiter( GridStructure *Grid, unsigned int pOrder,
                             Real SlopeLimiterThreshold, Real alpha_val,
                             bool CharacteristicLimitingOption, bool TCIOption,
                             Real TCI_Threshold_val )
@@ -43,9 +43,9 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder,
       dw_c_L( "dw_c_L" ), dw_c_T( "dw_c_T" ), dw_c_R( "dw_c_R" ),
       dw_v_L( "dw_v_L" ), dw_v_R( "dw_v_R" ), Mult1( "Mult1" ),
       Mult2( "Mult2" ), Mult3( "Mult3" ),
-      D( "TCI", 3, Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) ),
+      D( "TCI", 3, Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ),
       LimitedCell( "LimitedCell",
-                   Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) )
+                   Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) )
 {
 }
 
@@ -54,11 +54,11 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder,
  * to flag cells for limiting
  **/
 void SlopeLimiter::DetectTroubledCells( Kokkos::View<Real***> U,
-                                        const GridStructure& Grid,
-                                        const ModalBasis& Basis )
+                                        GridStructure *Grid,
+                                        ModalBasis *Basis )
 {
-  const unsigned int ilo = Grid.Get_ilo( );
-  const unsigned int ihi = Grid.Get_ihi( );
+  const unsigned int ilo = Grid->Get_ilo( );
+  const unsigned int ihi = Grid->Get_ihi( );
 
   Real denominator = 0.0;
 
@@ -98,8 +98,8 @@ void SlopeLimiter::DetectTroubledCells( Kokkos::View<Real***> U,
  * Apply the slope limiter. We use a vertex based, heirarchical slope limiter.
  **/
 void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
-                                      const GridStructure& Grid,
-                                      const ModalBasis& Basis )
+                                      GridStructure *Grid,
+                                      ModalBasis *Basis )
 {
 
   // Do not apply for first order method. No slopes!
@@ -108,9 +108,9 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
     return;
   }
 
-  const unsigned int& ilo    = Grid.Get_ilo( );
-  const unsigned int& ihi    = Grid.Get_ihi( );
-  const unsigned int& nNodes = Grid.Get_nNodes( );
+  const unsigned int& ilo    = Grid->Get_ilo( );
+  const unsigned int& ihi    = Grid->Get_ihi( );
+  const unsigned int& nNodes = Grid->Get_nNodes( );
 
   // --- Apply troubled cell indicator ---
   // Exit if we don't need to limit slopes
@@ -189,8 +189,8 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
 
       dU_c_T( iCF ) = U( iCF, iX, 1 );
 
-      U_v_L( iCF ) = Basis.BasisEval( U, iX, iCF, 0, false );
-      U_v_R( iCF ) = Basis.BasisEval( U, iX, iCF, nNodes + 1, false );
+      U_v_L( iCF ) = Basis->BasisEval( U, iX, iCF, 0, false );
+      U_v_R( iCF ) = Basis->BasisEval( U, iX, iCF, nNodes + 1, false );
 
       // initialize characteristic forms
       w_c_L( iCF ) = 0.0;
@@ -268,7 +268,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
  * Limit the quadratic term.
  **/
 void SlopeLimiter::LimitQuadratic( Kokkos::View<Real***> U,
-                                   const ModalBasis& Basis,
+                                   ModalBasis *Basis,
                                    Kokkos::View<Real[3]> d2w, unsigned int iX,
                                    unsigned int nNodes )
 {
@@ -287,8 +287,8 @@ void SlopeLimiter::LimitQuadratic( Kokkos::View<Real***> U,
     dU_c_T( iCF ) = U( iCF, iX, 1 );
     dU_c_R( iCF ) = U( iCF, iX + 1, 1 );
 
-    dU_v_L( iCF ) = Basis.BasisEval( U, iX, iCF, 0, true );
-    dU_v_R( iCF ) = Basis.BasisEval( U, iX, iCF, nNodes + 1, true );
+    dU_v_L( iCF ) = Basis->BasisEval( U, iX, iCF, 0, true );
+    dU_v_R( iCF ) = Basis->BasisEval( U, iX, iCF, nNodes + 1, true );
 
     // initialize characteristic forms
     dw_c_L( iCF ) = 0.0;
@@ -343,11 +343,11 @@ void SlopeLimiter::LimitQuadratic( Kokkos::View<Real***> U,
  *  +1 : Extrapolate polynomial from iX-1 into iX
  **/
 Real SlopeLimiter::CellAverage( Kokkos::View<Real***> U,
-                                  const GridStructure& Grid,
-                                  const ModalBasis& Basis, unsigned int iCF,
+                                  GridStructure *Grid,
+                                  ModalBasis *Basis, unsigned int iCF,
                                   unsigned int iX, int extrapolate )
 {
-  const unsigned int nNodes = Grid.Get_nNodes( );
+  const unsigned int nNodes = Grid->Get_nNodes( );
 
   Real avg  = 0.0;
   Real mass = 0.0;
@@ -374,15 +374,15 @@ Real SlopeLimiter::CellAverage( Kokkos::View<Real***> U,
 
   for ( unsigned int iN = start; iN < end; iN++ )
   {
-    X = Grid.NodeCoordinate( iX + extrapolate,
+    X = Grid->NodeCoordinate( iX + extrapolate,
                              iN ); // Need the metric on target cell
-    mass += Grid.Get_Weights( iN - start ) * Grid.Get_SqrtGm( X ) *
-            Grid.Get_Widths( iX +
+    mass += Grid->Get_Weights( iN - start ) * Grid->Get_SqrtGm( X ) *
+            Grid->Get_Widths( iX +
                              extrapolate ); // / Basis.BasisEval( U,
                                             // iX+extrapolate, 0, iN+1, false );
-    avg += Grid.Get_Weights( iN - start ) *
-           Basis.BasisEval( U, iX + extrapolate, iCF, iN + 1, false ) *
-           Grid.Get_SqrtGm( X ) * Grid.Get_Widths( iX + extrapolate );
+    avg += Grid->Get_Weights( iN - start ) *
+           Basis->BasisEval( U, iX + extrapolate, iCF, iN + 1, false ) *
+           Grid->Get_SqrtGm( X ) * Grid->Get_Widths( iX + extrapolate );
   }
 
   return avg / mass;

@@ -24,11 +24,11 @@
  **/
 void ComputePrimitiveFromConserved( Kokkos::View<Real***> uCF,
                                     Kokkos::View<Real***> uPF,
-                                    ModalBasis& Basis, GridStructure& Grid )
+                                    ModalBasis *Basis, GridStructure *Grid )
 {
-  const unsigned int nNodes = Grid.Get_nNodes( );
-  const unsigned int ilo    = Grid.Get_ilo( );
-  const unsigned int ihi    = Grid.Get_ihi( );
+  const unsigned int nNodes = Grid->Get_nNodes( );
+  const unsigned int ilo    = Grid->Get_ilo( );
+  const unsigned int ihi    = Grid->Get_ihi( );
 
   Real Tau = 0.0;
   Real Vel = 0.0;
@@ -38,15 +38,15 @@ void ComputePrimitiveFromConserved( Kokkos::View<Real***> uCF,
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
     {
       // Density
-      Tau              = Basis.BasisEval( uCF, 0, iX, iN + 1, false );
+      Tau              = Basis->BasisEval( uCF, 0, iX, iN + 1, false );
       uPF( 0, iX, iN ) = 1.0 / Tau;
 
       // Momentum
-      Vel              = Basis.BasisEval( uCF, 1, iX, iN + 1, false );
+      Vel              = Basis->BasisEval( uCF, 1, iX, iN + 1, false );
       uPF( 1, iX, iN ) = uPF( 0, iX, iN ) * Vel;
 
       // Specific Total Energy
-      EmT              = Basis.BasisEval( uCF, 2, iX, iN + 1, false );
+      EmT              = Basis->BasisEval( uCF, 2, iX, iN + 1, false );
       uPF( 2, iX, iN ) = EmT / Tau;
     }
 }
@@ -130,14 +130,14 @@ void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL,
  * Compute the fluid timestep.
  **/
 Real ComputeTimestep_Fluid( const Kokkos::View<Real***> U,
-                              const GridStructure& Grid, const Real CFL )
+                            const GridStructure *Grid, const Real CFL )
 {
 
   const Real MIN_DT = 0.000000005;
   const Real MAX_DT = 1.0;
 
-  const unsigned int& ilo = Grid.Get_ilo( );
-  const unsigned int& ihi = Grid.Get_ihi( );
+  const unsigned int& ilo = Grid->Get_ilo( );
+  const unsigned int& ihi = Grid->Get_ihi( );
 
   Real dt = 0.0;
   Kokkos::parallel_reduce(
@@ -148,7 +148,7 @@ Real ComputeTimestep_Fluid( const Kokkos::View<Real***> U,
         Real vel_x  = U( 1, iX, 0 );
         Real eint_x = U( 2, iX, 0 );
 
-        Real dr = Grid.Get_Widths( iX );
+        Real dr = Grid->Get_Widths( iX );
 
         Real Cs =
             ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );

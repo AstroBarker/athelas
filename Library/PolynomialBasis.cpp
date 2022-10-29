@@ -27,7 +27,7 @@
  * Constructor creates necessary matrices and bases, etc.
  * This has to be called after the problem is initialized.
  **/
-ModalBasis::ModalBasis( Kokkos::View<Real***> uPF, GridStructure& Grid,
+ModalBasis::ModalBasis( Kokkos::View<Real***> uPF, GridStructure *Grid,
                         unsigned int pOrder, unsigned int nN,
                         unsigned int nElements, unsigned int nGuard )
     : nX( nElements ), order( pOrder ), nNodes( nN ),
@@ -37,8 +37,8 @@ ModalBasis::ModalBasis( Kokkos::View<Real***> uPF, GridStructure& Grid,
       dPhi( "dPhi", nElements + 2 * nGuard, 3 * nN + 2, pOrder )
 {
   // --- Compute grid quantities ---
-  Grid.ComputeMass( uPF );
-  Grid.ComputeCenterOfMass( uPF );
+  Grid->ComputeMass( uPF );
+  Grid->ComputeCenterOfMass( uPF );
 
   InitializeTaylorBasis( uPF, Grid );
 
@@ -117,7 +117,7 @@ Real ModalBasis::dTaylor( unsigned int order, Real eta, Real eta_c )
 Real ModalBasis::InnerProduct( const unsigned int m, const unsigned int n,
                                  const unsigned int iX, const Real eta_c,
                                  const Kokkos::View<Real***> uPF,
-                                 const GridStructure& Grid )
+                                 GridStructure *Grid )
 {
   Real result = 0.0;
   Real eta_q  = 0.0;
@@ -125,11 +125,11 @@ Real ModalBasis::InnerProduct( const unsigned int m, const unsigned int n,
 
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
-    eta_q = Grid.Get_Nodes( iN );
-    X     = Grid.NodeCoordinate( iX, iN );
+    eta_q = Grid->Get_Nodes( iN );
+    X     = Grid->NodeCoordinate( iX, iN );
     result += Taylor( n, eta_q, eta_c ) * Phi( iX, iN + 1, m ) *
-              Grid.Get_Weights( iN ) * uPF( 0, iX, iN ) *
-              Grid.Get_Widths( iX ) * Grid.Get_SqrtGm( X );
+              Grid->Get_Weights( iN ) * uPF( 0, iX, iN ) *
+              Grid->Get_Widths( iX ) * Grid->Get_SqrtGm( X );
   }
 
   return result;
@@ -144,17 +144,17 @@ Real ModalBasis::InnerProduct( const unsigned int m, const unsigned int n,
 Real ModalBasis::InnerProduct( const unsigned int n, const unsigned int iX,
                                  const Real eta_c,
                                  const Kokkos::View<Real***> uPF,
-                                 const GridStructure& Grid )
+                                 GridStructure *Grid )
 {
   Real result = 0.0;
   Real X      = 0.0;
 
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
-    X = Grid.NodeCoordinate( iX, iN );
+    X = Grid->NodeCoordinate( iX, iN );
     result += Phi( iX, iN + 1, n ) * Phi( iX, iN + 1, n ) *
-              Grid.Get_Weights( iN ) * uPF( 0, iX, iN ) *
-              Grid.Get_Widths( iX ) * Grid.Get_SqrtGm( X );
+              Grid->Get_Weights( iN ) * uPF( 0, iX, iN ) *
+              Grid->Get_Widths( iX ) * Grid->Get_SqrtGm( X );
   }
 
   return result;
@@ -166,7 +166,7 @@ Real ModalBasis::OrthoTaylor( const unsigned int order, const unsigned int iX,
                                 const unsigned int i_eta, const Real eta,
                                 const Real eta_c,
                                 const Kokkos::View<Real***> uPF,
-                                const GridStructure& Grid,
+                                GridStructure *Grid,
                                 bool const derivative_option )
 {
 
@@ -212,18 +212,18 @@ Real ModalBasis::OrthoTaylor( const unsigned int order, const unsigned int iX,
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
  **/
 void ModalBasis::InitializeTaylorBasis( const Kokkos::View<Real***> uPF,
-                                        const GridStructure& Grid )
+                                        GridStructure *Grid )
 {
   const unsigned int n_eta = 3 * nNodes + 2;
-  const unsigned int ilo   = Grid.Get_ilo( );
-  const unsigned int ihi   = Grid.Get_ihi( );
+  const unsigned int ilo   = Grid->Get_ilo( );
+  const unsigned int ihi   = Grid->Get_ihi( );
 
   Real eta_c;
 
   Real eta = 0.5;
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
-    eta_c = Grid.Get_CenterOfMass( iX );
+    eta_c = Grid->Get_CenterOfMass( iX );
     for ( unsigned int k = 0; k < order; k++ )
       for ( unsigned int i_eta = 0; i_eta < n_eta; i_eta++ )
       {
@@ -238,16 +238,16 @@ void ModalBasis::InitializeTaylorBasis( const Kokkos::View<Real***> uPF,
         }
         else if ( i_eta > 0 && i_eta < nNodes + 1 ) // GL nodes
         {
-          eta = Grid.Get_Nodes( i_eta - 1 );
+          eta = Grid->Get_Nodes( i_eta - 1 );
         }
         else if ( i_eta > nNodes + 1 &&
                   i_eta <= 2 * nNodes + 1 ) // GL nodes left neighbor
         {
-          eta = Grid.Get_Nodes( i_eta - nNodes - 2 ) - 1.0;
+          eta = Grid->Get_Nodes( i_eta - nNodes - 2 ) - 1.0;
         }
         else
         {
-          eta = Grid.Get_Nodes( i_eta - 2 * nNodes - 2 ) + 1.0;
+          eta = Grid->Get_Nodes( i_eta - 2 * nNodes - 2 ) + 1.0;
         }
 
         Phi( iX, i_eta, k ) =
@@ -287,11 +287,11 @@ void ModalBasis::InitializeTaylorBasis( const Kokkos::View<Real***> uPF,
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
  **/
 void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real***> uPF,
-                                          const GridStructure& Grid )
+                                          GridStructure *Grid )
 {
   const unsigned int n_eta = 3 * nNodes + 2;
-  const unsigned int ilo   = Grid.Get_ilo( );
-  const unsigned int ihi   = Grid.Get_ihi( );
+  const unsigned int ilo   = Grid->Get_ilo( );
+  const unsigned int ihi   = Grid->Get_ihi( );
 
   Real eta = 0.5;
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
@@ -310,16 +310,16 @@ void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real***> uPF,
         }
         else if ( i_eta > 0 && i_eta < nNodes + 1 ) // GL nodes
         {
-          eta = Grid.Get_Nodes( i_eta - 1 );
+          eta = Grid->Get_Nodes( i_eta - 1 );
         }
         else if ( i_eta > nNodes + 1 &&
                   i_eta < 2 * nNodes + 1 ) // GL nodes left neighbor
         {
-          eta = Grid.Get_Nodes( i_eta - nNodes - 1 ) - 1.0;
+          eta = Grid->Get_Nodes( i_eta - nNodes - 1 ) - 1.0;
         }
         else
         {
-          eta = Grid.Get_Nodes( i_eta - 2 * nNodes - 1 ) + 1.0;
+          eta = Grid->Get_Nodes( i_eta - 2 * nNodes - 1 ) + 1.0;
         }
 
         Phi( iX, i_eta, k )  = Legendre( k, eta );
@@ -356,11 +356,11 @@ void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real***> uPF,
  * Returns error if orthogonality is not met.
  **/
 void ModalBasis::CheckOrthogonality( const Kokkos::View<Real***> uPF,
-                                     const GridStructure& Grid )
+                                     GridStructure *Grid )
 {
 
-  const unsigned int ilo = Grid.Get_ilo( );
-  const unsigned int ihi = Grid.Get_ihi( );
+  const unsigned int ilo = Grid->Get_ilo( );
+  const unsigned int ihi = Grid->Get_ihi( );
   Real X               = 0.0;
 
   Real result = 0.0;
@@ -372,11 +372,11 @@ void ModalBasis::CheckOrthogonality( const Kokkos::View<Real***> uPF,
         for ( unsigned int i_eta = 1; i_eta <= nNodes;
               i_eta++ ) // loop over quadratures
         {
-          X = Grid.NodeCoordinate( iX, i_eta - 1 );
+          X = Grid->NodeCoordinate( iX, i_eta - 1 );
           // Not using an InnerProduct function because their API is odd..
           result += Phi( iX, i_eta, k1 ) * Phi( iX, i_eta, k2 ) *
-                    uPF( 0, iX, i_eta - 1 ) * Grid.Get_Weights( i_eta - 1 ) *
-                    Grid.Get_Widths( iX ) * Grid.Get_SqrtGm( X );
+                    uPF( 0, iX, i_eta - 1 ) * Grid->Get_Weights( i_eta - 1 ) *
+                    Grid->Get_Widths( iX ) * Grid->Get_SqrtGm( X );
         }
 
         if ( k1 == k2 && result == 0.0 )
@@ -399,11 +399,11 @@ void ModalBasis::CheckOrthogonality( const Kokkos::View<Real***> uPF,
  * ? I would need to compute and store more GL nodes, weights ?
  **/
 void ModalBasis::ComputeMassMatrix( const Kokkos::View<Real***> uPF,
-                                    const GridStructure& Grid )
+                                    GridStructure *Grid )
 {
-  const unsigned int ilo    = Grid.Get_ilo( );
-  const unsigned int ihi    = Grid.Get_ihi( );
-  const unsigned int nNodes = Grid.Get_nNodes( );
+  const unsigned int ilo    = Grid->Get_ilo( );
+  const unsigned int ihi    = Grid->Get_ihi( );
+  const unsigned int nNodes = Grid->Get_nNodes( );
 
   Real result = 0.0;
   Real X      = 0.0;
@@ -415,10 +415,10 @@ void ModalBasis::ComputeMassMatrix( const Kokkos::View<Real***> uPF,
       result = 0.0;
       for ( unsigned int iN = 0; iN < nNodes; iN++ )
       {
-        X = Grid.NodeCoordinate( iX, iN );
+        X = Grid->NodeCoordinate( iX, iN );
         result += Phi( iX, iN + 1, k ) * Phi( iX, iN + 1, k ) *
-                  Grid.Get_Weights( iN ) * Grid.Get_Widths( iX ) *
-                  Grid.Get_SqrtGm( X ) * uPF( 0, iX, iN );
+                  Grid->Get_Weights( iN ) * Grid->Get_Widths( iX ) *
+                  Grid->Get_SqrtGm( X ) * uPF( 0, iX, iN );
       }
       MassMatrix( iX, k ) = result;
     }

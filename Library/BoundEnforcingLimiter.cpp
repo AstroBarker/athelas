@@ -21,10 +21,10 @@
 #include "EquationOfStateLibrary_IDEAL.h"
 #include "BoundEnforcingLimiter.h"
 
-void LimitDensity( Kokkos::View<Real***> U, const ModalBasis& Basis )
+void LimitDensity( Kokkos::View<Real***> U, ModalBasis *Basis )
 {
   const Real EPSILON     = 1.0e-13; // maybe make this smarter
-  const unsigned int order = Basis.Get_Order( );
+  const unsigned int order = Basis->Get_Order( );
 
   if ( order == 1 ) return;
 
@@ -38,7 +38,7 @@ void LimitDensity( Kokkos::View<Real***> U, const ModalBasis& Basis )
 
         for ( unsigned int iN = 0; iN <= order; iN++ )
         {
-          nodal  = Basis.BasisEval( U, iX, 0, iN, false );
+          nodal  = Basis->BasisEval( U, iX, 0, iN, false );
           frac   = std::abs( ( avg - EPSILON ) / ( avg - nodal ) );
           theta1 = std::min( theta1, std::min( 1.0, frac ) );
         }
@@ -50,9 +50,9 @@ void LimitDensity( Kokkos::View<Real***> U, const ModalBasis& Basis )
       } );
 }
 
-void LimitInternalEnergy( Kokkos::View<Real***> U, const ModalBasis& Basis )
+void LimitInternalEnergy( Kokkos::View<Real***> U, ModalBasis *Basis )
 {
-  const unsigned int order = Basis.Get_Order( );
+  const unsigned int order = Basis->Get_Order( );
 
   if ( order == 1 ) return;
 
@@ -92,7 +92,7 @@ void LimitInternalEnergy( Kokkos::View<Real***> U, const ModalBasis& Basis )
 }
 
 void ApplyBoundEnforcingLimiter( Kokkos::View<Real***> U,
-                                 const ModalBasis& Basis )
+                                 ModalBasis *Basis )
 
 {
   LimitDensity( U, Basis );
@@ -103,20 +103,20 @@ void ApplyBoundEnforcingLimiter( Kokkos::View<Real***> U,
 
 // ( 1 - theta ) U_bar + theta U_q
 Real ComputeThetaState( const Kokkos::View<Real***> U,
-                          const ModalBasis& Basis, const Real theta,
-                          const unsigned int iCF, const unsigned int iX,
-                          const unsigned int iN )
+                        ModalBasis *Basis, const Real theta,
+                        const unsigned int iCF, const unsigned int iX,
+                        const unsigned int iN )
 {
-  Real result = Basis.BasisEval( U, iX, iCF, iN, false );
+  Real result = Basis->BasisEval( U, iX, iCF, iN, false );
   result -= U( iCF, iX, 0 );
   result *= theta;
   result += U( iCF, iX, 0 );
   return result;
 }
 
-Real TargetFunc( const Kokkos::View<Real***> U, const ModalBasis& Basis,
-                   const Real theta, const unsigned int iX,
-                   const unsigned int iN )
+Real TargetFunc( const Kokkos::View<Real***> U, ModalBasis *Basis,
+                 const Real theta, const unsigned int iX,
+                 const unsigned int iN )
 {
   const Real w  = std::min( 1.0e-13, ComputeInternalEnergy( U, iX ) );
   const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
@@ -127,8 +127,8 @@ Real TargetFunc( const Kokkos::View<Real***> U, const ModalBasis& Basis,
   return e - w;
 }
 
-Real Bisection( const Kokkos::View<Real***> U, const ModalBasis& Basis,
-                  const unsigned int iX, const unsigned int iN )
+Real Bisection( const Kokkos::View<Real***> U, ModalBasis *Basis,
+                const unsigned int iX, const unsigned int iN )
 {
   const Real TOL             = 1e-10;
   const unsigned int MAX_ITERS = 100;
@@ -171,8 +171,8 @@ Real Bisection( const Kokkos::View<Real***> U, const ModalBasis& Basis,
   return c;
 }
 
-Real Backtrace( const Kokkos::View<Real***> U, const ModalBasis& Basis,
-                  const unsigned int iX, const unsigned int iN )
+Real Backtrace( const Kokkos::View<Real***> U, ModalBasis *Basis,
+                const unsigned int iX, const unsigned int iN )
 {
   Real theta = 1.0;
   Real nodal = -1.0;

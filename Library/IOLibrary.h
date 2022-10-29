@@ -16,17 +16,17 @@ struct DataType
 };
 
 void WriteState( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
-                 Kokkos::View<Real***> uAF, GridStructure& Grid,
+                 Kokkos::View<Real***> uAF, GridStructure *Grid,
                  SlopeLimiter& SL, const std::string ProblemName, Real time,
                  unsigned int order, int i_write );
 
-void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
+void PrintSimulationParameters( GridStructure *Grid, unsigned int pOrder,
                                 unsigned int tOrder, unsigned int nStages,
                                 Real CFL, Real alpha, Real TCI,
                                 bool Char_option, bool TCI_Option,
                                 std::string ProblemName );
 
-void WriteBasis( ModalBasis& Basis, unsigned int ilo, unsigned int ihi,
+void WriteBasis( ModalBasis *Basis, unsigned int ilo, unsigned int ihi,
                  unsigned int nNodes, unsigned int order,
                  std::string ProblemName );
 
