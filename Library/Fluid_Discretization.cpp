@@ -120,10 +120,9 @@ void ComputeIncrement_Fluid_Divergence(
                                               { 3, ihi + 1, order } ),
       KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
         Real local_sum = 0.0;
-        Real X         = 0.0;
         for ( unsigned int iN = 0; iN < nNodes; iN++ )
         {
-          X = Grid->NodeCoordinate( iX, iN );
+          Real X = Grid->NodeCoordinate( iX, iN );
           local_sum += Grid->Get_Weights( iN ) * Flux_q( iCF, iX, iN ) *
                        Basis->Get_dPhi( iX, iN + 1, k ) * Grid->Get_SqrtGm( X );
         }
