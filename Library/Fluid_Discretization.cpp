@@ -99,6 +99,8 @@ void ComputeIncrement_Fluid_Divergence(
                               dFlux_num( iCF, iX + 0 ) * Poly_L * SqrtGm_L );
       } );
 
+  if ( order > 1 ) 
+  {
   // --- Compute Flux_q everywhere for the Volume term ---
   Kokkos::parallel_for(
       "Flux_q",
@@ -114,6 +116,7 @@ void ComputeIncrement_Fluid_Divergence(
       } );
 
   // --- Volume Term ---
+  // TODO: Make Flux_q a function?
   Kokkos::parallel_for(
       "Volume Term",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
@@ -129,6 +132,7 @@ void ComputeIncrement_Fluid_Divergence(
 
         dU( iCF, iX, k ) += local_sum;
       } );
+  }
 }
 
 /**
