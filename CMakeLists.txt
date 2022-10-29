@@ -55,8 +55,8 @@ option(ATHELAS_ENABLE_UNIT_TESTS "Enable unit tests" OFF)               # Future
 option(ATHELAS_ENABLE_INTEGRATION_TESTS "Enable integration tests" OFF) # Future
 option(ATHELAS_ENABLE_REGRESSION_TESTS "Enable regression tests" OFF)   # Future
 
-set( MACHINE_OS "MACOS" )
-message( "Building On ${MACHINE_OS} ")
+set( MACHINE "UBUNTU" CACHE STRING "Set OS")
+message( "Building On ${MACHINE} ")
 
 # Don't allow in-source builds
 file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
@@ -163,11 +163,11 @@ include_directories(${HDF5_INCLUDE_DIRS}) # seems to be needed for compilation o
 
 # LAPACK
 # ubuntu's openblas does not include the necessary lapacke headers...
-if (${MACHINE_OS} STREQUAL "UBUNTU")
+if (${MACHINE} STREQUAL UBUNTU)
     set(LAPACK_LIBRARIES "/usr/lib/x86_64-linux-gnu/liblapacke.so.3;-lm;-ldl")
     message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
     target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
-elseif( ${MACHINE_OS} STREQUAL "MACOS" )
+  elseif( ${MACHINE} STREQUAL MACOS )
     set( LAPACK_LIBRARIES "/usr/local/Cellar/lapack/3.10.1/lib/liblapacke.3.dylib;-lm;-ldl;-llapack" )
     set( LAPACK_INCLUDE "/usr/local/Cellar/lapack/3.10.1/include/" )
     include_directories( ${LAPACK_INCLUDE} )
