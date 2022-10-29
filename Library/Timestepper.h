@@ -30,7 +30,7 @@ class TimeStepper
 
   void UpdateFluid( myFuncType ComputeIncrement, const Real dt,
                     Kokkos::View<Real***> U, GridStructure *Grid,
-                    ModalBasis *Basis, SlopeLimiter& S_Limiter );
+                    ModalBasis *Basis, SlopeLimiter *S_Limiter );
 
  private:
   const unsigned int mSize;

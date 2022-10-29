@@ -206,7 +206,7 @@ void TimeStepper::InitializeTimestepper( )
 void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const Real dt,
                                Kokkos::View<Real***> U, GridStructure *Grid,
                                ModalBasis *Basis,
-                               SlopeLimiter& S_Limiter )
+                               SlopeLimiter *S_Limiter )
 {
 
   const unsigned int order = Basis->Get_Order( );
@@ -296,7 +296,7 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const Real dt,
     // ! This may give poor performance. Why? ! But also helps with Sedov..
     auto Usj =
         Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-    S_Limiter.ApplySlopeLimiter( Usj, &Grid_s[iS], Basis );
+    S_Limiter->ApplySlopeLimiter( Usj, &Grid_s[iS], Basis );
     ApplyBoundEnforcingLimiter( Usj, Basis );
   }
 
@@ -309,6 +309,6 @@ void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const Real dt,
       } );
 
   Grid = &Grid_s[nStages];
-  S_Limiter.ApplySlopeLimiter( U, Grid, Basis );
+  S_Limiter->ApplySlopeLimiter( U, Grid, Basis );
   ApplyBoundEnforcingLimiter( U, Basis );
 }

@@ -125,14 +125,14 @@ int main( int argc, char* argv[] )
       }
 
       SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, &Grid, &Basis,
-                         S_Limiter );
+                         &S_Limiter );
 
       t += dt;
 
       // Write state
       if ( iStep % i_write == 0 )
       {
-        WriteState( uCF, uPF, uAF, &Grid, S_Limiter, ProblemName, t, order,
+        WriteState( uCF, uPF, uAF, &Grid, &S_Limiter, ProblemName, t, order,
                     i_out );
         i_out += 1;
       }
@@ -144,7 +144,7 @@ int main( int argc, char* argv[] )
     Real time = timer.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC_Fluid( uCF, &Grid, order, BC );
-    WriteState( uCF, uPF, uAF, &Grid, S_Limiter, ProblemName, t, order, -1 );
+    WriteState( uCF, uPF, uAF, &Grid, &S_Limiter, ProblemName, t, order, -1 );
   }
   Kokkos::finalize( );
 

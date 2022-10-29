@@ -79,7 +79,7 @@ void PrintSimulationParameters( GridStructure *Grid, unsigned int pOrder,
 // TODO: add Time
 void WriteState( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
                  Kokkos::View<Real***> uAF, GridStructure *Grid,
-                 SlopeLimiter& SL, const std::string ProblemName, Real time,
+                 SlopeLimiter *SL, const std::string ProblemName, Real time,
                  unsigned int order, int i_write )
 {
 
@@ -120,7 +120,7 @@ void WriteState( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
     {
       grid[( iX - ilo )].x          = Grid->Get_Centers( iX );
       dr[( iX - ilo )].x            = Grid->Get_Widths( iX );
-      limiter[( iX - ilo )].x       = SL.Get_Limited( iX );
+      limiter[( iX - ilo )].x       = SL->Get_Limited( iX );
       tau[( iX - ilo ) + k * nX].x  = uCF( 0, iX, k );
       vel[( iX - ilo ) + k * nX].x  = uCF( 1, iX, k );
       eint[( iX - ilo ) + k * nX].x = uCF( 2, iX, k );
