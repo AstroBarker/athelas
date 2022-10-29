@@ -27,7 +27,7 @@
  * Constructor creates necessary matrices and bases, etc.
  * This has to be called after the problem is initialized.
  **/
-ModalBasis::ModalBasis( Kokkos::View<double***> uPF, GridStructure& Grid,
+ModalBasis::ModalBasis( Kokkos::View<Real***> uPF, GridStructure& Grid,
                         unsigned int pOrder, unsigned int nN,
                         unsigned int nElements, unsigned int nGuard )
     : nX( nElements ), order( pOrder ), nNodes( nN ),
@@ -55,7 +55,7 @@ ModalBasis::ModalBasis( Kokkos::View<double***> uPF, GridStructure& Grid,
  * eta   : coordinate
  * eta_c : center of mass
  **/
-double ModalBasis::Taylor( unsigned int order, double eta, double eta_c )
+Real ModalBasis::Taylor( unsigned int order, Real eta, Real eta_c )
 {
 
   if ( order < 0 ) throw Error( "! Please enter a valid polynomial order.\n" );
@@ -83,7 +83,7 @@ double ModalBasis::Taylor( unsigned int order, double eta, double eta_c )
  * eta : coordinate
  * eta_c: center of mass
  **/
-double ModalBasis::dTaylor( unsigned int order, double eta, double eta_c )
+Real ModalBasis::dTaylor( unsigned int order, Real eta, Real eta_c )
 {
 
   if ( order < 0 ) throw Error( " ! Please enter a valid polynomial order.\n" );
@@ -114,14 +114,14 @@ double ModalBasis::dTaylor( unsigned int order, double eta, double eta_c )
  * <f,g> = \sum_q \rho_q f_Q g_q j^0 w_q
  * TODO: Make InnerProduct functions cleaner????
  **/
-double ModalBasis::InnerProduct( const unsigned int m, const unsigned int n,
-                                 const unsigned int iX, const double eta_c,
-                                 const Kokkos::View<double***> uPF,
+Real ModalBasis::InnerProduct( const unsigned int m, const unsigned int n,
+                                 const unsigned int iX, const Real eta_c,
+                                 const Kokkos::View<Real***> uPF,
                                  const GridStructure& Grid )
 {
-  double result = 0.0;
-  double eta_q  = 0.0;
-  double X      = 0.0;
+  Real result = 0.0;
+  Real eta_q  = 0.0;
+  Real X      = 0.0;
 
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
@@ -141,13 +141,13 @@ double ModalBasis::InnerProduct( const unsigned int m, const unsigned int n,
  * Computes < Phi_m, Phi_n >
  * <f,g> = \sum_q \rho_q f_q g_q j^0 w_q
  **/
-double ModalBasis::InnerProduct( const unsigned int n, const unsigned int iX,
-                                 const double eta_c,
-                                 const Kokkos::View<double***> uPF,
+Real ModalBasis::InnerProduct( const unsigned int n, const unsigned int iX,
+                                 const Real eta_c,
+                                 const Kokkos::View<Real***> uPF,
                                  const GridStructure& Grid )
 {
-  double result = 0.0;
-  double X      = 0.0;
+  Real result = 0.0;
+  Real X      = 0.0;
 
   for ( unsigned int iN = 0; iN < nNodes; iN++ )
   {
@@ -162,18 +162,18 @@ double ModalBasis::InnerProduct( const unsigned int n, const unsigned int iX,
 
 // Gram-Schmidt orthogonalization to Taylor basis
 // TODO: OrthoTaylor: Clean up derivative options?
-double ModalBasis::OrthoTaylor( const unsigned int order, const unsigned int iX,
-                                const unsigned int i_eta, const double eta,
-                                const double eta_c,
-                                const Kokkos::View<double***> uPF,
+Real ModalBasis::OrthoTaylor( const unsigned int order, const unsigned int iX,
+                                const unsigned int i_eta, const Real eta,
+                                const Real eta_c,
+                                const Kokkos::View<Real***> uPF,
                                 const GridStructure& Grid,
                                 bool const derivative_option )
 {
 
-  double result      = 0.0;
-  double phi_n       = 0.0;
-  double numerator   = 0.0;
-  double denominator = 0.0;
+  Real result      = 0.0;
+  Real phi_n       = 0.0;
+  Real numerator   = 0.0;
+  Real denominator = 0.0;
 
   // TODO: Can this be cleaned up?
   if ( not derivative_option )
@@ -211,16 +211,16 @@ double ModalBasis::OrthoTaylor( const unsigned int order, const unsigned int iX,
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
  **/
-void ModalBasis::InitializeTaylorBasis( const Kokkos::View<double***> uPF,
+void ModalBasis::InitializeTaylorBasis( const Kokkos::View<Real***> uPF,
                                         const GridStructure& Grid )
 {
   const unsigned int n_eta = 3 * nNodes + 2;
   const unsigned int ilo   = Grid.Get_ilo( );
   const unsigned int ihi   = Grid.Get_ihi( );
 
-  double eta_c;
+  Real eta_c;
 
-  double eta = 0.5;
+  Real eta = 0.5;
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
     eta_c = Grid.Get_CenterOfMass( iX );
@@ -286,14 +286,14 @@ void ModalBasis::InitializeTaylorBasis( const Kokkos::View<double***> uPF,
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
  **/
-void ModalBasis::InitializeLegendreBasis( const Kokkos::View<double***> uPF,
+void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real***> uPF,
                                           const GridStructure& Grid )
 {
   const unsigned int n_eta = 3 * nNodes + 2;
   const unsigned int ilo   = Grid.Get_ilo( );
   const unsigned int ihi   = Grid.Get_ihi( );
 
-  double eta = 0.5;
+  Real eta = 0.5;
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
     for ( unsigned int k = 0; k < order; k++ )
@@ -355,15 +355,15 @@ void ModalBasis::InitializeLegendreBasis( const Kokkos::View<double***> uPF,
  * The following checks orthogonality of basis functions on each cell.
  * Returns error if orthogonality is not met.
  **/
-void ModalBasis::CheckOrthogonality( const Kokkos::View<double***> uPF,
+void ModalBasis::CheckOrthogonality( const Kokkos::View<Real***> uPF,
                                      const GridStructure& Grid )
 {
 
   const unsigned int ilo = Grid.Get_ilo( );
   const unsigned int ihi = Grid.Get_ihi( );
-  double X               = 0.0;
+  Real X               = 0.0;
 
-  double result = 0.0;
+  Real result = 0.0;
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
     for ( unsigned int k1 = 0; k1 < order; k1++ )
       for ( unsigned int k2 = 0; k2 < order; k2++ )
@@ -398,15 +398,15 @@ void ModalBasis::CheckOrthogonality( const Kokkos::View<double***> uPF,
  * ? If so, how do I expand this ?
  * ? I would need to compute and store more GL nodes, weights ?
  **/
-void ModalBasis::ComputeMassMatrix( const Kokkos::View<double***> uPF,
+void ModalBasis::ComputeMassMatrix( const Kokkos::View<Real***> uPF,
                                     const GridStructure& Grid )
 {
   const unsigned int ilo    = Grid.Get_ilo( );
   const unsigned int ihi    = Grid.Get_ihi( );
   const unsigned int nNodes = Grid.Get_nNodes( );
 
-  double result = 0.0;
-  double X      = 0.0;
+  Real result = 0.0;
+  Real X      = 0.0;
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
   {
@@ -429,11 +429,11 @@ void ModalBasis::ComputeMassMatrix( const Kokkos::View<double***> uPF,
  * Evaluate (modal) basis on element iX for quantity iCF.
  * If DerivativeOption is true, evaluate the derivative.
  **/
-double ModalBasis::BasisEval( Kokkos::View<double***> U, const unsigned int iX,
+Real ModalBasis::BasisEval( Kokkos::View<Real***> U, const unsigned int iX,
                               const unsigned int iCF, const unsigned int i_eta,
                               const bool DerivativeOption ) const
 {
-  double result = 0.0;
+  Real result = 0.0;
   if ( DerivativeOption )
   {
     for ( unsigned int k = 0; k < order; k++ )
@@ -452,21 +452,21 @@ double ModalBasis::BasisEval( Kokkos::View<double***> U, const unsigned int iX,
 }
 
 // Accessor for Phi
-double ModalBasis::Get_Phi( unsigned int iX, unsigned int i_eta,
+Real ModalBasis::Get_Phi( unsigned int iX, unsigned int i_eta,
                             unsigned int k ) const
 {
   return Phi( iX, i_eta, k );
 }
 
 // Accessor for dPhi
-double ModalBasis::Get_dPhi( unsigned int iX, unsigned int i_eta,
+Real ModalBasis::Get_dPhi( unsigned int iX, unsigned int i_eta,
                              unsigned int k ) const
 {
   return dPhi( iX, i_eta, k );
 }
 
 // Accessor for mass matrix
-double ModalBasis::Get_MassMatrix( unsigned int iX, unsigned int k ) const
+Real ModalBasis::Get_MassMatrix( unsigned int iX, unsigned int k ) const
 {
   return MassMatrix( iX, k );
 }
@@ -477,7 +477,7 @@ int ModalBasis::Get_Order( ) const { return order; }
 // --- Legendre Methods ---
 
 // Legendre polynomials
-double ModalBasis::Legendre( unsigned int order, double x )
+Real ModalBasis::Legendre( unsigned int order, Real x )
 {
 
   if ( order == 0 )
@@ -493,8 +493,8 @@ double ModalBasis::Legendre( unsigned int order, double x )
 
     x *= 2.0; // This maps to interval [-0.5, 0.5]
 
-    double Pn, Pnm1; // P_n, P_{n-1}
-    double Pnp1 = 0.0;
+    Real Pn, Pnm1; // P_n, P_{n-1}
+    Real Pnp1 = 0.0;
 
     Pnm1 = 1.0; // P_0
     Pn   = x;   //  P_1
@@ -512,11 +512,11 @@ double ModalBasis::Legendre( unsigned int order, double x )
 }
 
 // Derivative of Legendre polynomials
-double ModalBasis::dLegendre( unsigned int order, double x )
+Real ModalBasis::dLegendre( unsigned int order, Real x )
 {
 
-  double dPn; // P_n
-  // double dPnp1 = 0.0;
+  Real dPn; // P_n
+  // Real dPnp1 = 0.0;
 
   dPn = 0.0;
   for ( unsigned int i = 0; i < order; i++ )

@@ -22,17 +22,17 @@
  * from conserved quantities. Primitive quantities are stored at Gauss-Legendre
  * nodes.
  **/
-void ComputePrimitiveFromConserved( Kokkos::View<double***> uCF,
-                                    Kokkos::View<double***> uPF,
+void ComputePrimitiveFromConserved( Kokkos::View<Real***> uCF,
+                                    Kokkos::View<Real***> uPF,
                                     ModalBasis& Basis, GridStructure& Grid )
 {
   const unsigned int nNodes = Grid.Get_nNodes( );
   const unsigned int ilo    = Grid.Get_ilo( );
   const unsigned int ihi    = Grid.Get_ihi( );
 
-  double Tau = 0.0;
-  double Vel = 0.0;
-  double EmT = 0.0;
+  Real Tau = 0.0;
+  Real Vel = 0.0;
+  Real EmT = 0.0;
 
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
     for ( unsigned int iN = 0; iN < nNodes; iN++ )
@@ -53,7 +53,7 @@ void ComputePrimitiveFromConserved( Kokkos::View<double***> uCF,
 
 // Fluid vector.
 // ! Flag For Removal: Unused !
-double Fluid( double Tau, double V, double Em_T, int iCF )
+Real Fluid( Real Tau, Real V, Real Em_T, int iCF )
 {
   if ( iCF == 0 )
   {
@@ -78,7 +78,7 @@ double Fluid( double Tau, double V, double Em_T, int iCF )
  * Return a component iCF of the flux vector.
  * TODO: Flux_Fluid needs streamlining
  **/
-double Flux_Fluid( const double V, const double P, const unsigned int iCF )
+Real Flux_Fluid( const Real V, const Real P, const unsigned int iCF )
 {
   if ( iCF == 0 )
   {
@@ -102,9 +102,9 @@ double Flux_Fluid( const double V, const double P, const unsigned int iCF )
 /**
  * Gudonov style numerical flux. Constucts v* and p* states.
  **/
-void NumericalFlux_Gudonov( const double vL, const double vR, const double pL,
-                            const double pR, const double zL, const double zR,
-                            double& Flux_U, double& Flux_P )
+void NumericalFlux_Gudonov( const Real vL, const Real vR, const Real pL,
+                            const Real pR, const Real zL, const Real zR,
+                            Real& Flux_U, Real& Flux_P )
 {
   Flux_U = ( pL - pR + zR * vR + zL * vL ) / ( zR + zL );
   Flux_P = ( zR * pL + zL * pR + zL * zR * ( vL - vR ) ) / ( zR + zL );
@@ -113,12 +113,12 @@ void NumericalFlux_Gudonov( const double vL, const double vR, const double pL,
 /**
  * Gudonov style numerical flux. Constucts v* and p* states.
  **/
-void NumericalFlux_HLLC( double vL, double vR, double pL, double pR, double cL,
-                         double cR, double rhoL, double rhoR, double& Flux_U,
-                         double& Flux_P )
+void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL,
+                         Real cR, Real rhoL, Real rhoR, Real& Flux_U,
+                         Real& Flux_P )
 {
-  double aL = vL - cL; // left wave speed estimate
-  double aR = vR + cR; // right wave speed estimate
+  Real aL = vL - cL; // left wave speed estimate
+  Real aR = vR + cR; // right wave speed estimate
   Flux_U    = ( rhoR * vR * ( aR - vR ) - rhoL * vL * ( aL - vL ) + pL - pR ) /
            ( rhoR * ( aR - vR ) - rhoL * ( aL - vL ) );
   Flux_P = rhoL * ( vL - aL ) * ( vL - Flux_U ) + pL;
@@ -129,36 +129,36 @@ void NumericalFlux_HLLC( double vL, double vR, double pL, double pR, double cL,
 /**
  * Compute the fluid timestep.
  **/
-double ComputeTimestep_Fluid( const Kokkos::View<double***> U,
-                              const GridStructure& Grid, const double CFL )
+Real ComputeTimestep_Fluid( const Kokkos::View<Real***> U,
+                              const GridStructure& Grid, const Real CFL )
 {
 
-  const double MIN_DT = 0.000000005;
-  const double MAX_DT = 1.0;
+  const Real MIN_DT = 0.000000005;
+  const Real MAX_DT = 1.0;
 
   const unsigned int& ilo = Grid.Get_ilo( );
   const unsigned int& ihi = Grid.Get_ihi( );
 
-  double dt = 0.0;
+  Real dt = 0.0;
   Kokkos::parallel_reduce(
       "Compute Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
-      KOKKOS_LAMBDA( const int& iX, double& lmin ) {
+      KOKKOS_LAMBDA( const int& iX, Real& lmin ) {
         // --- Compute Cell Averages ---
-        double tau_x  = U( 0, iX, 0 );
-        double vel_x  = U( 1, iX, 0 );
-        double eint_x = U( 2, iX, 0 );
+        Real tau_x  = U( 0, iX, 0 );
+        Real vel_x  = U( 1, iX, 0 );
+        Real eint_x = U( 2, iX, 0 );
 
-        double dr = Grid.Get_Widths( iX );
+        Real dr = Grid.Get_Widths( iX );
 
-        double Cs =
+        Real Cs =
             ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
-        double eigval = Cs;
+        Real eigval = Cs;
 
-        double dt_old = std::abs( dr ) / std::abs( eigval );
+        Real dt_old = std::abs( dr ) / std::abs( eigval );
 
         if ( dt_old < lmin ) lmin = dt_old;
       },
-      Kokkos::Min<double>( dt ) );
+      Kokkos::Min<Real>( dt ) );
 
   dt = std::max( CFL * dt, MIN_DT );
   dt = std::min( dt, MAX_DT );

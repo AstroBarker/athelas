@@ -15,7 +15,7 @@
 #include "BoundaryConditionsLibrary.h"
 
 // Apply Boundary Conditions to fluid fields
-void ApplyBC_Fluid( Kokkos::View<double***> uCF, const GridStructure& Grid,
+void ApplyBC_Fluid( Kokkos::View<Real***> uCF, const GridStructure& Grid,
                     const unsigned int order, const std::string BC )
 {
 

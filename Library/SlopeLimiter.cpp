@@ -27,9 +27,9 @@
  *limiter
  **/
 SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder,
-                            double SlopeLimiterThreshold, double alpha_val,
+                            Real SlopeLimiterThreshold, Real alpha_val,
                             bool CharacteristicLimitingOption, bool TCIOption,
-                            double TCI_Threshold_val )
+                            Real TCI_Threshold_val )
     : order( pOrder ), SlopeLimiter_Threshold( SlopeLimiterThreshold ),
       alpha( alpha_val ),
       CharacteristicLimiting_Option( CharacteristicLimitingOption ),
@@ -53,14 +53,14 @@ SlopeLimiter::SlopeLimiter( GridStructure& Grid, unsigned int pOrder,
  * Apply the Troubled Cell Indicator of Fu & Shu (2017)
  * to flag cells for limiting
  **/
-void SlopeLimiter::DetectTroubledCells( Kokkos::View<double***> U,
+void SlopeLimiter::DetectTroubledCells( Kokkos::View<Real***> U,
                                         const GridStructure& Grid,
                                         const ModalBasis& Basis )
 {
   const unsigned int ilo = Grid.Get_ilo( );
   const unsigned int ihi = Grid.Get_ihi( );
 
-  double denominator = 0.0;
+  Real denominator = 0.0;
 
   // Cell averages by extrapolating L and R neighbors into current cell
 
@@ -71,17 +71,17 @@ void SlopeLimiter::DetectTroubledCells( Kokkos::View<double***> U,
 
       if ( iCF == 1 ) continue; /* skip velocit */
 
-      double result   = 0.0;
-      double cell_avg = U( iCF, iX, 0 );
+      Real result   = 0.0;
+      Real cell_avg = U( iCF, iX, 0 );
 
       // Extrapolate neighboring poly representations into current cell
       // and compute the new cell averages
-      double cell_avg_L_T =
+      Real cell_avg_L_T =
           CellAverage( U, Grid, Basis, iCF, iX + 1, -1 ); // from right
-      double cell_avg_R_T =
+      Real cell_avg_R_T =
           CellAverage( U, Grid, Basis, iCF, iX - 1, +1 ); // from left
-      double cell_avg_L = U( iCF, iX - 1, 0 );            // native left
-      double cell_avg_R = U( iCF, iX + 1, 0 );            // native right
+      Real cell_avg_L = U( iCF, iX - 1, 0 );            // native left
+      Real cell_avg_R = U( iCF, iX + 1, 0 );            // native right
 
       result += ( std::abs( cell_avg - cell_avg_L_T ) +
                   std::abs( cell_avg - cell_avg_R_T ) );
@@ -97,7 +97,7 @@ void SlopeLimiter::DetectTroubledCells( Kokkos::View<double***> U,
 /**
  * Apply the slope limiter. We use a vertex based, heirarchical slope limiter.
  **/
-void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
+void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
                                       const GridStructure& Grid,
                                       const ModalBasis& Basis )
 {
@@ -267,13 +267,13 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<double***> U,
 /**
  * Limit the quadratic term.
  **/
-void SlopeLimiter::LimitQuadratic( Kokkos::View<double***> U,
+void SlopeLimiter::LimitQuadratic( Kokkos::View<Real***> U,
                                    const ModalBasis& Basis,
-                                   Kokkos::View<double[3]> d2w, unsigned int iX,
+                                   Kokkos::View<Real[3]> d2w, unsigned int iX,
                                    unsigned int nNodes )
 {
 
-  double Phi2 = 0.0;
+  Real Phi2 = 0.0;
 
   for ( unsigned int i = 0; i < 3; i++ )
   {
@@ -342,16 +342,16 @@ void SlopeLimiter::LimitQuadratic( Kokkos::View<double***> U,
  *  -1 : Extrapolate polynomial from iX+1 into iX
  *  +1 : Extrapolate polynomial from iX-1 into iX
  **/
-double SlopeLimiter::CellAverage( Kokkos::View<double***> U,
+Real SlopeLimiter::CellAverage( Kokkos::View<Real***> U,
                                   const GridStructure& Grid,
                                   const ModalBasis& Basis, unsigned int iCF,
                                   unsigned int iX, int extrapolate )
 {
   const unsigned int nNodes = Grid.Get_nNodes( );
 
-  double avg  = 0.0;
-  double mass = 0.0;
-  double X;
+  Real avg  = 0.0;
+  Real mass = 0.0;
+  Real X;
 
   // Used to set loop bounds
   int mult           = 1;

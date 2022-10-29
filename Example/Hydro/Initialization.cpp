@@ -20,9 +20,9 @@
  * TODO: For now I initialize constant on each cell. Is there a better way?
  * TODO: iNodeX and order separation
  **/
-void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
+void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
                        GridStructure& Grid, const unsigned int pOrder,
-                       const double GAMMA_IDEAL, const std::string ProblemName )
+                       const Real GAMMA_IDEAL, const std::string ProblemName )
 {
 
   const unsigned int ilo    = Grid.Get_ilo( );
@@ -37,13 +37,13 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
 
   if ( ProblemName == "Sod" )
   {
-    const double V0  = 0.0;
-    const double D_L = 1.0;
-    const double D_R = 0.125;
-    const double P_L = 1.0;
-    const double P_R = 0.1;
+    const Real V0  = 0.0;
+    const Real D_L = 1.0;
+    const Real D_R = 0.125;
+    const Real P_L = 1.0;
+    const Real P_R = 0.1;
 
-    double X1 = 0.0;
+    Real X1 = 0.0;
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
@@ -86,12 +86,12 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   }
   else if ( ProblemName == "ShuOsher" )
   {
-    const double V0  = 2.629369;
-    const double D_L = 3.857143;
-    const double P_L = 10.333333;
-    const double P_R = 1.0;
+    const Real V0  = 2.629369;
+    const Real D_L = 3.857143;
+    const Real P_L = 10.333333;
+    const Real P_R = 1.0;
 
-    double X1 = 0.0;
+    Real X1 = 0.0;
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
@@ -137,13 +137,13 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   else if ( ProblemName == "MovingContact" )
   {
     // Moving Contact problem.
-    const double V0  = 0.1;
-    const double D_L = 1.4;
-    const double D_R = 1.0;
-    const double P_L = 1.0;
-    const double P_R = 1.0;
+    const Real V0  = 0.1;
+    const Real D_L = 1.4;
+    const Real D_R = 1.0;
+    const Real P_L = 1.0;
+    const Real P_R = 1.0;
 
-    double X1 = 0.0;
+    Real X1 = 0.0;
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
@@ -189,11 +189,11 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   else if ( ProblemName == "SmoothAdvection" )
   {
     // Smooth advection problem
-    const double V0  = 1.0;
-    const double P0  = 0.01;
-    const double Amp = 1.0;
+    const Real V0  = 1.0;
+    const Real P0  = 0.01;
+    const Real Amp = 1.0;
 
-    double X1 = 0.0;
+    Real X1 = 0.0;
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
@@ -227,13 +227,13 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   else if ( ProblemName == "Sedov" )
   {
     // Smooth advection problem
-    const double V0 = 0.0;
-    const double D0 = 1.0;
-    const double E0 = 0.3;
+    const Real V0 = 0.0;
+    const Real D0 = 1.0;
+    const Real E0 = 0.3;
 
     const unsigned int origin = Grid.Get_nElements( ) / 2;
 
-    const double P0 = ( 5.0 / 3.0 - 1.0 ) * E0 / Grid.Get_Widths( origin );
+    const Real P0 = ( 5.0 / 3.0 - 1.0 ) * E0 / Grid.Get_Widths( origin );
 
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < pOrder; k++ )
@@ -275,14 +275,14 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   }
   else if ( ProblemName == "Noh" )
   {
-    const double V_L = 1.0;
-    const double D_L = 1.0;
-    const double P_L = 0.000001;
-    const double D_R = 1.0;
-    const double V_R = -1.0;
-    const double P_R = 0.000001;
+    const Real V_L = 1.0;
+    const Real D_L = 1.0;
+    const Real P_L = 0.000001;
+    const Real D_R = 1.0;
+    const Real V_R = -1.0;
+    const Real P_R = 0.000001;
 
-    double X1 = 0.0;
+    Real X1 = 0.0;
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
@@ -329,10 +329,10 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   }
   else if ( ProblemName == "ShocklessNoh" )
   {
-    const double D   = 1.0;
-    const double E_M = 1.0;
+    const Real D   = 1.0;
+    const Real E_M = 1.0;
 
-    double X1 = 0.0;
+    Real X1 = 0.0;
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
@@ -381,8 +381,8 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
   else if ( ProblemName == "SmoothFlow" )
   {
 
-    double X1  = 0.0;
-    double amp = 0.999999999999999999999999999999999995;
+    Real X1  = 0.0;
+    Real amp = 0.999999999999999999999999999999999995;
     for ( unsigned int iX = ilo; iX <= ihi; iX++ )
       for ( unsigned int k = 0; k < pOrder; k++ )
         for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ )
@@ -394,15 +394,15 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
 
           if ( k == 0 )
           {
-            double D              = ( 1.0 + amp * sin( PI( ) * X1 ) );
+            Real D              = ( 1.0 + amp * sin( PI( ) * X1 ) );
             uCF( iCF_Tau, iX, 0 ) = 1.0 / D;
             uCF( iCF_V, iX, 0 )   = 0.0;
             uCF( iCF_E, iX, 0 )   = ( D * D * D / 2.0 ) * uCF( iCF_Tau, iX, 0 );
           }
           else if ( k == 1 )
           {
-            double D  = ( 1.0 + amp * sin( PI( ) * X1 ) );
-            double dD = ( amp * PI( ) * cos( PI( ) * X1 ) );
+            Real D  = ( 1.0 + amp * sin( PI( ) * X1 ) );
+            Real dD = ( amp * PI( ) * cos( PI( ) * X1 ) );
             uCF( iCF_Tau, iX, k ) =
                 ( -1 / ( D * D ) ) * dD * Grid.Get_Widths( iX );
             uCF( iCF_V, iX, k ) = 0.0;
@@ -411,8 +411,8 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
           }
           else if ( k == 2 )
           {
-            double D   = ( 1.0 + amp * sin( PI( ) * X1 ) );
-            double ddD = -( amp * PI( ) * PI( ) ) * sin( PI( ) * X1 );
+            Real D   = ( 1.0 + amp * sin( PI( ) * X1 ) );
+            Real ddD = -( amp * PI( ) * PI( ) ) * sin( PI( ) * X1 );
             uCF( iCF_Tau, iX, k ) = ( 2.0 / ( D * D * D ) ) * ddD *
                                     Grid.Get_Widths( iX ) *
                                     Grid.Get_Widths( iX );
@@ -422,8 +422,8 @@ void InitializeFields( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
           }
           else if ( k == 3 )
           {
-            double D    = ( 1.0 + amp * sin( PI( ) * X1 ) );
-            double dddD = -( amp * PI( ) * PI( ) * PI( ) ) * cos( PI( ) * X1 );
+            Real D    = ( 1.0 + amp * sin( PI( ) * X1 ) );
+            Real dddD = -( amp * PI( ) * PI( ) * PI( ) ) * cos( PI( ) * X1 );
             uCF( iCF_Tau, iX, k ) =
                 ( -6.0 / ( D * D * D * D ) ) * dddD * Grid.Get_Widths( iX ) *
                 Grid.Get_Widths( iX ) * Grid.Get_Widths( iX );

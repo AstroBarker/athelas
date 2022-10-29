@@ -20,7 +20,7 @@
 #include "SlopeLimiter_Utilities.h"
 
 // Standard minmod function
-double minmod( double a, double b, double c )
+Real minmod( Real a, Real b, Real c )
 {
   if ( sgn( a ) == sgn( b ) && sgn( b ) == sgn( c ) )
   {
@@ -33,7 +33,7 @@ double minmod( double a, double b, double c )
 }
 
 // TVB minmod function
-double minmodB( double a, double b, double c, double dx, double M )
+Real minmodB( Real a, Real b, Real c, Real dx, Real M )
 {
   if ( std::abs( a ) < M * dx * dx )
   {
@@ -55,14 +55,14 @@ double minmodB( double a, double b, double c, double dx, double M )
  *  alpha: scaling coefficient for BJ limiter.
  *    alpha=1 is classical limiter, alpha=0 enforces constant solutions
  **/
-double BarthJespersen( double U_v_L, double U_v_R, double U_c_L, double U_c_T,
-                       double U_c_R, double alpha )
+Real BarthJespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T,
+                       Real U_c_R, Real alpha )
 {
   // Get U_min, U_max
-  double U_min_L = 10000000.0 * U_c_T;
-  double U_min_R = 10000000.0 * U_c_T;
-  double U_max_L = std::numeric_limits<double>::epsilon( ) * U_c_T * 0.00001;
-  double U_max_R = std::numeric_limits<double>::epsilon( ) * U_c_T * 0.00001;
+  Real U_min_L = 10000000.0 * U_c_T;
+  Real U_min_R = 10000000.0 * U_c_T;
+  Real U_max_L = std::numeric_limits<Real>::epsilon( ) * U_c_T * 0.00001;
+  Real U_max_R = std::numeric_limits<Real>::epsilon( ) * U_c_T * 0.00001;
 
   U_min_L = std::min( U_min_L, std::min( U_c_T, U_c_L ) );
   U_max_L = std::max( U_max_L, std::max( U_c_T, U_c_L ) );
@@ -70,8 +70,8 @@ double BarthJespersen( double U_v_L, double U_v_R, double U_c_L, double U_c_T,
   U_max_R = std::max( U_max_R, std::max( U_c_T, U_c_R ) );
 
   // loop of cell certices
-  double phi_L = 0.0;
-  double phi_R = 0.0;
+  Real phi_L = 0.0;
+  Real phi_R = 0.0;
 
   // left vertex
   if ( U_v_L - U_c_T + 1.0 > 1.0 )

@@ -39,21 +39,21 @@ int main( int argc, char* argv[] )
 
   const unsigned int nGuard = 1;
 
-  const double xL = +0.0;
-  const double xR = +1.0;
+  const Real xL = +0.0;
+  const Real xR = +1.0;
 
-  const double GAMMA_IDEAL = 1.4;
+  const Real GAMMA_IDEAL = 1.4;
 
-  double t           = 0.0;
-  double dt          = 0.0;
-  const double t_end = 0.2;
+  Real t           = 0.0;
+  Real dt          = 0.0;
+  const Real t_end = 0.2;
 
   bool Restart = false;
 
   bool Geometry  = false; /* false: Cartesian, true: Spherical */
   std::string BC = "Homogenous";
 
-  const double CFL = ComputeCFL( 0.35, order, nStages, tOrder );
+  const Real CFL = ComputeCFL( 0.35, order, nStages, tOrder );
 
   Kokkos::initialize( argc, argv );
   {
@@ -62,10 +62,10 @@ int main( int argc, char* argv[] )
     GridStructure Grid( nNodes, nX, nGuard, xL, xR, Geometry );
 
     // --- Create the data structures ---
-    Kokkos::View<double***> uCF( "uCF", 3, nX + 2 * nGuard, order );
-    Kokkos::View<double***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes );
+    Kokkos::View<Real***> uCF( "uCF", 3, nX + 2 * nGuard, order );
+    Kokkos::View<Real***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes );
 
-    Kokkos::View<double***> uAF( "uAF", 3, nX + 2 * nGuard, order );
+    Kokkos::View<Real***> uAF( "uAF", 3, nX + 2 * nGuard, order );
 
     if ( not Restart )
     {
@@ -85,9 +85,9 @@ int main( int argc, char* argv[] )
     TimeStepper SSPRK( nStages, tOrder, order, Grid, Geometry, BC );
 
     // --- Initialize Slope Limiter ---
-    const double alpha                       = 1.0;
-    const double SlopeLimiter_Threshold      = 0.0;
-    const double TCI_Threshold               = 0.1;
+    const Real alpha                       = 1.0;
+    const Real SlopeLimiter_Threshold      = 0.0;
+    const Real TCI_Threshold               = 0.1;
     const bool CharacteristicLimiting_Option = true;
     const bool TCI_Option                    = false;
 
@@ -141,7 +141,7 @@ int main( int argc, char* argv[] )
     }
 
     // --- Finalize timer ---
-    double time = timer.seconds( );
+    Real time = timer.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC_Fluid( uCF, Grid, order, BC );
     WriteState( uCF, uPF, uAF, Grid, S_Limiter, ProblemName, t, order, -1 );
@@ -171,10 +171,10 @@ int NumNodes( unsigned int order )
 /**
  * Compute the CFL timestep restriction.
  **/
-double ComputeCFL( double CFL, unsigned int order, unsigned int nStages,
+Real ComputeCFL( Real CFL, unsigned int order, unsigned int nStages,
                    unsigned int tOrder )
 {
-  double c = 1.0;
+  Real c = 1.0;
 
   if ( nStages == tOrder ) c = 1.0;
   if ( nStages != tOrder )

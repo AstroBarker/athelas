@@ -23,17 +23,17 @@
  * Parameters:
  *
  *   int m      : number of quadrature nodes
- *   double* aj : matrix diagonal    (output)
- *   double* bj : matrix subdiagonal (output)
- *   double z   : zero-th moment     (output)
+ *   Real* aj : matrix diagonal    (output)
+ *   Real* bj : matrix subdiagonal (output)
+ *   Real z   : zero-th moment     (output)
  */
-double Jacobi_Matrix( int m, double* aj, double* bj )
+Real Jacobi_Matrix( int m, Real* aj, Real* bj )
 {
 
-  double ab;
-  double zemu;
-  double abi;
-  double abj;
+  Real ab;
+  Real zemu;
+  Real abi;
+  Real abj;
 
   ab   = 0.0;
   zemu = 2.0 / ( ab + 1.0 );
@@ -55,12 +55,12 @@ double Jacobi_Matrix( int m, double* aj, double* bj )
 /**
  * Compute Legendre-Gauss Quadrature
  **/
-void LG_Quadrature( int m, double* nodes, double* weights )
+void LG_Quadrature( int m, Real* nodes, Real* weights )
 {
-  double* aj = new double[m];
-  double* bj = new double[m];
+  Real* aj = new Real[m];
+  Real* bj = new Real[m];
 
-  double zemu;
+  Real zemu;
 
   //  Get the Jacobi matrix and zero-th moment.
   zemu = Jacobi_Matrix( m, aj, bj );

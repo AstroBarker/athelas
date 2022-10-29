@@ -23,7 +23,7 @@
  **/
 void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
                                 unsigned int tOrder, unsigned int nStages,
-                                double CFL, double alpha, double TCI,
+                                Real CFL, Real alpha, Real TCI,
                                 bool Char_option, bool TCI_Option,
                                 std::string ProblemName )
 {
@@ -77,9 +77,9 @@ void PrintSimulationParameters( GridStructure& Grid, unsigned int pOrder,
 }
 
 // TODO: add Time
-void WriteState( Kokkos::View<double***> uCF, Kokkos::View<double***> uPF,
-                 Kokkos::View<double***> uAF, GridStructure& Grid,
-                 SlopeLimiter& SL, const std::string ProblemName, double time,
+void WriteState( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
+                 Kokkos::View<Real***> uAF, GridStructure& Grid,
+                 SlopeLimiter& SL, const std::string ProblemName, Real time,
                  unsigned int order, int i_write )
 {
 
@@ -201,7 +201,7 @@ void WriteBasis( ModalBasis& Basis, unsigned int ilo, unsigned int ihi,
   const H5std_string FILE_NAME( fn );
   const H5std_string DATASET_NAME( "Basis" );
 
-  double* data = new double[ihi * ( nNodes + 2 ) * order];
+  Real* data = new Real[ihi * ( nNodes + 2 ) * order];
   for ( unsigned int iX = ilo; iX <= ihi; iX++ )
     for ( unsigned int iN = 0; iN < nNodes + 2; iN++ )
       for ( unsigned int k = 0; k < order; k++ )
