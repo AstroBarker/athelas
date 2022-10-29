@@ -26,7 +26,7 @@ TimeStepper::TimeStepper( UInt nS, UInt tO, UInt pOrder,
                           std::string BCond )
     : mSize( Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ), nStages( nS ),
       tOrder( tO ), BC( BCond ), a_jk( "RK a_jk", nStages, nStages ),
-      b_jk( "RK b_jk", nStages, nStages ), SumVar_X( "SumVar_X", mSize + 1 ),
+      b_jk( "RK b_jk", nStages, nStages ),
       U_s( "U_s", nStages + 1, 3, mSize + 1, pOrder ),
       dU_s( "dU_s", nStages + 1, 3, mSize + 1, pOrder ),
       SumVar_U( "SumVar_U", 3, mSize + 1, pOrder ),
@@ -213,13 +213,6 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
   const UInt ihi   = Grid->Get_ihi( );
 
   unsigned short int i;
-  Kokkos::parallel_for(
-      "Timestepper 1",
-      Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                              { order, ihi + 2, 3 } ),
-      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
-        SumVar_U( iCF, iX, k ) = 0.0;
-      } );
 
   Kokkos::parallel_for(
       "Timestepper 2",
@@ -248,9 +241,6 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
           SumVar_U( iCF, iX, k ) = 0.0;
         } );
 
-    Kokkos::parallel_for(
-        ihi + 2, KOKKOS_LAMBDA( UInt iX ) { SumVar_X( iX ) = 0.0; } );
-
     // --- Inner update loop ---
 
     for ( UInt j = 0; j < iS; j++ )
@@ -275,9 +265,8 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
 
       Kokkos::parallel_for(
           ihi + 2, KOKKOS_LAMBDA( UInt iX ) {
-            SumVar_X( iX ) += a_jk( i, j ) * StageData( j, iX ) +
-                              dt * b_jk( i, j ) * Flux_Uj( iX );
-            StageData( iS, iX ) = SumVar_X( iX );
+            StageData( iS, iX ) += a_jk( i, j ) * StageData( j, iX ) +
+                                   dt * b_jk( i, j ) * Flux_Uj( iX );
           } );
     }
     // End inner loop

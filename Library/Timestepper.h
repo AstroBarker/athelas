@@ -42,8 +42,6 @@ class TimeStepper
   Kokkos::View<Real**> a_jk;
   Kokkos::View<Real**> b_jk;
 
-  Kokkos::View<Real*> SumVar_X;
-
   // Hold stage data
   Kokkos::View<Real****> U_s;
   Kokkos::View<Real****> dU_s;
