@@ -51,28 +51,6 @@ void ComputePrimitiveFromConserved( Kokkos::View<Real***> uCF,
     }
 }
 
-// Fluid vector.
-// ! Flag For Removal: Unused !
-Real Fluid( Real Tau, Real V, Real Em_T, int iCF )
-{
-  if ( iCF == 0 )
-  {
-    return Tau;
-  }
-  else if ( iCF == 1 )
-  {
-    return V;
-  }
-  else if ( iCF == 2 )
-  {
-    return Em_T;
-  }
-  else
-  { // Error case. Shouldn't ever trigger.
-    throw Error( " ! Please input a valid iCF! (0,1,2). " );
-    return -1; // just a formality.
-  }
-}
 
 /**
  * Return a component iCF of the flux vector.
