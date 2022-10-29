@@ -203,7 +203,7 @@ void TimeStepper::InitializeTimestepper( )
 /**
  * Update Solution with SSPRK methods
  **/
-void TimeStepper::UpdateFluid( myFuncType ComputeIncrement, const Real dt,
+void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
                                Kokkos::View<Real***> U, GridStructure *Grid,
                                ModalBasis *Basis,
                                SlopeLimiter *S_Limiter )

@@ -11,12 +11,12 @@
 
 #include "Abstractions.hpp"
 
-typedef void myFuncType( const Kokkos::View<Real***>, GridStructure*,
-                         ModalBasis*, Kokkos::View<Real***>,
-                         Kokkos::View<Real***>, Kokkos::View<Real**>,
-                         Kokkos::View<Real**>, Kokkos::View<Real**>,
-                         Kokkos::View<Real*>, Kokkos::View<Real*>,
-                         const std::string );
+typedef void (*UpdateFunc)( const Kokkos::View<Real***>, GridStructure*,
+                            ModalBasis*, Kokkos::View<Real***>,
+                            Kokkos::View<Real***>, Kokkos::View<Real**>,
+                            Kokkos::View<Real**>, Kokkos::View<Real**>,
+                            Kokkos::View<Real*>, Kokkos::View<Real*>,
+                            const std::string );
 
 class TimeStepper
 {
@@ -28,7 +28,7 @@ class TimeStepper
 
   void InitializeTimestepper( );
 
-  void UpdateFluid( myFuncType ComputeIncrement, const Real dt,
+  void UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
                     Kokkos::View<Real***> U, GridStructure *Grid,
                     ModalBasis *Basis, SlopeLimiter *S_Limiter );
 
