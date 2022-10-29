@@ -15,8 +15,8 @@
 #include "Constants.h"
 #include <math.h> /* atan */
 
-GridStructure::GridStructure( UInt nN, UInt nX, UInt nG,
-                              Real left, Real right, bool Geom )
+GridStructure::GridStructure( UInt nN, UInt nX, UInt nG, Real left, Real right,
+                              bool Geom )
     : nElements( nX ), nNodes( nN ), nGhost( nG ),
       mSize( nElements + 2 * nGhost ), xL( left ), xR( right ),
       Geometry( Geom ), Nodes( "Nodes", nNodes ), Weights( "Weights", nNodes ),
@@ -25,8 +25,8 @@ GridStructure::GridStructure( UInt nN, UInt nX, UInt nG,
       CenterOfMass( "Center of Mass", mSize ), Grid( "Grid", mSize, nNodes )
 {
   // TODO: Allow LG_Quadrature to take in vectors.
-  Real* tmp_nodes   = new Real[nNodes];
-  Real* tmp_weights = new Real[nNodes];
+  Real *tmp_nodes   = new Real[nNodes];
+  Real *tmp_weights = new Real[nNodes];
 
   for ( UInt iN = 0; iN < nNodes; iN++ )
   {
@@ -70,16 +70,10 @@ Real GridStructure::NodeCoordinate( UInt iC, UInt iN ) const
 }
 
 // Return cell center
-Real GridStructure::Get_Centers( UInt iC ) const
-{
-  return Centers( iC );
-}
+Real GridStructure::Get_Centers( UInt iC ) const { return Centers( iC ); }
 
 // Return cell width
-Real GridStructure::Get_Widths( UInt iC ) const
-{
-  return Widths( iC );
-}
+Real GridStructure::Get_Widths( UInt iC ) const { return Widths( iC ); }
 
 // Return cell mass
 Real GridStructure::Get_Mass( UInt iX ) const { return Mass( iX ); }
@@ -94,10 +88,7 @@ Real GridStructure::Get_CenterOfMass( UInt iX ) const
 Real GridStructure::Get_Nodes( UInt nN ) const { return Nodes( nN ); }
 
 // Return given quadrature weight
-Real GridStructure::Get_Weights( UInt nN ) const
-{
-  return Weights( nN );
-}
+Real GridStructure::Get_Weights( UInt nN ) const { return Weights( nN ); }
 
 // Acessor for xL
 Real GridStructure::Get_xL( ) const { return xL; }
@@ -119,10 +110,7 @@ Real GridStructure::Get_SqrtGm( Real X ) const
 }
 
 // Accessor for X_L
-Real GridStructure::Get_LeftInterface( UInt iX ) const
-{
-  return X_L( iX );
-}
+Real GridStructure::Get_LeftInterface( UInt iX ) const { return X_L( iX ); }
 
 // Return nNodes
 int GridStructure::Get_nNodes( ) const { return nNodes; }
@@ -188,7 +176,7 @@ void GridStructure::CreateGrid( )
 /**
  * Compute cell masses
  **/
-void GridStructure::ComputeMass( Kokkos::View<Real***> uPF )
+void GridStructure::ComputeMass( Kokkos::View<Real ***> uPF )
 {
   const UInt nNodes = Get_nNodes( );
   const UInt ilo    = Get_ilo( );
@@ -220,7 +208,7 @@ void GridStructure::ComputeMass( Kokkos::View<Real***> uPF )
 /**
  * Compute cell centers of masses reference coordinates
  **/
-void GridStructure::ComputeCenterOfMass( Kokkos::View<Real***> uPF )
+void GridStructure::ComputeCenterOfMass( Kokkos::View<Real ***> uPF )
 {
   const UInt nNodes = Get_nNodes( );
   const UInt ilo    = Get_ilo( );
@@ -252,7 +240,7 @@ void GridStructure::ComputeCenterOfMass( Kokkos::View<Real***> uPF )
 /**
  * Update grid coordinates using interface velocities.
  **/
-void GridStructure::UpdateGrid( Kokkos::View<Real*> SData )
+void GridStructure::UpdateGrid( Kokkos::View<Real *> SData )
 {
 
   const UInt ilo = Get_ilo( );
@@ -277,12 +265,6 @@ void GridStructure::UpdateGrid( Kokkos::View<Real*> SData )
 }
 
 // Access by (element, node)
-Real& GridStructure::operator( )( UInt i, UInt j )
-{
-  return Grid( i, j );
-}
+Real &GridStructure::operator( )( UInt i, UInt j ) { return Grid( i, j ); }
 
-Real GridStructure::operator( )( UInt i, UInt j ) const
-{
-  return Grid( i, j );
-}
+Real GridStructure::operator( )( UInt i, UInt j ) const { return Grid( i, j ); }

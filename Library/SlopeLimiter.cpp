@@ -53,9 +53,8 @@ SlopeLimiter::SlopeLimiter( GridStructure *Grid, UInt pOrder,
  * Apply the Troubled Cell Indicator of Fu & Shu (2017)
  * to flag cells for limiting
  **/
-void SlopeLimiter::DetectTroubledCells( Kokkos::View<Real***> U,
-                                        GridStructure *Grid,
-                                        ModalBasis *Basis )
+void SlopeLimiter::DetectTroubledCells( Kokkos::View<Real ***> U,
+                                        GridStructure *Grid, ModalBasis *Basis )
 {
   const UInt ilo = Grid->Get_ilo( );
   const UInt ihi = Grid->Get_ihi( );
@@ -80,8 +79,8 @@ void SlopeLimiter::DetectTroubledCells( Kokkos::View<Real***> U,
           CellAverage( U, Grid, Basis, iCF, iX + 1, -1 ); // from right
       Real cell_avg_R_T =
           CellAverage( U, Grid, Basis, iCF, iX - 1, +1 ); // from left
-      Real cell_avg_L = U( iCF, iX - 1, 0 );            // native left
-      Real cell_avg_R = U( iCF, iX + 1, 0 );            // native right
+      Real cell_avg_L = U( iCF, iX - 1, 0 );              // native left
+      Real cell_avg_R = U( iCF, iX + 1, 0 );              // native right
 
       result += ( std::abs( cell_avg - cell_avg_L_T ) +
                   std::abs( cell_avg - cell_avg_R_T ) );
@@ -97,9 +96,8 @@ void SlopeLimiter::DetectTroubledCells( Kokkos::View<Real***> U,
 /**
  * Apply the slope limiter. We use a vertex based, heirarchical slope limiter.
  **/
-void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
-                                      GridStructure *Grid,
-                                      ModalBasis *Basis )
+void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real ***> U,
+                                      GridStructure *Grid, ModalBasis *Basis )
 {
 
   // Do not apply for first order method. No slopes!
@@ -108,9 +106,9 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
     return;
   }
 
-  const UInt& ilo    = Grid->Get_ilo( );
-  const UInt& ihi    = Grid->Get_ihi( );
-  const UInt& nNodes = Grid->Get_nNodes( );
+  const UInt &ilo    = Grid->Get_ilo( );
+  const UInt &ihi    = Grid->Get_ihi( );
+  const UInt &nNodes = Grid->Get_nNodes( );
 
   // --- Apply troubled cell indicator ---
   // Exit if we don't need to limit slopes
@@ -267,8 +265,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real***> U,
 /**
  * Limit the quadratic term.
  **/
-void SlopeLimiter::LimitQuadratic( Kokkos::View<Real***> U,
-                                   ModalBasis *Basis,
+void SlopeLimiter::LimitQuadratic( Kokkos::View<Real ***> U, ModalBasis *Basis,
                                    Kokkos::View<Real[3]> d2w, UInt iX,
                                    UInt nNodes )
 {
@@ -342,10 +339,9 @@ void SlopeLimiter::LimitQuadratic( Kokkos::View<Real***> U,
  *  -1 : Extrapolate polynomial from iX+1 into iX
  *  +1 : Extrapolate polynomial from iX-1 into iX
  **/
-Real SlopeLimiter::CellAverage( Kokkos::View<Real***> U,
-                                  GridStructure *Grid,
-                                  ModalBasis *Basis, UInt iCF,
-                                  UInt iX, int extrapolate )
+Real SlopeLimiter::CellAverage( Kokkos::View<Real ***> U, GridStructure *Grid,
+                                ModalBasis *Basis, UInt iCF, UInt iX,
+                                int extrapolate )
 {
   const UInt nNodes = Grid->Get_nNodes( );
 
@@ -354,7 +350,7 @@ Real SlopeLimiter::CellAverage( Kokkos::View<Real***> U,
   Real X;
 
   // Used to set loop bounds
-  int mult           = 1;
+  int mult   = 1;
   UInt end   = nNodes;
   UInt start = 0;
 
@@ -375,11 +371,11 @@ Real SlopeLimiter::CellAverage( Kokkos::View<Real***> U,
   for ( UInt iN = start; iN < end; iN++ )
   {
     X = Grid->NodeCoordinate( iX + extrapolate,
-                             iN ); // Need the metric on target cell
+                              iN ); // Need the metric on target cell
     mass += Grid->Get_Weights( iN - start ) * Grid->Get_SqrtGm( X ) *
-            Grid->Get_Widths( iX +
-                             extrapolate ); // / Basis.BasisEval( U,
-                                            // iX+extrapolate, 0, iN+1, false );
+            Grid->Get_Widths(
+                iX + extrapolate ); // / Basis.BasisEval( U,
+                                    // iX+extrapolate, 0, iN+1, false );
     avg += Grid->Get_Weights( iN - start ) *
            Basis->BasisEval( U, iX + extrapolate, iCF, iN + 1, false ) *
            Grid->Get_SqrtGm( X ) * Grid->Get_Widths( iX + extrapolate );
@@ -389,7 +385,4 @@ Real SlopeLimiter::CellAverage( Kokkos::View<Real***> U,
 }
 
 // LimitedCell accessor
-int SlopeLimiter::Get_Limited( UInt iX ) const
-{
-  return LimitedCell( iX );
-}
+int SlopeLimiter::Get_Limited( UInt iX ) const { return LimitedCell( iX ); }

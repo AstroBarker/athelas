@@ -26,8 +26,7 @@
 class GridStructure
 {
  public:
-  GridStructure( UInt nN, UInt nX, UInt nG, Real left,
-                 Real right, bool Geom );
+  GridStructure( UInt nN, UInt nX, UInt nG, Real left, Real right, bool Geom );
   Real NodeCoordinate( UInt iC, UInt iN ) const;
   Real Get_Centers( UInt iC ) const;
   Real Get_Widths( UInt iC ) const;
@@ -49,12 +48,12 @@ class GridStructure
   int Get_nElements( ) const;
 
   void CreateGrid( );
-  void UpdateGrid( Kokkos::View<Real*> SData );
-  void ComputeMass( Kokkos::View<Real***> uPF );
-  void ComputeCenterOfMass( Kokkos::View<Real***> uPF );
-  void ComputeCenterOfMass_Radius( Kokkos::View<Real***> uPF );
+  void UpdateGrid( Kokkos::View<Real *> SData );
+  void ComputeMass( Kokkos::View<Real ***> uPF );
+  void ComputeCenterOfMass( Kokkos::View<Real ***> uPF );
+  void ComputeCenterOfMass_Radius( Kokkos::View<Real ***> uPF );
 
-  Real& operator( )( UInt i, UInt j );
+  Real &operator( )( UInt i, UInt j );
   Real operator( )( UInt i, UInt j ) const;
 
  private:
@@ -68,17 +67,17 @@ class GridStructure
 
   bool Geometry;
 
-  Kokkos::View<Real*> Nodes;
-  Kokkos::View<Real*> Weights;
+  Kokkos::View<Real *> Nodes;
+  Kokkos::View<Real *> Weights;
 
-  Kokkos::View<Real*> Centers;
-  Kokkos::View<Real*> Widths;
-  Kokkos::View<Real*> X_L; // left interface coordinate
+  Kokkos::View<Real *> Centers;
+  Kokkos::View<Real *> Widths;
+  Kokkos::View<Real *> X_L; // left interface coordinate
 
-  Kokkos::View<Real*> Mass;
-  Kokkos::View<Real*> CenterOfMass;
+  Kokkos::View<Real *> Mass;
+  Kokkos::View<Real *> CenterOfMass;
 
-  Kokkos::View<Real**> Grid;
+  Kokkos::View<Real **> Grid;
 };
 
 #endif

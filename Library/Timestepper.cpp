@@ -21,9 +21,8 @@
  * The constructor creates the necessary data structures for time evolution.
  * Lots of structures used in Fluid Discretization live here.
  **/
-TimeStepper::TimeStepper( UInt nS, UInt tO, UInt pOrder,
-                          GridStructure *Grid, bool Geometry,
-                          std::string BCond )
+TimeStepper::TimeStepper( UInt nS, UInt tO, UInt pOrder, GridStructure *Grid,
+                          bool Geometry, std::string BCond )
     : mSize( Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ), nStages( nS ),
       tOrder( tO ), BC( BCond ), a_jk( "RK a_jk", nStages, nStages ),
       b_jk( "RK b_jk", nStages, nStages ),
@@ -32,8 +31,8 @@ TimeStepper::TimeStepper( UInt nS, UInt tO, UInt pOrder,
       SumVar_U( "SumVar_U", 3, mSize + 1, pOrder ),
       Grid_s( nStages + 1,
               GridStructure( Grid->Get_nNodes( ), Grid->Get_nElements( ),
-                             Grid->Get_Guard( ), Grid->Get_xL( ), Grid->Get_xR( ),
-                             Geometry ) ),
+                             Grid->Get_Guard( ), Grid->Get_xL( ),
+                             Grid->Get_xR( ), Geometry ) ),
       StageData( "StageData", nStages + 1, mSize + 1 ),
       Flux_q( "Flux_q", 3, mSize + 1, Grid->Get_nNodes( ) ),
       dFlux_num( "Numerical Flux", 3, mSize + 1 ),
@@ -204,9 +203,8 @@ void TimeStepper::InitializeTimestepper( )
  * Update Solution with SSPRK methods
  **/
 void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
-                               Kokkos::View<Real***> U, GridStructure *Grid,
-                               ModalBasis *Basis,
-                               SlopeLimiter *S_Limiter )
+                               Kokkos::View<Real ***> U, GridStructure *Grid,
+                               ModalBasis *Basis, SlopeLimiter *S_Limiter )
 {
 
   const UInt order = Basis->Get_Order( );
@@ -250,8 +248,8 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
       auto dUsj =
           Kokkos::subview( dU_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto Flux_Uj = Kokkos::subview( Flux_U, j, Kokkos::ALL );
-      ComputeIncrement( Usj, &Grid_s[j], Basis, dUsj, Flux_q, dFlux_num, uCF_F_L,
-                        uCF_F_R, Flux_Uj, Flux_P, BC );
+      ComputeIncrement( Usj, &Grid_s[j], Basis, dUsj, Flux_q, dFlux_num,
+                        uCF_F_L, uCF_F_R, Flux_Uj, Flux_P, BC );
 
       // inner sum
       Kokkos::parallel_for(

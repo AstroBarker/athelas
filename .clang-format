@@ -16,5 +16,5 @@ SpacesInParentheses: true
 AlignConsecutiveAssignments: true
 
 BreakBeforeBraces: Allman
-PointerAlignment: Left
+PointerAlignment: Right
 SortIncludes: Never

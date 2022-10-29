@@ -55,8 +55,8 @@ Real minmodB( Real a, Real b, Real c, Real dx, Real M )
  *  alpha: scaling coefficient for BJ limiter.
  *    alpha=1 is classical limiter, alpha=0 enforces constant solutions
  **/
-Real BarthJespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T,
-                       Real U_c_R, Real alpha )
+Real BarthJespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T, Real U_c_R,
+                     Real alpha )
 {
   // Get U_min, U_max
   Real U_min_L = 10000000.0 * U_c_T;

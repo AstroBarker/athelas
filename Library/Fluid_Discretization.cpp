@@ -21,16 +21,16 @@
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence(
-    const Kokkos::View<Real***> U, GridStructure *Grid,
-    ModalBasis *Basis, Kokkos::View<Real***> dU,
-    Kokkos::View<Real***> Flux_q, Kokkos::View<Real**> dFlux_num,
-    Kokkos::View<Real**> uCF_F_L, Kokkos::View<Real**> uCF_F_R,
-    Kokkos::View<Real*> Flux_U, Kokkos::View<Real*> Flux_P )
+    const Kokkos::View<Real ***> U, GridStructure *Grid, ModalBasis *Basis,
+    Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
+    Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
+    Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
+    Kokkos::View<Real *> Flux_P )
 {
-  const UInt& nNodes = Grid->Get_nNodes( );
-  const UInt& order  = Basis->Get_Order( );
-  const UInt& ilo    = Grid->Get_ilo( );
-  const UInt& ihi    = Grid->Get_ihi( );
+  const auto &nNodes = Grid->Get_nNodes( );
+  const auto &order  = Basis->Get_Order( );
+  const auto &ilo    = Grid->Get_ilo( );
+  const auto &ihi    = Grid->Get_ihi( );
 
   // Real rho_L, rho_R, P_L, P_R, Cs_L, Cs_R, lam_L, lam_R, P;
 
@@ -53,20 +53,20 @@ void ComputeIncrement_Fluid_Divergence(
         auto uCF_L = Kokkos::subview( uCF_F_L, Kokkos::ALL, iX );
         auto uCF_R = Kokkos::subview( uCF_F_R, Kokkos::ALL, iX );
 
-        Real rho_L = 1.0 / uCF_L( 0 );
-        Real rho_R = 1.0 / uCF_R( 0 );
+        const Real rho_L = 1.0 / uCF_L( 0 );
+        const Real rho_R = 1.0 / uCF_R( 0 );
 
-        Real P_L = ComputePressureFromConserved_IDEAL( uCF_L( 0 ), uCF_L( 1 ),
-                                                         uCF_L( 2 ) );
-        Real Cs_L = ComputeSoundSpeedFromConserved_IDEAL(
+        const Real P_L = ComputePressureFromConserved_IDEAL(
             uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ) );
-        Real lam_L = Cs_L * rho_L;
+        const Real Cs_L = ComputeSoundSpeedFromConserved_IDEAL(
+            uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ) );
+        const Real lam_L = Cs_L * rho_L;
 
-        Real P_R = ComputePressureFromConserved_IDEAL( uCF_R( 0 ), uCF_R( 1 ),
-                                                         uCF_R( 2 ) );
-        Real Cs_R = ComputeSoundSpeedFromConserved_IDEAL(
+        const Real P_R = ComputePressureFromConserved_IDEAL(
             uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ) );
-        Real lam_R = Cs_R * rho_R;
+        const Real Cs_R = ComputeSoundSpeedFromConserved_IDEAL(
+            uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ) );
+        const Real lam_R = Cs_R * rho_R;
 
         // --- Numerical Fluxes ---
 
@@ -88,60 +88,60 @@ void ComputeIncrement_Fluid_Divergence(
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                               { order, ihi + 1, 3 } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
-        Real Poly_L   = Basis->Get_Phi( iX, 0, k );
-        Real Poly_R   = Basis->Get_Phi( iX, nNodes + 1, k );
-        Real X_L      = Grid->Get_LeftInterface( iX );
-        Real X_R      = Grid->Get_LeftInterface( iX + 1 );
-        Real SqrtGm_L = Grid->Get_SqrtGm( X_L );
-        Real SqrtGm_R = Grid->Get_SqrtGm( X_R );
+        const auto Poly_L   = Basis->Get_Phi( iX, 0, k );
+        const auto Poly_R   = Basis->Get_Phi( iX, nNodes + 1, k );
+        const auto X_L      = Grid->Get_LeftInterface( iX );
+        const auto X_R      = Grid->Get_LeftInterface( iX + 1 );
+        const auto SqrtGm_L = Grid->Get_SqrtGm( X_L );
+        const auto SqrtGm_R = Grid->Get_SqrtGm( X_R );
 
         dU( iCF, iX, k ) -= ( +dFlux_num( iCF, iX + 1 ) * Poly_R * SqrtGm_R -
                               dFlux_num( iCF, iX + 0 ) * Poly_L * SqrtGm_L );
       } );
 
-  if ( order > 1 ) 
+  if ( order > 1 )
   {
-  // --- Compute Flux_q everywhere for the Volume term ---
-  Kokkos::parallel_for(
-      "Flux_q",
-      Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { nNodes, ihi + 1, 3 } ),
-      KOKKOS_LAMBDA( const int iN, const int iX, const int iCF ) {
-        Real P = ComputePressureFromConserved_IDEAL(
-            Basis->BasisEval( U, iX, 0, iN + 1, false ),
-            Basis->BasisEval( U, iX, 1, iN + 1, false ),
-            Basis->BasisEval( U, iX, 2, iN + 1, false ) );
-        Flux_q( iCF, iX, iN ) =
-            Flux_Fluid( Basis->BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
-      } );
+    // --- Compute Flux_q everywhere for the Volume term ---
+    Kokkos::parallel_for(
+        "Flux_q",
+        Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
+                                                { nNodes, ihi + 1, 3 } ),
+        KOKKOS_LAMBDA( const int iN, const int iX, const int iCF ) {
+          const auto P = ComputePressureFromConserved_IDEAL(
+              Basis->BasisEval( U, iX, 0, iN + 1, false ),
+              Basis->BasisEval( U, iX, 1, iN + 1, false ),
+              Basis->BasisEval( U, iX, 2, iN + 1, false ) );
+          Flux_q( iCF, iX, iN ) =
+              Flux_Fluid( Basis->BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
+        } );
 
-  // --- Volume Term ---
-  // TODO: Make Flux_q a function?
-  Kokkos::parallel_for(
-      "Volume Term",
-      Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { order, ihi + 1, 3 } ),
-      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
-        Real local_sum = 0.0;
-        for ( UInt iN = 0; iN < nNodes; iN++ )
-        {
-          Real X = Grid->NodeCoordinate( iX, iN );
-          local_sum += Grid->Get_Weights( iN ) * Flux_q( iCF, iX, iN ) *
-                       Basis->Get_dPhi( iX, iN + 1, k ) * Grid->Get_SqrtGm( X );
-        }
+    // --- Volume Term ---
+    // TODO: Make Flux_q a function?
+    Kokkos::parallel_for(
+        "Volume Term",
+        Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
+                                                { order, ihi + 1, 3 } ),
+        KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+          Real local_sum = 0.0;
+          for ( UInt iN = 0; iN < nNodes; iN++ )
+          {
+            auto X = Grid->NodeCoordinate( iX, iN );
+            local_sum += Grid->Get_Weights( iN ) * Flux_q( iCF, iX, iN ) *
+                         Basis->Get_dPhi( iX, iN + 1, k ) *
+                         Grid->Get_SqrtGm( X );
+          }
 
-        dU( iCF, iX, k ) += local_sum;
-      } );
+          dU( iCF, iX, k ) += local_sum;
+        } );
   }
 }
 
 /**
  * Compute fluid increment from geometry in spherical symmetry
  **/
-void ComputeIncrement_Fluid_Geometry( Kokkos::View<Real***> U,
-                                      GridStructure *Grid,
-                                      ModalBasis *Basis,
-                                      Kokkos::View<Real***> dU )
+void ComputeIncrement_Fluid_Geometry( Kokkos::View<Real ***> U,
+                                      GridStructure *Grid, ModalBasis *Basis,
+                                      Kokkos::View<Real ***> dU )
 {
   const UInt nNodes = Grid->Get_nNodes( );
   const UInt order  = Basis->Get_Order( );
@@ -187,17 +187,16 @@ void ComputeIncrement_Fluid_Geometry( Kokkos::View<Real***> U,
  * BC               : (string) boundary condition type
  **/
 void Compute_Increment_Explicit(
-    const Kokkos::View<Real***> U, GridStructure *Grid,
-    ModalBasis *Basis, Kokkos::View<Real***> dU,
-    Kokkos::View<Real***> Flux_q, Kokkos::View<Real**> dFlux_num,
-    Kokkos::View<Real**> uCF_F_L, Kokkos::View<Real**> uCF_F_R,
-    Kokkos::View<Real*> Flux_U, Kokkos::View<Real*> Flux_P,
-    const std::string BC )
+    const Kokkos::View<Real ***> U, GridStructure *Grid, ModalBasis *Basis,
+    Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
+    Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
+    Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
+    Kokkos::View<Real *> Flux_P, const std::string BC )
 {
 
-  const UInt& order = Basis->Get_Order( );
-  const UInt& ilo   = Grid->Get_ilo( );
-  const UInt& ihi   = Grid->Get_ihi( );
+  const auto &order = Basis->Get_Order( );
+  const auto &ilo   = Grid->Get_ilo( );
+  const auto &ihi   = Grid->Get_ihi( );
 
   // --- Apply BC ---
   ApplyBC_Fluid( U, Grid, order, BC );

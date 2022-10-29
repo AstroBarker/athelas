@@ -21,9 +21,8 @@
  * Write to standard output some initialization info
  * for the current simulation.
  **/
-void PrintSimulationParameters( GridStructure *Grid, UInt pOrder,
-                                UInt tOrder, UInt nStages,
-                                Real CFL, Real alpha, Real TCI,
+void PrintSimulationParameters( GridStructure *Grid, UInt pOrder, UInt tOrder,
+                                UInt nStages, Real CFL, Real alpha, Real TCI,
                                 bool Char_option, bool TCI_Option,
                                 std::string ProblemName )
 {
@@ -77,8 +76,8 @@ void PrintSimulationParameters( GridStructure *Grid, UInt pOrder,
 }
 
 // TODO: add Time
-void WriteState( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
-                 Kokkos::View<Real***> uAF, GridStructure *Grid,
+void WriteState( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
+                 Kokkos::View<Real ***> uAF, GridStructure *Grid,
                  SlopeLimiter *SL, const std::string ProblemName, Real time,
                  UInt order, int i_write )
 {
@@ -98,7 +97,7 @@ void WriteState( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
   fn.append( ".h5" );
 
   // conversion to make HDF5 happy
-  const char* fn2 = fn.c_str( );
+  const char *fn2 = fn.c_str( );
 
   const UInt nX  = Grid->Get_nElements( );
   const UInt ilo = Grid->Get_ilo( );
@@ -188,20 +187,19 @@ void WriteState( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
 /**
  * Write Modal Basis coefficients and mass matrix
  **/
-void WriteBasis( ModalBasis *Basis, UInt ilo, UInt ihi,
-                 UInt nNodes, UInt order,
+void WriteBasis( ModalBasis *Basis, UInt ilo, UInt ihi, UInt nNodes, UInt order,
                  std::string ProblemName )
 {
   std::string fn = "athelas_basis_";
   fn.append( ProblemName );
   fn.append( ".h5" );
 
-  const char* fn2 = fn.c_str( );
+  const char *fn2 = fn.c_str( );
 
   const H5std_string FILE_NAME( fn );
   const H5std_string DATASET_NAME( "Basis" );
 
-  Real* data = new Real[ihi * ( nNodes + 2 ) * order];
+  Real *data = new Real[ihi * ( nNodes + 2 ) * order];
   for ( UInt iX = ilo; iX <= ihi; iX++ )
     for ( UInt iN = 0; iN < nNodes + 2; iN++ )
       for ( UInt k = 0; k < order; k++ )

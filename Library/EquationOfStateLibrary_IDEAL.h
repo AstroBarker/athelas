@@ -11,10 +11,8 @@ Real ComputePressureFromConserved_IDEAL( const Real Tau, const Real V,
 Real ComputeSoundSpeedFromConserved_IDEAL( const Real Tau, const Real V,
                                            const Real Em_T,
                                            const Real GAMMA = 1.4 );
-Real ComputeInternalEnergy( const Kokkos::View<Real***> U,
-                            ModalBasis *Basis, const UInt iX,
-                            const UInt iN );
-Real ComputeInternalEnergy( const Kokkos::View<Real***> U,
-                            const UInt iX );
+Real ComputeInternalEnergy( const Kokkos::View<Real ***> U, ModalBasis *Basis,
+                            const UInt iX, const UInt iN );
+Real ComputeInternalEnergy( const Kokkos::View<Real ***> U, const UInt iX );
 
 #endif

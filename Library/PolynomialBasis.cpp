@@ -27,9 +27,8 @@
  * Constructor creates necessary matrices and bases, etc.
  * This has to be called after the problem is initialized.
  **/
-ModalBasis::ModalBasis( Kokkos::View<Real***> uPF, GridStructure *Grid,
-                        UInt pOrder, UInt nN,
-                        UInt nElements, UInt nGuard )
+ModalBasis::ModalBasis( Kokkos::View<Real ***> uPF, GridStructure *Grid,
+                        UInt pOrder, UInt nN, UInt nElements, UInt nGuard )
     : nX( nElements ), order( pOrder ), nNodes( nN ),
       mSize( ( nN ) * ( nN + 2 ) * ( nElements + 2 * nGuard ) ),
       MassMatrix( "MassMatrix", nElements + 2 * nGuard, pOrder ),
@@ -114,10 +113,10 @@ Real ModalBasis::dTaylor( UInt order, Real eta, Real eta_c )
  * <f,g> = \sum_q \rho_q f_Q g_q j^0 w_q
  * TODO: Make InnerProduct functions cleaner????
  **/
-Real ModalBasis::InnerProduct( const UInt m, const UInt n,
-                                 const UInt iX, const Real eta_c,
-                                 const Kokkos::View<Real***> uPF,
-                                 GridStructure *Grid )
+Real ModalBasis::InnerProduct( const UInt m, const UInt n, const UInt iX,
+                               const Real eta_c,
+                               const Kokkos::View<Real ***> uPF,
+                               GridStructure *Grid )
 {
   Real result = 0.0;
   Real eta_q  = 0.0;
@@ -141,10 +140,9 @@ Real ModalBasis::InnerProduct( const UInt m, const UInt n,
  * Computes < Phi_m, Phi_n >
  * <f,g> = \sum_q \rho_q f_q g_q j^0 w_q
  **/
-Real ModalBasis::InnerProduct( const UInt n, const UInt iX,
-                                 const Real eta_c,
-                                 const Kokkos::View<Real***> uPF,
-                                 GridStructure *Grid )
+Real ModalBasis::InnerProduct( const UInt n, const UInt iX, const Real eta_c,
+                               const Kokkos::View<Real ***> uPF,
+                               GridStructure *Grid )
 {
   Real result = 0.0;
   Real X      = 0.0;
@@ -162,12 +160,11 @@ Real ModalBasis::InnerProduct( const UInt n, const UInt iX,
 
 // Gram-Schmidt orthogonalization to Taylor basis
 // TODO: OrthoTaylor: Clean up derivative options?
-Real ModalBasis::OrthoTaylor( const UInt order, const UInt iX,
-                                const UInt i_eta, const Real eta,
-                                const Real eta_c,
-                                const Kokkos::View<Real***> uPF,
-                                GridStructure *Grid,
-                                bool const derivative_option )
+Real ModalBasis::OrthoTaylor( const UInt order, const UInt iX, const UInt i_eta,
+                              const Real eta, const Real eta_c,
+                              const Kokkos::View<Real ***> uPF,
+                              GridStructure *Grid,
+                              bool const derivative_option )
 {
 
   Real result      = 0.0;
@@ -211,7 +208,7 @@ Real ModalBasis::OrthoTaylor( const UInt order, const UInt iX,
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
  **/
-void ModalBasis::InitializeTaylorBasis( const Kokkos::View<Real***> uPF,
+void ModalBasis::InitializeTaylorBasis( const Kokkos::View<Real ***> uPF,
                                         GridStructure *Grid )
 {
   const UInt n_eta = 3 * nNodes + 2;
@@ -286,7 +283,7 @@ void ModalBasis::InitializeTaylorBasis( const Kokkos::View<Real***> uPF,
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
  **/
-void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real***> uPF,
+void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real ***> uPF,
                                           GridStructure *Grid )
 {
   const UInt n_eta = 3 * nNodes + 2;
@@ -355,13 +352,13 @@ void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real***> uPF,
  * The following checks orthogonality of basis functions on each cell.
  * Returns error if orthogonality is not met.
  **/
-void ModalBasis::CheckOrthogonality( const Kokkos::View<Real***> uPF,
+void ModalBasis::CheckOrthogonality( const Kokkos::View<Real ***> uPF,
                                      GridStructure *Grid )
 {
 
   const UInt ilo = Grid->Get_ilo( );
   const UInt ihi = Grid->Get_ihi( );
-  Real X               = 0.0;
+  Real X         = 0.0;
 
   Real result = 0.0;
   for ( UInt iX = ilo; iX <= ihi; iX++ )
@@ -381,12 +378,14 @@ void ModalBasis::CheckOrthogonality( const Kokkos::View<Real***> uPF,
 
         if ( k1 == k2 && result == 0.0 )
         {
-          throw Error( " ! Basis not orthogonal: Diagonal term equal to zero.\n" );
+          throw Error(
+              " ! Basis not orthogonal: Diagonal term equal to zero.\n" );
         }
         if ( k1 != k2 && std::abs( result ) > 1e-10 )
         {
           std::printf( "%d %d %.3e \n", k1, k2, result );
-          throw Error( " ! Basis not orthogonal: Off diagonal term non-zero.\n" );
+          throw Error(
+              " ! Basis not orthogonal: Off diagonal term non-zero.\n" );
         }
       }
 }
@@ -398,7 +397,7 @@ void ModalBasis::CheckOrthogonality( const Kokkos::View<Real***> uPF,
  * ? If so, how do I expand this ?
  * ? I would need to compute and store more GL nodes, weights ?
  **/
-void ModalBasis::ComputeMassMatrix( const Kokkos::View<Real***> uPF,
+void ModalBasis::ComputeMassMatrix( const Kokkos::View<Real ***> uPF,
                                     GridStructure *Grid )
 {
   const UInt ilo    = Grid->Get_ilo( );
@@ -429,9 +428,9 @@ void ModalBasis::ComputeMassMatrix( const Kokkos::View<Real***> uPF,
  * Evaluate (modal) basis on element iX for quantity iCF.
  * If DerivativeOption is true, evaluate the derivative.
  **/
-Real ModalBasis::BasisEval( Kokkos::View<Real***> U, const UInt iX,
-                              const UInt iCF, const UInt i_eta,
-                              const bool DerivativeOption ) const
+Real ModalBasis::BasisEval( Kokkos::View<Real ***> U, const UInt iX,
+                            const UInt iCF, const UInt i_eta,
+                            const bool DerivativeOption ) const
 {
   Real result = 0.0;
   if ( DerivativeOption )
@@ -452,15 +451,13 @@ Real ModalBasis::BasisEval( Kokkos::View<Real***> U, const UInt iX,
 }
 
 // Accessor for Phi
-Real ModalBasis::Get_Phi( UInt iX, UInt i_eta,
-                            UInt k ) const
+Real ModalBasis::Get_Phi( UInt iX, UInt i_eta, UInt k ) const
 {
   return Phi( iX, i_eta, k );
 }
 
 // Accessor for dPhi
-Real ModalBasis::Get_dPhi( UInt iX, UInt i_eta,
-                             UInt k ) const
+Real ModalBasis::Get_dPhi( UInt iX, UInt i_eta, UInt k ) const
 {
   return dPhi( iX, i_eta, k );
 }

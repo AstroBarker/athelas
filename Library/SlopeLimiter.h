@@ -24,25 +24,21 @@ class SlopeLimiter
 {
 
  public:
-  SlopeLimiter( GridStructure *Grid, UInt pOrder,
-                Real SlopeLimiterThreshold, Real alpha_val,
-                bool CharacteristicLimitingOption, bool TCIOption,
-                Real TCI_Threshold_val );
+  SlopeLimiter( GridStructure *Grid, UInt pOrder, Real SlopeLimiterThreshold,
+                Real alpha_val, bool CharacteristicLimitingOption,
+                bool TCIOption, Real TCI_Threshold_val );
 
-  void ApplySlopeLimiter( Kokkos::View<Real***> U, GridStructure *Grid,
+  void ApplySlopeLimiter( Kokkos::View<Real ***> U, GridStructure *Grid,
                           ModalBasis *Basis );
 
-  void LimitQuadratic( Kokkos::View<Real***> U, ModalBasis *Basis,
-                       Kokkos::View<Real[3]> d2w, UInt iX,
-                       UInt nNodes );
+  void LimitQuadratic( Kokkos::View<Real ***> U, ModalBasis *Basis,
+                       Kokkos::View<Real[3]> d2w, UInt iX, UInt nNodes );
 
-  void DetectTroubledCells( Kokkos::View<Real***> U,
-                            GridStructure *Grid,
+  void DetectTroubledCells( Kokkos::View<Real ***> U, GridStructure *Grid,
                             ModalBasis *Basis );
 
-  Real CellAverage( Kokkos::View<Real***> U, GridStructure *Grid,
-                      ModalBasis *Basis, UInt iCF,
-                      UInt iX, int extrapolate );
+  Real CellAverage( Kokkos::View<Real ***> U, GridStructure *Grid,
+                    ModalBasis *Basis, UInt iCF, UInt iX, int extrapolate );
 
   int Get_Limited( UInt iX ) const;
 
@@ -99,8 +95,8 @@ class SlopeLimiter
   Kokkos::View<Real[3]> Mult2;
   Kokkos::View<Real[3]> Mult3;
 
-  Kokkos::View<Real**> D;
-  Kokkos::View<int*> LimitedCell;
+  Kokkos::View<Real **> D;
+  Kokkos::View<int *> LimitedCell;
 };
 
 #endif

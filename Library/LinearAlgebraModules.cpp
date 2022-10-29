@@ -17,7 +17,7 @@
 #include "lapacke.h"
 
 // Fill identity matrix
-void IdentityMatrix( Kokkos::View<Real**> Mat, UInt n )
+void IdentityMatrix( Kokkos::View<Real **> Mat, UInt n )
 {
   for ( UInt i = 0; i < n; i++ )
     for ( UInt j = 0; j < n; j++ )
@@ -43,7 +43,7 @@ void IdentityMatrix( Kokkos::View<Real**> Mat, UInt n )
  *   r: subdiagonal array (length n)
  *   array: product (Q*)z (in/output)
  **/
-void Tri_Sym_Diag( int n, Real* d, Real* e, Real* array )
+void Tri_Sym_Diag( int n, Real *d, Real *e, Real *array )
 {
 
   // Parameters for LaPack
@@ -61,14 +61,15 @@ void Tri_Sym_Diag( int n, Real* d, Real* e, Real* array )
     work_dim = 2 * n - 2;
   }
 
-  Real* ev   = new Real[n * n];
-  Real* work = new Real[work_dim];
+  Real *ev   = new Real[n * n];
+  Real *work = new Real[work_dim];
 
   info = LAPACKE_dstev( LAPACK_COL_MAJOR, job, m, d, e, ev, ldz );
 
   if ( info != 0 )
   {
-    throw Error( " ! Issue occured in initializing quadrature in Tri_Sym_Diag." );
+    throw Error(
+        " ! Issue occured in initializing quadrature in Tri_Sym_Diag." );
   }
 
   // Matrix multiply ev' * array. Only Array[0] is nonzero.
@@ -85,11 +86,11 @@ void Tri_Sym_Diag( int n, Real* d, Real* e, Real* array )
 /**
  * Use LAPACKE to invert a matrix M using LU factorization.
  **/
-void InvertMatrix( Real* M, UInt n )
+void InvertMatrix( Real *M, UInt n )
 {
   lapack_int info1, info2;
 
-  int* IPIV = new int[n];
+  int *IPIV = new int[n];
 
   info1 = LAPACKE_dgetrf( LAPACK_COL_MAJOR, n, n, M, n, IPIV );
   info2 = LAPACKE_dgetri( LAPACK_COL_MAJOR, n, M, n, IPIV );
@@ -105,8 +106,8 @@ void InvertMatrix( Real* M, UInt n )
 /**
  * Matrix vector multiplication
  **/
-void MatMul( Real alpha, Kokkos::View<Real[3][3]> A,
-             Kokkos::View<Real[3]> x, Real beta, Kokkos::View<Real[3]> y )
+void MatMul( Real alpha, Kokkos::View<Real[3][3]> A, Kokkos::View<Real[3]> x,
+             Real beta, Kokkos::View<Real[3]> y )
 {
   // Calculate A*x=y
   for ( int i = 0; i < 3; i++ )

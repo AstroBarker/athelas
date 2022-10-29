@@ -3,7 +3,7 @@
 
 #include "Abstractions.hpp"
 
-Real Jacobi_Matrix( int m, Real* aj, Real* bj );
-void LG_Quadrature( int m, Real* nodes, Real* weights );
+Real Jacobi_Matrix( int m, Real *aj, Real *bj );
+void LG_Quadrature( int m, Real *nodes, Real *weights );
 
 #endif

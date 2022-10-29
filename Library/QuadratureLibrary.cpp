@@ -27,7 +27,7 @@
  *   Real* bj : matrix subdiagonal (output)
  *   Real z   : zero-th moment     (output)
  */
-Real Jacobi_Matrix( int m, Real* aj, Real* bj )
+Real Jacobi_Matrix( int m, Real *aj, Real *bj )
 {
 
   Real ab;
@@ -55,10 +55,10 @@ Real Jacobi_Matrix( int m, Real* aj, Real* bj )
 /**
  * Compute Legendre-Gauss Quadrature
  **/
-void LG_Quadrature( int m, Real* nodes, Real* weights )
+void LG_Quadrature( int m, Real *nodes, Real *weights )
 {
-  Real* aj = new Real[m];
-  Real* bj = new Real[m];
+  Real *aj = new Real[m];
+  Real *bj = new Real[m];
 
   Real zemu;
 

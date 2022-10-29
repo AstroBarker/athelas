@@ -15,7 +15,7 @@ class Error : public std::runtime_error
 {
 
  public:
-  Error( const std::string& message ) : std::runtime_error( message ) {}
+  Error( const std::string &message ) : std::runtime_error( message ) {}
 };
 
 #endif

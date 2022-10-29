@@ -18,8 +18,7 @@ Real ComputePressureFromPrimitive_IDEAL( const Real Ev, const Real GAMMA )
 }
 
 Real ComputePressureFromConserved_IDEAL( const Real Tau, const Real V,
-                                         const Real Em_T,
-                                         const Real GAMMA )
+                                         const Real Em_T, const Real GAMMA )
 {
   Real Em = Em_T - 0.5 * V * V;
   Real Ev = Em / Tau;
@@ -29,8 +28,7 @@ Real ComputePressureFromConserved_IDEAL( const Real Tau, const Real V,
 }
 
 Real ComputeSoundSpeedFromConserved_IDEAL( const Real Tau, const Real V,
-                                           const Real Em_T,
-                                           const Real GAMMA )
+                                           const Real Em_T, const Real GAMMA )
 {
   Real Em = Em_T - 0.5 * V * V;
 
@@ -40,9 +38,8 @@ Real ComputeSoundSpeedFromConserved_IDEAL( const Real Tau, const Real V,
 }
 
 // nodal specific internal energy
-Real ComputeInternalEnergy( const Kokkos::View<Real***> U,
-                            ModalBasis *Basis, const UInt iX,
-                            const UInt iN )
+Real ComputeInternalEnergy( const Kokkos::View<Real ***> U, ModalBasis *Basis,
+                            const UInt iX, const UInt iN )
 {
   Real Vel = Basis->BasisEval( U, iX, 1, iN, false );
   Real EmT = Basis->BasisEval( U, iX, 2, iN, false );
@@ -51,8 +48,7 @@ Real ComputeInternalEnergy( const Kokkos::View<Real***> U,
 }
 
 // cell average specific internal energy
-Real ComputeInternalEnergy( const Kokkos::View<Real***> U,
-                            const UInt iX )
+Real ComputeInternalEnergy( const Kokkos::View<Real ***> U, const UInt iX )
 {
   return U( 2, iX, 0 ) - 0.5 * U( 1, iX, 0 ) * U( 1, iX, 0 );
 }

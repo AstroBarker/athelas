@@ -11,25 +11,25 @@
 
 #include "Abstractions.hpp"
 
-typedef void (*UpdateFunc)( const Kokkos::View<Real***>, GridStructure*,
-                            ModalBasis*, Kokkos::View<Real***>,
-                            Kokkos::View<Real***>, Kokkos::View<Real**>,
-                            Kokkos::View<Real**>, Kokkos::View<Real**>,
-                            Kokkos::View<Real*>, Kokkos::View<Real*>,
-                            const std::string );
+typedef void ( *UpdateFunc )( const Kokkos::View<Real ***>, GridStructure *,
+                              ModalBasis *, Kokkos::View<Real ***>,
+                              Kokkos::View<Real ***>, Kokkos::View<Real **>,
+                              Kokkos::View<Real **>, Kokkos::View<Real **>,
+                              Kokkos::View<Real *>, Kokkos::View<Real *>,
+                              const std::string );
 
 class TimeStepper
 {
 
  public:
   // TODO: Is it possible to initialize Grid_s from Grid directly?
-  TimeStepper( UInt nS, UInt tO, UInt pO,
-               GridStructure *Grid, bool Geometry, std::string BCond );
+  TimeStepper( UInt nS, UInt tO, UInt pO, GridStructure *Grid, bool Geometry,
+               std::string BCond );
 
   void InitializeTimestepper( );
 
   void UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
-                    Kokkos::View<Real***> U, GridStructure *Grid,
+                    Kokkos::View<Real ***> U, GridStructure *Grid,
                     ModalBasis *Basis, SlopeLimiter *S_Limiter );
 
  private:
@@ -39,27 +39,27 @@ class TimeStepper
   const std::string BC;
 
   // SSP coefficients
-  Kokkos::View<Real**> a_jk;
-  Kokkos::View<Real**> b_jk;
+  Kokkos::View<Real **> a_jk;
+  Kokkos::View<Real **> b_jk;
 
   // Hold stage data
-  Kokkos::View<Real****> U_s;
-  Kokkos::View<Real****> dU_s;
-  Kokkos::View<Real***> SumVar_U;
+  Kokkos::View<Real ****> U_s;
+  Kokkos::View<Real ****> dU_s;
+  Kokkos::View<Real ***> SumVar_U;
   std::vector<GridStructure> Grid_s;
 
   // StageData Holds cell left interface positions
-  Kokkos::View<Real**> StageData;
+  Kokkos::View<Real **> StageData;
 
   // Variables to pass to update step
-  Kokkos::View<Real***> Flux_q;
+  Kokkos::View<Real ***> Flux_q;
 
-  Kokkos::View<Real**> dFlux_num;
-  Kokkos::View<Real**> uCF_F_L;
-  Kokkos::View<Real**> uCF_F_R;
+  Kokkos::View<Real **> dFlux_num;
+  Kokkos::View<Real **> uCF_F_L;
+  Kokkos::View<Real **> uCF_F_R;
 
-  Kokkos::View<Real**> Flux_U;
-  Kokkos::View<Real*> Flux_P;
+  Kokkos::View<Real **> Flux_U;
+  Kokkos::View<Real *> Flux_P;
 };
 
 #endif

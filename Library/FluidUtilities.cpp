@@ -22,8 +22,8 @@
  * from conserved quantities. Primitive quantities are stored at Gauss-Legendre
  * nodes.
  **/
-void ComputePrimitiveFromConserved( Kokkos::View<Real***> uCF,
-                                    Kokkos::View<Real***> uPF,
+void ComputePrimitiveFromConserved( Kokkos::View<Real ***> uCF,
+                                    Kokkos::View<Real ***> uPF,
                                     ModalBasis *Basis, GridStructure *Grid )
 {
   const UInt nNodes = Grid->Get_nNodes( );
@@ -50,7 +50,6 @@ void ComputePrimitiveFromConserved( Kokkos::View<Real***> uCF,
       uPF( 2, iX, iN ) = EmT / Tau;
     }
 }
-
 
 /**
  * Return a component iCF of the flux vector.
@@ -82,7 +81,7 @@ Real Flux_Fluid( const Real V, const Real P, const UInt iCF )
  **/
 void NumericalFlux_Gudonov( const Real vL, const Real vR, const Real pL,
                             const Real pR, const Real zL, const Real zR,
-                            Real& Flux_U, Real& Flux_P )
+                            Real &Flux_U, Real &Flux_P )
 {
   Flux_U = ( pL - pR + zR * vR + zL * vL ) / ( zR + zL );
   Flux_P = ( zR * pL + zL * pR + zL * zR * ( vL - vR ) ) / ( zR + zL );
@@ -91,13 +90,12 @@ void NumericalFlux_Gudonov( const Real vL, const Real vR, const Real pL,
 /**
  * Gudonov style numerical flux. Constucts v* and p* states.
  **/
-void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL,
-                         Real cR, Real rhoL, Real rhoR, Real& Flux_U,
-                         Real& Flux_P )
+void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
+                         Real rhoL, Real rhoR, Real &Flux_U, Real &Flux_P )
 {
   Real aL = vL - cL; // left wave speed estimate
   Real aR = vR + cR; // right wave speed estimate
-  Flux_U    = ( rhoR * vR * ( aR - vR ) - rhoL * vL * ( aL - vL ) + pL - pR ) /
+  Flux_U  = ( rhoR * vR * ( aR - vR ) - rhoL * vL * ( aL - vL ) + pL - pR ) /
            ( rhoR * ( aR - vR ) - rhoL * ( aL - vL ) );
   Flux_P = rhoL * ( vL - aL ) * ( vL - Flux_U ) + pL;
 }
@@ -107,20 +105,20 @@ void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL,
 /**
  * Compute the fluid timestep.
  **/
-Real ComputeTimestep_Fluid( const Kokkos::View<Real***> U,
+Real ComputeTimestep_Fluid( const Kokkos::View<Real ***> U,
                             const GridStructure *Grid, const Real CFL )
 {
 
   const Real MIN_DT = 0.000000005;
   const Real MAX_DT = 1.0;
 
-  const UInt& ilo = Grid->Get_ilo( );
-  const UInt& ihi = Grid->Get_ihi( );
+  const UInt &ilo = Grid->Get_ilo( );
+  const UInt &ihi = Grid->Get_ihi( );
 
   Real dt = 0.0;
   Kokkos::parallel_reduce(
       "Compute Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
-      KOKKOS_LAMBDA( const int& iX, Real& lmin ) {
+      KOKKOS_LAMBDA( const int &iX, Real &lmin ) {
         // --- Compute Cell Averages ---
         Real tau_x  = U( 0, iX, 0 );
         Real vel_x  = U( 1, iX, 0 );
@@ -128,8 +126,7 @@ Real ComputeTimestep_Fluid( const Kokkos::View<Real***> U,
 
         Real dr = Grid->Get_Widths( iX );
 
-        Real Cs =
-            ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
+        Real Cs = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
         Real eigval = Cs;
 
         Real dt_old = std::abs( dr ) / std::abs( eigval );
