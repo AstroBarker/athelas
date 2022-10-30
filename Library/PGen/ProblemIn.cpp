@@ -65,7 +65,6 @@ ProblemIn::ProblemIn( std::string fn )
   CFL         = std::atof( cfl );
 
   nNodes    = std::atoi( nN );
-  std::printf("ERBSERBWERTB\n");
   nElements = std::atoi( nX );
   nGhost    = std::atoi( nG );
   pOrder    = std::atoi( pO );
