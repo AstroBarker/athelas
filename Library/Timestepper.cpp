@@ -21,18 +21,15 @@
  * The constructor creates the necessary data structures for time evolution.
  * Lots of structures used in Fluid Discretization live here.
  **/
-TimeStepper::TimeStepper( UInt nS, UInt tO, UInt pOrder, GridStructure *Grid,
-                          bool Geometry, std::string BCond )
-    : mSize( Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ), nStages( nS ),
-      tOrder( tO ), BC( BCond ), a_jk( "RK a_jk", nStages, nStages ),
+TimeStepper::TimeStepper( ProblemIn *pin, GridStructure *Grid )
+    : mSize( Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ), nStages( pin->nStages ),
+      tOrder( pin->tOrder ), BC( pin->BC ), a_jk( "RK a_jk", nStages, nStages ),
       b_jk( "RK b_jk", nStages, nStages ),
-      U_s( "U_s", nStages + 1, 3, mSize + 1, pOrder ),
-      dU_s( "dU_s", nStages + 1, 3, mSize + 1, pOrder ),
-      SumVar_U( "SumVar_U", 3, mSize + 1, pOrder ),
+      U_s( "U_s", nStages + 1, 3, mSize + 1, pin->pOrder ),
+      dU_s( "dU_s", nStages + 1, 3, mSize + 1, pin->pOrder ),
+      SumVar_U( "SumVar_U", 3, mSize + 1,pin-> pOrder ),
       Grid_s( nStages + 1,
-              GridStructure( Grid->Get_nNodes( ), Grid->Get_nElements( ),
-                             Grid->Get_Guard( ), Grid->Get_xL( ),
-                             Grid->Get_xR( ), Geometry ) ),
+              GridStructure( pin ) ), 
       StageData( "StageData", nStages + 1, mSize + 1 ),
       Flux_q( "Flux_q", 3, mSize + 1, Grid->Get_nNodes( ) ),
       dFlux_num( "Numerical Flux", 3, mSize + 1 ),
@@ -207,8 +204,8 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
                                ModalBasis *Basis, SlopeLimiter *S_Limiter )
 {
 
-  const UInt order = Basis->Get_Order( );
-  const UInt ihi   = Grid->Get_ihi( );
+  const auto &order = Basis->Get_Order( );
+  const auto &ihi   = Grid->Get_ihi( );
 
   unsigned short int i;
 

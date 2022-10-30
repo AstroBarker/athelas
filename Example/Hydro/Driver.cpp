@@ -12,6 +12,7 @@
 
 #include "Kokkos_Core.hpp"
 
+#include "Abstractions.hpp"
 #include "Grid.h"
 #include "BoundaryConditionsLibrary.h"
 #include "SlopeLimiter.h"
@@ -21,51 +22,52 @@
 #include "FluidUtilities.h"
 #include "Timestepper.h"
 #include "Error.h"
+#include "ProblemIn.hpp"
 #include "Driver.h"
 
-int main( int argc, char* argv[] )
+int main( int argc, char *argv[] )
 {
-  // --- Timer ---
-  Kokkos::Timer timer;
+  // Check cmd line args
+  if ( argc < 2 ){ throw Error("No input file passed! Do: ./main IN_FILE"); }
+
+  ProblemIn pin( argv[1] );
+
 
   /* --- Problem Parameters --- */
-  const std::string ProblemName = "Sod";
+  const std::string ProblemName = pin.ProblemName;
 
-  const unsigned int nX      = 128;
-  const unsigned int order   = 2;
-  const unsigned int nNodes  = NumNodes( order ) + 0;
-  const unsigned int nStages = 2;
-  const unsigned int tOrder  = 2;
+  const UInt &nX      = pin.nElements;
+  const UInt &order   = pin.pOrder;
+  const UInt &nNodes  = pin.nNodes;
+  const UInt &nStages = pin.nStages;
+  const UInt &tOrder  = pin.tOrder;
 
-  const unsigned int nGuard = 1;
-
-  const Real xL = +0.0;
-  const Real xR = +1.0;
+  const UInt &nGuard = pin.nGhost;
 
   const Real GAMMA_IDEAL = 1.4;
 
   Real t           = 0.0;
   Real dt          = 0.0;
-  const Real t_end = 0.2;
+  const Real t_end = pin.t_end;
 
-  bool Restart = false;
+  bool Restart = pin.Restart;
 
-  bool Geometry  = false; /* false: Cartesian, true: Spherical */
-  std::string BC = "Homogenous";
+  const std::string BC = pin.BC;
 
-  const Real CFL = ComputeCFL( 0.35, order, nStages, tOrder );
+  const Real CFL = ComputeCFL( pin.CFL, order, nStages, tOrder );
 
+  // TODO: Some of this should be out of Kokkos::initiaization.
   Kokkos::initialize( argc, argv );
   {
 
     // --- Create the Grid object ---
-    GridStructure Grid( nNodes, nX, nGuard, xL, xR, Geometry );
+    GridStructure Grid( &pin );
 
     // --- Create the data structures ---
-    Kokkos::View<Real***> uCF( "uCF", 3, nX + 2 * nGuard, order );
-    Kokkos::View<Real***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes );
+    Kokkos::View<Real ***> uCF( "uCF", 3, nX + 2 * nGuard, order );
+    Kokkos::View<Real ***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes );
 
-    Kokkos::View<Real***> uAF( "uAF", 3, nX + 2 * nGuard, order );
+    Kokkos::View<Real ***> uAF( "uAF", 3, nX + 2 * nGuard, order );
 
     if ( not Restart )
     {
@@ -82,12 +84,12 @@ int main( int argc, char* argv[] )
     WriteBasis( &Basis, nGuard, Grid.Get_ihi( ), nNodes, order, ProblemName );
 
     // --- Initialize timestepper ---
-    TimeStepper SSPRK( nStages, tOrder, order, &Grid, Geometry, BC );
+    TimeStepper SSPRK( &pin, &Grid );
 
     // --- Initialize Slope Limiter ---
-    const Real alpha                       = 1.0;
-    const Real SlopeLimiter_Threshold      = 0.0;
-    const Real TCI_Threshold               = 0.1;
+    const Real alpha                         = 1.0;
+    const Real SlopeLimiter_Threshold        = 0.0;
+    const Real TCI_Threshold                 = 0.1;
     const bool CharacteristicLimiting_Option = true;
     const bool TCI_Option                    = false;
 
@@ -103,11 +105,14 @@ int main( int argc, char* argv[] )
                                TCI_Threshold, CharacteristicLimiting_Option,
                                TCI_Option, ProblemName );
 
+    // --- Timer ---
+    Kokkos::Timer timer;
+
     // --- Evolution loop ---
-    unsigned int iStep   = 0;
-    unsigned int i_print = 100;
-    unsigned int i_write = -1;
-    unsigned int i_out   = 1;
+    UInt iStep   = 0;
+    UInt i_print = 100;
+    UInt i_write = -1;
+    UInt i_out   = 1;
     std::cout << " ~ Step\tt\tdt" << std::endl;
     while ( t < t_end && iStep >= 0 )
     {
@@ -156,7 +161,7 @@ int main( int argc, char* argv[] )
  * at least order^2.
  * ! Broken for nNodes > order !
  **/
-int NumNodes( unsigned int order )
+int NumNodes( UInt order )
 {
   if ( order <= 4 )
   {
@@ -171,8 +176,8 @@ int NumNodes( unsigned int order )
 /**
  * Compute the CFL timestep restriction.
  **/
-Real ComputeCFL( Real CFL, unsigned int order, unsigned int nStages,
-                   unsigned int tOrder )
+Real ComputeCFL( Real CFL, UInt order, UInt nStages,
+                 UInt tOrder )
 {
   Real c = 1.0;
 

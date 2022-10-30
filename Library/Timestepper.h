@@ -10,6 +10,7 @@
  **/
 
 #include "Abstractions.hpp"
+#include "ProblemIn.hpp"
 
 typedef void ( *UpdateFunc )( const Kokkos::View<Real ***>, GridStructure *,
                               ModalBasis *, Kokkos::View<Real ***>,
@@ -23,8 +24,7 @@ class TimeStepper
 
  public:
   // TODO: Is it possible to initialize Grid_s from Grid directly?
-  TimeStepper( UInt nS, UInt tO, UInt pO, GridStructure *Grid, bool Geometry,
-               std::string BCond );
+  TimeStepper( ProblemIn *pin, GridStructure *Grid );
 
   void InitializeTimestepper( );
 

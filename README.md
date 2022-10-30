@@ -14,9 +14,12 @@ For now, it includes an ideal gas equation of state.
 Future work will implement gravity and multigroup two moment radiation.
 
 # Kokkos
-We use `Kokkos` for parallelism. 
+We use [Kokkos](https://github.com/kokkos) for shared memory parallelism. 
 Currently, most significant data structures use `Kokkos::Views` and loops are parallelised with `Kokkos`.
 More work to port other parts of the code.
+
+# SimpleIni
+We use [SimpleIni](https://github.com/brofield/simpleini) for parsing input files in the for parsing input files in the `.ini` format.
 
 # Installation
 `athelas` uses submodules to include `Kokkos` as a dependency. 

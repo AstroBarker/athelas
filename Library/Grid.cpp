@@ -15,14 +15,15 @@
 #include "Constants.h"
 #include <math.h> /* atan */
 
-GridStructure::GridStructure( UInt nN, UInt nX, UInt nG, Real left, Real right,
-                              bool Geom )
-    : nElements( nX ), nNodes( nN ), nGhost( nG ),
-      mSize( nElements + 2 * nGhost ), xL( left ), xR( right ),
-      Geometry( Geom ), Nodes( "Nodes", nNodes ), Weights( "Weights", nNodes ),
-      Centers( "Cetners", mSize ), Widths( "Widths", mSize ),
-      X_L( "Left Interface", mSize ), Mass( "Cell Mass", mSize ),
-      CenterOfMass( "Center of Mass", mSize ), Grid( "Grid", mSize, nNodes )
+GridStructure::GridStructure( ProblemIn *pin ) 
+    : nElements( pin->nElements ), nNodes( pin->nNodes ), 
+      nGhost( pin->nGhost ), mSize( nElements + 2 * nGhost ), 
+      xL( pin->xL ), xR( pin->xR ),
+      Geometry( pin->Geometry ), Nodes( "Nodes", pin->nNodes ), 
+      Weights( "Weights", pin->nNodes ), Centers( "Cetners", mSize ), 
+      Widths( "Widths", mSize ), X_L( "Left Interface", mSize ), 
+      Mass( "Cell Mass", mSize ), CenterOfMass( "Center of Mass", mSize ), 
+      Grid( "Grid", mSize, nNodes )
 {
   // TODO: Allow LG_Quadrature to take in vectors.
   Real *tmp_nodes   = new Real[nNodes];

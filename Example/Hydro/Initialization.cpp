@@ -20,7 +20,7 @@
  * TODO: For now I initialize constant on each cell. Is there a better way?
  * TODO: iNodeX and order separation
  **/
-void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
+void InitializeFields( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
                        GridStructure *Grid, const unsigned int pOrder,
                        const Real GAMMA_IDEAL, const std::string ProblemName )
 {
@@ -394,7 +394,7 @@ void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
 
           if ( k == 0 )
           {
-            Real D              = ( 1.0 + amp * sin( PI( ) * X1 ) );
+            Real D                = ( 1.0 + amp * sin( PI( ) * X1 ) );
             uCF( iCF_Tau, iX, 0 ) = 1.0 / D;
             uCF( iCF_V, iX, 0 )   = 0.0;
             uCF( iCF_E, iX, 0 )   = ( D * D * D / 2.0 ) * uCF( iCF_Tau, iX, 0 );

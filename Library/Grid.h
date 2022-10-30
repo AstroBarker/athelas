@@ -21,12 +21,13 @@
 
 #include "Abstractions.hpp"
 #include "Error.h"
+#include "ProblemIn.hpp"
 #include "QuadratureLibrary.h"
 
 class GridStructure
 {
  public:
-  GridStructure( UInt nN, UInt nX, UInt nG, Real left, Real right, bool Geom );
+  GridStructure( ProblemIn *pin );
   Real NodeCoordinate( UInt iC, UInt iN ) const;
   Real Get_Centers( UInt iC ) const;
   Real Get_Widths( UInt iC ) const;

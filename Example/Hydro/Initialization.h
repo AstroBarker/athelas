@@ -3,8 +3,7 @@
 
 #include "Abstractions.hpp"
 
-void InitializeFields( Kokkos::View<Real***> uCF, Kokkos::View<Real***> uPF,
+void InitializeFields( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
                        GridStructure *Grid, const unsigned int pOrder,
-                       const Real GAMMA_IDEAL,
-                       const std::string ProblemName );
+                       const Real GAMMA_IDEAL, const std::string ProblemName );
 #endif

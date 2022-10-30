@@ -6,5 +6,5 @@
 int NumNodes( unsigned int order );
 
 Real ComputeCFL( Real CFL, unsigned int order, unsigned int nStages,
-                   unsigned int tOrder );
+                 unsigned int tOrder );
 #endif

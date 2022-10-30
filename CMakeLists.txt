@@ -74,6 +74,7 @@ else()
 endif()
 
 set(HYDRO_DIR "${PROJECT_SOURCE_DIR}/Example/Hydro")
+set(INI_DIR "${PROJECT_SOURCE_DIR}/External/simpleini")
 message(STATUS "HYDRO_DIR = ${HYDRO_DIR}")
 include_directories(HYDRO_DIR)
 include_directories(Library)
@@ -86,6 +87,7 @@ include_directories(athelas PUBLIC
 set( ATHELAS_SOURCES 
   "${HYDRO_DIR}/Initialization.cpp" 
   "Library/Utilities.cpp"
+  "Library/ProblemIn.cpp"
   "Library/BoundaryConditionsLibrary.cpp"
   "Library/CharacteristicDecomposition.cpp"
   "Library/EquationOfStateLibrary_IDEAL.cpp"
@@ -156,6 +158,7 @@ if (NOT TARGET Kokkos::kokkos)
   endif()
 endif()
 
+
 # HDF5
 find_package ( HDF5 REQUIRED COMPONENTS CXX HL )
 message(STATUS "HDF5_LIBRARIES = ${HDF5_CXX_LIBRARIES}")
@@ -181,6 +184,9 @@ else()
     target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
 endif()
 include_directories(${LAPACK_INCLUDE_DIRS})
+
+# SimpleIni
+include_directories("External/simpleini")
 
 # --- main ---
 

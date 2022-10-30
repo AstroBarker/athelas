@@ -75,7 +75,6 @@ void LimitInternalEnergy( Kokkos::View<Real ***> U, ModalBasis *Basis )
           {
             // TODO: Backtracing may be working okay...
             temp = Backtrace( U, Basis, iX, iN );
-            std::printf( "%f\n", temp );
             // TODO: This is hacked and Does Not Really Work
             // temp = Bisection( U, Basis, iX, iN ) / 2.0;
           }

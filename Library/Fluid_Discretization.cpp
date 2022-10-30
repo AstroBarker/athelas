@@ -88,12 +88,12 @@ void ComputeIncrement_Fluid_Divergence(
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                               { order, ihi + 1, 3 } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
-        const auto Poly_L   = Basis->Get_Phi( iX, 0, k );
-        const auto Poly_R   = Basis->Get_Phi( iX, nNodes + 1, k );
-        const auto X_L      = Grid->Get_LeftInterface( iX );
-        const auto X_R      = Grid->Get_LeftInterface( iX + 1 );
-        const auto SqrtGm_L = Grid->Get_SqrtGm( X_L );
-        const auto SqrtGm_R = Grid->Get_SqrtGm( X_R );
+        const auto &Poly_L   = Basis->Get_Phi( iX, 0, k );
+        const auto &Poly_R   = Basis->Get_Phi( iX, nNodes + 1, k );
+        const auto &X_L      = Grid->Get_LeftInterface( iX );
+        const auto &X_R      = Grid->Get_LeftInterface( iX + 1 );
+        const auto &SqrtGm_L = Grid->Get_SqrtGm( X_L );
+        const auto &SqrtGm_R = Grid->Get_SqrtGm( X_R );
 
         dU( iCF, iX, k ) -= ( +dFlux_num( iCF, iX + 1 ) * Poly_R * SqrtGm_R -
                               dFlux_num( iCF, iX + 0 ) * Poly_L * SqrtGm_L );
