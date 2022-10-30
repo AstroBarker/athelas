@@ -45,6 +45,11 @@ class ProblemIn
   geometry::Geometry Geometry;
   bool Restart;
 
+  Real alpha;
+  Real SL_Threshold;
+  bool TCI_Option;
+  Real TCI_Threshold;
+  bool Characteristic;
 };
 
 #endif

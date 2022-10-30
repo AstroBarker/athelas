@@ -36,6 +36,11 @@ ProblemIn::ProblemIn( std::string fn )
   const char* x2;
   const char* bc;
   const char* cfl;
+  const char* al;
+  const char* slt;
+  const char* tci_opt;
+  const char* tci_val;
+  const char* characteristic;
 
   pn = ini.GetValue("Problem", "problem");
   rest = ini.GetValue("Problem", "restart");
@@ -54,6 +59,12 @@ ProblemIn::ProblemIn( std::string fn )
   tO = ini.GetValue("Time", "tOrder");
   nS = ini.GetValue("Time", "nStages");
 
+  al = ini.GetValue("Limiters", "alpha");
+  slt = ini.GetValue("Limiters", "threshold");
+  tci_opt = ini.GetValue("Limiters", "tci_opt");
+  tci_val = ini.GetValue("Limiters", "tci_val");
+  characteristic = ini.GetValue("Limiters", "characteristic");
+
   ProblemName = pn;
   BC          = bc;
   Restart     = (strcmp(rest, "true") == 0) ? true : false;
@@ -69,4 +80,10 @@ ProblemIn::ProblemIn( std::string fn )
   pOrder    = std::atoi( pO );
   tOrder    = std::atoi( tO );
   nStages   = std::atoi( nS );
+
+  alpha = std::atof( al );
+  SL_Threshold = std::atof( slt );
+  TCI_Option = (strcmp(tci_opt, "true") == 0) ? true : false;
+  TCI_Threshold = std::atof( tci_val );
+  Characteristic = (strcmp(characteristic, "true") == 0 ) ? true : false;
 }

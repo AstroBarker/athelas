@@ -56,18 +56,24 @@ int main( int argc, char *argv[] )
 
   const Real CFL = ComputeCFL( pin.CFL, order, nStages, tOrder );
 
-  // TODO: Some of this should be out of Kokkos::initiaization.
+  // --- Initialize Slope Limiter ---
+  const Real &alpha                         = pin.alpha;
+  const Real &SlopeLimiter_Threshold        = pin.SL_Threshold;
+  const Real &TCI_Threshold                 = pin.TCI_Threshold;
+  const bool &CharacteristicLimiting_Option = pin.Characteristic;
+  const bool &TCI_Option                    = pin.TCI_Option;
+
   Kokkos::initialize( argc, argv );
   {
 
     // --- Create the Grid object ---
-    GridStructure Grid( &pin );
+   GridStructure Grid( &pin );
 
-    // --- Create the data structures ---
-    Kokkos::View<Real ***> uCF( "uCF", 3, nX + 2 * nGuard, order );
-    Kokkos::View<Real ***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes );
+   // --- Create the data structures ---
+   Kokkos::View<Real ***> uCF( "uCF", 3, nX + 2 * nGuard, order );
+   Kokkos::View<Real ***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes );
 
-    Kokkos::View<Real ***> uAF( "uAF", 3, nX + 2 * nGuard, order );
+   Kokkos::View<Real ***> uAF( "uAF", 3, nX + 2 * nGuard, order );
 
     if ( not Restart )
     {
@@ -86,12 +92,6 @@ int main( int argc, char *argv[] )
     // --- Initialize timestepper ---
     TimeStepper SSPRK( &pin, &Grid );
 
-    // --- Initialize Slope Limiter ---
-    const Real alpha                         = 1.0;
-    const Real SlopeLimiter_Threshold        = 0.0;
-    const Real TCI_Threshold                 = 0.1;
-    const bool CharacteristicLimiting_Option = true;
-    const bool TCI_Option                    = false;
 
     SlopeLimiter S_Limiter( &Grid, nNodes, SlopeLimiter_Threshold, alpha,
                             CharacteristicLimiting_Option, TCI_Option,
