@@ -64,6 +64,15 @@ void TimeStepper::InitializeTimestepper( )
       using 1-3 stages for first-thrid order and 5 stages for second\n \
       through fourth order.\n === \n" );
   }
+  if ( ( tOrder == 4 && nStages != 5 ) )
+  {
+    throw Error( "\n \
+      ! Issue in setting SSPRK coefficients.\n \
+      Please enter an appropriate SSPRK temporal order and nStages\n \
+      combination. We support first through fourth order timesteppers\n \
+      using 1-3 stages for first-thrid order and 5 stages for second\n \
+      through fourth order.\n === \n" );
+  }
 
   // Init to zero
   for ( UInt i = 0; i < nStages; i++ )
