@@ -78,6 +78,18 @@ set(INI_DIR "${PROJECT_SOURCE_DIR}/External/simpleini")
 message(STATUS "HYDRO_DIR = ${HYDRO_DIR}")
 include_directories(HYDRO_DIR)
 include_directories(Library)
+include_directories("Library/Geometry")
+include_directories("Library/Quadrature")
+include_directories("Library/Utils")
+include_directories("Library/Limiters")
+include_directories("Library/Basis")
+include_directories("Library/Fluid")
+include_directories("Library/PGen")
+include_directories("Library/LinAlg")
+include_directories("Library/EoS")
+include_directories("Library/BC")
+include_directories("Library/IO")
+include_directories("Library/Timestepper")
 
 include_directories(athelas PUBLIC
   "${PROJECT_BINARY_DIR}"
@@ -86,22 +98,22 @@ include_directories(athelas PUBLIC
 # --- Source Files ---
 set( ATHELAS_SOURCES 
   "${HYDRO_DIR}/Initialization.cpp" 
-  "Library/Utilities.cpp"
-  "Library/ProblemIn.cpp"
-  "Library/BoundaryConditionsLibrary.cpp"
-  "Library/CharacteristicDecomposition.cpp"
-  "Library/EquationOfStateLibrary_IDEAL.cpp"
-  "Library/FluidUtilities.cpp"
-  "Library/Fluid_Discretization.cpp"
-  "Library/Grid.cpp"
-  "Library/IOLibrary.cpp"
-  "Library/LinearAlgebraModules.cpp"
-  "Library/PolynomialBasis.cpp"
-  "Library/QuadratureLibrary.cpp"
-  "Library/SlopeLimiter.cpp"
-  "Library/BoundEnforcingLimiter.cpp"
-  "Library/SlopeLimiter_Utilities.cpp"
-  "Library/Timestepper.cpp" )
+  "Library/Utils/Utilities.cpp"
+  "Library/PGen/ProblemIn.cpp"
+  "Library/BC/BoundaryConditionsLibrary.cpp"
+  "Library/Limiters/CharacteristicDecomposition.cpp"
+  "Library/EoS/EquationOfStateLibrary_IDEAL.cpp"
+  "Library/Fluid/FluidUtilities.cpp"
+  "Library/Fluid/Fluid_Discretization.cpp"
+  "Library/Geometry/Grid.cpp"
+  "Library/IO/IOLibrary.cpp"
+  "Library/LinAlg/LinearAlgebraModules.cpp"
+  "Library/Basis/PolynomialBasis.cpp"
+  "Library/Quadrature/QuadratureLibrary.cpp"
+  "Library/Limiters/SlopeLimiter.cpp"
+  "Library/Limiters/BoundEnforcingLimiter.cpp"
+  "Library/Limiters/SlopeLimiter_Utilities.cpp"
+  "Library/Timestepper/Timestepper.cpp" )
 
 add_library(libathelas ${ATHELAS_SOURCES})
 set_target_properties(libathelas
