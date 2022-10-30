@@ -26,14 +26,11 @@
  * The constructor creates the matrices structures for applying the slope
  *limiter
  **/
-SlopeLimiter::SlopeLimiter( GridStructure *Grid, UInt pOrder,
-                            Real SlopeLimiterThreshold, Real alpha_val,
-                            bool CharacteristicLimitingOption, bool TCIOption,
-                            Real TCI_Threshold_val )
-    : order( pOrder ), SlopeLimiter_Threshold( SlopeLimiterThreshold ),
-      alpha( alpha_val ),
-      CharacteristicLimiting_Option( CharacteristicLimitingOption ),
-      TCI_Option( TCIOption ), TCI_Threshold( TCI_Threshold_val ),
+SlopeLimiter::SlopeLimiter( GridStructure *Grid, ProblemIn *pin )
+    : order( pin->pOrder ), SlopeLimiter_Threshold( pin->SL_Threshold ),
+      alpha( pin->alpha ),
+      CharacteristicLimiting_Option( pin->Characteristic ),
+      TCI_Option( pin->TCI_Option ), TCI_Threshold( pin->TCI_Threshold ),
       R( "R Matrix" ), R_inv( "invR Matrix" ), SlopeDifference( "SlopeDiff" ),
       dU( "dU" ), d2U( "d2U" ), d2w( "d2w" ), U_c_L( "U_c_L" ),
       U_c_T( "U_c_T" ), U_c_R( "U_c_R" ), U_v_L( "U_v_L" ), U_v_R( "U_v_R" ),

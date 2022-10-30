@@ -56,13 +56,6 @@ int main( int argc, char *argv[] )
 
   const Real CFL = ComputeCFL( pin.CFL, order, nStages, tOrder );
 
-  // --- Initialize Slope Limiter ---
-  const Real &alpha                         = pin.alpha;
-  const Real &SlopeLimiter_Threshold        = pin.SL_Threshold;
-  const Real &TCI_Threshold                 = pin.TCI_Threshold;
-  const bool &CharacteristicLimiting_Option = pin.Characteristic;
-  const bool &TCI_Option                    = pin.TCI_Option;
-
   Kokkos::initialize( argc, argv );
   {
 
@@ -93,17 +86,13 @@ int main( int argc, char *argv[] )
     TimeStepper SSPRK( &pin, &Grid );
 
 
-    SlopeLimiter S_Limiter( &Grid, nNodes, SlopeLimiter_Threshold, alpha,
-                            CharacteristicLimiting_Option, TCI_Option,
-                            TCI_Threshold );
+    SlopeLimiter S_Limiter( &Grid, &pin );
 
     // --- Limit the initial conditions ---
     S_Limiter.ApplySlopeLimiter( uCF, &Grid, &Basis );
 
     // -- print run parameters ---
-    PrintSimulationParameters( &Grid, order, tOrder, nStages, CFL, alpha,
-                               TCI_Threshold, CharacteristicLimiting_Option,
-                               TCI_Option, ProblemName );
+    PrintSimulationParameters( &Grid, &pin, CFL );
 
     // --- Timer ---
     Kokkos::Timer timer;

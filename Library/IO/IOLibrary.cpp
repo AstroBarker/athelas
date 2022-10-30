@@ -20,18 +20,15 @@
  * Write to standard output some initialization info
  * for the current simulation.
  **/
-void PrintSimulationParameters( GridStructure *Grid, UInt pOrder, UInt tOrder,
-                                UInt nStages, Real CFL, Real alpha, Real TCI,
-                                bool Char_option, bool TCI_Option,
-                                std::string ProblemName )
+void PrintSimulationParameters( GridStructure *Grid, ProblemIn *pin, const Real CFL )
 {
   const UInt nX     = Grid->Get_nElements( );
   const UInt nNodes = Grid->Get_nNodes( );
 
   std::printf( " ~ --- Order Parameters --- \n" );
-  std::printf( " ~ Spatial Order  : %d\n", pOrder );
-  std::printf( " ~ Temporal Order : %d\n", tOrder );
-  std::printf( " ~ RK Stages      : %d\n", nStages );
+  std::printf( " ~ Spatial Order  : %d\n", pin->pOrder );
+  std::printf( " ~ Temporal Order : %d\n", pin->tOrder );
+  std::printf( " ~ RK Stages      : %d\n", pin->nStages );
   std::printf( "\n" );
 
   std::printf( " ~ --- Grid Parameters --- \n" );
@@ -42,23 +39,23 @@ void PrintSimulationParameters( GridStructure *Grid, UInt pOrder, UInt tOrder,
   std::printf( "\n" );
 
   std::printf( " ~ --- Limiter Parameters --- \n" );
-  if ( pOrder == 1 )
+  if ( pin->pOrder == 1 )
   {
     printf( " ~ Spatial Order 1: Slope limiter not applied.\n" );
   }
   else
   {
-    std::printf( " ~ Alpha          : %f\n", alpha );
+    std::printf( " ~ Alpha          : %f\n", pin->alpha );
   }
-  if ( TCI_Option )
+  if ( pin->TCI_Option )
   {
-    std::printf( " ~ TCI Value      : %f\n", TCI );
+    std::printf( " ~ TCI Value      : %f\n", pin->TCI_Threshold );
   }
   else
   {
     std::printf( " ~ TCI Not Used.\n" );
   }
-  if ( Char_option )
+  if ( pin->Characteristic )
   {
     std::printf( " ~ Limiting       : Characteristic \n" );
   }
@@ -69,7 +66,7 @@ void PrintSimulationParameters( GridStructure *Grid, UInt pOrder, UInt tOrder,
   std::printf( "\n" );
 
   std::printf( " ~ --- Other --- \n" );
-  std::cout << " ~ ProblemName    : " << ProblemName << std::endl;
+  std::cout << " ~ ProblemName    : " << pin->ProblemName << std::endl;
   std::printf( " ~ CFL            : %f\n", CFL );
   std::printf( "\n" );
 }

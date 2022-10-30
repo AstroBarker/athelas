@@ -18,15 +18,14 @@
 #include "Abstractions.hpp"
 #include "Error.hpp"
 #include "Grid.hpp"
+#include "ProblemIn.hpp"
 #include "PolynomialBasis.hpp"
 
 class SlopeLimiter
 {
 
  public:
-  SlopeLimiter( GridStructure *Grid, UInt pOrder, Real SlopeLimiterThreshold,
-                Real alpha_val, bool CharacteristicLimitingOption,
-                bool TCIOption, Real TCI_Threshold_val );
+  SlopeLimiter( GridStructure *Grid, ProblemIn *pin );
 
   void ApplySlopeLimiter( Kokkos::View<Real ***> U, GridStructure *Grid,
                           ModalBasis *Basis );
