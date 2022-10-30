@@ -8,8 +8,8 @@
 
 #include <math.h> /* sqrt */
 
-#include "PolynomialBasis.h"
-#include "EquationOfStateLibrary_IDEAL.h"
+#include "PolynomialBasis.hpp"
+#include "EquationOfStateLibrary_IDEAL.hpp"
 
 // Compute pressure assuming an ideal gas
 Real ComputePressureFromPrimitive_IDEAL( const Real Ev, const Real GAMMA )

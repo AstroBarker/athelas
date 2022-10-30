@@ -2,7 +2,7 @@
 #define SLOPELIMITER_H
 
 /**
- * File     :  SlopeLimiter.h
+ * File     :  SlopeLimiter.hpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -16,9 +16,9 @@
 #include "Kokkos_Core.hpp"
 
 #include "Abstractions.hpp"
-#include "Error.h"
-#include "Grid.h"
-#include "PolynomialBasis.h"
+#include "Error.hpp"
+#include "Grid.hpp"
+#include "PolynomialBasis.hpp"
 
 class SlopeLimiter
 {

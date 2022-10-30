@@ -2,7 +2,7 @@
 #define POLYNOMIALBASIS_H
 
 /**
- * File     :  PolynomialBasis.h
+ * File     :  PolynomialBasis.hpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -17,7 +17,7 @@
 #include "Kokkos_Core.hpp"
 
 #include "Abstractions.hpp"
-#include "Grid.h"
+#include "Grid.hpp"
 
 typedef Real BasisFuncType( UInt, Real, Real );
 

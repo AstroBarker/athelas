@@ -13,13 +13,13 @@
 
 #include "Kokkos_Core.hpp"
 
-#include "CharacteristicDecomposition.h"
-#include "Error.h"
-#include "Grid.h"
-#include "LinearAlgebraModules.h"
-#include "PolynomialBasis.h"
-#include "SlopeLimiter.h"
-#include "SlopeLimiter_Utilities.h"
+#include "CharacteristicDecomposition.hpp"
+#include "Error.hpp"
+#include "Grid.hpp"
+#include "LinearAlgebraModules.hpp"
+#include "PolynomialBasis.hpp"
+#include "SlopeLimiter.hpp"
+#include "SlopeLimiter_Utilities.hpp"
 #include <iostream>
 
 /**

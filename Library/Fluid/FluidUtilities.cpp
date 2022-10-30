@@ -11,11 +11,11 @@
 #include <cstdlib>   /* abs */
 #include <algorithm> // std::min, std::max
 
-#include "Error.h"
-#include "Grid.h"
-#include "PolynomialBasis.h"
-#include "EquationOfStateLibrary_IDEAL.h"
-#include "FluidUtilities.h"
+#include "Error.hpp"
+#include "Grid.hpp"
+#include "PolynomialBasis.hpp"
+#include "EquationOfStateLibrary_IDEAL.hpp"
+#include "FluidUtilities.hpp"
 
 /**
  * Compute the primitive quantities (density, momemtum, energy density)

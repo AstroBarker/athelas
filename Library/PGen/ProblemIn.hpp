@@ -2,7 +2,7 @@
 #define PROBLEMIN_H
 
 /**
- * File     :  ProblemIn.h
+ * File     :  ProblemIn.hpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -17,7 +17,7 @@
 
 #include "Abstractions.hpp"
 #include "Geometry.hpp"
-#include "Error.h"
+#include "Error.hpp"
 #include "SimpleIni.h"
 
 class ProblemIn

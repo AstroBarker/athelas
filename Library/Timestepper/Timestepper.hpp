@@ -2,7 +2,7 @@
 #define TIMESTEPPER_H
 
 /**
- * File     :  Timestepper.h
+ * File     :  Timestepper.hpp
  * --------------
  *
  * Author   : Brandon L. Barker

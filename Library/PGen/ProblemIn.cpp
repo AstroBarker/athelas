@@ -8,8 +8,7 @@
  **/
 
 #include "ProblemIn.hpp"
-#include "Constants.h"
-#include "Error.h"
+#include "Error.hpp"
 #include "SimpleIni.h" 
 
 ProblemIn::ProblemIn( std::string fn ) 

@@ -15,11 +15,11 @@
 
 #include "Kokkos_Core.hpp"
 
-#include "Error.h"
-#include "Utilities.h"
-#include "PolynomialBasis.h"
-#include "EquationOfStateLibrary_IDEAL.h"
-#include "BoundEnforcingLimiter.h"
+#include "Error.hpp"
+#include "Utilities.hpp"
+#include "PolynomialBasis.hpp"
+#include "EquationOfStateLibrary_IDEAL.hpp"
+#include "BoundEnforcingLimiter.hpp"
 
 void LimitDensity( Kokkos::View<Real ***> U, ModalBasis *Basis )
 {

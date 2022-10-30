@@ -9,13 +9,13 @@
 #include <iostream>
 #include <vector>
 
-#include "Error.h"
-#include "Grid.h"
-#include "SlopeLimiter.h"
-#include "Fluid_Discretization.h"
-#include "PolynomialBasis.h"
-#include "BoundEnforcingLimiter.h"
-#include "Timestepper.h"
+#include "Error.hpp"
+#include "Grid.hpp"
+#include "SlopeLimiter.hpp"
+#include "Fluid_Discretization.hpp"
+#include "PolynomialBasis.hpp"
+#include "BoundEnforcingLimiter.hpp"
+#include "Timestepper.hpp"
 
 /**
  * The constructor creates the necessary data structures for time evolution.

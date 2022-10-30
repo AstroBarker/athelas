@@ -16,8 +16,8 @@
 #include <algorithm> // std::min, std::max
 #include <cstdlib>   /* abs */
 
-#include "Utilities.h"
-#include "SlopeLimiter_Utilities.h"
+#include "Utilities.hpp"
+#include "SlopeLimiter_Utilities.hpp"
 
 // Standard minmod function
 Real minmod( Real a, Real b, Real c )

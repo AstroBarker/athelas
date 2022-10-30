@@ -1,5 +1,5 @@
 /**
- * File    :  Error.h
+ * File    :  Error.hpp
  * --------------
  *
  * Author  : Brandon L. Barker

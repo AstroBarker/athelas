@@ -10,10 +10,10 @@
 #include <math.h> /* sin */
 #include <string>
 
-#include "Constants.h"
-#include "Error.h"
-#include "Grid.h"
-#include "Initialization.h"
+#include "Constants.hpp"
+#include "Error.hpp"
+#include "Grid.hpp"
+#include "Initialization.hpp"
 
 /**
  * Initialize the conserved Fields for various problems.

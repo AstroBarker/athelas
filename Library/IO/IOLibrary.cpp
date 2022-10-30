@@ -10,12 +10,11 @@
 #include <string>
 #include <vector>
 
-#include "Grid.h"
+#include "Grid.hpp"
 #include "H5Cpp.h"
-#include "PolynomialBasis.h"
-#include "SlopeLimiter.h"
-
-#include "IOLibrary.h"
+#include "PolynomialBasis.hpp"
+#include "SlopeLimiter.hpp"
+#include "IOLibrary.hpp"
 
 /**
  * Write to standard output some initialization info

@@ -2,7 +2,7 @@
 #define GRID_H
 
 /**
- * File     :  Grid.h
+ * File     :  Grid.hpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -20,10 +20,10 @@
 #include "Kokkos_Core.hpp"
 
 #include "Abstractions.hpp"
-#include "Error.h"
+#include "Error.hpp"
 #include "Geometry.hpp"
 #include "ProblemIn.hpp"
-#include "QuadratureLibrary.h"
+#include "QuadratureLibrary.hpp"
 
 
 class GridStructure

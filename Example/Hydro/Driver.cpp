@@ -13,17 +13,17 @@
 #include "Kokkos_Core.hpp"
 
 #include "Abstractions.hpp"
-#include "Grid.h"
-#include "BoundaryConditionsLibrary.h"
-#include "SlopeLimiter.h"
-#include "Initialization.h"
-#include "IOLibrary.h"
-#include "Fluid_Discretization.h"
-#include "FluidUtilities.h"
-#include "Timestepper.h"
-#include "Error.h"
+#include "Grid.hpp"
+#include "BoundaryConditionsLibrary.hpp"
+#include "SlopeLimiter.hpp"
+#include "Initialization.hpp"
+#include "IOLibrary.hpp"
+#include "Fluid_Discretization.hpp"
+#include "FluidUtilities.hpp"
+#include "Timestepper.hpp"
+#include "Error.hpp"
 #include "ProblemIn.hpp"
-#include "Driver.h"
+#include "Driver.hpp"
 
 int main( int argc, char *argv[] )
 {

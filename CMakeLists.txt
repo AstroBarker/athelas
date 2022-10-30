@@ -98,7 +98,6 @@ include_directories(athelas PUBLIC
 # --- Source Files ---
 set( ATHELAS_SOURCES 
   "${HYDRO_DIR}/Initialization.cpp" 
-  "Library/Utils/Utilities.cpp"
   "Library/PGen/ProblemIn.cpp"
   "Library/BC/BoundaryConditionsLibrary.cpp"
   "Library/Limiters/CharacteristicDecomposition.cpp"

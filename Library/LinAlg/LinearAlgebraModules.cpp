@@ -12,8 +12,8 @@
 
 #include <Kokkos_Core.hpp>
 
-#include "Error.h"
-#include "LinearAlgebraModules.h"
+#include "Error.hpp"
+#include "LinearAlgebraModules.hpp"
 #include "lapacke.h"
 
 // Fill identity matrix

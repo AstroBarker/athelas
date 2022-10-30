@@ -11,13 +11,13 @@
 
 #include "Kokkos_Core.hpp"
 
-#include "Error.h"
-#include "Grid.h"
-#include "PolynomialBasis.h"
-#include "Fluid_Discretization.h"
-#include "BoundaryConditionsLibrary.h"
-#include "EquationOfStateLibrary_IDEAL.h"
-#include "FluidUtilities.h"
+#include "Error.hpp"
+#include "Grid.hpp"
+#include "PolynomialBasis.hpp"
+#include "Fluid_Discretization.hpp"
+#include "BoundaryConditionsLibrary.hpp"
+#include "EquationOfStateLibrary_IDEAL.hpp"
+#include "FluidUtilities.hpp"
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence(

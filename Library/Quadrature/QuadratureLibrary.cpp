@@ -9,9 +9,9 @@
 #include <iostream>
 #include <math.h>
 
-#include "Constants.h"
-#include "LinearAlgebraModules.h"
-#include "QuadratureLibrary.h"
+#include "Constants.hpp"
+#include "LinearAlgebraModules.hpp"
+#include "QuadratureLibrary.hpp"
 
 /**
  * Gauss-Legendre Quadrature

@@ -11,8 +11,8 @@
  * TODO: Can we initialize a Grid object from another?
  **/
 
-#include "Grid.h"
-#include "Constants.h"
+#include "Grid.hpp"
+#include "Constants.hpp"
 #include <math.h> /* atan */
 
 GridStructure::GridStructure( ProblemIn *pin ) 

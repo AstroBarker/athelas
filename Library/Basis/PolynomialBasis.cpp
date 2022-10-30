@@ -16,12 +16,12 @@
 #include <math.h>    /* pow */
 #include <cstdlib>   /* abs */
 
-#include "Grid.h"
-#include "LinearAlgebraModules.h"
-#include "QuadratureLibrary.h"
-#include "PolynomialBasis.h"
-#include "Error.h"
-#include "FluidUtilities.h"
+#include "Grid.hpp"
+#include "LinearAlgebraModules.hpp"
+#include "QuadratureLibrary.hpp"
+#include "PolynomialBasis.hpp"
+#include "Error.hpp"
+#include "FluidUtilities.hpp"
 
 /**
  * Constructor creates necessary matrices and bases, etc.

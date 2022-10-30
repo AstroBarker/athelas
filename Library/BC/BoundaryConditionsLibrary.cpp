@@ -11,8 +11,8 @@
 
 #include "Kokkos_Core.hpp"
 
-#include "Grid.h"
-#include "BoundaryConditionsLibrary.h"
+#include "Grid.hpp"
+#include "BoundaryConditionsLibrary.hpp"
 
 // Apply Boundary Conditions to fluid fields
 void ApplyBC_Fluid( Kokkos::View<Real ***> uCF, GridStructure *Grid,

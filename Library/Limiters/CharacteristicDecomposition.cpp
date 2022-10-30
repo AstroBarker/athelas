@@ -9,8 +9,8 @@
 #include <iostream>
 #include <math.h> /* sqrt */
 
-#include "CharacteristicDecomposition.h"
-#include "Error.h"
+#include "CharacteristicDecomposition.hpp"
+#include "Error.hpp"
 // #include "EquationOfStateLibrary_IDEAL.h"
 
 void ComputeCharacteristicDecomposition( Kokkos::View<Real[3]> U,

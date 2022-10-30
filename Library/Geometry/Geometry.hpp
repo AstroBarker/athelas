@@ -10,8 +10,6 @@
  *
  **/
 
-#include "Abstractions.hpp"
-#include "Error.h"
 namespace geometry {
 enum Geometry { Planar, Spherical };
 }
