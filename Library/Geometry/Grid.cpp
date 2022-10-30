@@ -35,7 +35,7 @@ GridStructure::GridStructure( ProblemIn *pin )
     tmp_weights[iN] = 0.0;
   }
 
-  LG_Quadrature( nNodes, tmp_nodes, tmp_weights );
+  quadrature::LG_Quadrature( nNodes, tmp_nodes, tmp_weights );
 
   for ( UInt iN = 0; iN < nNodes; iN++ )
   {

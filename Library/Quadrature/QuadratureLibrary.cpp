@@ -13,6 +13,7 @@
 #include "LinearAlgebraModules.hpp"
 #include "QuadratureLibrary.hpp"
 
+namespace quadrature {
 /**
  * Gauss-Legendre Quadrature
  **/
@@ -92,3 +93,5 @@ void LG_Quadrature( int m, Real *nodes, Real *weights )
   delete[] aj;
   delete[] bj;
 }
+
+} // namespace quadrature
