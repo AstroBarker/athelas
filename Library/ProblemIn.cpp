@@ -47,12 +47,13 @@ ProblemIn::ProblemIn( std::string fn )
   bc = ini.GetValue("Problem", "BC");
   cfl = ini.GetValue("Problem", "CFL");
 
-  nN = ini.GetValue("Grid", "nNodes");
-  nX = ini.GetValue("Grid", "nX");
-  nG = ini.GetValue("Grid", "nG");
-  pO = ini.GetValue("Grid", "pOrder");
-  tO = ini.GetValue("Grid", "tOrder");
-  nS = ini.GetValue("Grid", "nStages");
+  nN = ini.GetValue("Fluid", "nNodes");
+  nX = ini.GetValue("Fluid", "nX");
+  nG = ini.GetValue("Fluid", "nG");
+  pO = ini.GetValue("Fluid", "pOrder");
+
+  tO = ini.GetValue("Time", "tOrder");
+  nS = ini.GetValue("Time", "nStages");
 
   ProblemName = pn;
   BC          = bc;
@@ -63,7 +64,8 @@ ProblemIn::ProblemIn( std::string fn )
   t_end       = std::atof( tf );
   CFL         = std::atof( cfl );
 
-  nNodes    = std::atoi(nN);
+  nNodes    = std::atoi( nN );
+  std::printf("ERBSERBWERTB\n");
   nElements = std::atoi( nX );
   nGhost    = std::atoi( nG );
   pOrder    = std::atoi( pO );
