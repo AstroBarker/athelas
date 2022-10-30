@@ -58,7 +58,7 @@ ProblemIn::ProblemIn( std::string fn )
   ProblemName = pn;
   BC          = bc;
   Restart     = (strcmp(rest, "true") == 0) ? true : false;
-  Geometry    = (strcmp(geom, "true") == 0) ? true : false;
+  Geometry    = (strcmp(geom, "spherical") == 0) ? geometry::Spherical : geometry::Planar;
   xL          = std::atof( x1 );
   xR          = std::atof( x2 );
   t_end       = std::atof( tf );

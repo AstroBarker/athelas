@@ -16,6 +16,7 @@
 #include "Kokkos_Core.hpp"
 
 #include "Abstractions.hpp"
+#include "Geometry.hpp"
 #include "Error.h"
 #include "SimpleIni.h"
 
@@ -41,7 +42,7 @@ class ProblemIn
 
   Real t_end;
 
-  bool Geometry;
+  geometry::Geometry Geometry;
   bool Restart;
 
 };

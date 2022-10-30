@@ -21,8 +21,10 @@
 
 #include "Abstractions.hpp"
 #include "Error.h"
+#include "Geometry.hpp"
 #include "ProblemIn.hpp"
 #include "QuadratureLibrary.h"
+
 
 class GridStructure
 {
@@ -66,7 +68,7 @@ class GridStructure
   Real xL;
   Real xR;
 
-  bool Geometry;
+  geometry::Geometry Geometry;
 
   Kokkos::View<Real *> Nodes;
   Kokkos::View<Real *> Weights;

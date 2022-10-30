@@ -100,7 +100,7 @@ Real GridStructure::Get_xR( ) const { return xR; }
 // Acessor for SqrtGm
 Real GridStructure::Get_SqrtGm( Real X ) const
 {
-  if ( Geometry )
+  if ( Geometry == geometry::Spherical )
   {
     return X * X;
   }
@@ -129,7 +129,7 @@ int GridStructure::Get_ilo( ) const { return nGhost; }
 int GridStructure::Get_ihi( ) const { return nElements + nGhost - 1; }
 
 // Return true if in spherical symmetry
-bool GridStructure::DoGeometry( ) const { return Geometry; }
+bool GridStructure::DoGeometry( ) const { return Geometry == geometry::Spherical ? true : false; }
 
 // Equidistant mesh
 // TODO: We will need to replace Centers here, right?
