@@ -10,6 +10,7 @@
 #define ERROR_H
 
 #include <stdexcept>
+#include <assert.h>     /* assert */
 
 class Error : public std::runtime_error
 {
