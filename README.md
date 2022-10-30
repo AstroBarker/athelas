@@ -22,7 +22,7 @@ More work to port other parts of the code.
 We use [SimpleIni](https://github.com/brofield/simpleini) for parsing input files in the for parsing input files in the `.ini` format.
 
 # Installation
-`athelas` uses submodules to include `Kokkos` as a dependency. 
+`athelas` uses submoduless to include dependencies. 
 The best way to get the source is the following 
 ```sh
 git clone --recursive git@github.com:AstroBarker/athelas.git
@@ -36,6 +36,11 @@ mkdir build && cd build
 cmake ..
 cmake --build .
 ```
+
+As a temporary fix for Ubuntu CI, we need to pass a `MACHINE` flag.
+On Mac we support `-DMACHINE=MACOS`,
+Ubuntu supports `-DMACHINE=UBUNTU` (primaryily because the CI fails to find `lapacke.h` unless we hold its hand and this is how we do that, for now.)
+The default is `UBUNTU`. Passing anything else should let cmake's `find_package` do its thing. 
 
 This will create a directory `bin` in the root directory that contains the executable.
 
