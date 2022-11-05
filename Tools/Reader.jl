@@ -9,9 +9,7 @@ FastGaussQuadrature.jl
 """
 
 using HDF5
-using PyPlot
-pygui(:qt5)
-
+using CairoMakie
 using FastGaussQuadrature
 
 include("Structures.jl")
