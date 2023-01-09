@@ -41,7 +41,7 @@ ModalBasis::ModalBasis( Kokkos::View<Real ***> uPF, GridStructure *Grid,
 
   InitializeTaylorBasis( uPF, Grid );
 
-  // InitializeLegendreBasis( uPF, Grid );
+  //InitializeLegendreBasis( uPF, Grid );
 }
 
 // --- Taylor Methods ---
@@ -319,7 +319,7 @@ void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real ***> uPF,
           eta = Grid->Get_Nodes( i_eta - 2 * nNodes - 1 ) + 1.0;
         }
 
-        Phi( iX, i_eta, k )  = Legendre( k, eta );
+        Phi( iX, i_eta, k )  = Legendre( k, 2.0 * eta );
         dPhi( iX, i_eta, k ) = dLegendre( k, eta );
       }
   }
@@ -474,38 +474,13 @@ int ModalBasis::Get_Order( ) const { return order; }
 // --- Legendre Methods ---
 
 // Legendre polynomials
-Real ModalBasis::Legendre( UInt order, Real x )
+Real ModalBasis::Legendre( UInt n, Real x )
 {
-
-  if ( order == 0 )
-  {
-    return 1.0;
-  }
-  else if ( order == 1 )
-  {
-    return 2.0 * x;
-  }
-  else
-  {
-
-    x *= 2.0; // This maps to interval [-0.5, 0.5]
-
-    Real Pn, Pnm1; // P_n, P_{n-1}
-    Real Pnp1 = 0.0;
-
-    Pnm1 = 1.0; // P_0
-    Pn   = x;   //  P_1
-    for ( UInt i = 1; i < order; i++ )
-    {
-      Pnp1 = 2.0 * x * Pn - Pnm1 - ( x * Pn - Pnm1 ) / ( i + 1 );
-      // Pnp1 = ( (2*i + 1) * x * Pn - i * Pnm1 ) / (i + 1);
-
-      Pnm1 = Pn;
-      Pn   = Pnp1;
-    }
-
-    return Pn;
-  }
+  return ( n == 0 )   ? 1.0
+         : ( n == 1 ) ? x
+                      : ( ( ( 2 * n ) - 1 ) * x * Legendre( n - 1, x ) -
+                          ( n - 1 ) * Legendre( n - 2, x ) ) /
+                            n;
 }
 
 // Derivative of Legendre polynomials
@@ -518,7 +493,7 @@ Real ModalBasis::dLegendre( UInt order, Real x )
   dPn = 0.0;
   for ( UInt i = 0; i < order; i++ )
   {
-    dPn = ( i + 1 ) * Legendre( i, x ) + 2.0 * x * dPn;
+    dPn = ( i + 1 ) * Legendre( i, 2.0 * x ) +  x * dPn;
   }
 
   return dPn;
