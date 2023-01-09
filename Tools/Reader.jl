@@ -66,3 +66,13 @@ function LoadBasis( fn::String )
 
   return Basis
 end
+
+
+fn = "../bin/athelas_Sod_final.h5"
+data, grid, order = Load_Output( fn )
+
+
+fig = Figure()
+scatter( fig[1,1], grid.r, 1.0 ./ data.uPF[1,:,1] )
+scatter!( fig[1,1], grid.r, 1.0 ./ data.uCF[1,:,1] )
+save("sod.png", fig )
