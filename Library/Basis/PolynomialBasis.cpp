@@ -39,9 +39,9 @@ ModalBasis::ModalBasis( Kokkos::View<Real ***> uPF, GridStructure *Grid,
   Grid->ComputeMass( uPF );
   Grid->ComputeCenterOfMass( uPF );
 
-  InitializeTaylorBasis( uPF, Grid );
+  //InitializeTaylorBasis( uPF, Grid );
 
-  //InitializeLegendreBasis( uPF, Grid );
+  InitializeLegendreBasis( uPF, Grid );
 }
 
 // --- Taylor Methods ---
@@ -319,8 +319,8 @@ void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real ***> uPF,
           eta = Grid->Get_Nodes( i_eta - 2 * nNodes - 1 ) + 1.0;
         }
 
-        Phi( iX, i_eta, k )  = Legendre( k, 2.0 * eta );
-        dPhi( iX, i_eta, k ) = dLegendre( k, eta );
+        Phi( iX, i_eta, k )  = Legendre( k, 2.0 * eta ) / (2.0 * k + 1);
+        dPhi( iX, i_eta, k ) = dLegendre( k, 2.0 * eta );
       }
   }
   CheckOrthogonality( uPF, Grid );
@@ -493,7 +493,7 @@ Real ModalBasis::dLegendre( UInt order, Real x )
   dPn = 0.0;
   for ( UInt i = 0; i < order; i++ )
   {
-    dPn = ( i + 1 ) * Legendre( i, 2.0 * x ) +  x * dPn;
+    dPn = ( i + 1 ) * Legendre( i, x ) / ( 2.0 * order*0 + 1.0 ) +  x * dPn;
   }
 
   return dPn;
