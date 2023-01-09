@@ -186,12 +186,12 @@ if (${MACHINE} STREQUAL UBUNTU)
     message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
     target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
 else()
-    find_package( LAPACK REQUIRED  )
-    message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
-    include_directories(${LAPACK_INCLUDE_DIRS})
-    target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
+  find_package( LAPACKE REQUIRED  )
+  message(STATUS "LAPACKE_LIBRARIES = ${LAPACKE_LIBRARIES}")
+  include_directories(${LAPACKE_INCLUDE_DIRS})
+    target_link_libraries( libathelas ${LAPACKE_LIBRARIES} )
 endif()
-include_directories(${LAPACK_INCLUDE_DIRS})
+include_directories(${LAPACKE_INCLUDE_DIRS})
 
 # SimpleIni
 include_directories("External/simpleini")
@@ -212,9 +212,9 @@ set_target_properties(main
 target_link_libraries( libathelas Kokkos::kokkos )
 target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} )
 
-target_compile_options( main PRIVATE -fPIC -O2 -Wall -std=c++17 -llapack )
+target_compile_options( main PRIVATE -fPIC -O2 -Wall -std=c++17 -llapacke )
 add_dependencies( main libathelas )
 
-target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos )
+target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACKE_LIBRARIES} Kokkos::kokkos )
 
 
