@@ -365,9 +365,9 @@ void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real ***> uPF,
         }
 
         Phi( iX, i_eta, k ) =
-            OrthoTaylor( k, iX, i_eta, eta, 0.0, uPF, Grid, false );
+            OrthoLegendre( k, iX, i_eta, eta, 0.0, uPF, Grid, false );
         dPhi( iX, i_eta, k ) =
-            OrthoTaylor( k, iX, i_eta, eta, 0.0, uPF, Grid, true );
+            OrthoLegendre( k, iX, i_eta, eta, 0.0, uPF, Grid, true );
       }
   }
   CheckOrthogonality( uPF, Grid );
