@@ -159,57 +159,14 @@ Real ModalBasis::InnerProduct( const UInt n, const UInt iX, const Real eta_c,
   return result;
 }
 
-// Gram-Schmidt orthogonalization to Taylor basis
-// TODO: OrthoTaylor: Clean up derivative options?
-Real ModalBasis::OrthoTaylor( const UInt order, const UInt iX, const UInt i_eta,
-                              const Real eta, const Real eta_c,
-                              const Kokkos::View<Real ***> uPF,
-                              GridStructure *Grid,
-                              bool const derivative_option )
-{
-
-  Real result      = 0.0;
-  Real phi_n       = 0.0;
-  Real numerator   = 0.0;
-  Real denominator = 0.0;
-
-  // TODO: Can this be cleaned up?
-  if ( not derivative_option )
-  {
-    result = Taylor( order, eta, eta_c );
-  }
-  else
-  {
-    result = dTaylor( order, eta, eta_c );
-  }
-
-  // if ( order == 0 ) return result;
-
-  for ( UInt k = 0; k < order; k++ )
-  {
-    numerator   = InnerProduct( order - k - 1, order, iX, eta_c, uPF, Grid );
-    denominator = InnerProduct( order - k - 1, iX, eta_c, uPF, Grid );
-    // ? Can this be cleaned up?
-    if ( not derivative_option )
-    {
-      phi_n = Phi( iX, i_eta, order - k - 1 );
-    }
-    else
-    {
-      phi_n = dPhi( iX, i_eta, order - k - 1 );
-    }
-    result -= ( numerator / denominator ) * phi_n;
-  }
-
-  return result;
-}
 
 // Gram-Schmidt orthogonalization to Legendre basis
-Real ModalBasis::OrthoLegendre( const UInt order, const UInt iX, const UInt i_eta,
-                                const Real eta, const Real eta_c,
-                                const Kokkos::View<Real ***> uPF,
-                                GridStructure *Grid,
-                                bool const derivative_option )
+Real ModalBasis::Ortho( Real (*f)(UInt n, Real x, Real x_c),
+                        const UInt order, const UInt iX, const UInt i_eta,
+                        const Real eta, const Real eta_c,
+                        const Kokkos::View<Real ***> uPF,
+                        GridStructure *Grid,
+                        bool const derivative_option )
 {
 
   Real result      = 0.0;
@@ -220,11 +177,11 @@ Real ModalBasis::OrthoLegendre( const UInt order, const UInt iX, const UInt i_et
   // TODO: Can this be cleaned up?
   if ( not derivative_option )
   {
-    result = Legendre( order, eta );
+    result = f( order, eta, eta_c );
   }
   else
   {
-    result = dLegendre( order, eta );
+    result = f( order, eta, eta_c );
   }
 
   // if ( order == 0 ) return result;
@@ -292,9 +249,9 @@ void ModalBasis::InitializeTaylorBasis( const Kokkos::View<Real ***> uPF,
         }
 
         Phi( iX, i_eta, k ) =
-            OrthoTaylor( k, iX, i_eta, eta, eta_c, uPF, Grid, false );
+            Ortho( Taylor, k, iX, i_eta, eta, eta_c, uPF, Grid, false );
         dPhi( iX, i_eta, k ) =
-            OrthoTaylor( k, iX, i_eta, eta, eta_c, uPF, Grid, true );
+            Ortho( dTaylor, k, iX, i_eta, eta, eta_c, uPF, Grid, true );
       }
   }
   CheckOrthogonality( uPF, Grid );
@@ -365,9 +322,9 @@ void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real ***> uPF,
         }
 
         Phi( iX, i_eta, k ) =
-            OrthoLegendre( k, iX, i_eta, eta, 0.0, uPF, Grid, false );
+            Ortho( Legendre, k, iX, i_eta, eta, 0.0, uPF, Grid, false );
         dPhi( iX, i_eta, k ) =
-            OrthoLegendre( k, iX, i_eta, eta, 0.0, uPF, Grid, true );
+            Ortho( dLegendre, k, iX, i_eta, eta, 0.0, uPF, Grid, true );
       }
   }
   CheckOrthogonality( uPF, Grid );
@@ -519,6 +476,17 @@ Real ModalBasis::Get_MassMatrix( UInt iX, UInt k ) const
 int ModalBasis::Get_Order( ) const { return order; }
 
 // --- Legendre Methods ---
+/* TODO: Make sure that x_c offset for Legendre works with COM != 0 */
+
+Real ModalBasis::Legendre( UInt n, Real x, Real x_c )
+{
+  return Legendre( n, x - x_c );
+}
+
+Real ModalBasis::dLegendre( UInt n, Real x, Real x_c )
+{
+  return dLegendre( n, x - x_c );
+}
 
 // Legendre polynomials
 Real ModalBasis::Legendre( UInt n, Real x )

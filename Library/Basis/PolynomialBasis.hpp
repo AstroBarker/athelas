@@ -26,16 +26,13 @@ class ModalBasis
  public:
   ModalBasis( Kokkos::View<Real ***> uCF, GridStructure *Grid, UInt pOrder,
               UInt nN, UInt nElements, UInt nGuard );
-  Real Taylor( UInt order, Real eta, Real eta_c );
-  Real dTaylor( UInt order, Real eta, Real eta_c );
-  Real OrthoTaylor( const UInt order, const UInt iX, const UInt i_eta,
-                    const Real eta, Real eta_c,
-                    const Kokkos::View<Real ***> uCF, GridStructure *Grid,
-                    const bool derivative_option );
-  Real OrthoLegendre( const UInt order, const UInt iX, const UInt i_eta,
-                      const Real eta, Real eta_c,
-                      const Kokkos::View<Real ***> uCF, GridStructure *Grid,
-                      const bool derivative_option );
+  static Real Taylor( UInt order, Real eta, Real eta_c );
+  static Real dTaylor( UInt order, Real eta, Real eta_c );
+  Real Ortho( Real (*f)(UInt n, Real x, Real x_c),
+              const UInt order, const UInt iX, const UInt i_eta,
+              const Real eta, Real eta_c,
+              const Kokkos::View<Real ***> uCF, GridStructure *Grid,
+              const bool derivative_option );
   Real InnerProduct( const UInt n, const UInt iX, const Real eta_c,
                      const Kokkos::View<Real ***> uCF, GridStructure *Grid );
   Real InnerProduct( const UInt m, const UInt n, const UInt iX,
@@ -58,8 +55,10 @@ class ModalBasis
 
   int Get_Order( ) const;
 
-  Real Legendre( UInt order, Real x );
-  Real dLegendre( UInt order, Real x );
+  static Real Legendre( UInt order, Real x );
+  static Real dLegendre( UInt order, Real x );
+  static Real Legendre( UInt order, Real x, Real x_c );
+  static Real dLegendre( UInt order, Real x, Real x_c );
 
  private:
   UInt nX;
