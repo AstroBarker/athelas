@@ -8,7 +8,8 @@
  * Also  Lagrange, Legendre polynomials, arbitrary degree.
  *
  * TODO: Plenty of cleanup to be done. OrthoTaylor, handling of derivatives, and
- *inner products.
+ * inner products. A lot of nearly duplicate code.
+ * Maybe much of this can be compile time, as well.
  **/
 
 #include <iostream>
@@ -203,8 +204,51 @@ Real ModalBasis::OrthoTaylor( const UInt order, const UInt iX, const UInt i_eta,
   return result;
 }
 
+// Gram-Schmidt orthogonalization to Legendre basis
+Real ModalBasis::OrthoLegendre( const UInt order, const UInt iX, const UInt i_eta,
+                                const Real eta, const Real eta_c,
+                                const Kokkos::View<Real ***> uPF,
+                                GridStructure *Grid,
+                                bool const derivative_option )
+{
+
+  Real result      = 0.0;
+  Real phi_n       = 0.0;
+  Real numerator   = 0.0;
+  Real denominator = 0.0;
+
+  // TODO: Can this be cleaned up?
+  if ( not derivative_option )
+  {
+    result = Legendre( order, eta );
+  }
+  else
+  {
+    result = dLegendre( order, eta );
+  }
+
+  // if ( order == 0 ) return result;
+
+  for ( UInt k = 0; k < order; k++ )
+  {
+    numerator   = InnerProduct( order - k - 1, order, iX, eta_c, uPF, Grid );
+    denominator = InnerProduct( order - k - 1, iX, eta_c, uPF, Grid );
+    // ? Can this be cleaned up?
+    if ( not derivative_option )
+    {
+      phi_n = Phi( iX, i_eta, order - k - 1 );
+    }
+    else
+    {
+      phi_n = dPhi( iX, i_eta, order - k - 1 );
+    }
+    result -= ( numerator / denominator ) * phi_n;
+  }
+
+  return result;
+}
 /**
- * Pre-compute the orthogonal Taylor basis terms. Phi(k,eta) will store
+ * Pre-compute the orthogonal Taylor basis terms. Phi(iX,k,eta) will store
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
  **/
@@ -279,9 +323,10 @@ void ModalBasis::InitializeTaylorBasis( const Kokkos::View<Real ***> uPF,
 }
 
 /**
- * Pre-compute the orthogonal Taylor basis terms. Phi(k,eta) will store
+ * Pre-compute the orthogonal Taylor basis terms. Phi(iX,k,eta) will store
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
+ * TODO: Incorporate COM centering?
  **/
 void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real ***> uPF,
                                           GridStructure *Grid )
@@ -319,8 +364,10 @@ void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real ***> uPF,
           eta = Grid->Get_Nodes( i_eta - 2 * nNodes - 1 ) + 1.0;
         }
 
-        Phi( iX, i_eta, k )  = Legendre( k, 2.0 * eta ) / (2.0 * k + 1);
-        dPhi( iX, i_eta, k ) = dLegendre( k, 2.0 * eta );
+        Phi( iX, i_eta, k ) =
+            OrthoTaylor( k, iX, i_eta, eta, 0.0, uPF, Grid, false );
+        dPhi( iX, i_eta, k ) =
+            OrthoTaylor( k, iX, i_eta, eta, 0.0, uPF, Grid, true );
       }
   }
   CheckOrthogonality( uPF, Grid );
@@ -493,7 +540,7 @@ Real ModalBasis::dLegendre( UInt order, Real x )
   dPn = 0.0;
   for ( UInt i = 0; i < order; i++ )
   {
-    dPn = ( i + 1 ) * Legendre( i, x ) / ( 2.0 * order*0 + 1.0 ) +  x * dPn;
+    dPn = ( i + 1 ) * Legendre( i, x ) +  x * dPn;
   }
 
   return dPn;

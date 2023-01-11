@@ -32,6 +32,10 @@ class ModalBasis
                     const Real eta, Real eta_c,
                     const Kokkos::View<Real ***> uCF, GridStructure *Grid,
                     const bool derivative_option );
+  Real OrthoLegendre( const UInt order, const UInt iX, const UInt i_eta,
+                      const Real eta, Real eta_c,
+                      const Kokkos::View<Real ***> uCF, GridStructure *Grid,
+                      const bool derivative_option );
   Real InnerProduct( const UInt n, const UInt iX, const Real eta_c,
                      const Kokkos::View<Real ***> uCF, GridStructure *Grid );
   Real InnerProduct( const UInt m, const UInt n, const UInt iX,
