@@ -4,6 +4,8 @@
  *
  * Author   : Brandon L. Barker
  * Purpose  : Ideal equation of state routines
+ * TODO: OVerhaul, variadic tamplated EoS class
+ * to support different EoS's
  **/
 
 #include <math.h> /* sqrt */
