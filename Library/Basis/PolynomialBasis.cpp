@@ -28,8 +28,9 @@
  * Constructor creates necessary matrices and bases, etc.
  * This has to be called after the problem is initialized.
  **/
-ModalBasis::ModalBasis( Kokkos::View<Real ***> uPF, GridStructure *Grid,
-                        UInt pOrder, UInt nN, UInt nElements, UInt nGuard )
+ModalBasis::ModalBasis( PolyBasis::PolyBasis basis, Kokkos::View<Real ***> uPF, 
+                        GridStructure *Grid, UInt pOrder, UInt nN, 
+                        UInt nElements, UInt nGuard )
     : nX( nElements ), order( pOrder ), nNodes( nN ),
       mSize( ( nN ) * ( nN + 2 ) * ( nElements + 2 * nGuard ) ),
       MassMatrix( "MassMatrix", nElements + 2 * nGuard, pOrder ),
@@ -40,12 +41,20 @@ ModalBasis::ModalBasis( Kokkos::View<Real ***> uPF, GridStructure *Grid,
   Grid->ComputeMass( uPF );
   Grid->ComputeCenterOfMass( uPF );
 
-  //InitializeTaylorBasis( uPF, Grid );
+  if ( basis == PolyBasis::Legendre ) {
+    func = Legendre;
+    dfunc = dLegendre;
+  } else if ( basis == PolyBasis::Taylor ) {
+    func = Taylor;
+    dfunc = dTaylor;
+  } else {
+    throw Error( " ! Bad behavior in ModalBasis constructor !" );
+  }
 
-  InitializeLegendreBasis( uPF, Grid );
+  InitializeBasis( basis, uPF, Grid );
 }
 
-// --- Taylor Methods ---
+/* --- Taylor Methods --- */
 
 /**
  * Return Taylor polynomial of given order
@@ -107,6 +116,44 @@ Real ModalBasis::dTaylor( UInt order, Real eta, Real eta_c )
   }
 }
 
+/* --- Legendre Methods --- */
+/* TODO: Make sure that x_c offset for Legendre works with COM != 0 */
+
+Real ModalBasis::Legendre( UInt n, Real x, Real x_c )
+{
+  return Legendre( n, x - x_c );
+}
+
+Real ModalBasis::dLegendre( UInt n, Real x, Real x_c )
+{
+  return dLegendre( n, x - x_c );
+}
+
+// Legendre polynomials
+Real ModalBasis::Legendre( UInt n, Real x )
+{
+  return ( n == 0 )   ? 1.0
+         : ( n == 1 ) ? x
+                      : ( ( ( 2 * n ) - 1 ) * x * Legendre( n - 1, x ) -
+                          ( n - 1 ) * Legendre( n - 2, x ) ) /
+                            n;
+}
+
+// Derivative of Legendre polynomials
+Real ModalBasis::dLegendre( UInt order, Real x )
+{
+
+  Real dPn; // P_n
+  // Real dPnp1 = 0.0;
+
+  dPn = 0.0;
+  for ( UInt i = 0; i < order; i++ )
+  {
+    dPn = ( i + 1 ) * Legendre( i, x ) +  x * dPn;
+  }
+
+  return dPn;
+}
 /**
  * Lagrangian inner product of functions f and g
  * Used in orthogonalization.
@@ -127,7 +174,7 @@ Real ModalBasis::InnerProduct( const UInt m, const UInt n, const UInt iX,
   {
     eta_q = Grid->Get_Nodes( iN );
     X     = Grid->NodeCoordinate( iX, iN );
-    result += Taylor( n, eta_q, eta_c ) * Phi( iX, iN + 1, m ) *
+    result += func( n, eta_q, eta_c ) * Phi( iX, iN + 1, m ) *
               Grid->Get_Weights( iN ) * uPF( 0, iX, iN ) *
               Grid->Get_Widths( iX ) * Grid->Get_SqrtGm( X );
   }
@@ -160,9 +207,8 @@ Real ModalBasis::InnerProduct( const UInt n, const UInt iX, const Real eta_c,
 }
 
 
-// Gram-Schmidt orthogonalization to Legendre basis
-Real ModalBasis::Ortho( Real (*f)(UInt n, Real x, Real x_c),
-                        const UInt order, const UInt iX, const UInt i_eta,
+// Gram-Schmidt orthogonalization of basis
+Real ModalBasis::Ortho( const UInt order, const UInt iX, const UInt i_eta,
                         const Real eta, const Real eta_c,
                         const Kokkos::View<Real ***> uPF,
                         GridStructure *Grid,
@@ -177,11 +223,11 @@ Real ModalBasis::Ortho( Real (*f)(UInt n, Real x, Real x_c),
   // TODO: Can this be cleaned up?
   if ( not derivative_option )
   {
-    result = f( order, eta, eta_c );
+    result = func( order, eta, eta_c );
   }
   else
   {
-    result = f( order, eta, eta_c );
+    result = dfunc( order, eta, eta_c );
   }
 
   // if ( order == 0 ) return result;
@@ -204,89 +250,16 @@ Real ModalBasis::Ortho( Real (*f)(UInt n, Real x, Real x_c),
 
   return result;
 }
-/**
- * Pre-compute the orthogonal Taylor basis terms. Phi(iX,k,eta) will store
- * the expansion terms for each order k, stored at various points eta.
- * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
- **/
-void ModalBasis::InitializeTaylorBasis( const Kokkos::View<Real ***> uPF,
-                                        GridStructure *Grid )
-{
-  const UInt n_eta = 3 * nNodes + 2;
-  const UInt ilo   = Grid->Get_ilo( );
-  const UInt ihi   = Grid->Get_ihi( );
-
-  Real eta_c;
-
-  Real eta = 0.5;
-  for ( UInt iX = ilo; iX <= ihi; iX++ )
-  {
-    eta_c = Grid->Get_CenterOfMass( iX );
-    for ( UInt k = 0; k < order; k++ )
-      for ( UInt i_eta = 0; i_eta < n_eta; i_eta++ )
-      {
-        // face values
-        if ( i_eta == 0 )
-        {
-          eta = -0.5;
-        }
-        else if ( i_eta == nNodes + 1 )
-        {
-          eta = +0.5;
-        }
-        else if ( i_eta > 0 && i_eta < nNodes + 1 ) // GL nodes
-        {
-          eta = Grid->Get_Nodes( i_eta - 1 );
-        }
-        else if ( i_eta > nNodes + 1 &&
-                  i_eta <= 2 * nNodes + 1 ) // GL nodes left neighbor
-        {
-          eta = Grid->Get_Nodes( i_eta - nNodes - 2 ) - 1.0;
-        }
-        else
-        {
-          eta = Grid->Get_Nodes( i_eta - 2 * nNodes - 2 ) + 1.0;
-        }
-
-        Phi( iX, i_eta, k ) =
-            Ortho( Taylor, k, iX, i_eta, eta, eta_c, uPF, Grid, false );
-        dPhi( iX, i_eta, k ) =
-            Ortho( dTaylor, k, iX, i_eta, eta, eta_c, uPF, Grid, true );
-      }
-  }
-  CheckOrthogonality( uPF, Grid );
-  ComputeMassMatrix( uPF, Grid );
-
-  // === Fill Guard cells ===
-
-  // ? Using identical basis in guard cells as boundaries ?
-  for ( UInt iX = 0; iX < ilo; iX++ )
-    for ( UInt i_eta = 0; i_eta < n_eta; i_eta++ )
-      for ( UInt k = 0; k < order; k++ )
-      {
-        Phi( ilo - 1 - iX, i_eta, k ) = Phi( ilo + iX, i_eta, k );
-        Phi( ihi + 1 + iX, i_eta, k ) = Phi( ihi - iX, i_eta, k );
-
-        dPhi( ilo - 1 - iX, i_eta, k ) = dPhi( ilo + iX, i_eta, k );
-        dPhi( ihi + 1 + iX, i_eta, k ) = dPhi( ihi - iX, i_eta, k );
-      }
-
-  for ( UInt iX = 0; iX < ilo; iX++ )
-    for ( UInt k = 0; k < order; k++ )
-    {
-      MassMatrix( ilo - 1 - iX, k ) = MassMatrix( ilo + iX, k );
-      MassMatrix( ihi + 1 + iX, k ) = MassMatrix( ihi - iX, k );
-    }
-}
 
 /**
- * Pre-compute the orthogonal Taylor basis terms. Phi(iX,k,eta) will store
+ * Pre-compute the orthogonal basis terms. Phi(iX,k,eta) will store
  * the expansion terms for each order k, stored at various points eta.
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
  * TODO: Incorporate COM centering?
  **/
-void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real ***> uPF,
-                                          GridStructure *Grid )
+void ModalBasis::InitializeBasis( const PolyBasis::PolyBasis basis,
+                                  const Kokkos::View<Real ***> uPF,
+                                  GridStructure *Grid )
 {
   const UInt n_eta = 3 * nNodes + 2;
   const UInt ilo   = Grid->Get_ilo( );
@@ -322,9 +295,9 @@ void ModalBasis::InitializeLegendreBasis( const Kokkos::View<Real ***> uPF,
         }
 
         Phi( iX, i_eta, k ) =
-            Ortho( Legendre, k, iX, i_eta, eta, 0.0, uPF, Grid, false );
+            Ortho( k, iX, i_eta, eta, 0.0, uPF, Grid, false );
         dPhi( iX, i_eta, k ) =
-            Ortho( dLegendre, k, iX, i_eta, eta, 0.0, uPF, Grid, true );
+            Ortho( k, iX, i_eta, eta, 0.0, uPF, Grid, true ); 
       }
   }
   CheckOrthogonality( uPF, Grid );
@@ -475,41 +448,3 @@ Real ModalBasis::Get_MassMatrix( UInt iX, UInt k ) const
 // Accessor for Order
 int ModalBasis::Get_Order( ) const { return order; }
 
-// --- Legendre Methods ---
-/* TODO: Make sure that x_c offset for Legendre works with COM != 0 */
-
-Real ModalBasis::Legendre( UInt n, Real x, Real x_c )
-{
-  return Legendre( n, x - x_c );
-}
-
-Real ModalBasis::dLegendre( UInt n, Real x, Real x_c )
-{
-  return dLegendre( n, x - x_c );
-}
-
-// Legendre polynomials
-Real ModalBasis::Legendre( UInt n, Real x )
-{
-  return ( n == 0 )   ? 1.0
-         : ( n == 1 ) ? x
-                      : ( ( ( 2 * n ) - 1 ) * x * Legendre( n - 1, x ) -
-                          ( n - 1 ) * Legendre( n - 2, x ) ) /
-                            n;
-}
-
-// Derivative of Legendre polynomials
-Real ModalBasis::dLegendre( UInt order, Real x )
-{
-
-  Real dPn; // P_n
-  // Real dPnp1 = 0.0;
-
-  dPn = 0.0;
-  for ( UInt i = 0; i < order; i++ )
-  {
-    dPn = ( i + 1 ) * Legendre( i, x ) +  x * dPn;
-  }
-
-  return dPn;
-}

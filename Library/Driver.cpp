@@ -76,7 +76,7 @@ int main( int argc, char *argv[] )
     // WriteState( uCF, uPF, uAF, Grid, ProblemName, 0.0, order, 0 );
 
     // --- Datastructure for modal basis ---
-    ModalBasis Basis( uPF, &Grid, order, nNodes, nX, nGuard );
+    ModalBasis Basis( pin.Basis, uPF, &Grid, order, nNodes, nX, nGuard );
 
     WriteBasis( &Basis, nGuard, Grid.Get_ihi( ), nNodes, order, ProblemName );
 

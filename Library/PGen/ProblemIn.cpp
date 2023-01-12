@@ -41,6 +41,7 @@ ProblemIn::ProblemIn( std::string fn )
   const char* tci_opt;
   const char* tci_val;
   const char* characteristic;
+  const char* basis;
 
   pn = ini.GetValue("Problem", "problem");
   rest = ini.GetValue("Problem", "restart");
@@ -51,6 +52,7 @@ ProblemIn::ProblemIn( std::string fn )
   bc = ini.GetValue("Problem", "BC");
   cfl = ini.GetValue("Problem", "CFL");
 
+  basis = ini.GetValue("Fluid", "Basis");
   nN = ini.GetValue("Fluid", "nNodes");
   nX = ini.GetValue("Fluid", "nX");
   nG = ini.GetValue("Fluid", "nG");
@@ -69,6 +71,7 @@ ProblemIn::ProblemIn( std::string fn )
   BC          = bc;
   Restart     = (strcmp(rest, "true") == 0) ? true : false;
   Geometry    = (strcmp(geom, "spherical") == 0) ? geometry::Spherical : geometry::Planar;
+  Basis       = (strcmp(basis, "Legendre") == 0) ? PolyBasis::Legendre : PolyBasis::Taylor;
   xL          = std::atof( x1 );
   xR          = std::atof( x2 );
   t_end       = std::atof( tf );

@@ -26,6 +26,7 @@ void PrintSimulationParameters( GridStructure *Grid, ProblemIn *pin, const Real 
   const UInt nNodes = Grid->Get_nNodes( );
 
   std::printf( " ~ --- Order Parameters --- \n" );
+  std::printf( " ~ Basis          : %d ( 0 : Legendre, 1: Taylor )\n", pin->Basis );
   std::printf( " ~ Spatial Order  : %d\n", pin->pOrder );
   std::printf( " ~ Temporal Order : %d\n", pin->tOrder );
   std::printf( " ~ RK Stages      : %d\n", pin->nStages );

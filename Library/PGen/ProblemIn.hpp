@@ -22,6 +22,7 @@
 
 class ProblemIn
 {
+
  public:
   ProblemIn( std::string fn );
 
@@ -42,6 +43,8 @@ class ProblemIn
 
   Real t_end;
 
+  
+  PolyBasis::PolyBasis Basis;
   geometry::Geometry Geometry;
   bool Restart;
 
