@@ -72,7 +72,7 @@ int main( int argc, char *argv[] )
 
       ApplyBC_Fluid( uCF, &Grid, order, BC );
     }
-    // WriteState( uCF, uPF, uAF, Grid, ProblemName, 0.0, order, 0 );
+    // WriteState( uCF, uPF, Grid, ProblemName, 0.0, order, 0 );
 
     // --- Datastructure for modal basis ---
     ModalBasis Basis( pin.Basis, uPF, &Grid, order, nNodes, nX, nGuard );
@@ -123,7 +123,7 @@ int main( int argc, char *argv[] )
       // Write state
       if ( iStep % i_write == 0 )
       {
-        WriteState( uCF, uPF, uAF, &Grid, &S_Limiter, ProblemName, t, order,
+        WriteState( uCF, uPF, &Grid, &S_Limiter, ProblemName, t, order,
                     i_out );
         i_out += 1;
       }
@@ -135,7 +135,7 @@ int main( int argc, char *argv[] )
     Real time = timer.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC_Fluid( uCF, &Grid, order, BC );
-    WriteState( uCF, uPF, uAF, &Grid, &S_Limiter, ProblemName, t, order, -1 );
+    WriteState( uCF, uPF, &Grid, &S_Limiter, ProblemName, t, order, -1 );
   }
   Kokkos::finalize( );
 

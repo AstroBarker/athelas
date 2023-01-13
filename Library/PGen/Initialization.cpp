@@ -120,12 +120,13 @@ void InitializeFields( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
             if ( k == 0 )
             {
               uCF( iCF_Tau, iX, 0 ) =
-                  1.0 / ( 1.0 + 0.2 * sin( 5.0 * PI( ) * X1 ) );
+                  1.0 / ( 1.0 + 0.2 * sin( 5.0 * constants::PI( ) * X1 ) );
               uCF( iCF_V, iX, 0 ) = 0.0;
               uCF( iCF_E, iX, 0 ) = ( P_R / 0.4 ) * uCF( iCF_Tau, iX, 0 );
             }
 
-            uPF( iPF_D, iX, iNodeX ) = ( 1.0 + 0.2 * sin( 5.0 * PI( ) * X1 ) );
+            uPF( iPF_D, iX, iNodeX ) =
+                ( 1.0 + 0.2 * sin( 5.0 * constants::PI( ) * X1 ) );
           }
         }
     // Fill density in guard cells
@@ -211,12 +212,13 @@ void InitializeFields( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
           else
           {
             uCF( iCF_Tau, iX, k ) =
-                1.0 / ( 2.0 + Amp * sin( 2.0 * PI( ) * X1 ) );
+                1.0 / ( 2.0 + Amp * sin( 2.0 * constants::PI( ) * X1 ) );
             uCF( iCF_V, iX, k ) = V0;
             uCF( iCF_E, iX, k ) =
                 ( P0 / 0.4 ) * uCF( iCF_Tau, iX, k ) + 0.5 * V0 * V0;
           }
-          uPF( iPF_D, iX, iNodeX ) = ( 2.0 + Amp * sin( 2.0 * PI( ) * X1 ) );
+          uPF( iPF_D, iX, iNodeX ) =
+              ( 2.0 + Amp * sin( 2.0 * constants::PI( ) * X1 ) );
         }
     // Fill density in guard cells
     for ( unsigned int iX = 0; iX < ilo; iX++ )
@@ -396,15 +398,15 @@ void InitializeFields( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
 
           if ( k == 0 )
           {
-            Real D                = ( 1.0 + amp * sin( PI( ) * X1 ) );
+            Real D = ( 1.0 + amp * sin( constants::PI( ) * X1 ) );
             uCF( iCF_Tau, iX, 0 ) = 1.0 / D;
             uCF( iCF_V, iX, 0 )   = 0.0;
             uCF( iCF_E, iX, 0 )   = ( D * D * D / 2.0 ) * uCF( iCF_Tau, iX, 0 );
           }
           else if ( k == 1 )
           {
-            Real D  = ( 1.0 + amp * sin( PI( ) * X1 ) );
-            Real dD = ( amp * PI( ) * cos( PI( ) * X1 ) );
+            Real D  = ( 1.0 + amp * sin( constants::PI( ) * X1 ) );
+            Real dD = ( amp * constants::PI( ) * cos( constants::PI( ) * X1 ) );
             uCF( iCF_Tau, iX, k ) =
                 ( -1 / ( D * D ) ) * dD * Grid->Get_Widths( iX );
             uCF( iCF_V, iX, k ) = 0.0;
@@ -413,8 +415,9 @@ void InitializeFields( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
           }
           else if ( k == 2 )
           {
-            Real D   = ( 1.0 + amp * sin( PI( ) * X1 ) );
-            Real ddD = -( amp * PI( ) * PI( ) ) * sin( PI( ) * X1 );
+            Real D   = ( 1.0 + amp * sin( constants::PI( ) * X1 ) );
+            Real ddD = -( amp * constants::PI( ) * constants::PI( ) ) *
+                       sin( constants::PI( ) * X1 );
             uCF( iCF_Tau, iX, k ) = ( 2.0 / ( D * D * D ) ) * ddD *
                                     Grid->Get_Widths( iX ) *
                                     Grid->Get_Widths( iX );
@@ -424,8 +427,10 @@ void InitializeFields( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
           }
           else if ( k == 3 )
           {
-            Real D    = ( 1.0 + amp * sin( PI( ) * X1 ) );
-            Real dddD = -( amp * PI( ) * PI( ) * PI( ) ) * cos( PI( ) * X1 );
+            Real D    = ( 1.0 + amp * sin( constants::PI( ) * X1 ) );
+            Real dddD = -( amp * constants::PI( ) * constants::PI( ) *
+                           constants::PI( ) ) *
+                        cos( constants::PI( ) * X1 );
             uCF( iCF_Tau, iX, k ) =
                 ( -6.0 / ( D * D * D * D ) ) * dddD * Grid->Get_Widths( iX ) *
                 Grid->Get_Widths( iX ) * Grid->Get_Widths( iX );
@@ -439,7 +444,8 @@ void InitializeFields( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
             uCF( iCF_E, iX, k )   = 0.0;
           }
 
-          uPF( iPF_D, iX, iNodeX ) = ( 1.0 + amp * sin( PI( ) * X1 ) );
+          uPF( iPF_D, iX, iNodeX ) =
+              ( 1.0 + amp * sin( constants::PI( ) * X1 ) );
         }
     // Fill density in guard cells
     for ( unsigned int iX = 0; iX < ilo; iX++ )
