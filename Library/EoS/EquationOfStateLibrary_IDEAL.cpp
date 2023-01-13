@@ -10,6 +10,7 @@
 
 #include <math.h> /* sqrt */
 
+#include "Constants.hpp"
 #include "PolynomialBasis.hpp"
 #include "EquationOfStateLibrary_IDEAL.hpp"
 
@@ -39,6 +40,13 @@ Real ComputeSoundSpeedFromConserved_IDEAL( const Real Tau, const Real V,
   Real Cs = sqrt( GAMMA * ( GAMMA - 1.0 ) * Em );
   //  / ( D + GAMMA * Ev ) )
   return Cs;
+}
+Real ComputeTemperature( const Real Tau, const Real P ) {
+  const Real A = 1.0; // pure H
+  return ComputeTemperature( Tau, P, A );
+}
+Real ComputeTemperature( const Real Tau, const Real P, const Real A ) {
+  return ( P * A * Tau ) / ( constants::N_A * constants::k_B );
 }
 
 // nodal specific internal energy
