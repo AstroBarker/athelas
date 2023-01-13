@@ -61,10 +61,9 @@ int main( int argc, char *argv[] )
    GridStructure Grid( &pin );
 
    // --- Create the data structures ---
-   Kokkos::View<Real ***> uCF( "uCF", 3, nX + 2 * nGuard, order );
-   Kokkos::View<Real ***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes );
-
-   Kokkos::View<Real ***> uAF( "uAF", 3, nX + 2 * nGuard, order );
+   Kokkos::View<Real ***> uCF( "uCF", 3, nX + 2 * nGuard, order );  // conserved fluid
+   Kokkos::View<Real ***> uCR( "uCF", 2, nX + 2 * nGuard, order );  // conserved radiation
+   Kokkos::View<Real ***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes ); // primitive fluid
 
     if ( not Restart )
     {
