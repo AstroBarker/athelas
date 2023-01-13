@@ -41,13 +41,19 @@ Real ComputeSoundSpeedFromConserved_IDEAL( const Real Tau, const Real V,
   //  / ( D + GAMMA * Ev ) )
   return Cs;
 }
+
 Real ComputeTemperature( const Real Tau, const Real P ) {
   const Real A = 1.0; // pure H
   return ComputeTemperature( Tau, P, A );
 }
+
 Real ComputeTemperature( const Real Tau, const Real P, const Real A ) {
   return ( P * A * Tau ) / ( constants::N_A * constants::k_B );
 }
+
+Real RadiationPressure( const Real T ) {
+  return constants::a * std::pow( T, 4 );
+} 
 
 // nodal specific internal energy
 Real ComputeInternalEnergy( const Kokkos::View<Real ***> U, ModalBasis *Basis,
