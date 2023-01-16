@@ -30,7 +30,7 @@ Real Flux_Rad( Real E, Real F, Real P, Real V, UInt iRF ) {
 
 Real Source_Rad( Real D, Real V, Real T, Real X, 
                  Real E, Real F, Real Pr, UInt iRF ) {
-  assert ( iRF == 0 || iRF == 1 )
+  assert ( iRF == 0 || iRF == 1 );
 
   Real a = constants::a;
   Real c = constants::c_cgs;
