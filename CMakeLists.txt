@@ -81,6 +81,7 @@ include_directories("Library/Utils")
 include_directories("Library/Limiters")
 include_directories("Library/Basis")
 include_directories("Library/Fluid")
+include_directories("Library/Radiation")
 include_directories("Library/PGen")
 include_directories("Library/LinAlg")
 include_directories("Library/EoS")
@@ -95,7 +96,6 @@ include_directories(athelas PUBLIC
 # --- Source Files ---
 set( ATHELAS_SOURCES 
   "Library/PGen/ProblemIn.cpp"
-  "Library/PGen/Initialization.cpp"
   "Library/BC/BoundaryConditionsLibrary.cpp"
   "Library/Limiters/CharacteristicDecomposition.cpp"
   "Library/EoS/EquationOfStateLibrary_IDEAL.cpp"
