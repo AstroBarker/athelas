@@ -19,7 +19,7 @@ constexpr Real h     = 6.62607015e-27;        // cgs
 constexpr Real hbar  = 1.05457182e-27;        // cgs
 constexpr Real N_A   = 6.02214076e+23;        // 1 / mol
 constexpr Real c_cgs = 2.99792458e+10;        // cgs   
-constexpt Real c = 1.0;                       // natural
+constexpr Real c = 1.0;                       // natural
  
 } // namespace constants
 #endif // _CONSTANTS_HPP_
