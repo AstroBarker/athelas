@@ -42,6 +42,6 @@ Real Source_Rad( Real D, Real V, Real T, Real X,
   if ( iRF == 0 ) {
     return - ( D * X * term1 + D * X * b * term2 );
   } else {
-    return - ( D * X * term1 * b D * X * term2 );
+    return - ( D * X * term1 * b + D * X * term2 );
   }
 }
