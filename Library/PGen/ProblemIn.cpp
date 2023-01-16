@@ -29,6 +29,7 @@ ProblemIn::ProblemIn( std::string fn )
   const char* tO;
   const char* nS;
   const char* rest;
+  const char* rad;
   const char* geom;
   const char* pn;
   const char* tf;
@@ -45,6 +46,7 @@ ProblemIn::ProblemIn( std::string fn )
 
   pn = ini.GetValue("Problem", "problem");
   rest = ini.GetValue("Problem", "restart");
+  rad  = ini.GetValue("Problem", "do_rad");
   geom = ini.GetValue("Problem", "geometry");
   tf = ini.GetValue("Problem", "t_end");
   x1 = ini.GetValue("Problem", "xL");
@@ -70,6 +72,7 @@ ProblemIn::ProblemIn( std::string fn )
   ProblemName = pn;
   BC          = bc;
   Restart     = (strcmp(rest, "true") == 0) ? true : false;
+  do_rad      = (strcmp(rad, "true") == 0) ? true : false;
   Geometry    = (strcmp(geom, "spherical") == 0) ? geometry::Spherical : geometry::Planar;
   Basis       = (strcmp(basis, "Legendre") == 0) ? PolyBasis::Legendre : PolyBasis::Taylor;
   xL          = std::atof( x1 );

@@ -49,6 +49,7 @@ int main( int argc, char *argv[] )
   const Real t_end = pin.t_end;
 
   bool Restart = pin.Restart;
+  bool do_rad  = pin.do_rad;
 
   const std::string BC = pin.BC;
 

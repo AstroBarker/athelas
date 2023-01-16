@@ -47,6 +47,7 @@ class ProblemIn
   PolyBasis::PolyBasis Basis;
   geometry::Geometry Geometry;
   bool Restart;
+  bool do_rad;
 
   Real alpha;
   Real SL_Threshold;
