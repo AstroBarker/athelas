@@ -28,7 +28,7 @@ Real Flux_Rad( Real E, Real F, Real P, Real V, UInt iRF ) {
   }
 }
 
-Real Source_Rad( Real D, Real V, Real T, Real X, 
+Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, 
                  Real E, Real F, Real Pr, UInt iRF ) {
   assert ( iRF == 0 || iRF == 1 );
 
@@ -40,8 +40,8 @@ Real Source_Rad( Real D, Real V, Real T, Real X,
   Real term2 = F - E * b - b * Pr;
 
   if ( iRF == 0 ) {
-    return - ( D * X * term1 + D * X * b * term2 );
+    return - ( D * kappa * term1 + D * X * b * term2 );
   } else {
-    return - ( D * X * term1 * b + D * X * term2 );
+    return - ( D * kappa * term1 * b + D * X * term2 );
   }
 }
