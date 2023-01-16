@@ -20,7 +20,7 @@
  * TODO: iNodeX and order separation
  **/
 template < class View3D >
-void InitializeFields( View3D uCF, View3D uPF,
+void InitializeFields( View3D uCF, View3D uPF, View3D uCR,
                        GridStructure *Grid, const UInt pOrder,
                        const std::string ProblemName )
 {

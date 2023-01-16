@@ -68,7 +68,7 @@ int main( int argc, char *argv[] )
     if ( not Restart )
     {
       // --- Initialize fields ---
-      InitializeFields( uCF, uPF, &Grid, order, ProblemName );
+      InitializeFields( uCF, uPF, uCR, &Grid, order, ProblemName );
 
       ApplyBC_Fluid( uCF, &Grid, order, BC );
     }
