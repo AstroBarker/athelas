@@ -18,8 +18,8 @@
 #include "EquationOfStateLibrary_IDEAL.hpp"
 #include "RadUtilities.hpp"
 
-Real FluxRad( Real E, Real F, Real P, Real V, UInt iRF ) {
-  assert ( iRF == 1 || iRF == 2 )
+Real Flux_Rad( Real E, Real F, Real P, Real V, UInt iRF ) {
+  assert ( iRF == 0 || iRF == 1 )
 
   if ( iRF == 0 ) {
     return F - E * V;
@@ -27,20 +27,21 @@ Real FluxRad( Real E, Real F, Real P, Real V, UInt iRF ) {
     return P - F * v;
   }
 }
-Real SourceRad( Real D, Real V, Real T, Real X, 
-                Real E, Real F, Real P, UInt iRF ) {
-  assert ( iRF == 1 || iRF == 2 )
+
+Real Source_Rad( Real D, Real V, Real T, Real X, 
+                 Real E, Real F, Real Pr, UInt iRF ) {
+  assert ( iRF == 0 || iRF == 1 )
 
   Real a = constants::a;
   Real c = constants::c_cgs;
 
   Real b = V / c;
   Real term1 = E - a * T*T*T*T - 2.0 * b * F;
-  Real term2 = F - E * b - b * P;
+  Real term2 = F - E * b - b * Pr;
 
   if ( iRF == 0 ) {
-    return D * X * term1 + D * X * b * term2;
+    return - ( D * X * term1 + D * X * b * term2 );
   } else {
-    return D * X * term1 * b D * X * term2;
+    return - ( D * X * term1 * b D * X * term2 );
   }
 }
