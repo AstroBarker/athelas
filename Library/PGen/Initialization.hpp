@@ -3,9 +3,6 @@
 
 #include "Abstractions.hpp"
 
-//void InitializeFields( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
-//                       GridStructure *Grid, const UInt pOrder,
-//                       const std::string ProblemName );
 #include <iostream>
 #include <math.h> /* sin */
 #include <string>
