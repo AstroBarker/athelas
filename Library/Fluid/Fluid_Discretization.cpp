@@ -16,7 +16,7 @@
 #include "PolynomialBasis.hpp"
 #include "Fluid_Discretization.hpp"
 #include "BoundaryConditionsLibrary.hpp"
-#include "EquationOfStateLibrary_IDEAL.hpp"
+#include "EquationOfStateLibrary.hpp"
 #include "FluidUtilities.hpp"
 
 // Compute the divergence of the flux term for the update

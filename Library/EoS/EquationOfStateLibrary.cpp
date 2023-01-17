@@ -1,9 +1,9 @@
 /**
- * File     :  EquationOfStateLibrary_IDEAL.cpp
+ * File     :  EquationOfStateLibrary.cpp
  * --------------
  *
  * Author   : Brandon L. Barker
- * Purpose  : Ideal equation of state routines
+ * Purpose  : equation of state routines
  * TODO: OVerhaul, variadic tamplated EoS class
  * to support different EoS's
  **/
@@ -11,7 +11,7 @@
 #include <math.h> /* sqrt */
 
 #include "PolynomialBasis.hpp"
-#include "EquationOfStateLibrary_IDEAL.hpp"
+#include "EquationOfStateLibrary.hpp"
 
 #define GAMMA 1.4
 

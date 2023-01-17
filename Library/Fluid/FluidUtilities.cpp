@@ -14,7 +14,7 @@
 #include "Error.hpp"
 #include "Grid.hpp"
 #include "PolynomialBasis.hpp"
-#include "EquationOfStateLibrary_IDEAL.hpp"
+#include "EquationOfStateLibrary.hpp"
 #include "FluidUtilities.hpp"
 
 /**
