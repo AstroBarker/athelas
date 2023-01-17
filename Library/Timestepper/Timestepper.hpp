@@ -17,7 +17,7 @@ typedef void ( *UpdateFunc )( const Kokkos::View<Real ***>, GridStructure *,
                               Kokkos::View<Real ***>, Kokkos::View<Real **>,
                               Kokkos::View<Real **>, Kokkos::View<Real **>,
                               Kokkos::View<Real *>, Kokkos::View<Real *>,
-                              const std::string );
+                              const Options opts );
 
 class TimeStepper
 {
@@ -30,7 +30,8 @@ class TimeStepper
 
   void UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
                     Kokkos::View<Real ***> U, GridStructure *Grid,
-                    ModalBasis *Basis, SlopeLimiter *S_Limiter );
+                    ModalBasis *Basis, SlopeLimiter *S_Limiter, 
+                    const Options opts );
 
  private:
   const UInt mSize;

@@ -10,7 +10,7 @@ void ComputeIncrement_Fluid_Divergence(
     Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
     Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
     Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
-    Kokkos::View<Real *> Flux_P );
+    Kokkos::View<Real *> Flux_P, const Options opts );
 
 void ComputeIncrement_Fluid_Geometry( const Kokkos::View<Real ***> U,
                                       GridStructure *Grid, ModalBasis *Basis,
@@ -21,6 +21,6 @@ void Compute_Increment_Explicit(
     Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
     Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
     Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
-    Kokkos::View<Real *> Flux_P, const std::string BC );
+    Kokkos::View<Real *> Flux_P, const Options opts );
 
 #endif

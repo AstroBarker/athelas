@@ -25,7 +25,7 @@ void ComputeIncrement_Fluid_Divergence(
     Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
     Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
     Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
-    Kokkos::View<Real *> Flux_P )
+    Kokkos::View<Real *> Flux_P, const Options opts )
 {
   const auto &nNodes = Grid->Get_nNodes( );
   const auto &order  = Basis->Get_Order( );
@@ -191,7 +191,7 @@ void Compute_Increment_Explicit(
     Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
     Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
     Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
-    Kokkos::View<Real *> Flux_P, const std::string BC )
+    Kokkos::View<Real *> Flux_P, const Options opts )
 {
 
   const auto &order = Basis->Get_Order( );
@@ -199,7 +199,7 @@ void Compute_Increment_Explicit(
   const auto &ihi   = Grid->Get_ihi( );
 
   // --- Apply BC ---
-  ApplyBC_Fluid( U, Grid, order, BC );
+  ApplyBC( U, Grid, order, opts.BC );
 
   // --- Detect Shocks ---
   // TODO: Code up a shock detector...
@@ -220,7 +220,7 @@ void Compute_Increment_Explicit(
 
   // --- Fluid Increment : Divergence ---
   ComputeIncrement_Fluid_Divergence( U, Grid, Basis, dU, Flux_q, dFlux_num,
-                                     uCF_F_L, uCF_F_R, Flux_U, Flux_P );
+                                     uCF_F_L, uCF_F_R, Flux_U, Flux_P, opts );
 
   // --- Divide update by mass mastrix ---
   Kokkos::parallel_for(

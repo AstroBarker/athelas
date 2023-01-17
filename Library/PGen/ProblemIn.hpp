@@ -1,5 +1,5 @@
-#ifndef PROBLEMIN_H
-#define PROBLEMIN_H
+#ifndef _PROBLEMIN_HPP_
+#define _PROBLEMIN_HPP_
 
 /**
  * File     :  ProblemIn.hpp
@@ -19,6 +19,19 @@
 #include "Geometry.hpp"
 #include "Error.hpp"
 #include "SimpleIni.h"
+
+/* hold various program options */
+struct Options {
+  bool do_rad  = false;
+  bool do_grav = false;
+  bool restart = false;
+
+  std::string BC = "Homogenous";
+
+  geometry::Geometry geom = geometry::Planar;
+  PolyBasis::PolyBasis basis = PolyBasis::Legendre;
+};
+
 
 class ProblemIn
 {
@@ -56,4 +69,4 @@ class ProblemIn
   bool Characteristic;
 };
 
-#endif
+#endif // _PROBLEMIN_HPP_

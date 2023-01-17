@@ -55,6 +55,10 @@ int main( int argc, char *argv[] )
 
   const Real CFL = ComputeCFL( pin.CFL, order, nStages, tOrder );
 
+  /* opts struct TODO: add grav when ready */
+  Options opts = { pin.do_rad, false, pin.Restart, BC, pin.Geometry, pin.Basis };
+
+
   Kokkos::initialize( argc, argv );
   {
 
@@ -71,7 +75,7 @@ int main( int argc, char *argv[] )
       // --- Initialize fields ---
       InitializeFields( uCF, uPF, uCR, &Grid, order, ProblemName );
 
-      ApplyBC_Fluid( uCF, &Grid, order, BC );
+      ApplyBC( uCF, &Grid, order, BC );
     }
     // WriteState( uCF, uPF, Grid, ProblemName, 0.0, order, 0 );
 
@@ -117,7 +121,7 @@ int main( int argc, char *argv[] )
       }
 
       SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, &Grid, &Basis,
-                         &S_Limiter );
+                         &S_Limiter, opts );
 
       t += dt;
 
@@ -135,7 +139,7 @@ int main( int argc, char *argv[] )
     // --- Finalize timer ---
     Real time = timer.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
-    ApplyBC_Fluid( uCF, &Grid, order, BC );
+    ApplyBC( uCF, &Grid, order, BC );
     WriteState( uCF, uPF, &Grid, &S_Limiter, ProblemName, t, order, -1 );
   }
   Kokkos::finalize( );
