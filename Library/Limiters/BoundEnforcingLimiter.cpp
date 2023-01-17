@@ -4,7 +4,7 @@
  *
  * Author   : Brandon L. Barker
  * Purpose  : Limit solution to maintain physicality
- * TODO: Bisection / process not getting sutiable theta
+ * TODO: Need to give BEL much more thought
  * TODO: Can some functions here be simplified?
  *   ? If I pass U, iX, iCF, iN... why not just the value
  **/
@@ -73,7 +73,6 @@ void LimitInternalEnergy( Kokkos::View<Real ***> U, ModalBasis *Basis )
           }
           else
           {
-            // TODO: Backtracing may be working okay...
             temp = Backtrace( U, Basis, iX, iN );
             // TODO: This is hacked and Does Not Really Work
             // temp = Bisection( U, Basis, iX, iN ) / 2.0;
