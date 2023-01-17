@@ -49,7 +49,6 @@ int main( int argc, char *argv[] )
   const Real t_end = pin.t_end;
 
   bool Restart = pin.Restart;
-  bool do_rad  = pin.do_rad;
 
   const std::string BC = pin.BC;
 
@@ -66,9 +65,9 @@ int main( int argc, char *argv[] )
    GridStructure Grid( &pin );
 
    // --- Create the data structures ---
-   Kokkos::View<Real ***> uCF( "uCF", 3, nX + 2 * nGuard, order );  // conserved fluid
-   Kokkos::View<Real ***> uCR( "uCF", 2, nX + 2 * nGuard, order );  // conserved radiation
-   Kokkos::View<Real ***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes ); // primitive fluid
+   View3D uCF( "uCF", 3, nX + 2 * nGuard, order );  // conserved fluid
+   View3D uCR( "uCF", 2, nX + 2 * nGuard, order );  // conserved radiation
+   View3D uPF( "uPF", 3, nX + 2 * nGuard, nNodes ); // primitive fluid
 
     if ( not Restart )
     {
@@ -120,7 +119,7 @@ int main( int argc, char *argv[] )
         std::printf( " ~ %d \t %.5e \t %.5e\n", iStep, t, dt );
       }
 
-      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, &Grid, &Basis,
+      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, uCR, &Grid, &Basis,
                          &S_Limiter, opts );
 
       t += dt;

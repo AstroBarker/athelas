@@ -96,15 +96,16 @@ include_directories(athelas PUBLIC
 # --- Source Files ---
 set( ATHELAS_SOURCES 
   "Library/PGen/ProblemIn.cpp"
+  "Library/Basis/PolynomialBasis.cpp"
   "Library/BC/BoundaryConditionsLibrary.cpp"
   "Library/Limiters/CharacteristicDecomposition.cpp"
   "Library/EoS/EquationOfStateLibrary_IDEAL.cpp"
   "Library/Fluid/FluidUtilities.cpp"
+  "Library/Radiation/RadUtilities.cpp"
   "Library/Fluid/Fluid_Discretization.cpp"
   "Library/Geometry/Grid.cpp"
   "Library/IO/IOLibrary.cpp"
   "Library/LinAlg/LinearAlgebraModules.cpp"
-  "Library/Basis/PolynomialBasis.cpp"
   "Library/Quadrature/QuadratureLibrary.cpp"
   "Library/Limiters/SlopeLimiter.cpp"
   "Library/Limiters/BoundEnforcingLimiter.cpp"
