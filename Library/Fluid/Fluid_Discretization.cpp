@@ -18,14 +18,15 @@
 #include "BoundaryConditionsLibrary.hpp"
 #include "EquationOfStateLibrary_IDEAL.hpp"
 #include "FluidUtilities.hpp"
+#include "RadUtilities.hpp"
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence(
-    const Kokkos::View<Real ***> U, GridStructure *Grid, ModalBasis *Basis,
-    Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
-    Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
-    Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
-    Kokkos::View<Real *> Flux_P, const Options opts )
+    const View3D U, GridStructure *Grid, ModalBasis *Basis,
+    View3D dU, View3D Flux_q,
+    View2D dFlux_num, View2D uCF_F_L,
+    View2D uCF_F_R, View1D Flux_U,
+    View1D Flux_P, const Options opts )
 {
   const auto &nNodes = Grid->Get_nNodes( );
   const auto &order  = Basis->Get_Order( );
@@ -139,9 +140,9 @@ void ComputeIncrement_Fluid_Divergence(
 /**
  * Compute fluid increment from geometry in spherical symmetry
  **/
-void ComputeIncrement_Fluid_Geometry( Kokkos::View<Real ***> U,
+void ComputeIncrement_Fluid_Geometry( View3D U,
                                       GridStructure *Grid, ModalBasis *Basis,
-                                      Kokkos::View<Real ***> dU )
+                                      View3D dU )
 {
   const UInt nNodes = Grid->Get_nNodes( );
   const UInt order  = Basis->Get_Order( );
@@ -149,7 +150,7 @@ void ComputeIncrement_Fluid_Geometry( Kokkos::View<Real ***> U,
   const UInt ihi    = Grid->Get_ihi( );
 
   Kokkos::parallel_for(
-      "Geometry Term",
+      "Geometry Term; Fluid",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, ilo }, { order, ihi + 1 } ),
       KOKKOS_LAMBDA( const int k, const int iX ) {
         Real local_sum = 0.0;
@@ -171,6 +172,61 @@ void ComputeIncrement_Fluid_Geometry( Kokkos::View<Real ***> U,
       } );
 }
 
+/**
+ * Compute fluid increment from radiation sources
+ * TODO: Modify inputs?
+ **/
+void ComputeIncrement_Fluid_Rad( View3D uCF,
+                                 View3D uCR,
+                                 GridStructure *Grid, ModalBasis *Basis,
+                                 View3D dU )
+{
+  const UInt nNodes = Grid->Get_nNodes( );
+  const UInt order  = Basis->Get_Order( );
+  const UInt ilo    = Grid->Get_ilo( );
+  const UInt ihi    = Grid->Get_ihi( );
+
+  Kokkos::parallel_for(
+      "Fluid Source Term; Rad",
+      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, ilo }, { order, ihi + 1 } ),
+      KOKKOS_LAMBDA( const int k, const int iX ) {
+        Real local_sum1 = 0.0;
+        Real local_sum2 = 0.0;
+        for ( UInt iN = 0; iN < nNodes; iN++ )
+        {
+          const Real Tau = Basis->BasisEval( uCF, iX, 0, iN + 1, false );
+          const Real Vel = Basis->BasisEval( uCF, iX, 1, iN + 1, false );
+          const Real EmT = Basis->BasisEval( uCF, iX, 2, iN + 1, false );
+
+          const Real Er = Basis->BasisEval( uCR, iX, 0, iN + 1, false );
+          const Real Fr = Basis->BasisEval( uCR, iX, 1, iN + 1, false );
+          const Real Pr = ComputeClosure( Er / Tau, Fr / Tau );
+
+          const Real P = ComputePressureFromConserved_IDEAL( Tau, Vel, EmT );
+
+          const Real T = ComputeTemperature( Tau, P );
+
+          // TODO: kappa and chi will be updated here.
+          const Real kappa = ComputeOpacity( Tau, Vel, EmT ); 
+
+          const Real chi = ComputeEmissivity( Tau, Vel, EmT ); 
+
+
+          local_sum1 +=
+              Grid->Get_Weights( iN ) * Basis->Get_Phi( iX, iN + 1, k ) 
+              * Source_Fluid_Rad( Tau, Vel, T, chi, kappa, Er, Fr, Pr, 1 );
+          local_sum2 +=
+              Grid->Get_Weights( iN ) * Basis->Get_Phi( iX, iN + 1, k ) 
+              * Source_Fluid_Rad( Tau, Vel, T, chi, kappa, Er, Fr, Pr, 2 );
+        }
+
+        dU( 1, iX, k ) += ( local_sum1 * Grid->Get_Widths( iX ) ) /
+                          Basis->Get_MassMatrix( iX, k );
+        dU( 2, iX, k ) += ( local_sum2 * Grid->Get_Widths( iX ) ) /
+                          Basis->Get_MassMatrix( iX, k );
+      } );
+}
+
 /** Compute dU for timestep update. e.g., U = U + dU * dt
  *
  * Parameters:
@@ -187,11 +243,11 @@ void ComputeIncrement_Fluid_Geometry( Kokkos::View<Real ***> U,
  * BC               : (string) boundary condition type
  **/
 void Compute_Increment_Explicit(
-    const Kokkos::View<Real ***> U, GridStructure *Grid, ModalBasis *Basis,
-    Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
-    Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
-    Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
-    Kokkos::View<Real *> Flux_P, const Options opts )
+    const View3D U, View3D uCR, GridStructure *Grid, ModalBasis *Basis,
+    View3D dU, View3D Flux_q,
+    View2D dFlux_num, View2D uCF_F_L,
+    View2D uCF_F_R, View1D Flux_U,
+    View1D Flux_P, const Options opts )
 {
 
   const auto &order = Basis->Get_Order( );
@@ -231,11 +287,14 @@ void Compute_Increment_Explicit(
         dU( iCF, iX, k ) /= ( Basis->Get_MassMatrix( iX, k ) );
       } );
 
-  // --- Increment from Geometry ---
+  /* --- Increment from Geometry --- */
   if ( Grid->DoGeometry( ) )
   {
     ComputeIncrement_Fluid_Geometry( U, Grid, Basis, dU );
   }
 
-  // --- Increment Gravity ---
+  /* --- Increment Rad --- */
+  if ( opts.do_rad ) {
+      ComputeIncrement_Fluid_Rad( U, uCR, Grid, Basis, dU );
+  }
 }

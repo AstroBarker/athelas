@@ -19,7 +19,6 @@
  * TODO: For now I initialize constant on each cell. Is there a better way?
  * TODO: iNodeX and order separation
  **/
-template < class View3D >
 void InitializeFields( View3D uCF, View3D uPF, View3D uCR,
                        GridStructure *Grid, const UInt pOrder,
                        const std::string ProblemName )
@@ -52,6 +51,8 @@ void InitializeFields( View3D uCF, View3D uPF, View3D uCR,
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
           uCF( iCF_E, iX, k )   = 0.0;
+          uCR( 0, iX, k ) = 0.0;
+          uCR( 1, iX, k ) = 0.0;
 
           if ( X1 <= 0.5 )
           {

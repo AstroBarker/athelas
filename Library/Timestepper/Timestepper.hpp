@@ -12,11 +12,12 @@
 #include "Abstractions.hpp"
 #include "ProblemIn.hpp"
 
-typedef void ( *UpdateFunc )( const Kokkos::View<Real ***>, GridStructure *,
-                              ModalBasis *, Kokkos::View<Real ***>,
-                              Kokkos::View<Real ***>, Kokkos::View<Real **>,
-                              Kokkos::View<Real **>, Kokkos::View<Real **>,
-                              Kokkos::View<Real *>, Kokkos::View<Real *>,
+typedef void ( *UpdateFunc )( const View3D, const View3D, 
+                              GridStructure *,
+                              ModalBasis *, View3D,
+                              View3D, View2D,
+                              View2D, View2D,
+                              View1D, View1D,
                               const Options opts );
 
 class TimeStepper
@@ -29,7 +30,7 @@ class TimeStepper
   void InitializeTimestepper( );
 
   void UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
-                    Kokkos::View<Real ***> U, GridStructure *Grid,
+                    View3D uCF, View3D uCR, GridStructure *Grid,
                     ModalBasis *Basis, SlopeLimiter *S_Limiter, 
                     const Options opts );
 
@@ -40,27 +41,27 @@ class TimeStepper
   const std::string BC;
 
   // SSP coefficients
-  Kokkos::View<Real **> a_jk;
-  Kokkos::View<Real **> b_jk;
+  View2D a_jk;
+  View2D b_jk;
 
   // Hold stage data
   Kokkos::View<Real ****> U_s;
   Kokkos::View<Real ****> dU_s;
-  Kokkos::View<Real ***> SumVar_U;
+  View3D SumVar_U;
   std::vector<GridStructure> Grid_s;
 
   // StageData Holds cell left interface positions
-  Kokkos::View<Real **> StageData;
+  View2D StageData;
 
   // Variables to pass to update step
-  Kokkos::View<Real ***> Flux_q;
+  View3D Flux_q;
 
-  Kokkos::View<Real **> dFlux_num;
-  Kokkos::View<Real **> uCF_F_L;
-  Kokkos::View<Real **> uCF_F_R;
+  View2D dFlux_num;
+  View2D uCF_F_L;
+  View2D uCF_F_R;
 
-  Kokkos::View<Real **> Flux_U;
-  Kokkos::View<Real *> Flux_P;
+  View2D Flux_U;
+  View1D Flux_P;
 };
 
 #endif

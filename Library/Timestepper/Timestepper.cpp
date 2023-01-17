@@ -213,7 +213,7 @@ void TimeStepper::InitializeTimestepper( )
  * Update Solution with SSPRK methods
  **/
 void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
-                               Kokkos::View<Real ***> U, GridStructure *Grid,
+                               View3D U, View3D uCR, GridStructure *Grid,
                                ModalBasis *Basis, SlopeLimiter *S_Limiter,
                                const Options opts )
 {
@@ -259,7 +259,7 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
       auto dUsj =
           Kokkos::subview( dU_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto Flux_Uj = Kokkos::subview( Flux_U, j, Kokkos::ALL );
-      ComputeIncrement( Usj, &Grid_s[j], Basis, dUsj, Flux_q, dFlux_num,
+      ComputeIncrement( Usj, uCR, &Grid_s[j], Basis, dUsj, Flux_q, dFlux_num,
                         uCF_F_L, uCF_F_R, Flux_Uj, Flux_P, opts );
 
       // inner sum
