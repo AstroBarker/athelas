@@ -12,7 +12,7 @@ void ComputeIncrement_Rad_Divergence(
     Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
     Kokkos::View<Real *> Flux_P );
 
-void Compute_Increment_Explicit(
+void Compute_Increment_Explicit_Rad(
     const Kokkos::View<Real ***> U, GridStructure *Grid, ModalBasis *Basis,
     Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
     Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
