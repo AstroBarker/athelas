@@ -52,7 +52,7 @@ Real ComputeTemperature( const Real Tau, const Real P, const Real A ) {
 }
 
 Real RadiationPressure( const Real T ) {
-  return constants::a * std::pow( T, 4 );
+  return constants::a * T * T * T * T;
 } 
 
 // nodal specific internal energy
