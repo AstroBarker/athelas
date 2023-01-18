@@ -1,16 +1,44 @@
-#ifndef LINEARALGEBRAMODULES_H
-#define LINEARALGEBRAMODULES_H
+#ifndef _LINEARALGEBRAMODULES_HPP_
+#define _LINEARALGEBRAMODULES_HPP_
 
 #include "Kokkos_Core.hpp"
 
 #include "Abstractions.hpp"
 
-void IdentityMatrix( Kokkos::View<Real **> Mat, UInt n );
-Real **matmul( Real **A, Real **B, int rows_A, int cols_A, int rows_B,
-               int cols_B );
+// Fill identity matrix
+template < class T >
+constexpr void IdentityMatrix( T Mat, UInt n )
+{
+  for ( UInt i = 0; i < n; i++ )
+    for ( UInt j = 0; j < n; j++ )
+    {
+      if ( i == j )
+      {
+        Mat( i, j ) = 1.0;
+      }
+      else
+      {
+        Mat( i, j ) = 0.0;
+      }
+    }
+}
+
+/**
+ * Matrix vector multiplication
+ **/
+template < class M, class V >
+constexpr void MatMul( Real alpha, M A, V x, Real beta, V y )
+{
+  // Calculate A*x=y
+  for ( int i = 0; i < 3; i++ )
+  {
+    for ( int j = 0; j < 3; j++ )
+    {
+      y( i ) += ( A( i, j ) * x( j ) );
+    }
+  }
+}
 void Tri_Sym_Diag( int n, Real *d, Real *e, Real *array );
 void InvertMatrix( Real *M, UInt n );
-void MatMul( Real alpha, Kokkos::View<Real[3][3]> A, Kokkos::View<Real[3]> x,
-             Real beta, Kokkos::View<Real[3]> y );
 
-#endif
+#endif // _LINEARALGEBRAMODULES_HPP_

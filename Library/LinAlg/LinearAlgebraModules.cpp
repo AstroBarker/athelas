@@ -16,23 +16,6 @@
 #include "LinearAlgebraModules.hpp"
 #include "lapacke.h"
 
-// Fill identity matrix
-void IdentityMatrix( Kokkos::View<Real **> Mat, UInt n )
-{
-  for ( UInt i = 0; i < n; i++ )
-    for ( UInt j = 0; j < n; j++ )
-    {
-      if ( i == j )
-      {
-        Mat( i, j ) = 1.0;
-      }
-      else
-      {
-        Mat( i, j ) = 0.0;
-      }
-    }
-}
-
 /**
  * Use LAPACKE to diagonalize symmetric tridiagonal matrix with DSTEV
  *
@@ -103,18 +86,3 @@ void InvertMatrix( Real *M, UInt n )
   }
 }
 
-/**
- * Matrix vector multiplication
- **/
-void MatMul( Real alpha, Kokkos::View<Real[3][3]> A, Kokkos::View<Real[3]> x,
-             Real beta, Kokkos::View<Real[3]> y )
-{
-  // Calculate A*x=y
-  for ( int i = 0; i < 3; i++ )
-  {
-    for ( int j = 0; j < 3; j++ )
-    {
-      y( i ) += ( A( i, j ) * x( j ) );
-    }
-  }
-}

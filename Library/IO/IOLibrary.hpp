@@ -17,8 +17,8 @@ struct DataType
 };
 
 void WriteState( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
-                 Kokkos::View<Real ***> uAF, GridStructure *Grid,
-                 SlopeLimiter *SL, const std::string ProblemName, Real time,
+                 GridStructure *Grid, SlopeLimiter *SL, 
+                 const std::string ProblemName, Real time,
                  UInt order, int i_write );
 
 void PrintSimulationParameters( GridStructure *Grid, ProblemIn *pin, const Real CFL );

@@ -19,31 +19,6 @@
 #include "Utilities.hpp"
 #include "SlopeLimiter_Utilities.hpp"
 
-// Standard minmod function
-Real minmod( Real a, Real b, Real c )
-{
-  if ( sgn( a ) == sgn( b ) && sgn( b ) == sgn( c ) )
-  {
-    return sgn( a ) * std::min( std::min( a, b ), c );
-  }
-  else
-  {
-    return 0.0;
-  }
-}
-
-// TVB minmod function
-Real minmodB( Real a, Real b, Real c, Real dx, Real M )
-{
-  if ( std::abs( a ) < M * dx * dx )
-  {
-    return a;
-  }
-  else
-  {
-    return minmod( a, b, c );
-  }
-}
 
 /**
  *  Barth-Jespersen limiter

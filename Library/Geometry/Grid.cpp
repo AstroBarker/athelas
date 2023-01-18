@@ -248,7 +248,7 @@ void GridStructure::UpdateGrid( Kokkos::View<Real *> SData )
   const UInt ihi = Get_ihi( );
 
   Kokkos::parallel_for(
-      "Limit Density", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+      "Grid Update 1", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
       KOKKOS_LAMBDA( UInt iX ) {
         X_L( iX )     = SData( iX );
         Widths( iX )  = SData( iX + 1 ) - SData( iX );
@@ -256,7 +256,7 @@ void GridStructure::UpdateGrid( Kokkos::View<Real *> SData )
       } );
 
   Kokkos::parallel_for(
-      "Limit Density", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+      "Grid Update 2", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
       KOKKOS_LAMBDA( UInt iX ) {
         for ( UInt iN = 0; iN < nNodes; iN++ )
         {

@@ -4,7 +4,7 @@
  *
  * Author   : Brandon L. Barker
  * Purpose  : Limit solution to maintain physicality
- * TODO: Bisection / process not getting sutiable theta
+ * TODO: Need to give BEL much more thought
  * TODO: Can some functions here be simplified?
  *   ? If I pass U, iX, iCF, iN... why not just the value
  **/
@@ -169,7 +169,7 @@ Real Bisection( const Kokkos::View<Real ***> U, ModalBasis *Basis, EOS *eos,
   return c;
 }
 
-Real Backtrace( const Kokkos::View<Real ***> U, ModalBasis *Basis, EOS *eos,
+Real Backtrace( const View3D U, ModalBasis *Basis, EOS *eos,
                 const UInt iX, const UInt iN )
 {
   Real theta = 1.0;

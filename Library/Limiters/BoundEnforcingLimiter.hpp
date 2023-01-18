@@ -1,21 +1,20 @@
-#ifndef BOUNDENFORCINGLIMITER_H
-#define BOUNDENFORCINGLIMITER_H
+#ifndef _BOUNDENFORCINGLIMITER_HPP_
+#define _BOUNDENFORCINGLIMITER_HPP_
 
 #include "Abstractions.hpp"
 
-void LimitDensity( Kokkos::View<Real ***> U, ModalBasis *Basis );
-void LimitInternalEnergy( Kokkos::View<Real ***> U, ModalBasis *Basis, 
+void LimitDensity( View3D U, ModalBasis *Basis );
+void LimitInternalEnergy( View3D U, ModalBasis *Basis, 
                           EOS *eos );
-void ApplyBoundEnforcingLimiter( Kokkos::View<Real ***> U, ModalBasis *Basis, 
+void ApplyBoundEnforcingLimiter( View3D U, ModalBasis *Basis, 
                                  EOS *eos );
-Real ComputeThetaState( const Kokkos::View<Real ***> U, ModalBasis *Basis, 
+Real ComputeThetaState( const View3D U, ModalBasis *Basis, 
                         EOS *eos, const Real theta, const UInt iCF, 
                         const UInt iX, const UInt iN );
-Real TargetFunc( const Kokkos::View<Real ***> U, ModalBasis *Basis, EOS *eos,
+Real TargetFunc( const View3D U, ModalBasis *Basis, EOS *eos,
                  const Real theta, const UInt iX, const UInt iN );
-Real Bisection( const Kokkos::View<Real ***> U, ModalBasis *Basis, EOS *eos,
+Real Bisection( const View3D U, ModalBasis *Basis, EOS *eos,
                 const UInt iX, const UInt iN );
-Real Backtrace( const Kokkos::View<Real ***> U, ModalBasis *Basis, EOS *eos,
+Real Backtrace( const View3D U, ModalBasis *Basis, EOS *eos,
                 const UInt iX, const UInt iN );
-
-#endif
+#endif // _BOUNDENFORCINGLIMITER_HPP_

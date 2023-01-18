@@ -29,7 +29,7 @@ void IdealGas::SoundSpeedFromConserved( const Real Tau, const Real V,
 void IdealGas::TemperatureFromTauPressureAbar( const Real Tau, 
                                                const Real P, const Real Abar, 
                                                Real &T ) const {
-  T = ( P * Abar * Tau ) / ( N_A * k_B ); 
+  T = ( P * Abar * Tau ) / ( constants::N_A * constants::k_B ); 
 }
 
 void IdealGas::TemperatureFromTauPressure( const Real Tau, 
@@ -39,7 +39,7 @@ void IdealGas::TemperatureFromTauPressure( const Real Tau,
 }
 
 void IdealGas::RadiationPressure( const Real T, Real &Prad ) const {
-    Prad = a * T * T * T * T;
+    Prad = constants::a * T * T * T * T;
 }
 
 // nodal specific internal energy
