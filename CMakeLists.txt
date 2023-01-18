@@ -99,7 +99,6 @@ set( ATHELAS_SOURCES
   "Library/Basis/PolynomialBasis.cpp"
   "Library/BC/BoundaryConditionsLibrary.cpp"
   "Library/Limiters/CharacteristicDecomposition.cpp"
-  "Library/EoS/EquationOfStateLibrary.cpp"
   "Library/EoS/EoS_Ideal.cpp"
   "Library/Fluid/FluidUtilities.cpp"
   "Library/Radiation/RadUtilities.cpp"

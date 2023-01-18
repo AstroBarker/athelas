@@ -18,7 +18,7 @@ void NumericalFlux_Gudonov( const Real vL, const Real vR, const Real pL,
 void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
                          Real rhoL, Real rhoR, Real &Flux_U, Real &Flux_P );
 Real ComputeTimestep_Fluid( const View3D U,
-                            const GridStructure *Grid, EOS *eos 
+                            const GridStructure *Grid, EOS *eos, 
                             const Real CFL );
 
 #endif

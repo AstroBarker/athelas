@@ -11,10 +11,10 @@
 
 #include "Kokkos_Core.hpp"
 
+#include "EoS.hpp"
 #include "Constants.hpp"
 #include "Error.hpp"
 #include "PolynomialBasis.hpp"
-#include "EquationOfStateLibrary_IDEAL.hpp"
 #include "RadUtilities.hpp"
 #include "Utilities.hpp"
 

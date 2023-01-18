@@ -123,8 +123,8 @@ int main( int argc, char *argv[] )
         std::printf( " ~ %d \t %.5e \t %.5e\n", iStep, t, dt );
       }
 
-      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, &Grid, &Basis,
-                         &eos, &S_Limiter, opts );
+      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, uCR, &Grid, 
+                         &Basis, &eos, &S_Limiter, opts );
 
       t += dt;
 

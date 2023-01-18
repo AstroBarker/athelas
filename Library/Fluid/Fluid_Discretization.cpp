@@ -21,19 +21,11 @@
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence(
-<<<<<<< HEAD
-    const Kokkos::View<Real ***> U, GridStructure *Grid, ModalBasis *Basis,
-    EOS *eos, Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
-    Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
-    Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
-    Kokkos::View<Real *> Flux_P )
-=======
     const View3D U, GridStructure *Grid, ModalBasis *Basis,
-    View3D dU, View3D Flux_q,
+    EOS *eos, View3D dU, View3D Flux_q,
     View2D dFlux_num, View2D uCF_F_L,
     View2D uCF_F_R, View1D Flux_U,
     View1D Flux_P, const Options opts )
->>>>>>> rad
 {
   const auto &nNodes = Grid->Get_nNodes( );
   const auto &order  = Basis->Get_Order( );
@@ -151,11 +143,7 @@ void ComputeIncrement_Fluid_Divergence(
  **/
 void ComputeIncrement_Fluid_Geometry( View3D U,
                                       GridStructure *Grid, ModalBasis *Basis,
-<<<<<<< HEAD
-                                      EOS *eos, Kokkos::View<Real ***> dU )
-=======
-                                      View3D dU )
->>>>>>> rad
+                                      EOS *eos, View3D dU )
 {
   const UInt nNodes = Grid->Get_nNodes( );
   const UInt order  = Basis->Get_Order( );
@@ -190,10 +178,8 @@ void ComputeIncrement_Fluid_Geometry( View3D U,
  * Compute fluid increment from radiation sources
  * TODO: Modify inputs?
  **/
-void ComputeIncrement_Fluid_Rad( View3D uCF,
-                                 View3D uCR,
-                                 GridStructure *Grid, ModalBasis *Basis,
-                                 View3D dU )
+void ComputeIncrement_Fluid_Rad( View3D uCF, View3D uCR, GridStructure *Grid, 
+                                 ModalBasis *Basis, EOS *eos, View3D dU )
 {
   const UInt nNodes = Grid->Get_nNodes( );
   const UInt order  = Basis->Get_Order( );
@@ -216,9 +202,11 @@ void ComputeIncrement_Fluid_Rad( View3D uCF,
           const Real Fr = Basis->BasisEval( uCR, iX, 1, iN + 1, false );
           const Real Pr = ComputeClosure( Er / Tau, Fr / Tau );
 
-          const Real P = ComputePressureFromConserved_IDEAL( Tau, Vel, EmT );
+          Real P = 0.0;
+          eos->PressureFromConserved( Tau, Vel, EmT, P );
 
-          const Real T = ComputeTemperature( Tau, P );
+          Real T = 0.0;
+          eos->TemperatureFromTauPressure( Tau, P, T );
 
           // TODO: kappa and chi will be updated here.
           const Real kappa = ComputeOpacity( Tau, Vel, EmT ); 
@@ -257,19 +245,9 @@ void ComputeIncrement_Fluid_Rad( View3D uCF,
  * BC               : (string) boundary condition type
  **/
 void Compute_Increment_Explicit(
-<<<<<<< HEAD
-    const Kokkos::View<Real ***> U, GridStructure *Grid, ModalBasis *Basis,
-    EOS *eos, Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
-    Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
-    Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
-    Kokkos::View<Real *> Flux_P, const std::string BC )
-=======
     const View3D U, View3D uCR, GridStructure *Grid, ModalBasis *Basis,
-    View3D dU, View3D Flux_q,
-    View2D dFlux_num, View2D uCF_F_L,
-    View2D uCF_F_R, View1D Flux_U,
-    View1D Flux_P, const Options opts )
->>>>>>> rad
+    EOS *eos, View3D dU, View3D Flux_q, View2D dFlux_num, View2D uCF_F_L,
+    View2D uCF_F_R, View1D Flux_U, View1D Flux_P, const Options opts )
 {
 
   const auto &order = Basis->Get_Order( );
@@ -297,13 +275,8 @@ void Compute_Increment_Explicit(
       ihi + 2, KOKKOS_LAMBDA( UInt iX ) { Flux_U( iX ) = 0.0; } );
 
   // --- Fluid Increment : Divergence ---
-<<<<<<< HEAD
   ComputeIncrement_Fluid_Divergence( U, Grid, Basis, eos, dU, Flux_q, dFlux_num,
-                                     uCF_F_L, uCF_F_R, Flux_U, Flux_P );
-=======
-  ComputeIncrement_Fluid_Divergence( U, Grid, Basis, dU, Flux_q, dFlux_num,
                                      uCF_F_L, uCF_F_R, Flux_U, Flux_P, opts );
->>>>>>> rad
 
   // --- Divide update by mass mastrix ---
   Kokkos::parallel_for(
@@ -322,6 +295,6 @@ void Compute_Increment_Explicit(
 
   /* --- Increment Rad --- */
   if ( opts.do_rad ) {
-      ComputeIncrement_Fluid_Rad( U, uCR, Grid, Basis, dU );
+      ComputeIncrement_Fluid_Rad( U, uCR, Grid, Basis, eos, dU );
   }
 }
