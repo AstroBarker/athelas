@@ -11,10 +11,10 @@
 #include <cstdlib>   /* abs */
 #include <algorithm> // std::min, std::max
 
+#include "EoS.hpp"
 #include "Error.hpp"
 #include "Grid.hpp"
 #include "PolynomialBasis.hpp"
-#include "EquationOfStateLibrary.hpp"
 #include "FluidUtilities.hpp"
 
 /**
@@ -106,7 +106,8 @@ void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
  * Compute the fluid timestep.
  **/
 Real ComputeTimestep_Fluid( const Kokkos::View<Real ***> U,
-                            const GridStructure *Grid, const Real CFL )
+                            const GridStructure *Grid, 
+                            EOS *eos, const Real CFL )
 {
 
   const Real MIN_DT = 0.000000005;
@@ -126,7 +127,8 @@ Real ComputeTimestep_Fluid( const Kokkos::View<Real ***> U,
 
         Real dr = Grid->Get_Widths( iX );
 
-        Real Cs = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
+        Real Cs = 0.0;
+        eos->SoundSpeedFromConserved( tau_x, vel_x, eint_x, Cs );
         Real eigval = Cs;
 
         Real dt_old = std::abs( dr ) / std::abs( eigval );

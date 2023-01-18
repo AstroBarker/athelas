@@ -214,7 +214,8 @@ void TimeStepper::InitializeTimestepper( )
  **/
 void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
                                Kokkos::View<Real ***> U, GridStructure *Grid,
-                               ModalBasis *Basis, SlopeLimiter *S_Limiter )
+                               ModalBasis *Basis, EOS *eos, 
+                               SlopeLimiter *S_Limiter )
 {
 
   const auto &order = Basis->Get_Order( );
@@ -258,7 +259,7 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
       auto dUsj =
           Kokkos::subview( dU_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto Flux_Uj = Kokkos::subview( Flux_U, j, Kokkos::ALL );
-      ComputeIncrement( Usj, &Grid_s[j], Basis, dUsj, Flux_q, dFlux_num,
+      ComputeIncrement( Usj, &Grid_s[j], Basis, eos, dUsj, Flux_q, dFlux_num,
                         uCF_F_L, uCF_F_R, Flux_Uj, Flux_P, BC );
 
       // inner sum
@@ -294,7 +295,7 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
     auto Usj =
         Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
     S_Limiter->ApplySlopeLimiter( Usj, &Grid_s[iS], Basis );
-    ApplyBoundEnforcingLimiter( Usj, Basis );
+    ApplyBoundEnforcingLimiter( Usj, Basis, eos );
   }
 
   Kokkos::parallel_for(
@@ -307,5 +308,5 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
 
   Grid = &Grid_s[nStages];
   S_Limiter->ApplySlopeLimiter( U, Grid, Basis );
-  ApplyBoundEnforcingLimiter( U, Basis );
+  ApplyBoundEnforcingLimiter( U, Basis, eos );
 }

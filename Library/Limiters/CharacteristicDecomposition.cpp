@@ -11,7 +11,6 @@
 
 #include "CharacteristicDecomposition.hpp"
 #include "Error.hpp"
-// #include "EquationOfStateLibrary_IDEAL.h"
 
 void ComputeCharacteristicDecomposition( Kokkos::View<Real[3]> U,
                                          Kokkos::View<Real[3][3]> R,

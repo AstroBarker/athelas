@@ -14,31 +14,31 @@
 #include "EoS.hpp"
 
 void IdealGas::PressureFromConserved( const Real Tau, const Real V, const Real EmT, 
-                                      Real P ) const {
+                                      Real &P ) const {
   const Real Em = EmT - 0.5 * V * V;
   const Real Ev = Em / Tau;
   P = ( gamma - 1.0 ) * Ev;
 }
 
 void IdealGas::SoundSpeedFromConserved( const Real Tau, const Real V, 
-                                        const Real EmT, Real Cs ) const {
+                                        const Real EmT, Real &Cs ) const {
   const Real Em = EmT - 0.5 * V * V;
   Cs = sqrt( gamma * ( gamma - 1.0 ) * Em );
 }
 
 void IdealGas::TemperatureFromTauPressureAbar( const Real Tau, 
                                                const Real P, const Real Abar, 
-                                               Real T ) const {
+                                               Real &T ) const {
   T = ( P * Abar * Tau ) / ( N_A * k_B ); 
 }
 
 void IdealGas::TemperatureFromTauPressure( const Real Tau, 
-                                           const Real P, Real T ) const {
+                                           const Real P, Real &T ) const {
   const Real Abar = 1.0; 
   TemperatureFromTauPressureAbar( Tau, P, Abar, T );
 }
 
-void IdealGas::RadiationPressure( const Real T, Real Prad ) const {
+void IdealGas::RadiationPressure( const Real T, Real &Prad ) const {
     Prad = a * T * T * T * T;
 }
 

@@ -14,6 +14,7 @@
 
 #include "Abstractions.hpp"
 #include "Grid.hpp"
+#include "EoS.hpp"
 #include "BoundaryConditionsLibrary.hpp"
 #include "SlopeLimiter.hpp"
 #include "Initialization.hpp"
@@ -51,6 +52,7 @@ int main( int argc, char *argv[] )
   bool Restart = pin.Restart;
 
   const std::string BC = pin.BC;
+  const Real gamma_ideal = 1.4;
 
   const Real CFL = ComputeCFL( pin.CFL, order, nStages, tOrder );
 
@@ -65,6 +67,8 @@ int main( int argc, char *argv[] )
    Kokkos::View<Real ***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes );
 
    Kokkos::View<Real ***> uAF( "uAF", 3, nX + 2 * nGuard, order );
+
+   IdealGas eos( gamma_ideal );
 
     if ( not Restart )
     {
@@ -104,7 +108,7 @@ int main( int argc, char *argv[] )
     while ( t < t_end && iStep >= 0 )
     {
 
-      dt = ComputeTimestep_Fluid( uCF, &Grid, CFL );
+      dt = ComputeTimestep_Fluid( uCF, &Grid, &eos, CFL );
 
       if ( t + dt > t_end )
       {
@@ -117,7 +121,7 @@ int main( int argc, char *argv[] )
       }
 
       SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, &Grid, &Basis,
-                         &S_Limiter );
+                         &eos, &S_Limiter );
 
       t += dt;
 

@@ -99,6 +99,7 @@ set( ATHELAS_SOURCES
   "Library/BC/BoundaryConditionsLibrary.cpp"
   "Library/Limiters/CharacteristicDecomposition.cpp"
   "Library/EoS/EquationOfStateLibrary.cpp"
+  "Library/EoS/EoS_Ideal.cpp"
   "Library/Fluid/FluidUtilities.cpp"
   "Library/Fluid/Fluid_Discretization.cpp"
   "Library/Geometry/Grid.cpp"

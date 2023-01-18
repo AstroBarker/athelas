@@ -13,7 +13,7 @@
 #include "ProblemIn.hpp"
 
 typedef void ( *UpdateFunc )( const Kokkos::View<Real ***>, GridStructure *,
-                              ModalBasis *, Kokkos::View<Real ***>,
+                              ModalBasis *, EOS *, Kokkos::View<Real ***>,
                               Kokkos::View<Real ***>, Kokkos::View<Real **>,
                               Kokkos::View<Real **>, Kokkos::View<Real **>,
                               Kokkos::View<Real *>, Kokkos::View<Real *>,
@@ -30,7 +30,7 @@ class TimeStepper
 
   void UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
                     Kokkos::View<Real ***> U, GridStructure *Grid,
-                    ModalBasis *Basis, SlopeLimiter *S_Limiter );
+                    ModalBasis *Basis, EOS *eos, SlopeLimiter *S_Limiter );
 
  private:
   const UInt mSize;

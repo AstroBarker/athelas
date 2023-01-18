@@ -16,13 +16,12 @@
 #include "PolynomialBasis.hpp"
 #include "Fluid_Discretization.hpp"
 #include "BoundaryConditionsLibrary.hpp"
-#include "EquationOfStateLibrary.hpp"
 #include "FluidUtilities.hpp"
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence(
     const Kokkos::View<Real ***> U, GridStructure *Grid, ModalBasis *Basis,
-    Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
+    EOS *eos, Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
     Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
     Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
     Kokkos::View<Real *> Flux_P )
@@ -55,17 +54,18 @@ void ComputeIncrement_Fluid_Divergence(
 
         const Real rho_L = 1.0 / uCF_L( 0 );
         const Real rho_R = 1.0 / uCF_R( 0 );
+        Real P_L, P_R, Cs_L, Cs_R;
 
-        const Real P_L = ComputePressureFromConserved_IDEAL(
-            uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ) );
-        const Real Cs_L = ComputeSoundSpeedFromConserved_IDEAL(
-            uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ) );
+        eos->PressureFromConserved( uCF_L( 0 ), uCF_L( 1 ), 
+                                    uCF_L( 2 ), P_L );
+        eos->SoundSpeedFromConserved( uCF_L( 0 ), uCF_L( 1 ), 
+                                             uCF_L( 2 ), Cs_L );
         const Real lam_L = Cs_L * rho_L;
 
-        const Real P_R = ComputePressureFromConserved_IDEAL(
-            uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ) );
-        const Real Cs_R = ComputeSoundSpeedFromConserved_IDEAL(
-            uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ) );
+        eos->PressureFromConserved( uCF_R( 0 ), uCF_R( 1 ), 
+                                    uCF_R( 2 ), P_R );
+        eos->SoundSpeedFromConserved( uCF_R( 0 ), uCF_R( 1 ), 
+                                             uCF_R( 2 ), Cs_R );
         const Real lam_R = Cs_R * rho_R;
 
         // --- Numerical Fluxes ---
@@ -107,10 +107,11 @@ void ComputeIncrement_Fluid_Divergence(
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                                 { nNodes, ihi + 1, 3 } ),
         KOKKOS_LAMBDA( const int iN, const int iX, const int iCF ) {
-          const auto P = ComputePressureFromConserved_IDEAL(
+          Real P = 0.0;
+          eos->PressureFromConserved(
               Basis->BasisEval( U, iX, 0, iN + 1, false ),
               Basis->BasisEval( U, iX, 1, iN + 1, false ),
-              Basis->BasisEval( U, iX, 2, iN + 1, false ) );
+              Basis->BasisEval( U, iX, 2, iN + 1, false ), P );
           Flux_q( iCF, iX, iN ) =
               Flux_Fluid( Basis->BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
         } );
@@ -141,7 +142,7 @@ void ComputeIncrement_Fluid_Divergence(
  **/
 void ComputeIncrement_Fluid_Geometry( Kokkos::View<Real ***> U,
                                       GridStructure *Grid, ModalBasis *Basis,
-                                      Kokkos::View<Real ***> dU )
+                                      EOS *eos, Kokkos::View<Real ***> dU )
 {
   const UInt nNodes = Grid->Get_nNodes( );
   const UInt order  = Basis->Get_Order( );
@@ -155,10 +156,11 @@ void ComputeIncrement_Fluid_Geometry( Kokkos::View<Real ***> U,
         Real local_sum = 0.0;
         for ( UInt iN = 0; iN < nNodes; iN++ )
         {
-          Real P = ComputePressureFromConserved_IDEAL(
+          Real P = 0.0;
+          eos->PressureFromConserved(
               Basis->BasisEval( U, iX, 0, iN + 1, false ),
               Basis->BasisEval( U, iX, 1, iN + 1, false ),
-              Basis->BasisEval( U, iX, 2, iN + 1, false ) );
+              Basis->BasisEval( U, iX, 2, iN + 1, false ), P );
 
           Real X = Grid->NodeCoordinate( iX, iN );
 
@@ -188,7 +190,7 @@ void ComputeIncrement_Fluid_Geometry( Kokkos::View<Real ***> U,
  **/
 void Compute_Increment_Explicit(
     const Kokkos::View<Real ***> U, GridStructure *Grid, ModalBasis *Basis,
-    Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
+    EOS *eos, Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
     Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
     Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
     Kokkos::View<Real *> Flux_P, const std::string BC )
@@ -219,7 +221,7 @@ void Compute_Increment_Explicit(
       ihi + 2, KOKKOS_LAMBDA( UInt iX ) { Flux_U( iX ) = 0.0; } );
 
   // --- Fluid Increment : Divergence ---
-  ComputeIncrement_Fluid_Divergence( U, Grid, Basis, dU, Flux_q, dFlux_num,
+  ComputeIncrement_Fluid_Divergence( U, Grid, Basis, eos, dU, Flux_q, dFlux_num,
                                      uCF_F_L, uCF_F_R, Flux_U, Flux_P );
 
   // --- Divide update by mass mastrix ---
@@ -234,7 +236,7 @@ void Compute_Increment_Explicit(
   // --- Increment from Geometry ---
   if ( Grid->DoGeometry( ) )
   {
-    ComputeIncrement_Fluid_Geometry( U, Grid, Basis, dU );
+    ComputeIncrement_Fluid_Geometry( U, Grid, Basis, eos, dU );
   }
 
   // --- Increment Gravity ---
