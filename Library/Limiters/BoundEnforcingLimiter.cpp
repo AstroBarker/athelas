@@ -4,7 +4,7 @@
  *
  * Author   : Brandon L. Barker
  * Purpose  : Limit solution to maintain physicality
- * TODO: Bisection / process not getting sutiable theta
+ * TODO: Need to give BEL much more thought
  * TODO: Can some functions here be simplified?
  *   ? If I pass U, iX, iCF, iN... why not just the value
  **/
@@ -15,10 +15,10 @@
 
 #include "Kokkos_Core.hpp"
 
+#include "EoS.hpp"
 #include "Error.hpp"
 #include "Utilities.hpp"
 #include "PolynomialBasis.hpp"
-#include "EquationOfStateLibrary_IDEAL.hpp"
 #include "BoundEnforcingLimiter.hpp"
 
 void LimitDensity( Kokkos::View<Real ***> U, ModalBasis *Basis )
@@ -50,7 +50,8 @@ void LimitDensity( Kokkos::View<Real ***> U, ModalBasis *Basis )
       } );
 }
 
-void LimitInternalEnergy( Kokkos::View<Real ***> U, ModalBasis *Basis )
+void LimitInternalEnergy( Kokkos::View<Real ***> U, ModalBasis *Basis, 
+                          EOS *eos )
 {
   const UInt order = Basis->Get_Order( );
 
@@ -65,7 +66,7 @@ void LimitInternalEnergy( Kokkos::View<Real ***> U, ModalBasis *Basis )
 
         for ( UInt iN = 0; iN <= order + 1; iN++ )
         {
-          nodal = ComputeInternalEnergy( U, Basis, iX, iN );
+          nodal = eos->ComputeInternalEnergy( U, Basis, iX, iN );
 
           if ( nodal >= 0.0 )
           {
@@ -74,7 +75,7 @@ void LimitInternalEnergy( Kokkos::View<Real ***> U, ModalBasis *Basis )
           else
           {
             // TODO: Backtracing may be working okay...
-            temp = Backtrace( U, Basis, iX, iN );
+            temp = Backtrace( U, Basis, eos, iX, iN );
             // TODO: This is hacked and Does Not Really Work
             // temp = Bisection( U, Basis, iX, iN ) / 2.0;
           }
@@ -90,11 +91,12 @@ void LimitInternalEnergy( Kokkos::View<Real ***> U, ModalBasis *Basis )
       } );
 }
 
-void ApplyBoundEnforcingLimiter( Kokkos::View<Real ***> U, ModalBasis *Basis )
+void ApplyBoundEnforcingLimiter( Kokkos::View<Real ***> U, ModalBasis *Basis, 
+                                 EOS *eos )
 
 {
   LimitDensity( U, Basis );
-  LimitInternalEnergy( U, Basis );
+  LimitInternalEnergy( U, Basis, eos );
 }
 
 /* --- Utility Functions --- */
@@ -111,10 +113,10 @@ Real ComputeThetaState( const Kokkos::View<Real ***> U, ModalBasis *Basis,
   return result;
 }
 
-Real TargetFunc( const Kokkos::View<Real ***> U, ModalBasis *Basis,
+Real TargetFunc( const Kokkos::View<Real ***> U, ModalBasis *Basis, EOS *eos,
                  const Real theta, const UInt iX, const UInt iN )
 {
-  const Real w  = std::min( 1.0e-13, ComputeInternalEnergy( U, iX ) );
+  const Real w  = std::min( 1.0e-13, eos->ComputeInternalEnergy( U, iX ) );
   const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
   const Real s2 = ComputeThetaState( U, Basis, theta, 2, iX, iN );
 
@@ -123,7 +125,7 @@ Real TargetFunc( const Kokkos::View<Real ***> U, ModalBasis *Basis,
   return e - w;
 }
 
-Real Bisection( const Kokkos::View<Real ***> U, ModalBasis *Basis,
+Real Bisection( const Kokkos::View<Real ***> U, ModalBasis *Basis, EOS *eos,
                 const UInt iX, const UInt iN )
 {
   const Real TOL       = 1e-10;
@@ -142,8 +144,8 @@ Real Bisection( const Kokkos::View<Real ***> U, ModalBasis *Basis,
   {
     c = ( a + b ) / 2.0;
 
-    fa = TargetFunc( U, Basis, a, iX, iN );
-    fc = TargetFunc( U, Basis, c, iX, iN );
+    fa = TargetFunc( U, Basis, eos, a, iX, iN );
+    fc = TargetFunc( U, Basis, eos, c, iX, iN );
 
     if ( std::abs( fc <= TOL / 10.0 ) || ( b - a ) / 2.0 < TOL )
     {
@@ -167,7 +169,7 @@ Real Bisection( const Kokkos::View<Real ***> U, ModalBasis *Basis,
   return c;
 }
 
-Real Backtrace( const Kokkos::View<Real ***> U, ModalBasis *Basis,
+Real Backtrace( const View3D U, ModalBasis *Basis, EOS *eos,
                 const UInt iX, const UInt iN )
 {
   Real theta = 1.0;
@@ -175,7 +177,7 @@ Real Backtrace( const Kokkos::View<Real ***> U, ModalBasis *Basis,
 
   while ( theta >= 0.01 && nodal < 0.0 )
   {
-    nodal = TargetFunc( U, Basis, theta, iX, iN );
+    nodal = TargetFunc( U, Basis, eos, theta, iX, iN );
 
     theta -= 0.05;
   }

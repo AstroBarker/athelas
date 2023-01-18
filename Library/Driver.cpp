@@ -14,6 +14,7 @@
 
 #include "Abstractions.hpp"
 #include "Grid.hpp"
+#include "EoS.hpp"
 #include "BoundaryConditionsLibrary.hpp"
 #include "SlopeLimiter.hpp"
 #include "Initialization.hpp"
@@ -51,8 +52,13 @@ int main( int argc, char *argv[] )
   bool Restart = pin.Restart;
 
   const std::string BC = pin.BC;
+  const Real gamma_ideal = 1.4;
 
   const Real CFL = ComputeCFL( pin.CFL, order, nStages, tOrder );
+
+  /* opts struct TODO: add grav when ready */
+  Options opts = { pin.do_rad, false, pin.Restart, BC, pin.Geometry, pin.Basis };
+
 
   Kokkos::initialize( argc, argv );
   {
@@ -61,19 +67,20 @@ int main( int argc, char *argv[] )
    GridStructure Grid( &pin );
 
    // --- Create the data structures ---
-   Kokkos::View<Real ***> uCF( "uCF", 3, nX + 2 * nGuard, order );
-   Kokkos::View<Real ***> uPF( "uPF", 3, nX + 2 * nGuard, nNodes );
+   View3D uCF( "uCF", 3, nX + 2 * nGuard, order );  // conserved fluid
+   View3D uCR( "uCF", 2, nX + 2 * nGuard, order );  // conserved radiation
+   View3D uPF( "uPF", 3, nX + 2 * nGuard, nNodes ); // primitive fluid
 
-   Kokkos::View<Real ***> uAF( "uAF", 3, nX + 2 * nGuard, order );
+   IdealGas eos( gamma_ideal );
 
     if ( not Restart )
     {
       // --- Initialize fields ---
-      InitializeFields( uCF, uPF, &Grid, order, ProblemName );
+      InitializeFields( uCF, uPF, uCR, &Grid, order, ProblemName );
 
-      ApplyBC_Fluid( uCF, &Grid, order, BC );
+      ApplyBC( uCF, &Grid, order, BC );
     }
-    // WriteState( uCF, uPF, uAF, Grid, ProblemName, 0.0, order, 0 );
+    // WriteState( uCF, uPF, Grid, ProblemName, 0.0, order, 0 );
 
     // --- Datastructure for modal basis ---
     ModalBasis Basis( pin.Basis, uPF, &Grid, order, nNodes, nX, nGuard );
@@ -104,7 +111,7 @@ int main( int argc, char *argv[] )
     while ( t < t_end && iStep >= 0 )
     {
 
-      dt = ComputeTimestep_Fluid( uCF, &Grid, CFL );
+      dt = ComputeTimestep_Fluid( uCF, &Grid, &eos, CFL );
 
       if ( t + dt > t_end )
       {
@@ -116,15 +123,15 @@ int main( int argc, char *argv[] )
         std::printf( " ~ %d \t %.5e \t %.5e\n", iStep, t, dt );
       }
 
-      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, &Grid, &Basis,
-                         &S_Limiter );
+      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, uCR, &Grid, 
+                         &Basis, &eos, &S_Limiter, opts );
 
       t += dt;
 
       // Write state
       if ( iStep % i_write == 0 )
       {
-        WriteState( uCF, uPF, uAF, &Grid, &S_Limiter, ProblemName, t, order,
+        WriteState( uCF, uPF, &Grid, &S_Limiter, ProblemName, t, order,
                     i_out );
         i_out += 1;
       }
@@ -135,8 +142,8 @@ int main( int argc, char *argv[] )
     // --- Finalize timer ---
     Real time = timer.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
-    ApplyBC_Fluid( uCF, &Grid, order, BC );
-    WriteState( uCF, uPF, uAF, &Grid, &S_Limiter, ProblemName, t, order, -1 );
+    ApplyBC( uCF, &Grid, order, BC );
+    WriteState( uCF, uPF, &Grid, &S_Limiter, ProblemName, t, order, -1 );
   }
   Kokkos::finalize( );
 

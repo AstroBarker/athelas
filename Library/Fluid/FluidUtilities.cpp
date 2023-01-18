@@ -11,10 +11,11 @@
 #include <cstdlib>   /* abs */
 #include <algorithm> // std::min, std::max
 
+#include "EoS.hpp"
+#include "Constants.hpp"
 #include "Error.hpp"
 #include "Grid.hpp"
 #include "PolynomialBasis.hpp"
-#include "EquationOfStateLibrary_IDEAL.hpp"
 #include "FluidUtilities.hpp"
 
 /**
@@ -22,8 +23,8 @@
  * from conserved quantities. Primitive quantities are stored at Gauss-Legendre
  * nodes.
  **/
-void ComputePrimitiveFromConserved( Kokkos::View<Real ***> uCF,
-                                    Kokkos::View<Real ***> uPF,
+void ComputePrimitiveFromConserved( View3D uCF,
+                                    View3D uPF,
                                     ModalBasis *Basis, GridStructure *Grid )
 {
   const UInt nNodes = Grid->Get_nNodes( );
@@ -76,6 +77,26 @@ Real Flux_Fluid( const Real V, const Real P, const UInt iCF )
   }
 }
 
+/* Fluid radiation sources */
+Real Source_Fluid_Rad( Real D, Real V, Real T, Real X, Real kappa,
+                       Real E, Real F, Real Pr, UInt iCF ) {
+  assert ( iCF == 0 || iCF == 1 || iCF == 2 );
+
+  Real a = constants::a;
+  Real c = constants::c_cgs;
+
+  Real b = V / c;
+  Real term1 = E - a * T*T*T*T - 2.0 * b * F;
+  Real term2 = F - E * b - b * Pr;
+
+  if ( iCF == 0 ) {
+    return 0.0;
+  } else if ( iCF == 1 ){
+    return D * kappa * term1 * b + D * X * term2;
+  } else {
+    return c * ( D * kappa * term1 + D * X * b * term2 );
+  }
+}
 /**
  * Gudonov style numerical flux. Constucts v* and p* states.
  **/
@@ -105,8 +126,9 @@ void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
 /**
  * Compute the fluid timestep.
  **/
-Real ComputeTimestep_Fluid( const Kokkos::View<Real ***> U,
-                            const GridStructure *Grid, const Real CFL )
+Real ComputeTimestep_Fluid( const View3D U,
+                            const GridStructure *Grid, EOS *eos, 
+                            const Real CFL )
 {
 
   const Real MIN_DT = 0.000000005;
@@ -126,7 +148,8 @@ Real ComputeTimestep_Fluid( const Kokkos::View<Real ***> U,
 
         Real dr = Grid->Get_Widths( iX );
 
-        Real Cs = ComputeSoundSpeedFromConserved_IDEAL( tau_x, vel_x, eint_x );
+        Real Cs = 0.0;
+        eos->SoundSpeedFromConserved( tau_x, vel_x, eint_x, Cs );
         Real eigval = Cs;
 
         Real dt_old = std::abs( dr ) / std::abs( eigval );
