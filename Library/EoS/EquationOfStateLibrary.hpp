@@ -3,6 +3,11 @@
 
 #include "Abstractions.hpp"
 
+enum class EosType {
+  IdealGas,
+  Stellar // not implemented
+};
+
 Real ComputePressureFromPrimitive_IDEAL( const Real Ev );
 Real ComputePressureFromConserved_IDEAL( const Real Tau, const Real V,
                                          const Real Em_T );
