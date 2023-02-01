@@ -221,5 +221,5 @@ target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRA
 if ( ATHELAS_ENABLE_UNIT_TESTS )
   message("\nConfiguring tests")
   enable_testing()
-  add_subdirectory( tst )
+  add_subdirectory( Test )
 endif()
