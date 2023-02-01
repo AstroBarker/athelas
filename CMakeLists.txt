@@ -51,7 +51,7 @@ project( athelas VERSION 0.2 LANGUAGES CXX )
 enable_language(CXX)
 
 include(CTest)
-option(ATHELAS_ENABLE_UNIT_TESTS "Enable unit tests" OFF)               # Future
+option(ATHELAS_ENABLE_UNIT_TESTS "Enable unit tests" OFF)
 option(ATHELAS_ENABLE_INTEGRATION_TESTS "Enable integration tests" OFF) # Future
 option(ATHELAS_ENABLE_REGRESSION_TESTS "Enable regression tests" OFF)   # Future
 
@@ -187,12 +187,12 @@ if (${MACHINE} STREQUAL UBUNTU)
     message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
     target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
 else()
-  find_package( LAPACKE REQUIRED  )
-  message(STATUS "LAPACKE_LIBRARIES = ${LAPACKE_LIBRARIES}")
-  include_directories(${LAPACKE_INCLUDE_DIRS})
-    target_link_libraries( libathelas ${LAPACKE_LIBRARIES} )
+  find_package( LAPACK REQUIRED  )
+  message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
+  include_directories(${LAPACK_INCLUDE_DIRS})
+    target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
 endif()
-include_directories(${LAPACKE_INCLUDE_DIRS})
+include_directories(${LAPACK_INCLUDE_DIRS})
 
 # SimpleIni
 include_directories("External/simpleini")
@@ -216,6 +216,10 @@ target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK
 target_compile_options( main PRIVATE -fPIC -O2 -Wall -std=c++17 -llapacke )
 add_dependencies( main libathelas )
 
-target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACKE_LIBRARIES} Kokkos::kokkos )
+target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos )
 
-
+if ( ATHELAS_ENABLE_UNIT_TESTS )
+  message("\nConfiguring tests")
+  enable_testing()
+  add_subdirectory( Test )
+endif()
