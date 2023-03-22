@@ -21,11 +21,11 @@
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Rad_Divergence(
-    const Kokkos::View<Real ***> U, GridStructure *Grid, ModalBasis *Basis,
-    Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
-    Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
-    Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
-    Kokkos::View<Real *> Flux_P )
+    const Kokkos::View<Real ***> U, Kokkos::View<Real ***> uCF, 
+    GridStructure *Grid, ModalBasis *Basis, Kokkos::View<Real ***> dU, 
+    Kokkos::View<Real ***> Flux_q, Kokkos::View<Real **> dFlux_num, 
+    Kokkos::View<Real **> uCR_F_L, Kokkos::View<Real **> uCR_F_R, 
+    Kokkos::View<Real *> Flux_U, Kokkos::View<Real *> Flux_P )
 {
   const auto &nNodes = Grid->Get_nNodes( );
   const auto &order  = Basis->Get_Order( );
@@ -41,39 +41,33 @@ void ComputeIncrement_Rad_Divergence(
       "Interface States; Rad",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, 3 } ),
       KOKKOS_LAMBDA( const int iX, const int iCF ) {
-        uCF_F_L( iCF, iX ) =
+        uCR_F_L( iCF, iX ) =
             Basis->BasisEval( U, iX - 1, iCF, nNodes + 1, false );
-        uCF_F_R( iCF, iX ) = Basis->BasisEval( U, iX, iCF, 0, false );
+        uCR_F_R( iCF, iX ) = Basis->BasisEval( U, iX, iCF, 0, false );
       } );
 
   // --- Calc numerical flux at all faces
   Kokkos::parallel_for(
       "Numerical Fluxes; Rad", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
       KOKKOS_LAMBDA( UInt iX ) {
-        auto uCF_L = Kokkos::subview( uCF_F_L, Kokkos::ALL, iX );
-        auto uCF_R = Kokkos::subview( uCF_F_R, Kokkos::ALL, iX );
+        auto uCR_L = Kokkos::subview( uCR_F_L, Kokkos::ALL, iX );
+        auto uCR_R = Kokkos::subview( uCR_F_R, Kokkos::ALL, iX );
 
-        const Real rho_L = 1.0 / uCF_L( 0 );
-        const Real rho_R = 1.0 / uCF_R( 0 );
+        const Real Em_L = uCR_L( 0 );
+        const Real Fm_L = uCR_L( 1 );
+        const Real Em_R = uCR_R( 0 );
+        const Real Fm_R = uCR_R( 1 );
 
-        const Real P_L = ComputePressureFromConserved_IDEAL(
-            uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ) );
-        const Real Cs_L = ComputeSoundSpeedFromConserved_IDEAL(
-            uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ) );
-        const Real lam_L = Cs_L * rho_L;
+        const Real P_L = ComputeClosure( Em_L, Fm_L );
+        const Real P_R = ComputeClosure( Em_R, Fm_R );
 
-        const Real P_R = ComputePressureFromConserved_IDEAL(
-            uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ) );
-        const Real Cs_R = ComputeSoundSpeedFromConserved_IDEAL(
-            uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ) );
-        const Real lam_R = Cs_R * rho_R;
 
         // --- Numerical Fluxes ---
 
         // Riemann Problem
-        NumericalFlux_Gudonov( uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, lam_L, lam_R,
+        NumericalFlux_Gudonov( uCR_L( 1 ), uCR_R( 1 ), P_L, P_R, lam_L, lam_R,
                                Flux_U( iX ), Flux_P( iX ) );
-        // NumericalFlux_HLLC( uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, Cs_L, Cs_R,
+        // NumericalFlux_HLLC( uCR_L( 1 ), uCR_R( 1 ), P_L, P_R, Cs_L, Cs_R,
         //  rho_L, rho_R, Flux_U( iX ), Flux_P( iX ) );
 
         // TODO: Clean This Up
@@ -147,16 +141,16 @@ void ComputeIncrement_Rad_Divergence(
  * dU               : Update vector
  * Flux_q           : Nodal fluxes, for volume term
  * dFLux_num        : numerical surface flux
- * uCF_F_L, uCF_F_R : left/right face states
+ * uCR_F_L, uCR_F_R : left/right face states
  * Flux_U, Flux_P   : Fluxes (from Riemann problem)
- * uCF_L, uCF_R     : holds interface data
+ * uCR_L, uCR_R     : holds interface data
  * BC               : (string) boundary condition type
  **/
 void Compute_Increment_Explicit_Rad(
     const Kokkos::View<Real ***> U, GridStructure *Grid, ModalBasis *Basis,
     Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
-    Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
-    Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
+    Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCR_F_L,
+    Kokkos::View<Real **> uCR_F_R, Kokkos::View<Real *> Flux_U,
     Kokkos::View<Real *> Flux_P, const std::string BC )
 {
 
@@ -166,9 +160,6 @@ void Compute_Increment_Explicit_Rad(
 
   // --- Apply BC ---
   ApplyBC( U, Grid, order, BC );
-
-  // --- Detect Shocks ---
-  // TODO: Code up a shock detector...
 
   // --- Compute Increment for new solution ---
 
@@ -186,7 +177,7 @@ void Compute_Increment_Explicit_Rad(
 
   // --- Increment : Divergence ---
   ComputeIncrement_Rad_Divergence( U, Grid, Basis, dU, Flux_q, dFlux_num,
-                                     uCF_F_L, uCF_F_R, Flux_U, Flux_P );
+                                     uCR_F_L, uCR_F_R, Flux_U, Flux_P );
 
   // --- Divide update by mass mastrix ---
   Kokkos::parallel_for(
