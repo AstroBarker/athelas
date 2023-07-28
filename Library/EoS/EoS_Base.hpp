@@ -14,7 +14,7 @@ class EosBase {
                                 Real &P ) const {
       static_cast<EOS const *>(this)->PressureFromConserved( Tau, V, EmT, P );
     }
-    void Soun7dSpeedFromConserved( const Real Tau, const Real V, const Real EmT, 
+    void SoundSpeedFromConserved( const Real Tau, const Real V, const Real EmT, 
         Real Cs ) const {
       static_cast<EOS const *>(this)->SoundSpeedFromConserved( 
               Tau, V, EmT, Cs );
