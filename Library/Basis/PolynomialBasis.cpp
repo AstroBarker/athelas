@@ -154,6 +154,9 @@ Real ModalBasis::dLegendre( UInt order, Real x )
 
   return dPn;
 }
+
+/* TODO: the following 2 inner product functions need to be cleaned */
+
 /**
  * Lagrangian inner product of functions f and g
  * Used in orthogonalization.
