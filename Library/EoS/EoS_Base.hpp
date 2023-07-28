@@ -26,7 +26,7 @@ class EosBase {
     }
     void TemperatureFromTauPressure( const Real Tau, const Real P, 
             Real &T ) const {
-        static_cast<EOS const *>(this)->TemperatureFromPressureDensity( 
+        static_cast<EOS const *>(this)->TemperatureFromTauPressure( 
                 Tau, P, T );
     }
     void RadiationPressure( const Real T, Real &Prad ) const {
