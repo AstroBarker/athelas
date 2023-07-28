@@ -47,6 +47,13 @@ This will create a directory `bin` in the root directory that contains the execu
 ## NOTE: 
 The build system may not be perfect yet. Your mileage may vary.
 
+## Radiation TODO:
+- radiation riemann solver
+- radiation timestepper
+- strang split
+- probably more
+- ... microphysics...
+
 
 # Future Work
 
