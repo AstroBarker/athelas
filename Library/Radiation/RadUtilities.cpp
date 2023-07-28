@@ -18,6 +18,9 @@
 #include "RadUtilities.hpp"
 #include "Utilities.hpp"
 
+/**
+ * The radiation fluxes
+ **/
 Real Flux_Rad( Real E, Real F, Real P, Real V, UInt iRF ) {
   assert ( iRF == 0 || iRF == 1 );
 
@@ -28,6 +31,9 @@ Real Flux_Rad( Real E, Real F, Real P, Real V, UInt iRF ) {
   }
 }
 
+/**
+ * source terms for radiation
+ **/
 Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, 
                  Real E, Real F, Real Pr, UInt iRF ) {
   assert ( iRF == 0 || iRF == 1 );
