@@ -65,6 +65,7 @@ void ComputeIncrement_Rad_Divergence(
         // --- Numerical Fluxes ---
 
         // Riemann Problem
+        // TODO: radiation riemann solver
         NumericalFlux_Gudonov( uCR_L( 1 ), uCR_R( 1 ), P_L, P_R, lam_L, lam_R,
                                Flux_U( iX ), Flux_P( iX ) );
         // NumericalFlux_HLLC( uCR_L( 1 ), uCR_R( 1 ), P_L, P_R, Cs_L, Cs_R,
