@@ -51,7 +51,7 @@ project( athelas VERSION 0.2 LANGUAGES CXX )
 enable_language(CXX)
 
 include(CTest)
-option(ATHELAS_ENABLE_UNIT_TESTS "Enable unit tests" OFF)               # Future
+option(ATHELAS_ENABLE_UNIT_TESTS "Enable unit tests" OFF)
 option(ATHELAS_ENABLE_INTEGRATION_TESTS "Enable integration tests" OFF) # Future
 option(ATHELAS_ENABLE_REGRESSION_TESTS "Enable regression tests" OFF)   # Future
 
@@ -218,4 +218,8 @@ add_dependencies( main libathelas )
 
 target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos )
 
-
+if ( ATHELAS_ENABLE_UNIT_TESTS )
+  message("\nConfiguring tests")
+  enable_testing()
+  add_subdirectory( Test )
+endif()
