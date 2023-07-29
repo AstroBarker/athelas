@@ -82,12 +82,12 @@ Real Source_Fluid_Rad( Real D, Real V, Real T, Real X, Real kappa,
                        Real E, Real F, Real Pr, UInt iCF ) {
   assert ( iCF == 0 || iCF == 1 || iCF == 2 );
 
-  Real a = constants::a;
-  Real c = constants::c_cgs;
+  const Real a = constants::a;
+  const Real c = constants::c_cgs;
 
-  Real b = V / c;
-  Real term1 = E - a * T*T*T*T - 2.0 * b * F;
-  Real term2 = F - E * b - b * Pr;
+  const Real b = V / c;
+  const Real term1 = E - a * T*T*T*T - 2.0 * b * F;
+  const Real term2 = F - E * b - b * Pr;
 
   if ( iCF == 0 ) {
     return 0.0;
