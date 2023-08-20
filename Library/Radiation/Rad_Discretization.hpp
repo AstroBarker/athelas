@@ -19,4 +19,4 @@ void Compute_Increment_Explicit_Rad(
     Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
     Kokkos::View<Real *> Flux_P, const std::string BC );
 
-#endif
+#endif // _RAD_DISCRETIZATION_HPP_

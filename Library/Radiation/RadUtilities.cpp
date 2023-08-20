@@ -92,7 +92,7 @@ Real ComputeClosure( const Real E, const Real F ) {
  * see 2013ApJS..206...21S (Skinner & Ostriker 2013) Eq 41a,b
  * and references therein
  **/
-Real Lmabda_HLL( const Real f, const int sign ) { 
+Real Lambda_HLL( const Real f, const int sign ) { 
   const Real twothird = 2.0 / 3.0;
   const Real f2 = f * f;
   const Real sqrtterm = std::sqrt( 4.0 - 3.0 * f2 );
