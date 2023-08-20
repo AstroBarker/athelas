@@ -55,7 +55,7 @@ option(ATHELAS_ENABLE_UNIT_TESTS "Enable unit tests" OFF)
 option(ATHELAS_ENABLE_INTEGRATION_TESTS "Enable integration tests" OFF) # Future
 option(ATHELAS_ENABLE_REGRESSION_TESTS "Enable regression tests" OFF)   # Future
 
-set( MACHINE "UBUNTU" CACHE STRING "Set OS")
+set( MACHINE "LINUX" CACHE STRING "Set OS")
 message( "Building On ${MACHINE} ")
 
 # Don't allow in-source builds
