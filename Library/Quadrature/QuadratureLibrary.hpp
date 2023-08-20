@@ -1,5 +1,5 @@
-#ifndef QUADRATURELIBRARY_H
-#define QUADRATURELIBRARY_H
+#ifndef _QUADRATURELIBRARY_HPP_
+#define _QUADRATURELIBRARY_HPP_
 
 #include "Abstractions.hpp"
 
@@ -9,4 +9,4 @@ void LG_Quadrature( int m, Real *nodes, Real *weights );
 }
 
 
-#endif
+#endif // _QUADRATURELIBRARY_HPP_

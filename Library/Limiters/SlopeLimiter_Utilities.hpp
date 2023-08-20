@@ -1,5 +1,5 @@
-#ifndef SLOPELIMITER_UTILITIES_H
-#define SLOPELIMITER_UTILITIES_H
+#ifndef _SLOPELIMITER_UTILITIES_HPP_
+#define _SLOPELIMITER_UTILITIES_HPP_
 
 #include "Abstractions.hpp"
 
@@ -33,4 +33,4 @@ constexpr Real minmodB( T a, T b, T c, T dx, T M )
 
 Real BarthJespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T, Real U_c_R,
                      Real alpha );
-#endif
+#endif // _SLOPELIMITER_UTILITIES_HPP_

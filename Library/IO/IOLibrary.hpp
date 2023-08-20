@@ -1,5 +1,5 @@
-#ifndef IOLIBRARY_H
-#define IOLIBRARY_H
+#ifndef _IOLIBRARY_HPP_
+#define _IOLIBRARY_HPP_
 
 #include "Kokkos_Core.hpp"
 
@@ -26,4 +26,4 @@ void PrintSimulationParameters( GridStructure *Grid, ProblemIn *pin, const Real 
 void WriteBasis( ModalBasis *Basis, UInt ilo, UInt ihi, UInt nNodes, UInt order,
                  std::string ProblemName );
 
-#endif
+#endif // _IOLIBRARY_HPP_

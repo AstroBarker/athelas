@@ -1,5 +1,5 @@
-#ifndef TIMESTEPPER_H
-#define TIMESTEPPER_H
+#ifndef _TIMESTEPPER_HPP_
+#define _TIMESTEPPER_HPP_
 
 /**
  * File     :  Timestepper.hpp
@@ -64,4 +64,4 @@ class TimeStepper
   View1D Flux_P;
 };
 
-#endif
+#endif // _TIMESTEPPER_HPP_

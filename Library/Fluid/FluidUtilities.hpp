@@ -1,5 +1,5 @@
-#ifndef FLUIDUTILITIES_H
-#define FLUIDUTILITIES_H
+#ifndef _FLUIDUTILITIES_HPP_
+#define _FLUIDUTILITIES_HPP_
 
 #include "Kokkos_Core.hpp"
 
@@ -21,4 +21,4 @@ Real ComputeTimestep_Fluid( const View3D U,
                             const GridStructure *Grid, EOS *eos, 
                             const Real CFL );
 
-#endif
+#endif // _FLUIDUTILITIES_HPP_

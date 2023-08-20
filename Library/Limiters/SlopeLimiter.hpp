@@ -1,5 +1,5 @@
-#ifndef SLOPELIMITER_H
-#define SLOPELIMITER_H
+#ifndef _SLOPELIMITER_HPP_
+#define _SLOPELIMITER_HPP_
 
 /**
  * File     :  SlopeLimiter.hpp
@@ -98,4 +98,4 @@ class SlopeLimiter
   Kokkos::View<int *> LimitedCell;
 };
 
-#endif
+#endif // _SLOPELIMITER_HPP_
