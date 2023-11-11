@@ -80,6 +80,7 @@ Simply call `Tools/Bash/format.sh` to format the `.h` and `.cpp` files.
  - [ ] New TCI
  - [ ] linter
  - [ ] format on make
+ - [ ] Rad: Riemann solvers
 
 
 # BUGS: 

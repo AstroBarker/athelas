@@ -112,6 +112,7 @@ int main( int argc, char *argv[] )
     {
 
       dt = ComputeTimestep_Fluid( uCF, &Grid, &eos, CFL );
+      // TODO: ComputeTimestep_Rad
 
       if ( t + dt > t_end )
       {
