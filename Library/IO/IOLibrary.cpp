@@ -20,10 +20,10 @@
  * Write to standard output some initialization info
  * for the current simulation.
  **/
-void PrintSimulationParameters( GridStructure *Grid, ProblemIn *pin, const Real CFL )
+void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin, const Real CFL )
 {
-  const UInt nX     = Grid->Get_nElements( );
-  const UInt nNodes = Grid->Get_nNodes( );
+  const UInt nX     = Grid.Get_nElements( );
+  const UInt nNodes = Grid.Get_nNodes( );
 
   std::printf( " ~ --- Order Parameters --- \n" );
   std::printf( " ~ Basis          : %d ( 0 : Legendre, 1: Taylor )\n", pin->Basis );
@@ -35,8 +35,8 @@ void PrintSimulationParameters( GridStructure *Grid, ProblemIn *pin, const Real 
   std::printf( " ~ --- Grid Parameters --- \n" );
   std::printf( " ~ Mesh Elements  : %d\n", nX );
   std::printf( " ~ Number Nodes   : %d\n", nNodes );
-  std::printf( " ~ Lower Boudnary : %f\n", Grid->Get_xL( ) );
-  std::printf( " ~ Upper Boudnary : %f\n", Grid->Get_xR( ) );
+  std::printf( " ~ Lower Boudnary : %f\n", Grid.Get_xL( ) );
+  std::printf( " ~ Upper Boudnary : %f\n", Grid.Get_xR( ) );
   std::printf( "\n" );
 
   std::printf( " ~ --- Limiter Parameters --- \n" );
@@ -74,13 +74,26 @@ void PrintSimulationParameters( GridStructure *Grid, ProblemIn *pin, const Real 
 
 // TODO: add Time
 void WriteState( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
-                 GridStructure *Grid, SlopeLimiter *SL, 
+                 GridStructure Grid, SlopeLimiter *SL, 
                  const std::string ProblemName, Real time,
                  UInt order, int i_write )
 {
 
   std::string fn = "athelas_";
-  auto suffix    = std::to_string( i_write );
+  auto i_str    = std::to_string( i_write );
+  int n_pad;
+  if ( i_write < 10 ) {
+    n_pad = 4;
+  } else if ( i_write >= 10 && i_write < 100 ) { 
+    n_pad = 3;
+  } else if ( i_write >= 100 && i_write < 1000 ) { 
+    n_pad = 2;
+  } else if ( i_write >= 1000 && i_write < 10000 ) { 
+    n_pad = 1;
+  } else {
+    n_pad = 0;
+  }
+  std::string suffix = std::string( n_pad, '0' ).append( i_str );
   fn.append( ProblemName );
   fn.append( "_" );
   if ( i_write != -1 )
@@ -96,9 +109,9 @@ void WriteState( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
   // conversion to make HDF5 happy
   const char *fn2 = fn.c_str( );
 
-  const UInt nX  = Grid->Get_nElements( );
-  const UInt ilo = Grid->Get_ilo( );
-  const UInt ihi = Grid->Get_ihi( );
+  const UInt nX  = Grid.Get_nElements( );
+  const UInt ilo = Grid.Get_ilo( );
+  const UInt ihi = Grid.Get_ihi( );
 
   const H5std_string FILE_NAME( fn );
   const H5std_string DATASET_NAME( "Grid" );
@@ -114,8 +127,9 @@ void WriteState( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
   for ( UInt k = 0; k < order; k++ )
     for ( UInt iX = ilo; iX <= ihi; iX++ )
     {
-      grid[( iX - ilo )].x          = Grid->Get_Centers( iX );
-      dr[( iX - ilo )].x            = Grid->Get_Widths( iX );
+      grid[( iX - ilo )].x          = Grid.Get_Centers( iX );
+      dr[( iX - ilo )].x            = Grid.Get_Widths( iX );
+      //std::printf("dr %f\n", Grid.Get_Widths(iX));
       limiter[( iX - ilo )].x       = SL->Get_Limited( iX );
       tau[( iX - ilo ) + k * nX].x  = uCF( 0, iX, k );
       vel[( iX - ilo ) + k * nX].x  = uCF( 1, iX, k );

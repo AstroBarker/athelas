@@ -13,7 +13,7 @@
 #include "ProblemIn.hpp"
 
 typedef void ( *UpdateFunc )( const View3D, const View3D, 
-                              GridStructure *,
+                              GridStructure &,
                               ModalBasis *, EOS *eos, View3D,
                               View3D, View2D,
                               View2D, View2D,
@@ -25,12 +25,12 @@ class TimeStepper
 
  public:
   // TODO: Is it possible to initialize Grid_s from Grid directly?
-  TimeStepper( ProblemIn *pin, GridStructure *Grid );
+  TimeStepper( ProblemIn *pin, GridStructure &Grid );
 
   void InitializeTimestepper( );
 
   void UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
-                    View3D uCF, View3D uCR, GridStructure *Grid,
+                    View3D uCF, View3D uCR, GridStructure &Grid,
                     ModalBasis *Basis, EOS *eos, SlopeLimiter *S_Limiter, 
                     const Options opts );
 

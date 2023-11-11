@@ -21,8 +21,8 @@
  * The constructor creates the necessary data structures for time evolution.
  * Lots of structures used in Fluid Discretization live here.
  **/
-TimeStepper::TimeStepper( ProblemIn *pin, GridStructure *Grid )
-    : mSize( Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ), nStages( pin->nStages ),
+TimeStepper::TimeStepper( ProblemIn *pin, GridStructure &Grid )
+    : mSize( Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) ), nStages( pin->nStages ),
       tOrder( pin->tOrder ), BC( pin->BC ), a_jk( "RK a_jk", nStages, nStages ),
       b_jk( "RK b_jk", nStages, nStages ),
       U_s( "U_s", nStages + 1, 3, mSize + 1, pin->pOrder ),
@@ -31,7 +31,7 @@ TimeStepper::TimeStepper( ProblemIn *pin, GridStructure *Grid )
       Grid_s( nStages + 1,
               GridStructure( pin ) ), 
       StageData( "StageData", nStages + 1, mSize + 1 ),
-      Flux_q( "Flux_q", 3, mSize + 1, Grid->Get_nNodes( ) ),
+      Flux_q( "Flux_q", 3, mSize + 1, Grid.Get_nNodes( ) ),
       dFlux_num( "Numerical Flux", 3, mSize + 1 ),
       uCF_F_L( "Face L", 3, mSize ), uCF_F_R( "Face R", 3, mSize ),
       Flux_U( "Flux_U", nStages + 1, mSize + 1 ), Flux_P( "Flux_P", mSize + 1 )
@@ -213,13 +213,13 @@ void TimeStepper::InitializeTimestepper( )
  * Update Solution with SSPRK methods
  **/
 void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
-                               View3D U, View3D uCR, GridStructure *Grid,
+                               View3D U, View3D uCR, GridStructure &Grid,
                                ModalBasis *Basis, EOS *eos, 
                                SlopeLimiter *S_Limiter, const Options opts )
 {
 
   const auto &order = Basis->Get_Order( );
-  const auto &ihi   = Grid->Get_ihi( );
+  const auto &ihi   = Grid.Get_ihi( );
 
   unsigned short int i;
 
@@ -231,11 +231,12 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
         U_s( 0, iCF, iX, k ) = U( iCF, iX, k );
       } );
 
-  Grid_s[0] = *Grid;
+  Grid_s[0] = Grid;
   // StageData holds left interface positions
   Kokkos::parallel_for(
       ihi + 2, KOKKOS_LAMBDA( UInt iX ) {
-        StageData( 0, iX ) = Grid->Get_LeftInterface( iX );
+        StageData( 0, iX ) = Grid.Get_LeftInterface( iX );
+        Flux_U( 0, iX ) = 0.0;
       } );
 
   for ( unsigned short int iS = 1; iS <= nStages; iS++ )
@@ -245,9 +246,10 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
     Kokkos::parallel_for(
         "Timestepper 3",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                { order, ihi + 1, 3 } ),
+                                                { order, ihi + 2, 3 } ),
         KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
           SumVar_U( iCF, iX, k ) = 0.0;
+          StageData( iS, iX ) = 0.0;;
         } );
 
     // --- Inner update loop ---
@@ -259,7 +261,7 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
       auto dUsj =
           Kokkos::subview( dU_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto Flux_Uj = Kokkos::subview( Flux_U, j, Kokkos::ALL );
-      ComputeIncrement( Usj, uCR, &Grid_s[j], Basis, eos, dUsj, Flux_q, dFlux_num,
+      ComputeIncrement( Usj, uCR, Grid_s[j], Basis, eos, dUsj, Flux_q, dFlux_num,
                         uCF_F_L, uCF_F_R, Flux_Uj, Flux_P, opts );
 
       // inner sum
@@ -292,10 +294,10 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
     Grid_s[iS].UpdateGrid( StageDataj );
 
     // ! This may give poor performance. Why? ! But also helps with Sedov..
-    auto Usj =
-        Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-    S_Limiter->ApplySlopeLimiter( Usj, &Grid_s[iS], Basis );
-    ApplyBoundEnforcingLimiter( Usj, Basis, eos );
+//    auto Usj =
+//        Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
+//    S_Limiter->ApplySlopeLimiter( Usj, &Grid_s[iS], Basis );
+//    ApplyBoundEnforcingLimiter( Usj, Basis, eos );
   }
 
   Kokkos::parallel_for(
@@ -306,7 +308,7 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
         U( iCF, iX, k ) = U_s( nStages, iCF, iX, k );
       } );
 
-  Grid = &Grid_s[nStages];
-  S_Limiter->ApplySlopeLimiter( U, Grid, Basis );
+  Grid = Grid_s[nStages];
+  S_Limiter->ApplySlopeLimiter( U, &Grid, Basis );
   ApplyBoundEnforcingLimiter( U, Basis, eos );
 }

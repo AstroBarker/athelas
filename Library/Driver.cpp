@@ -88,7 +88,7 @@ int main( int argc, char *argv[] )
     WriteBasis( &Basis, nGuard, Grid.Get_ihi( ), nNodes, order, ProblemName );
 
     // --- Initialize timestepper ---
-    TimeStepper SSPRK( &pin, &Grid );
+    TimeStepper SSPRK( &pin, Grid );
 
 
     SlopeLimiter S_Limiter( &Grid, &pin );
@@ -97,7 +97,7 @@ int main( int argc, char *argv[] )
     S_Limiter.ApplySlopeLimiter( uCF, &Grid, &Basis );
 
     // -- print run parameters ---
-    PrintSimulationParameters( &Grid, &pin, CFL );
+    PrintSimulationParameters( Grid, &pin, CFL );
 
     // --- Timer ---
     Kokkos::Timer timer;
@@ -105,7 +105,7 @@ int main( int argc, char *argv[] )
     // --- Evolution loop ---
     UInt iStep   = 0;
     UInt i_print = 100;
-    UInt i_write = -1;
+    UInt i_write = 5;
     UInt i_out   = 1;
     std::cout << " ~ Step\tt\tdt" << std::endl;
     while ( t < t_end && iStep >= 0 )
@@ -123,7 +123,7 @@ int main( int argc, char *argv[] )
         std::printf( " ~ %d \t %.5e \t %.5e\n", iStep, t, dt );
       }
 
-      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, uCR, &Grid, 
+      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, uCR, Grid, 
                          &Basis, &eos, &S_Limiter, opts );
 
       t += dt;
@@ -131,7 +131,7 @@ int main( int argc, char *argv[] )
       // Write state
       if ( iStep % i_write == 0 )
       {
-        WriteState( uCF, uPF, &Grid, &S_Limiter, ProblemName, t, order,
+        WriteState( uCF, uPF, Grid, &S_Limiter, ProblemName, t, order,
                     i_out );
         i_out += 1;
       }
@@ -143,7 +143,7 @@ int main( int argc, char *argv[] )
     Real time = timer.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC( uCF, &Grid, order, BC );
-    WriteState( uCF, uPF, &Grid, &S_Limiter, ProblemName, t, order, -1 );
+    WriteState( uCF, uPF, Grid, &S_Limiter, ProblemName, t, order, -1 );
   }
   Kokkos::finalize( );
 

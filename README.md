@@ -75,7 +75,7 @@ The current version of `clang-format` used is `clang-format-13`.
 Simply call `Tools/Bash/format.sh` to format the `.h` and `.cpp` files.
 
 # TODO:
- - [ ] Initialize with input file at runtime
+ - [x] Initialize with input file at runtime
  - [x] Bound enforcing limiter
  - [ ] New TCI
  - [ ] linter

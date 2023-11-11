@@ -252,6 +252,7 @@ void GridStructure::UpdateGrid( Kokkos::View<Real *> SData )
       KOKKOS_LAMBDA( UInt iX ) {
         X_L( iX )     = SData( iX );
         Widths( iX )  = SData( iX + 1 ) - SData( iX );
+        //std::printf("%d %f %f\n", iX, SData(iX), SData(iX+1));
         Centers( iX ) = 0.5 * ( SData( iX + 1 ) + SData( iX ) );
       } );
 

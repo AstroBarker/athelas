@@ -68,11 +68,22 @@ function LoadBasis( fn::String )
 end
 
 
-fn = "../bin/athelas_Sod_final.h5"
-data, grid, order = Load_Output( fn )
+#fn = "../bin/athelas_Sod_final.h5"
+files = readdir("../bin/")
+@inbounds for fn in files
+  n = length(fn)
+  if (fn[n-2:end] == ".h5" && fn != "athelas_basis_Sod.h5")
+    println(fn)
+    data, grid, order = Load_Output( "../bin/" * fn )
 
-
-fig = Figure()
-scatter( fig[1,1], grid.r, 1.0 ./ data.uPF[1,:,1] )
-scatter!( fig[1,1], grid.r, 1.0 ./ data.uCF[1,:,1] )
-save("sod.png", fig )
+    fig = Figure()
+    tau = data.uCF[1,:,1]
+    v = data.uCF[1,:,2]
+    em = data.uCF[1,:,3] .- 0.5 .* v .* v
+    #scatter( fig[1,1], grid.r, 1.0 ./ data.uPF[1,:,1] )
+    #scatter!( fig[1,1], grid.r, 1.0 ./ data.uCF[1,:,1] )
+    lines( fig[1,1], grid.r, 1.0 ./ tau )
+    lines!( fig[1,1], grid.r, v )
+    save(fn*".png", fig )
+  end
+end
