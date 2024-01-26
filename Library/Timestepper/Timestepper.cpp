@@ -210,7 +210,7 @@ void TimeStepper::InitializeTimestepper( )
 }
 
 /**
- * Update Solution with SSPRK methods
+ * Update fluid solution with SSPRK methods
  **/
 void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
                                View3D U, View3D uCR, GridStructure &Grid,
@@ -311,4 +311,96 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
   Grid = Grid_s[nStages];
   S_Limiter->ApplySlopeLimiter( U, &Grid, Basis );
   ApplyBoundEnforcingLimiter( U, Basis, eos );
+}
+
+/**
+ * Update radiation solution with SSPRK methods
+ **/
+void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrement, const Real dt,
+                                   View3D U, View3D uCR, GridStructure &Grid,
+                                   ModalBasis *Basis, EOS *eos, 
+                                   SlopeLimiter *S_Limiter, const Options opts )
+{
+
+  const auto &order = Basis->Get_Order( );
+  const auto &ihi   = Grid.Get_ihi( );
+
+  unsigned short int i;
+
+  Kokkos::parallel_for(
+      "Timestepper::Rad::1",
+      Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
+                                              { order, ihi + 2, 3 } ),
+      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+        U_s( 0, iCF, iX, k ) = U( iCF, iX, k );
+        dU_s( 0, iCF, iX, k ) = 0.0;
+      } );
+
+  Grid_s[0] = Grid;
+
+  for ( unsigned short int iS = 1; iS <= nStages; iS++ )
+  {
+    i = iS - 1;
+    // re-zero the summation variables `SumVar`
+    Kokkos::parallel_for(
+        "Timestepper::Rad::2",
+        Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
+                                                { order, ihi + 2, 3 } ),
+        KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+          SumVar_U( iCF, iX, k ) = 0.0;
+          StageData( iS, iX ) = 0.0;;
+        } );
+
+    // --- Inner update loop ---
+
+    for ( UInt j = 0; j < iS; j++ )
+    {
+      auto Usj =
+          Kokkos::subview( U_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
+      auto dUsj =
+          Kokkos::subview( dU_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
+      auto Flux_Uj = Kokkos::subview( Flux_U, j, Kokkos::ALL );
+      ComputeIncrement( Usj, uCR, Grid_s[j], Basis, eos, dUsj, Flux_q, dFlux_num,
+                        uCF_F_L, uCF_F_R, Flux_Uj, Flux_P, opts );
+
+      // inner sum
+      Kokkos::parallel_for(
+          "Timestepper::Rad::3",
+          Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
+                                                  { order, ihi + 2, 3 } ),
+          KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+            SumVar_U( iCF, iX, k ) += a_jk( i, j ) * Usj( iCF, iX, k ) +
+                                      dt * b_jk( i, j ) * dUsj( iCF, iX, k );
+          } );
+
+    }
+    // End inner loop
+
+    Kokkos::parallel_for(
+        "Timestepper::Rad::4",
+        Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
+                                                { order, ihi + 2, 3 } ),
+        KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+          U_s( iS, iCF, iX, k ) = SumVar_U( iCF, iX, k );
+        } );
+
+    auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
+
+    // ! This may give poor performance. Why? ! But also helps with Sedov..
+//    auto Usj =
+//        Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
+//    S_Limiter->ApplySlopeLimiter( Usj, &Grid_s[iS], Basis );
+//    ApplyBoundEnforcingLimiter( Usj, Basis, eos );
+  }
+
+  Kokkos::parallel_for(
+      "Timestepper::Rad::Final",
+      Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
+                                              { order, ihi + 2, 3 } ),
+      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+        uCR( iCF, iX, k ) = U_s( nStages, iCF, iX, k );
+      } );
+
+  S_Limiter->ApplySlopeLimiter( uCR, &Grid, Basis );
+  ApplyBoundEnforcingLimiter( uCR, Basis, eos );
 }

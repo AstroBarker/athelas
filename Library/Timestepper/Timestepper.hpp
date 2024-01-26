@@ -33,6 +33,10 @@ class TimeStepper
                     View3D uCF, View3D uCR, GridStructure &Grid,
                     ModalBasis *Basis, EOS *eos, SlopeLimiter *S_Limiter, 
                     const Options opts );
+  void UpdateRadiation( UpdateFunc ComputeIncrement, const Real dt,
+                        View3D uCF, View3D uCR, GridStructure &Grid,
+                        ModalBasis *Basis, EOS *eos, SlopeLimiter *S_Limiter, 
+                        const Options opts );
 
  private:
   const UInt mSize;
