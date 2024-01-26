@@ -198,9 +198,9 @@ void ComputeIncrement_Fluid_Rad( View3D uCF, View3D uCR, GridStructure &Grid,
           const Real Vel = Basis->BasisEval( uCF, iX, 1, iN + 1, false );
           const Real EmT = Basis->BasisEval( uCF, iX, 2, iN + 1, false );
 
-          const Real Er = Basis->BasisEval( uCR, iX, 0, iN + 1, false );
-          const Real Fr = Basis->BasisEval( uCR, iX, 1, iN + 1, false );
-          const Real Pr = ComputeClosure( Er / Tau, Fr / Tau );
+          const Real Er = Basis->BasisEval( uCR, iX, 0, iN + 1, false ) / Tau;
+          const Real Fr = Basis->BasisEval( uCR, iX, 1, iN + 1, false ) / Tau;
+          const Real Pr = ComputeClosure( Er, Fr );
 
           Real P = 0.0;
           eos->PressureFromConserved( Tau, Vel, EmT, P );

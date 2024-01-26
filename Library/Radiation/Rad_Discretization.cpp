@@ -11,6 +11,7 @@
 
 #include "Kokkos_Core.hpp"
 
+#include "Constants.hpp"
 #include "Error.hpp"
 #include "Grid.hpp"
 #include "PolynomialBasis.hpp"
@@ -37,9 +38,10 @@ void ComputeIncrement_Rad_Divergence(
   // --- Interpolate Conserved Variable to Interfaces ---
 
   // Left/Right face states
+  // TODO: Can this just be moved into the below kernel with a iCF loop?
   Kokkos::parallel_for(
       "Interface States; Rad",
-      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, 3 } ),
+      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, 2 } ),
       KOKKOS_LAMBDA( const int iX, const int iCF ) {
         uCR_F_L( iCF, iX ) =
             Basis->BasisEval( U, iX - 1, iCF, nNodes + 1, false );
@@ -65,16 +67,23 @@ void ComputeIncrement_Rad_Divergence(
         // --- Numerical Fluxes ---
 
         // Riemann Problem
-        // TODO: radiation riemann solver
-        NumericalFlux_Gudonov( uCR_L( 1 ), uCR_R( 1 ), P_L, P_R, lam_L, lam_R,
-                               Flux_U( iX ), Flux_P( iX ) );
-        // NumericalFlux_HLLC( uCR_L( 1 ), uCR_R( 1 ), P_L, P_R, Cs_L, Cs_R,
-        //  rho_L, rho_R, Flux_U( iX ), Flux_P( iX ) );
+        Real flux_e = 0.0;
+        Real flux_f = 0.0;
+        const Real vR = Basis->BasisEval( uCF, iX, 1, 0, false );
+        const Real vL = Basis->BasisEval( uCF, iX - 1, 1, nNodes + 1, false );
+        const Real c_cgs = constants::c_cgs;
+
+        Real Fp = Flux_Rad( Em_R, Fm_R, vR, P_R, 0 ); 
+        Real Fm = Flux_Rad( Em_L, Fm_L, vL, P_L, 0 ); 
+        llf_flux( Fp, Fm, Em_R, Em_L, c_cgs, flux_e );
+
+        Real Fp = Flux_Rad( Em_R, Fm_R, vR, P_R, 1 ); 
+        Real Fm = Flux_Rad( Em_L, Fm_L, vL, P_L, 1 ); 
+        llf_flux( Fp, Fm, Fm_R, Fm_L, c_cgs, flux_f );
 
         // TODO: Clean This Up
-        dFlux_num( 0, iX ) = -Flux_U( iX );
-        dFlux_num( 1, iX ) = +Flux_P( iX );
-        dFlux_num( 2, iX ) = +Flux_U( iX ) * Flux_P( iX );
+        dFlux_num( 0, iX ) = flux_e;
+        dFlux_num( 1, iX ) = flux_f;
       } );
 
   // --- Surface Term ---
@@ -100,12 +109,11 @@ void ComputeIncrement_Rad_Divergence(
     Kokkos::parallel_for(
         "Flux_q; Rad",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                                { nNodes, ihi + 1, 3 } ),
+                                                { nNodes, ihi + 1, 2 } ),
         KOKKOS_LAMBDA( const int iN, const int iX, const int iCF ) {
-          const auto P = ComputePressureFromConserved_IDEAL(
+          const auto P = ComputeClosure(
               Basis->BasisEval( U, iX, 0, iN + 1, false ),
-              Basis->BasisEval( U, iX, 1, iN + 1, false ),
-              Basis->BasisEval( U, iX, 2, iN + 1, false ) );
+              Basis->BasisEval( U, iX, 1, iN + 1, false ) );
           Flux_q( iCF, iX, iN ) =
               Flux_Rad( Basis->BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
         } );
@@ -115,7 +123,7 @@ void ComputeIncrement_Rad_Divergence(
     Kokkos::parallel_for(
         "Volume Term; Rad",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                                { order, ihi + 1, 3 } ),
+                                                { order, ihi + 1, 2 } ),
         KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
           Real local_sum = 0.0;
           for ( UInt iN = 0; iN < nNodes; iN++ )
@@ -168,7 +176,7 @@ void Compute_Increment_Explicit_Rad(
   Kokkos::parallel_for(
       "Zero dU; Rad",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                              { order, ihi + 1, 3 } ),
+                                              { order, ihi + 1, 2 } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         dU( iCF, iX, k ) = 0.0;
       } );
@@ -184,7 +192,7 @@ void Compute_Increment_Explicit_Rad(
   Kokkos::parallel_for(
       "Divide Update / Mass Matrix; Rad",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { order, ihi + 1, 3 } ),
+                                              { order, ihi + 1, 2 } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         dU( iCF, iX, k ) /= ( Basis->Get_MassMatrix( iX, k ) );
       } );

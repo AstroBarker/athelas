@@ -29,6 +29,7 @@ Real FluxFactor( const Real E, const Real F ) {
 
 /**
  * The radiation fluxes
+ * Here E and F are per unit mass
  **/
 Real Flux_Rad( Real E, Real F, Real P, Real V, UInt iRF ) {
   assert ( iRF == 0 || iRF == 1 );
@@ -80,11 +81,16 @@ Real ComputeOpacity( const Real D, const Real V, const Real Em ) {
 /* pressure tensor closure */
 // TODO: check Closure
 Real ComputeClosure( const Real E, const Real F ) {
+  if (E == 0.0) return 0.0; // This is a hack
   const Real f = FluxFactor( E, F );
   const Real chi = ( 3.0 + 4.0 * f * f ) 
     / ( 5.0 + 2.0 * std::sqrt( 4.0 - 3.0 * f * f ) );
   const Real T = ( 1.0 - chi ) / 2.0 + ( 3.0 * chi - 1.0) * sgn( F ) / 2.0; // TODO: Is this right?
   return E * T;
+}
+
+void llf_flux( const Real Fp, const Real Fm, const Real Up, const Real Um, const Real alpha, Real &out ) {
+  out = 0.5 * ( Fp - alpha * Up + Fm + alpha * Um );
 }
 
 /**
