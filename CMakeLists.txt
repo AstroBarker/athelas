@@ -67,27 +67,27 @@ if(EXISTS "${LOC_PATH}")
 endif()
 
 # Default to an external Kokkos package if the submodule is not populated
-if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/External/Kokkos/CMakeLists.txt" AND NOT EXISTS "${Kokkos_ROOT}/CMakeLists.txt")
-    option(ATHELAS_IMPORT_KOKKOS "If ON, attempt to link to an external Kokkos library. If OFF, build Kokkos from source and package with ATHELAS" ON)
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/Kokkos/CMakeLists.txt" AND NOT EXISTS "${Kokkos_ROOT}/CMakeLists.txt")
+    option(ATHELAS_IMPORT_KOKKOS "If ON, attempt to link to an external Kokkos src. If OFF, build Kokkos from source and package with ATHELAS" ON)
 else()
-    option(ATHELAS_IMPORT_KOKKOS "If ON, attempt to link to an external Kokkos library. If OFF, build Kokkos from source and package with ATHELAS" OFF)
+    option(ATHELAS_IMPORT_KOKKOS "If ON, attempt to link to an external Kokkos src. If OFF, build Kokkos from source and package with ATHELAS" OFF)
 endif()
 
-set(INI_DIR "${PROJECT_SOURCE_DIR}/External/simpleini")
-include_directories(Library)
-include_directories("Library/Geometry")
-include_directories("Library/Quadrature")
-include_directories("Library/Utils")
-include_directories("Library/Limiters")
-include_directories("Library/Basis")
-include_directories("Library/Fluid")
-include_directories("Library/Radiation")
-include_directories("Library/PGen")
-include_directories("Library/LinAlg")
-include_directories("Library/EoS")
-include_directories("Library/BC")
-include_directories("Library/IO")
-include_directories("Library/Timestepper")
+set(INI_DIR "${PROJECT_SOURCE_DIR}/external/simpleini")
+include_directories(src)
+include_directories("src/Geometry")
+include_directories("src/Quadrature")
+include_directories("src/Utils")
+include_directories("src/Limiters")
+include_directories("src/Basis")
+include_directories("src/Fluid")
+include_directories("src/Radiation")
+include_directories("src/PGen")
+include_directories("src/LinAlg")
+include_directories("src/EoS")
+include_directories("src/BC")
+include_directories("src/IO")
+include_directories("src/Timestepper")
 
 include_directories(athelas PUBLIC
   "${PROJECT_BINARY_DIR}"
@@ -95,22 +95,22 @@ include_directories(athelas PUBLIC
 
 # --- Source Files ---
 set( ATHELAS_SOURCES 
-  "Library/PGen/ProblemIn.cpp"
-  "Library/Basis/PolynomialBasis.cpp"
-  "Library/BC/BoundaryConditionsLibrary.cpp"
-  "Library/Limiters/CharacteristicDecomposition.cpp"
-  "Library/EoS/EoS_Ideal.cpp"
-  "Library/Fluid/FluidUtilities.cpp"
-  "Library/Radiation/RadUtilities.cpp"
-  "Library/Fluid/Fluid_Discretization.cpp"
-  "Library/Geometry/Grid.cpp"
-  "Library/IO/IOLibrary.cpp"
-  "Library/LinAlg/LinearAlgebraModules.cpp"
-  "Library/Quadrature/QuadratureLibrary.cpp"
-  "Library/Limiters/SlopeLimiter.cpp"
-  "Library/Limiters/BoundEnforcingLimiter.cpp"
-  "Library/Limiters/SlopeLimiter_Utilities.cpp"
-  "Library/Timestepper/Timestepper.cpp" )
+  "src/PGen/ProblemIn.cpp"
+  "src/Basis/PolynomialBasis.cpp"
+  "src/BC/BoundaryConditionsLibrary.cpp"
+  "src/Limiters/CharacteristicDecomposition.cpp"
+  "src/EoS/EoS_Ideal.cpp"
+  "src/Fluid/FluidUtilities.cpp"
+  "src/Radiation/RadUtilities.cpp"
+  "src/Fluid/Fluid_Discretization.cpp"
+  "src/Geometry/Grid.cpp"
+  "src/IO/IOLibrary.cpp"
+  "src/LinAlg/LinearAlgebraModules.cpp"
+  "src/Quadrature/QuadratureLibrary.cpp"
+  "src/Limiters/SlopeLimiter.cpp"
+  "src/Limiters/BoundEnforcingLimiter.cpp"
+  "src/Limiters/SlopeLimiter_Utilities.cpp"
+  "src/Timestepper/Timestepper.cpp" )
 
 add_library(libathelas ${ATHELAS_SOURCES})
 set_target_properties(libathelas
@@ -158,9 +158,9 @@ if (NOT TARGET Kokkos::kokkos)
     if (EXISTS ${Kokkos_ROOT}/CMakeLists.txt)
       add_subdirectory(${Kokkos_ROOT} Kokkos)
       message(STATUS "Using Kokkos source from Kokkos_ROOT=${Kokkos_ROOT}")
-    elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/External/Kokkos/CMakeLists.txt)
-      add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/External/Kokkos ${PROJECT_SOURCE_DIR}/build/Kokkos)
-      message(STATUS "Using Kokkos source from Athelas submodule at ${CMAKE_CURRENT_SOURCE_DIR}/External/Kokkos")
+    elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/Kokkos/CMakeLists.txt)
+      add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/Kokkos ${PROJECT_SOURCE_DIR}/build/Kokkos)
+      message(STATUS "Using Kokkos source from Athelas submodule at ${CMAKE_CURRENT_SOURCE_DIR}/external/Kokkos")
     else()
       message(FATAL_ERROR "Could not find Kokkos source. Consider running `git submodule update --init`, providing the path to a Kokkos source directory with Kokkos_ROOT, or setting ATHELAS_IMPORT_KOKKOS=ON to link to an external Kokkos installation.")
     endif()
@@ -195,11 +195,11 @@ endif()
 include_directories(${LAPACK_INCLUDE_DIRS})
 
 # SimpleIni
-include_directories("External/simpleini")
+include_directories("external/simpleini")
 
 # --- main ---
 
-add_executable( main Library/Driver.cpp ${ATHELAS_SOURCES} )
+add_executable( main src/Driver.cpp ${ATHELAS_SOURCES} )
 set_target_properties(main
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib"
@@ -221,5 +221,5 @@ target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRA
 if ( ATHELAS_ENABLE_UNIT_TESTS )
   message("\nConfiguring tests")
   enable_testing()
-  add_subdirectory( Test )
+  add_subdirectory( test )
 endif()
