@@ -8,6 +8,8 @@
  * Author   : Brandon L. Barker
  * Purpose  : Class for holding the state data.
  *
+ * TODO: pull in eos
+ *
  **/
 
 #include "Kokkos_Core.hpp"
