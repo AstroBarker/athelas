@@ -77,8 +77,8 @@ void ComputeIncrement_Rad_Divergence(
         Real Fm = Flux_Rad( Em_L, Fm_L, vL, P_L, 0 ); 
         llf_flux( Fp, Fm, Em_R, Em_L, c_cgs, flux_e );
 
-        Real Fp = Flux_Rad( Em_R, Fm_R, vR, P_R, 1 ); 
-        Real Fm = Flux_Rad( Em_L, Fm_L, vL, P_L, 1 ); 
+        Fp = Flux_Rad( Em_R, Fm_R, P_R, vR, 1 ); 
+        Fm = Flux_Rad( Em_L, Fm_L, P_L, vL, 1 ); 
         llf_flux( Fp, Fm, Fm_R, Fm_L, c_cgs, flux_f );
 
         // TODO: Clean This Up
@@ -115,7 +115,9 @@ void ComputeIncrement_Rad_Divergence(
               Basis->BasisEval( U, iX, 0, iN + 1, false ),
               Basis->BasisEval( U, iX, 1, iN + 1, false ) );
           Flux_q( iCF, iX, iN ) =
-              Flux_Rad( Basis->BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
+              Flux_Rad( Basis->BasisEval( U, iX, 0, iN + 1, false ), 
+                        Basis->BasisEval( U, iX, 1, iN + 1, false ), P, 
+                        Basis->BasisEval( uCF, iX, 1, iN + 1, false ), iCF );
         } );
 
     // --- Volume Term ---

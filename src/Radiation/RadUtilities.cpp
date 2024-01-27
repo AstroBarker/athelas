@@ -20,11 +20,10 @@
 
 /** 
  * radiation flux factor
- * TODO: this may need a factor of c..
  **/
 Real FluxFactor( const Real E, const Real F ) {
   const Real c = constants::c_cgs;
-  return F / ( c * E );
+  return std::fabs( F ) / ( c * E );
 }
 
 /**
