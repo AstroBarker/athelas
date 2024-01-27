@@ -68,23 +68,28 @@ int main( int argc, char *argv[] )
    GridStructure Grid( &pin );
 
    // --- Create the data structures ---
-   View3D uCF( "uCF", 3, nX + 2 * nGuard, order );  // conserved fluid
-   View3D uCR( "uCF", 2, nX + 2 * nGuard, order );  // conserved radiation
-   View3D uPF( "uPF", 3, nX + 2 * nGuard, nNodes ); // primitive fluid
+   const int nCF = 3;
+   const int nPF = 3;
+   const int nAF = 3;
+   const int nCR = 2;
+   State state( nCF, nCR, nPF, nAF, nX, nGuard, nNodes, order );
+   //View3D uCF = state.Get_uCF( );
+   //View3D uPF = state.Get_uPF( );
+   //View3D uCR = state.Get_uCR( );
 
    IdealGas eos( gamma_ideal );
 
     if ( not Restart )
     {
       // --- Initialize fields ---
-      InitializeFields( uCF, uPF, uCR, &Grid, order, ProblemName );
+      InitializeFields( &state, &Grid, ProblemName );
 
-      ApplyBC( uCF, &Grid, order, BC );
+      ApplyBC( state.Get_uCF( ), &Grid, order, BC );
     }
     // WriteState( uCF, uPF, Grid, ProblemName, 0.0, order, 0 );
 
     // --- Datastructure for modal basis ---
-    ModalBasis Basis( pin.Basis, uPF, &Grid, order, nNodes, nX, nGuard );
+    ModalBasis Basis( pin.Basis, state.Get_uPF( ), &Grid, order, nNodes, nX, nGuard );
 
     WriteBasis( &Basis, nGuard, Grid.Get_ihi( ), nNodes, order, ProblemName );
 
@@ -95,7 +100,7 @@ int main( int argc, char *argv[] )
     SlopeLimiter S_Limiter( &Grid, &pin );
 
     // --- Limit the initial conditions ---
-    S_Limiter.ApplySlopeLimiter( uCF, &Grid, &Basis );
+    S_Limiter.ApplySlopeLimiter( state.Get_uCF( ), &Grid, &Basis );
 
     // -- print run parameters ---
     PrintSimulationParameters( Grid, &pin, CFL );
@@ -112,7 +117,7 @@ int main( int argc, char *argv[] )
     while ( t < t_end && iStep >= 0 )
     {
 
-      dt = ComputeTimestep_Fluid( uCF, &Grid, &eos, CFL );
+      dt = ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL );
 
       if ( t + dt > t_end )
       {
@@ -124,16 +129,17 @@ int main( int argc, char *argv[] )
         std::printf( " ~ %d \t %.5e \t %.5e\n", iStep, t, dt );
       }
 
-      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, uCF, uCR, Grid, 
-                         &Basis, &eos, &S_Limiter, opts );
+      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, state.Get_uCF(),
+                         state.Get_uCR(), Grid, &Basis, &eos, &S_Limiter, 
+                         opts );
 
       t += dt;
 
       // Write state
       if ( iStep % i_write == 0 )
       {
-        WriteState( uCF, uPF, Grid, &S_Limiter, ProblemName, t, order,
-                    i_out );
+        WriteState( state.Get_uCF( ), state.Get_uPF( ), Grid, &S_Limiter, 
+                    ProblemName, t, order, i_out );
         i_out += 1;
       }
 
@@ -143,8 +149,9 @@ int main( int argc, char *argv[] )
     // --- Finalize timer ---
     Real time = timer.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
-    ApplyBC( uCF, &Grid, order, BC );
-    WriteState( uCF, uPF, Grid, &S_Limiter, ProblemName, t, order, -1 );
+    ApplyBC( state.Get_uCF( ), &Grid, order, BC );
+    WriteState( state.Get_uCF( ), state.Get_uPF( ), Grid, &S_Limiter,
+                ProblemName, t, order, -1 );
   }
   Kokkos::finalize( );
 

@@ -26,22 +26,24 @@ class State
   int Get_nCR( ) const;
   int Get_nPF( ) const;
   int Get_nAF( ) const;
+  int Get_pOrder( ) const;
 
-  Kokkos::View<Real ***> Get_uCF( ) const;
-  Kokkos::View<Real ***> Get_uPF( ) const;
-  Kokkos::View<Real ***> Get_uAF( ) const;
-  Kokkos::View<Real ***> Get_uCR( ) const;
+  View3D Get_uCF( ) const;
+  View3D Get_uPF( ) const;
+  View3D Get_uAF( ) const;
+  View3D Get_uCR( ) const;
 
  private:
   int nCF;
   int nCR;
   int nPF;
   int nAF;
+  int pOrder;
 
-  Kokkos::View<Real ***> uCF; // Conserved fluid
-  Kokkos::View<Real ***> uPF; // primitive fluid
-  Kokkos::View<Real ***> uAF; // auxiliary fluid
-  Kokkos::View<Real ***> uCR; // conserved radiation
+  View3D uCF; // Conserved fluid
+  View3D uPF; // primitive fluid
+  View3D uAF; // auxiliary fluid
+  View3D uCR; // conserved radiation
 };
 
 #endif // STATE_HPP_

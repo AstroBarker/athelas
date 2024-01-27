@@ -11,6 +11,7 @@
 #include "Error.hpp"
 #include "Grid.hpp"
 #include "Initialization.hpp"
+#include "state.hpp"
 
 #define GAMMA 1.4
 
@@ -19,8 +20,8 @@
  * TODO: For now I initialize constant on each cell. Is there a better way?
  * TODO: iNodeX and order separation
  **/
-void InitializeFields( View3D uCF, View3D uPF, View3D uCR,
-                       GridStructure *Grid, const UInt pOrder,
+void InitializeFields( State *state,
+                       GridStructure *Grid,
                        const std::string ProblemName )
 {
 
@@ -33,6 +34,11 @@ void InitializeFields( View3D uCF, View3D uPF, View3D uCR,
   const unsigned int iCF_E   = 2;
 
   const unsigned int iPF_D = 0;
+
+  View3D uCF = state->Get_uCF( );
+  View3D uPF = state->Get_uPF( );
+  View3D uCR = state->Get_uCR( );
+  const UInt pOrder = state->Get_pOrder( );
 
   if ( ProblemName == "Sod" )
   {
