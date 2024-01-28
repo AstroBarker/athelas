@@ -118,6 +118,7 @@ int main( int argc, char *argv[] )
 
       // TODO: ComputeTimestep_Rad
       dt = ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL );
+      dt = std::pow(10.0, -11.0);
 
       if ( t + dt > t_end )
       {

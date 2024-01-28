@@ -74,7 +74,7 @@ Real ComputeEmissivity( const Real D, const Real V, const Real Em ) {
  * TODO: actually implement this
  **/
 Real ComputeOpacity( const Real D, const Real V, const Real Em ) {
-  return 1.0;
+  return 4.0 * std::pow(10.0, -8.0);
 }
 
 /* pressure tensor closure */
