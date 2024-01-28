@@ -70,12 +70,9 @@ int main( int argc, char *argv[] )
    // --- Create the data structures ---
    const int nCF = 3;
    const int nPF = 3;
-   const int nAF = 3;
+   const int nAF = 1;
    const int nCR = 2;
    State state( nCF, nCR, nPF, nAF, nX, nGuard, nNodes, order );
-   //View3D uCF = state.Get_uCF( );
-   //View3D uPF = state.Get_uPF( );
-   //View3D uCR = state.Get_uCR( );
 
    IdealGas eos( gamma_ideal );
 
@@ -86,7 +83,6 @@ int main( int argc, char *argv[] )
 
       ApplyBC( state.Get_uCF( ), &Grid, order, BC );
     }
-    // WriteState( uCF, uPF, Grid, ProblemName, 0.0, order, 0 );
 
     // --- Datastructure for modal basis ---
     ModalBasis Basis( pin.Basis, state.Get_uPF( ), &Grid, order, nNodes, nX, nGuard );
@@ -102,8 +98,10 @@ int main( int argc, char *argv[] )
     // --- Limit the initial conditions ---
     S_Limiter.ApplySlopeLimiter( state.Get_uCF( ), &Grid, &Basis );
 
-    // -- print run parameters ---
+    // -- print run parameters  and initial condition ---
     PrintSimulationParameters( Grid, &pin, CFL );
+    WriteState( &state, Grid, &S_Limiter,
+                ProblemName, t, order, 0 );
 
     // --- Timer ---
     Kokkos::Timer timer;
@@ -138,7 +136,7 @@ int main( int argc, char *argv[] )
       // Write state
       if ( iStep % i_write == 0 )
       {
-        WriteState( state.Get_uCF( ), state.Get_uPF( ), Grid, &S_Limiter, 
+        WriteState( &state, Grid, &S_Limiter, 
                     ProblemName, t, order, i_out );
         i_out += 1;
       }
@@ -150,7 +148,7 @@ int main( int argc, char *argv[] )
     Real time = timer.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC( state.Get_uCF( ), &Grid, order, BC );
-    WriteState( state.Get_uCF( ), state.Get_uPF( ), Grid, &S_Limiter,
+    WriteState( &state, Grid, &S_Limiter,
                 ProblemName, t, order, -1 );
   }
   Kokkos::finalize( );

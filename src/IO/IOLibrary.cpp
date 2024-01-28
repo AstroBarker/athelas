@@ -25,6 +25,10 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin, const Real C
   const UInt nX     = Grid.Get_nElements( );
   const UInt nNodes = Grid.Get_nNodes( );
 
+  std::printf( " ~ --- Physics Parameters --- \n" );
+  std::printf( " ~ Radiation      : %d\n", pin->do_rad );
+  std::printf( "\n" );
+
   std::printf( " ~ --- Order Parameters --- \n" );
   std::printf( " ~ Basis          : %d ( 0 : Legendre, 1: Taylor )\n", pin->Basis );
   std::printf( " ~ Spatial Order  : %d\n", pin->pOrder );
@@ -72,12 +76,17 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin, const Real C
   std::printf( "\n" );
 }
 
-// TODO: add Time
-void WriteState( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
+/**
+ * Write simulation output to disk
+ **/
+void WriteState( State *state,
                  GridStructure Grid, SlopeLimiter *SL, 
                  const std::string ProblemName, Real time,
                  UInt order, int i_write )
 {
+
+  View3D uCF = state->Get_uCF( );
+  View3D uPF = state->Get_uPF( );
 
   std::string fn = "athelas_";
   auto i_str    = std::to_string( i_write );

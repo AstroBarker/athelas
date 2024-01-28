@@ -5,6 +5,7 @@
 
 #include "Abstractions.hpp"
 #include "ProblemIn.hpp"
+#include "state.hpp"
 
 struct GridType
 {
@@ -16,7 +17,7 @@ struct DataType
   Real x{ };
 };
 
-void WriteState( Kokkos::View<Real ***> uCF, Kokkos::View<Real ***> uPF,
+void WriteState( State *state,
                  GridStructure Grid, SlopeLimiter *SL, 
                  const std::string ProblemName, Real time,
                  UInt order, int i_write );
