@@ -39,8 +39,8 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin, const Real C
   std::printf( " ~ --- Grid Parameters --- \n" );
   std::printf( " ~ Mesh Elements  : %d\n", nX );
   std::printf( " ~ Number Nodes   : %d\n", nNodes );
-  std::printf( " ~ Lower Boudnary : %f\n", Grid.Get_xL( ) );
-  std::printf( " ~ Upper Boudnary : %f\n", Grid.Get_xR( ) );
+  std::printf( " ~ Lower Boundary : %f\n", Grid.Get_xL( ) );
+  std::printf( " ~ Upper Boundary : %f\n", Grid.Get_xR( ) );
   std::printf( "\n" );
 
   std::printf( " ~ --- Limiter Parameters --- \n" );
