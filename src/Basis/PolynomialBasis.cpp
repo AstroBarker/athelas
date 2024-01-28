@@ -288,13 +288,13 @@ void ModalBasis::InitializeBasis( const PolyBasis::PolyBasis basis,
           eta = Grid->Get_Nodes( i_eta - 1 );
         }
         else if ( i_eta > nNodes + 1 &&
-                  i_eta < 2 * nNodes + 1 ) // GL nodes left neighbor
+                  i_eta < 2 * nNodes + 2 ) // GL nodes left neighbor
         {
-          eta = Grid->Get_Nodes( i_eta - nNodes - 1 ) - 1.0;
+          eta = Grid->Get_Nodes( i_eta - nNodes - 2 ) + 1.0;
         }
         else
         {
-          eta = Grid->Get_Nodes( i_eta - 2 * nNodes - 1 ) + 1.0;
+          eta = Grid->Get_Nodes( i_eta - 2 * nNodes - 2 ) - 1.0;
         }
 
         Phi( iX, i_eta, k ) =
