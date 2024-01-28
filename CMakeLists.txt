@@ -87,6 +87,7 @@ include_directories("src/LinAlg")
 include_directories("src/EoS")
 include_directories("src/BC")
 include_directories("src/IO")
+include_directories("src/state")
 include_directories("src/Timestepper")
 
 include_directories(athelas PUBLIC
@@ -110,6 +111,7 @@ set( ATHELAS_SOURCES
   "src/Limiters/SlopeLimiter.cpp"
   "src/Limiters/BoundEnforcingLimiter.cpp"
   "src/Limiters/SlopeLimiter_Utilities.cpp"
+  "src/state/state.cpp"
   "src/Timestepper/Timestepper.cpp" )
 
 add_library(libathelas ${ATHELAS_SOURCES})
