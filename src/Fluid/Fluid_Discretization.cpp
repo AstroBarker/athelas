@@ -280,7 +280,7 @@ void Compute_Increment_Explicit(
 
   // --- Divide update by mass mastrix ---
   Kokkos::parallel_for(
-      "Divide Update / Mass Matrix",
+      "Fluid::Divide Update / Mass Matrix",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                               { order, ihi + 1, 3 } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {

@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Constants.hpp"
+#include "equilibrium.hpp"
 #include "Error.hpp"
 #include "Grid.hpp"
 #include "Initialization.hpp"
@@ -459,6 +460,10 @@ void InitializeFields( State *state,
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
+  }
+  else if ( ProblemName == "RadEquilibrium" )
+  {
+    RadEquilibriumInit( uCF, uPF, uCR, Grid, pOrder );
   }
   else
   {

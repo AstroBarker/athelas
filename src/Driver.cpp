@@ -13,8 +13,10 @@
 #include "Kokkos_Core.hpp"
 
 #include "Abstractions.hpp"
+#include "Driver.hpp"
 #include "Grid.hpp"
 #include "EoS.hpp"
+#include "Rad_Discretization.hpp"
 #include "BoundaryConditionsLibrary.hpp"
 #include "SlopeLimiter.hpp"
 #include "Initialization.hpp"
@@ -25,7 +27,6 @@
 #include "Timestepper.hpp"
 #include "Error.hpp"
 #include "ProblemIn.hpp"
-#include "Driver.hpp"
 
 int main( int argc, char *argv[] )
 {
@@ -128,7 +129,13 @@ int main( int argc, char *argv[] )
         std::printf( " ~ %d \t %.5e \t %.5e\n", iStep, t, dt );
       }
 
-      SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, &state,
+      SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state,
+                         Grid, &Basis, &eos, &S_Limiter, 
+                         opts );
+      SSPRK.UpdateRadiation( Compute_Increment_Explicit_Rad, dt, &state,
+                             Grid, &Basis, &eos, &S_Limiter, 
+                             opts );
+      SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state,
                          Grid, &Basis, &eos, &S_Limiter, 
                          opts );
 

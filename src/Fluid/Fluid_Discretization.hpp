@@ -16,12 +16,12 @@ void ComputeIncrement_Fluid_Geometry( const View3D U,
                                       GridStructure &Grid, ModalBasis *Basis,
                                       EOS *eos, View3D dU );
 
-void Compute_Increment_Explicit(
-    const Kokkos::View<Real ***> U, GridStructure &Grid, ModalBasis *Basis,
-    EOS *eos, Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
-    Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
-    Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
-    Kokkos::View<Real *> Flux_P, const std::string BC );
+//void Compute_Increment_Explicit(
+//    const Kokkos::View<Real ***> U, GridStructure &Grid, ModalBasis *Basis,
+//    EOS *eos, Kokkos::View<Real ***> dU, Kokkos::View<Real ***> Flux_q,
+//    Kokkos::View<Real **> dFlux_num, Kokkos::View<Real **> uCF_F_L,
+//    Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
+//    Kokkos::View<Real *> Flux_P, const std::string BC );
 
 void ComputeIncrement_Fluid_Rad( const View3D uCF, const View3D uCR,
                                  GridStructure &Grid, ModalBasis *Basis,

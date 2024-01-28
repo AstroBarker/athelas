@@ -319,8 +319,8 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
 /**
  * Update radiation solution with SSPRK methods
  **/
-void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrement, const Real dt,
-                                   View3D U, View3D uCR, GridStructure &Grid,
+void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrementRad, const Real dt,
+                                   State *state, GridStructure &Grid,
                                    ModalBasis *Basis, EOS *eos, 
                                    SlopeLimiter *S_Limiter, const Options opts )
 {
@@ -328,18 +328,21 @@ void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrement, const Real dt,
   const auto &order = Basis->Get_Order( );
   const auto &ihi   = Grid.Get_ihi( );
 
+  auto uCF = state->Get_uCF( );
+  auto uCR = state->Get_uCR( );
+
   unsigned short int i;
 
   Kokkos::parallel_for(
       "Timestepper::Rad::1",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                              { order, ihi + 2, 3 } ),
-      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
-        U_s( 0, iCF, iX, k ) = U( iCF, iX, k );
-        dU_s( 0, iCF, iX, k ) = 0.0;
+                                              { order, ihi + 2, 2 } ),
+      KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
+        U_s( 0, iCR, iX, k ) = uCR( iCR, iX, k );
+        dU_s( 0, iCR, iX, k ) = 0.0;
       } );
 
-  Grid_s[0] = Grid;
+  //Grid_s[0] = Grid;
 
   for ( unsigned short int iS = 1; iS <= nStages; iS++ )
   {
@@ -348,9 +351,9 @@ void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrement, const Real dt,
     Kokkos::parallel_for(
         "Timestepper::Rad::2",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                { order, ihi + 2, 3 } ),
-        KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
-          SumVar_U( iCF, iX, k ) = 0.0;
+                                                { order, ihi + 2, 2 } ),
+        KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
+          SumVar_U( iCR, iX, k ) = 0.0;
           StageData( iS, iX ) = 0.0;;
         } );
 
@@ -363,17 +366,17 @@ void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrement, const Real dt,
       auto dUsj =
           Kokkos::subview( dU_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto Flux_Uj = Kokkos::subview( Flux_U, j, Kokkos::ALL );
-      ComputeIncrement( Usj, uCR, Grid_s[j], Basis, eos, dUsj, Flux_q, dFlux_num,
+      ComputeIncrementRad( Usj, uCF, Grid, Basis, eos, dUsj, Flux_q, dFlux_num,
                         uCF_F_L, uCF_F_R, Flux_Uj, Flux_P, opts );
 
       // inner sum
       Kokkos::parallel_for(
           "Timestepper::Rad::3",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                  { order, ihi + 2, 3 } ),
-          KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
-            SumVar_U( iCF, iX, k ) += a_jk( i, j ) * Usj( iCF, iX, k ) +
-                                      dt * b_jk( i, j ) * dUsj( iCF, iX, k );
+                                                  { order, ihi + 2, 2 } ),
+          KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
+            SumVar_U( iCR, iX, k ) += a_jk( i, j ) * Usj( iCR, iX, k ) +
+                                      dt * b_jk( i, j ) * dUsj( iCR, iX, k );
           } );
 
     }
@@ -382,9 +385,9 @@ void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrement, const Real dt,
     Kokkos::parallel_for(
         "Timestepper::Rad::4",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                { order, ihi + 2, 3 } ),
-        KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
-          U_s( iS, iCF, iX, k ) = SumVar_U( iCF, iX, k );
+                                                { order, ihi + 2, 2 } ),
+        KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
+          U_s( iS, iCR, iX, k ) = SumVar_U( iCR, iX, k );
         } );
 
     auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
@@ -399,9 +402,9 @@ void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrement, const Real dt,
   Kokkos::parallel_for(
       "Timestepper::Rad::Final",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                              { order, ihi + 2, 3 } ),
-      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
-        uCR( iCF, iX, k ) = U_s( nStages, iCF, iX, k );
+                                              { order, ihi + 2, 2 } ),
+      KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
+        uCR( iCR, iX, k ) = U_s( nStages, iCR, iX, k );
       } );
 
   S_Limiter->ApplySlopeLimiter( uCR, &Grid, Basis );
