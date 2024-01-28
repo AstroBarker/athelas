@@ -213,13 +213,16 @@ void TimeStepper::InitializeTimestepper( )
  * Update fluid solution with SSPRK methods
  **/
 void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
-                               View3D U, View3D uCR, GridStructure &Grid,
+                               State *state, GridStructure &Grid,
                                ModalBasis *Basis, EOS *eos, 
                                SlopeLimiter *S_Limiter, const Options opts )
 {
 
   const auto &order = Basis->Get_Order( );
   const auto &ihi   = Grid.Get_ihi( );
+
+  auto U = state->Get_uCF( );
+  auto uCR = state->Get_uCR( );
 
   unsigned short int i;
 

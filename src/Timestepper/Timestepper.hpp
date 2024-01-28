@@ -11,6 +11,7 @@
 
 #include "Abstractions.hpp"
 #include "ProblemIn.hpp"
+#include "state.hpp"
 
 typedef void ( *UpdateFunc )( const View3D, const View3D, 
                               GridStructure &,
@@ -30,7 +31,7 @@ class TimeStepper
   void InitializeTimestepper( );
 
   void UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
-                    View3D uCF, View3D uCR, GridStructure &Grid,
+                    State *state, GridStructure &Grid,
                     ModalBasis *Basis, EOS *eos, SlopeLimiter *S_Limiter, 
                     const Options opts );
   void UpdateRadiation( UpdateFunc ComputeIncrement, const Real dt,
