@@ -103,6 +103,7 @@ set( ATHELAS_SOURCES
   "src/EoS/EoS_Ideal.cpp"
   "src/Fluid/FluidUtilities.cpp"
   "src/Radiation/RadUtilities.cpp"
+  "src/Radiation/Rad_Discretization.cpp"
   "src/Fluid/Fluid_Discretization.cpp"
   "src/Geometry/Grid.cpp"
   "src/IO/IOLibrary.cpp"

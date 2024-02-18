@@ -220,6 +220,7 @@ void ComputeIncrement_Fluid_Rad( View3D uCF, View3D uCR, GridStructure &Grid,
           local_sum2 +=
               Grid.Get_Weights( iN ) * Basis->Get_Phi( iX, iN + 1, k ) 
               * Source_Fluid_Rad( Tau, Vel, T, chi, kappa, Er, Fr, Pr, 2 );
+            //std::printf("localsum1 E F P %f %f %f %f\n", local_sum1, Er, Fr, Pr);
         }
 
         dU( 1, iX, k ) += ( local_sum1 * Grid.Get_Widths( iX ) ) /

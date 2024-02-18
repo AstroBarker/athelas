@@ -77,24 +77,26 @@ Real Flux_Fluid( const Real V, const Real P, const UInt iCF )
   }
 }
 
-/* Fluid radiation sources */
+/**
+ * Fluid radiation sources. Kind of redundant with Rad_sources.
+ * TODO: extend to O(b^2)
+ **/
 Real Source_Fluid_Rad( Real D, Real V, Real T, Real X, Real kappa,
                        Real E, Real F, Real Pr, UInt iCF ) {
   assert ( iCF == 0 || iCF == 1 || iCF == 2 );
-
   const Real a = constants::a;
   const Real c = constants::c_cgs;
 
   const Real b = V / c;
-  const Real term1 = E - a * T*T*T*T - 2.0 * b * F;
-  const Real term2 = F - E * b - b * Pr;
+  const Real term1 = a * T*T*T*T - E;
+  const Real term2 = F / c;
 
   if ( iCF == 0 ) {
     return 0.0;
   } else if ( iCF == 1 ){
-    return D * kappa * term1 * b + D * X * term2;
+    return - D * kappa * ( - term2 + b * (E + Pr) );
   } else {
-    return c * ( D * kappa * term1 + D * X * b * term2 );
+    return - c * D * kappa * ( term1 + b * term2 );
   }
 }
 /**

@@ -408,5 +408,5 @@ void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrementRad, const Real dt
       } );
 
   S_Limiter->ApplySlopeLimiter( uCR, &Grid, Basis );
-  ApplyBoundEnforcingLimiter( uCR, Basis, eos );
+  //ApplyBoundEnforcingLimiter( uCR, Basis, eos );
 }

@@ -28,20 +28,22 @@ Real FluxFactor( const Real E, const Real F ) {
 
 /**
  * The radiation fluxes
- * Here E and F are per unit mass
+ * Here E and F are per unit volume
  **/
 Real Flux_Rad( Real E, Real F, Real P, Real V, UInt iRF ) {
   assert ( iRF == 0 || iRF == 1 );
 
+  const Real c = constants::c_cgs;
   if ( iRF == 0 ) {
     return F - E * V;
   } else {
-    return P - F * V;
+    return c * c * P - F * V;
   }
 }
 
 /**
  * source terms for radiation
+ * TODO: Recover some O(v^2/c^2)
  **/
 Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, 
                  Real E, Real F, Real Pr, UInt iRF ) {
@@ -51,18 +53,18 @@ Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa,
   const Real c = constants::c_cgs;
 
   const Real b = V / c;
-  const Real term1 = E - a * T*T*T*T - 2.0 * b * F;
-  const Real term2 = F - E * b - b * Pr;
+  const Real term1 = a * T*T*T*T - E;
+  const Real term2 = F / c;
 
   if ( iRF == 0 ) {
-    return - ( D * kappa * term1 + D * X * b * term2 );
+    return c * D * kappa * ( term1 + b * term2 );
   } else {
-    return - ( D * kappa * term1 * b + D * X * term2 );
+    return c * c * D * kappa * ( - term2 + b * (E + Pr) );
   }
 }
 
 /**
- * Emissivity chi
+ * Emissivity
  * TODO: actually implement this
  **/
 Real ComputeEmissivity( const Real D, const Real V, const Real Em ) {
@@ -85,6 +87,7 @@ Real ComputeClosure( const Real E, const Real F ) {
   const Real chi = ( 3.0 + 4.0 * f * f ) 
     / ( 5.0 + 2.0 * std::sqrt( 4.0 - 3.0 * f * f ) );
   const Real T = ( 1.0 - chi ) / 2.0 + ( 3.0 * chi - 1.0) * sgn( F ) / 2.0; // TODO: Is this right?
+  //std::printf("closure F/E, T , E, P %f %f %f %f \n", f, T, E, E*T);
   return E * T;
 }
 

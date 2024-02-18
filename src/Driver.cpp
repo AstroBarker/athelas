@@ -113,7 +113,7 @@ int main( int argc, char *argv[] )
     UInt i_write = 5;
     UInt i_out   = 1;
     std::cout << " ~ Step\tt\tdt" << std::endl;
-    while ( t < t_end && iStep >= 0 )
+    while ( t < t_end && iStep <= 1 )
     {
 
       // TODO: ComputeTimestep_Rad
