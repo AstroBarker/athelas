@@ -46,6 +46,10 @@ This will create a directory `bin` in the root directory that contains the execu
 ## NOTE: 
 The build system may not be perfect yet. Your mileage may vary.
 
+## TODO
+- function naming overhaul
+- class accessor refactor
+
 ## Radiation TODO:
 - radiation riemann solver
 - radiation timestepper
