@@ -49,6 +49,8 @@ The build system may not be perfect yet. Your mileage may vary.
 ## TODO
 - function naming overhaul
 - class accessor refactor
+- cmake: bin into build
+- kokkos parallel slope limiter
 
 ## Radiation TODO:
 - radiation riemann solver
