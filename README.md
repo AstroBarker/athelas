@@ -51,8 +51,9 @@ The build system may not be perfect yet. Your mileage may vary.
 - class accessor refactor
 - cmake: bin into build
 - kokkos parallel slope limiter
+- repalce simpleini reader with different format (TOML, YAML)
 
-## Radiation TODO:
+### Radiation TODO:
 - radiation riemann solver
 - radiation timestepper
 - strang split
@@ -62,7 +63,7 @@ The build system may not be perfect yet. Your mileage may vary.
 
 # Future Work
 
-- Grey M1 radiation
+- Grey M1 radiation [WIP]
 - Relativistic hydro
 - Gravity
 - Multigroup radiation
