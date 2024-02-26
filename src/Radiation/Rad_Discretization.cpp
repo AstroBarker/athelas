@@ -81,10 +81,8 @@ void ComputeIncrement_Rad_Divergence(
         llf_flux( Fp, Fm, Em_R, Em_L, c_cgs, flux_e );
 
         Fp = Flux_Rad( Em_R, Fm_R, P_R, vR, 1 ); 
-        Fm = Flux_Rad( Em_L, Fm_L, P_L, vL, 1 ); 
+        Fm = Flux_Rad( Em_L, Fm_L, P_L, vL, 1 ); // WEIRD
         llf_flux( Fp, Fm, Fm_R, Fm_L, c_cgs, flux_f );
-
-        std::printf("flux_e, flux_e, p %f %f %f %f\n", flux_e, flux_f, P_L, P_R);
 
         dFlux_num( 0, iX ) = flux_e;
         dFlux_num( 1, iX ) = flux_f;
@@ -115,13 +113,14 @@ void ComputeIncrement_Rad_Divergence(
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                                 { nNodes, ihi + 1, 2 } ),
         KOKKOS_LAMBDA( const int iN, const int iX, const int iCR ) {
+          const Real Tau = Basis->BasisEval( uCF, iX, 0, iN + 1, false );
           const auto P = ComputeClosure(
-              Basis->BasisEval( uCR, iX, 0, iN + 1, false ),
-              Basis->BasisEval( uCR, iX, 1, iN + 1, false ) );
+              Basis->BasisEval( uCR, iX, 0, iN + 1, false ) / Tau,
+              Basis->BasisEval( uCR, iX, 1, iN + 1, false ) / Tau );
           Flux_q( iCR, iX, iN ) =
-              Flux_Rad( Basis->BasisEval( uCR, iX, 0, iN + 1, false ), 
-                        Basis->BasisEval( uCR, iX, 1, iN + 1, false ), P, 
-                        Basis->BasisEval( uCR, iX, 1, iN + 1, false ), iCR );
+              Flux_Rad( Basis->BasisEval( uCR, iX, 0, iN + 1, false ) / Tau, 
+                        Basis->BasisEval( uCR, iX, 1, iN + 1, false ) / Tau, P, 
+                        Basis->BasisEval( uCF, iX, 1, iN + 1, false ), iCR );
         } );
 
     // --- Volume Term ---
@@ -186,8 +185,6 @@ void ComputeIncrement_Rad_Source( View3D uCR, View3D uCF,
 
           local_sum +=
               Grid.Get_Weights( iN ) * Basis->Get_Phi( iX, iN + 1, k ) * this_source;
-          //std::printf("localsum rad %f %f %f %f %f\n", local_sum, E_r, F_r, P_r, this_source);
-          // P_r massive
         }
 
         dU( iCR, iX, k ) += ( local_sum * Grid.Get_Widths( iX ) ) /

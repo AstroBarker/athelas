@@ -7,6 +7,7 @@
 
 Real FluxFactor( const Real E, const Real F );
 Real Flux_Rad( Real E, Real F, Real P, Real V, UInt iRF );
+void RadiationFourForce(Real D, Real V, Real T, Real kappa, Real E, Real F, Real Pr, Real &G0, Real &G);
 Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, 
                  Real E, Real F, Real Pr, UInt iRF );
 Real ComputeEmissivity( const Real D, const Real V, const Real Em );

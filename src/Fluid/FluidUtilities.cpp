@@ -16,6 +16,7 @@
 #include "Error.hpp"
 #include "Grid.hpp"
 #include "PolynomialBasis.hpp"
+#include "RadUtilities.hpp"
 #include "FluidUtilities.hpp"
 
 /**
@@ -84,20 +85,14 @@ Real Flux_Fluid( const Real V, const Real P, const UInt iCF )
 Real Source_Fluid_Rad( Real D, Real V, Real T, Real X, Real kappa,
                        Real E, Real F, Real Pr, UInt iCF ) {
   assert ( iCF == 0 || iCF == 1 || iCF == 2 );
-  const Real a = constants::a;
+  if ( iCF == 0 ) return 0.0; // rad doesn't source mass
+
   const Real c = constants::c_cgs;
 
-  const Real b = V / c;
-  const Real term1 = a * T*T*T*T - E;
-  const Real term2 = F / c;
+  Real G0, G;
+  RadiationFourForce(D, V, T, kappa, E, F, Pr, G0, G);
 
-  if ( iCF == 0 ) {
-    return 0.0;
-  } else if ( iCF == 1 ){
-    return - D * kappa * ( - term2 + b * (E + Pr) );
-  } else {
-    return - c * D * kappa * ( term1 + b * term2 );
-  }
+  return (iCF == 1) ? G : c * G0;
 }
 /**
  * Gudonov style numerical flux. Constucts v* and p* states.

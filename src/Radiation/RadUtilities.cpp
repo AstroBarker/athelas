@@ -34,33 +34,46 @@ Real Flux_Rad( Real E, Real F, Real P, Real V, UInt iRF ) {
   assert ( iRF == 0 || iRF == 1 );
 
   const Real c = constants::c_cgs;
-  if ( iRF == 0 ) {
-    return F - E * V;
-  } else {
-    return c * c * P - F * V;
-  }
+  return ( iRF == 0 ) ? c * F - E * V : 1.0 * c * P - F * V;
 }
 
 /**
- * source terms for radiation
- * TODO: Recover some O(v^2/c^2)
+ * Radiation 4 force for rad-matter interactions
+ * TODO: total opacity X?
  **/
-Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, 
-                 Real E, Real F, Real Pr, UInt iRF ) {
-  assert ( iRF == 0 || iRF == 1 );
-
+void RadiationFourForce(Real D, Real V, Real T, Real kappa, Real E, Real F, Real Pr, Real &G0, Real &G) {
   const Real a = constants::a;
   const Real c = constants::c_cgs;
 
   const Real b = V / c;
-  const Real term1 = a * T*T*T*T - E;
-  const Real term2 = F / c;
+  const Real term1 = E - a * T * T * T * T;
+  F /= 1.0;
 
-  if ( iRF == 0 ) {
-    return c * D * kappa * ( term1 + b * term2 );
-  } else {
-    return c * c * D * kappa * ( - term2 + b * (E + Pr) );
-  }
+  // O(b^2) ala Fuksman
+  G0 = D * kappa * ( term1 - b * F - b * b * E - b * b * Pr );
+  G = D * kappa * (b * (term1 - 2.0 * b * b * F) + (F - b * E - b * Pr));
+
+  // ala Skinner & Ostriker, simpler.
+  //G0 = D * kappa * ( term1 - b * F );
+  //G = D * kappa * ( F - b * E - b * Pr );
+
+}
+
+/**
+ * source terms for radiation
+ * TODO: total opacity X
+ * NOTE: extra c in second source?
+ **/
+Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, 
+                 Real E, Real F, Real Pr, UInt iCR ) {
+  assert ( iRF == 0 || iRF == 1 );
+
+  const Real c = constants::c_cgs;
+
+  Real G0, G;
+  RadiationFourForce(D, V, T, kappa, E, F, Pr, G0, G);
+
+  return (iCR == 0) ? - c * G0 : - 1.0 * c * G;
 }
 
 /**
@@ -87,7 +100,6 @@ Real ComputeClosure( const Real E, const Real F ) {
   const Real chi = ( 3.0 + 4.0 * f * f ) 
     / ( 5.0 + 2.0 * std::sqrt( 4.0 - 3.0 * f * f ) );
   const Real T = ( 1.0 - chi ) / 2.0 + ( 3.0 * chi - 1.0) * sgn( F ) / 2.0; // TODO: Is this right?
-  //std::printf("closure F/E, T , E, P %f %f %f %f \n", f, T, E, E*T);
   return E * T;
 }
 
