@@ -12,17 +12,17 @@
  * Maybe much of this can be compile time, as well.
  **/
 
-#include <iostream>
 #include <algorithm> /* std::sort */
-#include <math.h>    /* pow */
 #include <cstdlib>   /* abs */
+#include <iostream>
+#include <math.h> /* pow */
 
-#include "Grid.hpp"
-#include "LinearAlgebraModules.hpp"
-#include "QuadratureLibrary.hpp"
-#include "PolynomialBasis.hpp"
 #include "Error.hpp"
 #include "FluidUtilities.hpp"
+#include "Grid.hpp"
+#include "LinearAlgebraModules.hpp"
+#include "PolynomialBasis.hpp"
+#include "QuadratureLibrary.hpp"
 
 /**
  * Constructor creates necessary matrices and bases, etc.

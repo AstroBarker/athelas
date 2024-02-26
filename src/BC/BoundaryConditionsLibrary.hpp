@@ -2,6 +2,7 @@
 #define _BOUNDARYCONDITIONSLIBRARY_HPP_
 
 #include "Abstractions.hpp"
+#include "Grid.hpp"
 
 void ApplyBC( Kokkos::View<Real ***> uCF, GridStructure *Grid,
               const UInt order, const std::string BC );

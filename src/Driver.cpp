@@ -7,26 +7,26 @@
  **/
 
 #include <iostream>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "Kokkos_Core.hpp"
 
 #include "Abstractions.hpp"
-#include "Driver.hpp"
-#include "Grid.hpp"
-#include "EoS.hpp"
-#include "Rad_Discretization.hpp"
 #include "BoundaryConditionsLibrary.hpp"
-#include "SlopeLimiter.hpp"
-#include "Initialization.hpp"
-#include "IOLibrary.hpp"
-#include "Fluid_Discretization.hpp"
-#include "FluidUtilities.hpp"
-#include "state.hpp"
-#include "Timestepper.hpp"
+#include "Driver.hpp"
+#include "EoS.hpp"
 #include "Error.hpp"
+#include "FluidUtilities.hpp"
+#include "Fluid_Discretization.hpp"
+#include "Grid.hpp"
+#include "IOLibrary.hpp"
+#include "Initialization.hpp"
 #include "ProblemIn.hpp"
+#include "Rad_Discretization.hpp"
+#include "SlopeLimiter.hpp"
+#include "Timestepper.hpp"
+#include "state.hpp"
 
 int main( int argc, char *argv[] ) {
   // Check cmd line args

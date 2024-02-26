@@ -6,18 +6,18 @@
  * Purpose  : Utility routines for fluid fields. Includes Riemann solvers.
  **/
 
+#include <algorithm> // std::min, std::max
+#include <cstdlib>   /* abs */
 #include <iostream>
 #include <vector>
-#include <cstdlib>   /* abs */
-#include <algorithm> // std::min, std::max
 
-#include "EoS.hpp"
 #include "Constants.hpp"
+#include "EoS.hpp"
 #include "Error.hpp"
+#include "FluidUtilities.hpp"
 #include "Grid.hpp"
 #include "PolynomialBasis.hpp"
 #include "RadUtilities.hpp"
-#include "FluidUtilities.hpp"
 
 /**
  * Compute the primitive quantities (density, momemtum, energy density)

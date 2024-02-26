@@ -11,12 +11,12 @@
 
 #include "Kokkos_Core.hpp"
 
+#include "BoundaryConditionsLibrary.hpp"
 #include "Error.hpp"
+#include "FluidUtilities.hpp"
+#include "Fluid_Discretization.hpp"
 #include "Grid.hpp"
 #include "PolynomialBasis.hpp"
-#include "Fluid_Discretization.hpp"
-#include "BoundaryConditionsLibrary.hpp"
-#include "FluidUtilities.hpp"
 #include "RadUtilities.hpp"
 
 // Compute the divergence of the flux term for the update

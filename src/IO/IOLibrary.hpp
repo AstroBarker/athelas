@@ -4,7 +4,10 @@
 #include "Kokkos_Core.hpp"
 
 #include "Abstractions.hpp"
+#include "Grid.hpp"
+#include "PolynomialBasis.hpp"
 #include "ProblemIn.hpp"
+#include "SlopeLimiter.hpp"
 #include "state.hpp"
 
 struct GridType

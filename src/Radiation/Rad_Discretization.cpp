@@ -11,14 +11,14 @@
 
 #include "Kokkos_Core.hpp"
 
+#include "BoundaryConditionsLibrary.hpp"
 #include "Constants.hpp"
+#include "EoS.hpp"
 #include "Error.hpp"
 #include "Grid.hpp"
 #include "PolynomialBasis.hpp"
-#include "Rad_Discretization.hpp"
-#include "BoundaryConditionsLibrary.hpp"
-#include "EoS.hpp"
 #include "RadUtilities.hpp"
+#include "Rad_Discretization.hpp"
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,

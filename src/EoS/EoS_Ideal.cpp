@@ -10,8 +10,8 @@
 
 #include "Abstractions.hpp"
 #include "Constants.hpp"
-#include "PolynomialBasis.hpp"
 #include "EoS.hpp"
+#include "PolynomialBasis.hpp"
 
 void IdealGas::PressureFromConserved( const Real Tau, const Real V,
                                       const Real EmT, Real &P ) const {

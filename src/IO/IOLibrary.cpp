@@ -12,9 +12,9 @@
 
 #include "Grid.hpp"
 #include "H5Cpp.h"
+#include "IOLibrary.hpp"
 #include "PolynomialBasis.hpp"
 #include "SlopeLimiter.hpp"
-#include "IOLibrary.hpp"
 
 /**
  * Write to standard output some initialization info

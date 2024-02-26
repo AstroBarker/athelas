@@ -2,6 +2,8 @@
 #define _BOUNDENFORCINGLIMITER_HPP_
 
 #include "Abstractions.hpp"
+#include "EoS.hpp"
+#include "PolynomialBasis.hpp"
 
 void LimitDensity( View3D U, ModalBasis *Basis );
 void LimitInternalEnergy( View3D U, ModalBasis *Basis, 

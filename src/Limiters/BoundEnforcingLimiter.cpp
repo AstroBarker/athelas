@@ -9,17 +9,17 @@
  *   ? If I pass U, iX, iCF, iN... why not just the value
  **/
 
-#include <iostream>
 #include <algorithm> // std::min, std::max
 #include <cstdlib>   /* abs */
+#include <iostream>
 
 #include "Kokkos_Core.hpp"
 
+#include "BoundEnforcingLimiter.hpp"
 #include "EoS.hpp"
 #include "Error.hpp"
-#include "Utilities.hpp"
 #include "PolynomialBasis.hpp"
-#include "BoundEnforcingLimiter.hpp"
+#include "Utilities.hpp"
 
 void LimitDensity( Kokkos::View<Real ***> U, ModalBasis *Basis ) {
   const Real EPSILON = 1.0e-13; // maybe make this smarter

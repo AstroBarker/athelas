@@ -17,4 +17,3 @@ AlignConsecutiveAssignments: true
 
 BreakBeforeBraces: Attach
 PointerAlignment: Right
-SortIncludes: Never

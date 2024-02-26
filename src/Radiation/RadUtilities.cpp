@@ -11,8 +11,8 @@
 
 #include "Kokkos_Core.hpp"
 
-#include "EoS.hpp"
 #include "Constants.hpp"
+#include "EoS.hpp"
 #include "Error.hpp"
 #include "PolynomialBasis.hpp"
 #include "RadUtilities.hpp"

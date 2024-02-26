@@ -11,13 +11,13 @@
  * sgn, minmod, minmodB
  **/
 
-#include <iostream>
-#include <limits>
 #include <algorithm> // std::min, std::max
 #include <cstdlib>   /* abs */
+#include <iostream>
+#include <limits>
 
-#include "Utilities.hpp"
 #include "SlopeLimiter_Utilities.hpp"
+#include "Utilities.hpp"
 
 /**
  *  Barth-Jespersen limiter

@@ -9,12 +9,12 @@
 #include <iostream>
 #include <vector>
 
-#include "Error.hpp"
-#include "Grid.hpp"
-#include "SlopeLimiter.hpp"
-#include "Fluid_Discretization.hpp"
-#include "PolynomialBasis.hpp"
 #include "BoundEnforcingLimiter.hpp"
+#include "Error.hpp"
+#include "Fluid_Discretization.hpp"
+#include "Grid.hpp"
+#include "PolynomialBasis.hpp"
+#include "SlopeLimiter.hpp"
 #include "Timestepper.hpp"
 
 /**
