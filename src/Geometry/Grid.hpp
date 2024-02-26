@@ -1,5 +1,5 @@
-#ifndef GRID_H
-#define GRID_H
+#ifndef _GRID_HPP_
+#define _GRID_HPP_
 
 /**
  * File     :  Grid.hpp
@@ -25,9 +25,7 @@
 #include "ProblemIn.hpp"
 #include "QuadratureLibrary.hpp"
 
-
-class GridStructure
-{
+class GridStructure {
  public:
   GridStructure( ProblemIn *pin );
   Real NodeCoordinate( UInt iC, UInt iN ) const;
@@ -83,4 +81,4 @@ class GridStructure
   Kokkos::View<Real **> Grid;
 };
 
-#endif
+#endif // _GRID_HPP_

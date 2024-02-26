@@ -46,10 +46,26 @@ This will create a directory `bin` in the root directory that contains the execu
 ## NOTE: 
 The build system may not be perfect yet. Your mileage may vary.
 
+## TODO
+- function naming overhaul
+- class accessor refactor
+- cmake: bin into build
+- kokkos parallel slope limiter
+- repalce simpleini reader with different format (TOML, YAML)
+- Rename values in hdf5 output...
+- generalize applyBC for rad and fluid. extents for dims
+
+### Radiation TODO:
+- radiation riemann solver
+- radiation timestepper
+- strang split
+- probably more
+- ... microphysics...
+
 
 # Future Work
 
-- Grey M1 radiation
+- Grey M1 radiation [WIP]
 - Relativistic hydro
 - Gravity
 - Multigroup radiation
@@ -75,6 +91,7 @@ Simply call `tools/bash/format.sh` to format the `.hpp` and `.cpp` files.
  - [ ] New TCI
  - [ ] linter
  - [ ] format on make
+ - [ ] Rad: Riemann solvers beyond LLF?
  - [ ] Adjust numerical fluxes for 1D MHD
  - [ ] Implement 1.5D NRMHD
 

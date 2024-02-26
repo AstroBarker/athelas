@@ -6,27 +6,26 @@
  * Purpose  : Utility routines for fluid fields. Includes Riemann solvers.
  **/
 
+#include <algorithm> // std::min, std::max
+#include <cstdlib>   /* abs */
 #include <iostream>
 #include <vector>
-#include <cstdlib>   /* abs */
-#include <algorithm> // std::min, std::max
 
-#include "EoS.hpp"
 #include "Constants.hpp"
+#include "EoS.hpp"
 #include "Error.hpp"
+#include "FluidUtilities.hpp"
 #include "Grid.hpp"
 #include "PolynomialBasis.hpp"
-#include "FluidUtilities.hpp"
+#include "RadUtilities.hpp"
 
 /**
  * Compute the primitive quantities (density, momemtum, energy density)
  * from conserved quantities. Primitive quantities are stored at Gauss-Legendre
  * nodes.
  **/
-void ComputePrimitiveFromConserved( View3D uCF,
-                                    View3D uPF,
-                                    ModalBasis *Basis, GridStructure *Grid )
-{
+void ComputePrimitiveFromConserved( View3D uCF, View3D uPF, ModalBasis *Basis,
+                                    GridStructure *Grid ) {
   const UInt nNodes = Grid->Get_nNodes( );
   const UInt ilo    = Grid->Get_ilo( );
   const UInt ihi    = Grid->Get_ihi( );
@@ -36,8 +35,7 @@ void ComputePrimitiveFromConserved( View3D uCF,
   Real EmT = 0.0;
 
   for ( UInt iX = ilo; iX <= ihi; iX++ )
-    for ( UInt iN = 0; iN < nNodes; iN++ )
-    {
+    for ( UInt iN = 0; iN < nNodes; iN++ ) {
       // Density
       Tau              = Basis->BasisEval( uCF, 0, iX, iN + 1, false );
       uPF( 0, iX, iN ) = 1.0 / Tau;
@@ -56,54 +54,41 @@ void ComputePrimitiveFromConserved( View3D uCF,
  * Return a component iCF of the flux vector.
  * TODO: Flux_Fluid needs streamlining
  **/
-Real Flux_Fluid( const Real V, const Real P, const UInt iCF )
-{
-  if ( iCF == 0 )
-  {
+Real Flux_Fluid( const Real V, const Real P, const UInt iCF ) {
+  if ( iCF == 0 ) {
     return -V;
-  }
-  else if ( iCF == 1 )
-  {
+  } else if ( iCF == 1 ) {
     return +P;
-  }
-  else if ( iCF == 2 )
-  {
+  } else if ( iCF == 2 ) {
     return +P * V;
-  }
-  else
-  { // Error case. Shouldn't ever trigger.
+  } else { // Error case. Shouldn't ever trigger.
     throw Error( " ! Please input a valid iCF! (0,1,2). " );
     return -1.0; // just a formality.
   }
 }
 
-/* Fluid radiation sources */
-Real Source_Fluid_Rad( Real D, Real V, Real T, Real X, Real kappa,
-                       Real E, Real F, Real Pr, UInt iCF ) {
-  assert ( iCF == 0 || iCF == 1 || iCF == 2 );
+/**
+ * Fluid radiation sources. Kind of redundant with Rad_sources.
+ * TODO: extend to O(b^2)
+ **/
+Real Source_Fluid_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E,
+                       Real F, Real Pr, UInt iCF ) {
+  assert( iCF == 0 || iCF == 1 || iCF == 2 );
+  if ( iCF == 0 ) return 0.0; // rad doesn't source mass
 
-  Real a = constants::a;
-  Real c = constants::c_cgs;
+  const Real c = constants::c_cgs;
 
-  Real b = V / c;
-  Real term1 = E - a * T*T*T*T - 2.0 * b * F;
-  Real term2 = F - E * b - b * Pr;
+  Real G0, G;
+  RadiationFourForce( D, V, T, kappa, E, F, Pr, G0, G );
 
-  if ( iCF == 0 ) {
-    return 0.0;
-  } else if ( iCF == 1 ){
-    return D * kappa * term1 * b + D * X * term2;
-  } else {
-    return c * ( D * kappa * term1 + D * X * b * term2 );
-  }
+  return ( iCF == 1 ) ? G : c * G0;
 }
 /**
  * Gudonov style numerical flux. Constucts v* and p* states.
  **/
 void NumericalFlux_Gudonov( const Real vL, const Real vR, const Real pL,
                             const Real pR, const Real zL, const Real zR,
-                            Real &Flux_U, Real &Flux_P )
-{
+                            Real &Flux_U, Real &Flux_P ) {
   Flux_U = ( pL - pR + zR * vR + zL * vL ) / ( zR + zL );
   Flux_P = ( zR * pL + zL * pR + zL * zR * ( vL - vR ) ) / ( zR + zL );
 }
@@ -112,8 +97,7 @@ void NumericalFlux_Gudonov( const Real vL, const Real vR, const Real pL,
  * Gudonov style numerical flux. Constucts v* and p* states.
  **/
 void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
-                         Real rhoL, Real rhoR, Real &Flux_U, Real &Flux_P )
-{
+                         Real rhoL, Real rhoR, Real &Flux_U, Real &Flux_P ) {
   Real aL = vL - cL; // left wave speed estimate
   Real aR = vR + cR; // right wave speed estimate
   Flux_U  = ( rhoR * vR * ( aR - vR ) - rhoL * vL * ( aL - vL ) + pL - pR ) /
@@ -126,10 +110,8 @@ void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
 /**
  * Compute the fluid timestep.
  **/
-Real ComputeTimestep_Fluid( const View3D U,
-                            const GridStructure *Grid, EOS *eos, 
-                            const Real CFL )
-{
+Real ComputeTimestep_Fluid( const View3D U, const GridStructure *Grid, EOS *eos,
+                            const Real CFL ) {
 
   const Real MIN_DT = 0.000000005;
   const Real MAX_DT = 1.0;
@@ -162,8 +144,7 @@ Real ComputeTimestep_Fluid( const View3D U,
   dt = std::min( dt, MAX_DT );
 
   // Triggers on NaN
-  if ( dt != dt )
-  {
+  if ( dt != dt ) {
     throw Error( " ! nan encountered in ComputeTimestep.\n" );
   }
 

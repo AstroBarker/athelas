@@ -1,5 +1,5 @@
-#ifndef SLOPELIMITER_H
-#define SLOPELIMITER_H
+#ifndef _SLOPELIMITER_HPP_
+#define _SLOPELIMITER_HPP_
 
 /**
  * File     :  SlopeLimiter.hpp
@@ -18,26 +18,23 @@
 #include "Abstractions.hpp"
 #include "Error.hpp"
 #include "Grid.hpp"
-#include "ProblemIn.hpp"
 #include "PolynomialBasis.hpp"
+#include "ProblemIn.hpp"
 
-class SlopeLimiter
-{
+class SlopeLimiter {
 
  public:
   SlopeLimiter( GridStructure *Grid, ProblemIn *pin );
 
-  void ApplySlopeLimiter( Kokkos::View<Real ***> U, GridStructure *Grid,
-                          ModalBasis *Basis );
+  void ApplySlopeLimiter( View3D U, GridStructure *Grid, ModalBasis *Basis );
 
-  void LimitQuadratic( Kokkos::View<Real ***> U, ModalBasis *Basis,
-                       Kokkos::View<Real[3]> d2w, UInt iX, UInt nNodes );
+  void LimitQuadratic( View3D U, ModalBasis *Basis, Kokkos::View<Real[3]> d2w,
+                       UInt iX, UInt nNodes );
 
-  void DetectTroubledCells( Kokkos::View<Real ***> U, GridStructure *Grid,
-                            ModalBasis *Basis );
+  void DetectTroubledCells( View3D U, GridStructure *Grid, ModalBasis *Basis );
 
-  Real CellAverage( Kokkos::View<Real ***> U, GridStructure *Grid,
-                    ModalBasis *Basis, UInt iCF, UInt iX, int extrapolate );
+  Real CellAverage( View3D U, GridStructure *Grid, ModalBasis *Basis, UInt iCF,
+                    UInt iX, int extrapolate );
 
   int Get_Limited( UInt iX ) const;
 
@@ -98,4 +95,4 @@ class SlopeLimiter
   Kokkos::View<int *> LimitedCell;
 };
 
-#endif
+#endif // _SLOPELIMITER_HPP_

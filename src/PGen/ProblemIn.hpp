@@ -6,7 +6,7 @@
  * --------------
  *
  * Author   : Brandon L. Barker
- * Purpose  : Class for holding the problem intialization 
+ * Purpose  : Class for holding the problem intialization
  *
  **/
 
@@ -16,8 +16,8 @@
 #include "Kokkos_Core.hpp"
 
 #include "Abstractions.hpp"
-#include "Geometry.hpp"
 #include "Error.hpp"
+#include "Geometry.hpp"
 #include "SimpleIni.h"
 
 /* hold various program options */
@@ -28,13 +28,11 @@ struct Options {
 
   std::string BC = "Homogenous";
 
-  geometry::Geometry geom = geometry::Planar;
+  geometry::Geometry geom    = geometry::Planar;
   PolyBasis::PolyBasis basis = PolyBasis::Legendre;
 };
 
-
-class ProblemIn
-{
+class ProblemIn {
 
  public:
   ProblemIn( std::string fn );
@@ -56,7 +54,6 @@ class ProblemIn
 
   Real t_end;
 
-  
   PolyBasis::PolyBasis Basis;
   geometry::Geometry Geometry;
   bool Restart;
