@@ -25,9 +25,7 @@
 #include "ProblemIn.hpp"
 #include "QuadratureLibrary.hpp"
 
-
-class GridStructure
-{
+class GridStructure {
  public:
   GridStructure( ProblemIn *pin );
   Real NodeCoordinate( UInt iC, UInt iN ) const;

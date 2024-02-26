@@ -18,11 +18,10 @@
 #include "Abstractions.hpp"
 #include "Error.hpp"
 #include "Grid.hpp"
-#include "ProblemIn.hpp"
 #include "PolynomialBasis.hpp"
+#include "ProblemIn.hpp"
 
-class SlopeLimiter
-{
+class SlopeLimiter {
 
  public:
   SlopeLimiter( GridStructure *Grid, ProblemIn *pin );

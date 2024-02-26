@@ -10,21 +10,17 @@
  **/
 
 #include "Abstractions.hpp"
-#include "PolynomialBasis.hpp"
 #include "EoS.hpp"
+#include "PolynomialBasis.hpp"
 #include "ProblemIn.hpp"
 #include "state.hpp"
 
-typedef void ( *UpdateFunc )( const View3D, const View3D, 
-                              GridStructure &,
-                              ModalBasis *, EOS *eos, View3D,
-                              View3D, View2D,
-                              View2D, View2D,
-                              View1D, View1D,
+typedef void ( *UpdateFunc )( const View3D, const View3D, GridStructure &,
+                              ModalBasis *, EOS *eos, View3D, View3D, View2D,
+                              View2D, View2D, View1D, View1D,
                               const Options opts );
 
-class TimeStepper
-{
+class TimeStepper {
 
  public:
   // TODO: Is it possible to initialize Grid_s from Grid directly?
@@ -32,14 +28,12 @@ class TimeStepper
 
   void InitializeTimestepper( );
 
-  void UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
-                    State *state, GridStructure &Grid,
-                    ModalBasis *Basis, EOS *eos, SlopeLimiter *S_Limiter, 
-                    const Options opts );
+  void UpdateFluid( UpdateFunc ComputeIncrement, const Real dt, State *state,
+                    GridStructure &Grid, ModalBasis *Basis, EOS *eos,
+                    SlopeLimiter *S_Limiter, const Options opts );
   void UpdateRadiation( UpdateFunc ComputeIncrementRad, const Real dt,
-                        State *state, GridStructure &Grid,
-                        ModalBasis *Basis, EOS *eos, SlopeLimiter *S_Limiter, 
-                        const Options opts );
+                        State *state, GridStructure &Grid, ModalBasis *Basis,
+                        EOS *eos, SlopeLimiter *S_Limiter, const Options opts );
 
  private:
   const UInt mSize;

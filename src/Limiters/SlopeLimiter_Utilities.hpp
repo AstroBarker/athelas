@@ -4,29 +4,21 @@
 #include "Abstractions.hpp"
 
 // Standard minmod function
-template < typename T >
-constexpr Real minmod( T a, T b, T c )
-{
-  if ( sgn( a ) == sgn( b ) && sgn( b ) == sgn( c ) )
-  {
+template <typename T>
+constexpr Real minmod( T a, T b, T c ) {
+  if ( sgn( a ) == sgn( b ) && sgn( b ) == sgn( c ) ) {
     return sgn( a ) * std::min( std::min( a, b ), c );
-  }
-  else
-  {
+  } else {
     return 0.0;
   }
 }
 
 // TVB minmod function
-template < typename T >
-constexpr Real minmodB( T a, T b, T c, T dx, T M )
-{
-  if ( std::abs( a ) < M * dx * dx )
-  {
+template <typename T>
+constexpr Real minmodB( T a, T b, T c, T dx, T M ) {
+  if ( std::abs( a ) < M * dx * dx ) {
     return a;
-  }
-  else
-  {
+  } else {
     return minmod( a, b, c );
   }
 }
