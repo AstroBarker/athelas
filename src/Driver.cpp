@@ -28,13 +28,13 @@
 #include "Error.hpp"
 #include "ProblemIn.hpp"
 
-int main( int argc, char *argv[] )
-{
+int main( int argc, char *argv[] ) {
   // Check cmd line args
-  if ( argc < 2 ){ throw Error("No input file passed! Do: ./main IN_FILE"); }
+  if ( argc < 2 ) {
+    throw Error( "No input file passed! Do: ./main IN_FILE" );
+  }
 
   ProblemIn pin( argv[1] );
-
 
   /* --- Problem Parameters --- */
   const std::string ProblemName = pin.ProblemName;
@@ -53,32 +53,31 @@ int main( int argc, char *argv[] )
 
   bool Restart = pin.Restart;
 
-  const std::string BC = pin.BC;
+  const std::string BC   = pin.BC;
   const Real gamma_ideal = 1.4;
 
   const Real CFL = ComputeCFL( pin.CFL, order, nStages, tOrder );
 
   /* opts struct TODO: add grav when ready */
-  Options opts = { pin.do_rad, false, pin.Restart, BC, pin.Geometry, pin.Basis };
-
+  Options opts = { pin.do_rad, false,        pin.Restart,
+                   BC,         pin.Geometry, pin.Basis };
 
   Kokkos::initialize( argc, argv );
   {
 
     // --- Create the Grid object ---
-   GridStructure Grid( &pin );
+    GridStructure Grid( &pin );
 
-   // --- Create the data structures ---
-   const int nCF = 3;
-   const int nPF = 3;
-   const int nAF = 1;
-   const int nCR = 2;
-   State state( nCF, nCR, nPF, nAF, nX, nGuard, nNodes, order );
+    // --- Create the data structures ---
+    const int nCF = 3;
+    const int nPF = 3;
+    const int nAF = 1;
+    const int nCR = 2;
+    State state( nCF, nCR, nPF, nAF, nX, nGuard, nNodes, order );
 
-   IdealGas eos( gamma_ideal );
+    IdealGas eos( gamma_ideal );
 
-    if ( not Restart )
-    {
+    if ( not Restart ) {
       // --- Initialize fields ---
       InitializeFields( &state, &Grid, ProblemName );
 
@@ -86,13 +85,13 @@ int main( int argc, char *argv[] )
     }
 
     // --- Datastructure for modal basis ---
-    ModalBasis Basis( pin.Basis, state.Get_uPF( ), &Grid, order, nNodes, nX, nGuard );
+    ModalBasis Basis( pin.Basis, state.Get_uPF( ), &Grid, order, nNodes, nX,
+                      nGuard );
 
     WriteBasis( &Basis, nGuard, Grid.Get_ihi( ), nNodes, order, ProblemName );
 
     // --- Initialize timestepper ---
     TimeStepper SSPRK( &pin, Grid );
-
 
     SlopeLimiter S_Limiter( &Grid, &pin );
 
@@ -101,8 +100,7 @@ int main( int argc, char *argv[] )
 
     // -- print run parameters  and initial condition ---
     PrintSimulationParameters( Grid, &pin, CFL );
-    WriteState( &state, Grid, &S_Limiter,
-                ProblemName, t, order, 0 );
+    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, 0 );
 
     // --- Timer ---
     Kokkos::Timer timer;
@@ -111,50 +109,41 @@ int main( int argc, char *argv[] )
     UInt iStep   = 0;
     UInt i_print = 100; // std out
     UInt i_write = 100; // h5 out
-    UInt i_out   = 1; // output label, start 1
+    UInt i_out   = 1;   // output label, start 1
     std::cout << " ~ Step\tt\tdt" << std::endl;
-    while ( t < t_end && iStep >= 0 )
-    {
+    while ( t < t_end && iStep >= 0 ) {
 
       // TODO: ComputeTimestep_Rad
       dt = ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL );
-      if ( opts.do_rad ){ // hack
-        dt = std::pow(10.0, -22.0);
+      if ( opts.do_rad ) { // hack
+        dt = std::pow( 10.0, -22.0 );
       }
 
-      if ( t + dt > t_end )
-      {
+      if ( t + dt > t_end ) {
         dt = t_end - t;
       }
 
-      if ( iStep % i_print == 0 )
-      {
+      if ( iStep % i_print == 0 ) {
         std::printf( " ~ %d \t %.5e \t %.5e\n", iStep, t, dt );
       }
 
-      if ( !opts.do_rad ){
-        SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, &state,
-                           Grid, &Basis, &eos, &S_Limiter, 
-                           opts );
+      if ( !opts.do_rad ) {
+        SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, &state, Grid, &Basis,
+                           &eos, &S_Limiter, opts );
       } else {
-        SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state,
-                           Grid, &Basis, &eos, &S_Limiter, 
-                           opts );
-        SSPRK.UpdateRadiation( Compute_Increment_Explicit_Rad, dt, &state,
-                               Grid, &Basis, &eos, &S_Limiter, 
-                               opts );
-        SSPRK.UpdateFluid( Compute_Increment_Explicit, 1.0 * dt, &state,
-                           Grid, &Basis, &eos, &S_Limiter, 
-                           opts );
+        SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state, Grid,
+                           &Basis, &eos, &S_Limiter, opts );
+        SSPRK.UpdateRadiation( Compute_Increment_Explicit_Rad, dt, &state, Grid,
+                               &Basis, &eos, &S_Limiter, opts );
+        SSPRK.UpdateFluid( Compute_Increment_Explicit, 1.0 * dt, &state, Grid,
+                           &Basis, &eos, &S_Limiter, opts );
       }
 
       t += dt;
 
       // Write state
-      if ( iStep % i_write == 0 )
-      {
-        WriteState( &state, Grid, &S_Limiter, 
-                    ProblemName, t, order, i_out );
+      if ( iStep % i_write == 0 ) {
+        WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, i_out );
         i_out += 1;
       }
 
@@ -165,8 +154,7 @@ int main( int argc, char *argv[] )
     Real time = timer.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC( state.Get_uCF( ), &Grid, order, BC );
-    WriteState( &state, Grid, &S_Limiter,
-                ProblemName, t, order, -1 );
+    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1 );
   }
   Kokkos::finalize( );
 
@@ -178,14 +166,10 @@ int main( int argc, char *argv[] )
  * at least order^2.
  * ! Broken for nNodes > order !
  **/
-int NumNodes( UInt order )
-{
-  if ( order <= 4 )
-  {
+int NumNodes( UInt order ) {
+  if ( order <= 4 ) {
     return order;
-  }
-  else
-  {
+  } else {
     return order + 1;
   }
 }
@@ -193,14 +177,11 @@ int NumNodes( UInt order )
 /**
  * Compute the CFL timestep restriction.
  **/
-Real ComputeCFL( Real CFL, UInt order, UInt nStages,
-                 UInt tOrder )
-{
+Real ComputeCFL( Real CFL, UInt order, UInt nStages, UInt tOrder ) {
   Real c = 1.0;
 
   if ( nStages == tOrder ) c = 1.0;
-  if ( nStages != tOrder )
-  {
+  if ( nStages != tOrder ) {
     if ( tOrder == 2 ) c = 4.0;
     if ( tOrder == 3 ) c = 2.65062919294483;
     if ( tOrder == 4 ) c = 1.50818004975927;

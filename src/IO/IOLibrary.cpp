@@ -20,8 +20,8 @@
  * Write to standard output some initialization info
  * for the current simulation.
  **/
-void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin, const Real CFL )
-{
+void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin,
+                                const Real CFL ) {
   const UInt nX     = Grid.Get_nElements( );
   const UInt nNodes = Grid.Get_nNodes( );
 
@@ -30,7 +30,8 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin, const Real C
   std::printf( "\n" );
 
   std::printf( " ~ --- Order Parameters --- \n" );
-  std::printf( " ~ Basis          : %d ( 0 : Legendre, 1: Taylor )\n", pin->Basis );
+  std::printf( " ~ Basis          : %d ( 0 : Legendre, 1: Taylor )\n",
+               pin->Basis );
   std::printf( " ~ Spatial Order  : %d\n", pin->pOrder );
   std::printf( " ~ Temporal Order : %d\n", pin->tOrder );
   std::printf( " ~ RK Stages      : %d\n", pin->nStages );
@@ -44,28 +45,19 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin, const Real C
   std::printf( "\n" );
 
   std::printf( " ~ --- Limiter Parameters --- \n" );
-  if ( pin->pOrder == 1 )
-  {
+  if ( pin->pOrder == 1 ) {
     printf( " ~ Spatial Order 1: Slope limiter not applied.\n" );
-  }
-  else
-  {
+  } else {
     std::printf( " ~ Alpha          : %f\n", pin->alpha );
   }
-  if ( pin->TCI_Option )
-  {
+  if ( pin->TCI_Option ) {
     std::printf( " ~ TCI Value      : %f\n", pin->TCI_Threshold );
-  }
-  else
-  {
+  } else {
     std::printf( " ~ TCI Not Used.\n" );
   }
-  if ( pin->Characteristic )
-  {
+  if ( pin->Characteristic ) {
     std::printf( " ~ Limiting       : Characteristic \n" );
-  }
-  else
-  {
+  } else {
     std::printf( " ~ Limiting       : Componentwise\n" );
   }
   std::printf( "\n" );
@@ -79,25 +71,23 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin, const Real C
 /**
  * Write simulation output to disk
  **/
-void WriteState( State *state,
-                 GridStructure Grid, SlopeLimiter *SL, 
-                 const std::string ProblemName, Real time,
-                 UInt order, int i_write )
-{
+void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
+                 const std::string ProblemName, Real time, UInt order,
+                 int i_write ) {
 
   View3D uCF = state->Get_uCF( );
   View3D uPF = state->Get_uPF( );
 
   std::string fn = "athelas_";
-  auto i_str    = std::to_string( i_write );
+  auto i_str     = std::to_string( i_write );
   int n_pad;
   if ( i_write < 10 ) {
     n_pad = 4;
-  } else if ( i_write >= 10 && i_write < 100 ) { 
+  } else if ( i_write >= 10 && i_write < 100 ) {
     n_pad = 3;
-  } else if ( i_write >= 100 && i_write < 1000 ) { 
+  } else if ( i_write >= 100 && i_write < 1000 ) {
     n_pad = 2;
-  } else if ( i_write >= 1000 && i_write < 10000 ) { 
+  } else if ( i_write >= 1000 && i_write < 10000 ) {
     n_pad = 1;
   } else {
     n_pad = 0;
@@ -105,12 +95,9 @@ void WriteState( State *state,
   std::string suffix = std::string( n_pad, '0' ).append( i_str );
   fn.append( ProblemName );
   fn.append( "_" );
-  if ( i_write != -1 )
-  {
+  if ( i_write != -1 ) {
     fn.append( suffix );
-  }
-  else
-  {
+  } else {
     fn.append( "final" );
   }
   fn.append( ".h5" );
@@ -134,11 +121,10 @@ void WriteState( State *state,
   std::vector<DataType> limiter( nX );
 
   for ( UInt k = 0; k < order; k++ )
-    for ( UInt iX = ilo; iX <= ihi; iX++ )
-    {
-      grid[( iX - ilo )].x          = Grid.Get_Centers( iX );
-      dr[( iX - ilo )].x            = Grid.Get_Widths( iX );
-      //std::printf("dr %f\n", Grid.Get_Widths(iX));
+    for ( UInt iX = ilo; iX <= ihi; iX++ ) {
+      grid[( iX - ilo )].x = Grid.Get_Centers( iX );
+      dr[( iX - ilo )].x   = Grid.Get_Widths( iX );
+      // std::printf("dr %f\n", Grid.Get_Widths(iX));
       limiter[( iX - ilo )].x       = SL->Get_Limited( iX );
       tau[( iX - ilo ) + k * nX].x  = uCF( 0, iX, k );
       vel[( iX - ilo ) + k * nX].x  = uCF( 1, iX, k );
@@ -208,8 +194,7 @@ void WriteState( State *state,
  * Write Modal Basis coefficients and mass matrix
  **/
 void WriteBasis( ModalBasis *Basis, UInt ilo, UInt ihi, UInt nNodes, UInt order,
-                 std::string ProblemName )
-{
+                 std::string ProblemName ) {
   std::string fn = "athelas_basis_";
   fn.append( ProblemName );
   fn.append( ".h5" );
@@ -222,8 +207,7 @@ void WriteBasis( ModalBasis *Basis, UInt ilo, UInt ihi, UInt nNodes, UInt order,
   Real *data = new Real[ihi * ( nNodes + 2 ) * order];
   for ( UInt iX = ilo; iX <= ihi; iX++ )
     for ( UInt iN = 0; iN < nNodes + 2; iN++ )
-      for ( UInt k = 0; k < order; k++ )
-      {
+      for ( UInt k = 0; k < order; k++ ) {
         data[( ( iX - ilo ) * ( nNodes + 2 ) + iN ) * order + k] =
             Basis->Get_Phi( iX, iN, k );
       }
