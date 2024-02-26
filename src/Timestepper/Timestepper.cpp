@@ -354,7 +354,6 @@ void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrementRad, const Real dt
                                                 { order, ihi + 2, 2 } ),
         KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
           SumVar_U( iCR, iX, k ) = 0.0;
-          StageData( iS, iX ) = 0.0;;
         } );
 
     // --- Inner update loop ---
@@ -390,7 +389,6 @@ void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrementRad, const Real dt
           U_s( iS, iCR, iX, k ) = SumVar_U( iCR, iX, k );
         } );
 
-    auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
 
     // ! This may give poor performance. Why? ! But also helps with Sedov..
 //    auto Usj =
@@ -407,6 +405,6 @@ void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrementRad, const Real dt
         uCR( iCR, iX, k ) = U_s( nStages, iCR, iX, k );
       } );
 
-  S_Limiter->ApplySlopeLimiter( uCR, &Grid, Basis );
+  //S_Limiter->ApplySlopeLimiter( uCR, &Grid, Basis );
   //ApplyBoundEnforcingLimiter( uCR, Basis, eos );
 }
