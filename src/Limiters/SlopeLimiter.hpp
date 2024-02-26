@@ -26,16 +26,16 @@ class SlopeLimiter {
  public:
   SlopeLimiter( GridStructure *Grid, ProblemIn *pin );
 
-  void ApplySlopeLimiter( Kokkos::View<Real ***> U, GridStructure *Grid,
+  void ApplySlopeLimiter( View3D U, GridStructure *Grid,
                           ModalBasis *Basis );
 
-  void LimitQuadratic( Kokkos::View<Real ***> U, ModalBasis *Basis,
+  void LimitQuadratic( View3D U, ModalBasis *Basis,
                        Kokkos::View<Real[3]> d2w, UInt iX, UInt nNodes );
 
-  void DetectTroubledCells( Kokkos::View<Real ***> U, GridStructure *Grid,
+  void DetectTroubledCells( View3D U, GridStructure *Grid,
                             ModalBasis *Basis );
 
-  Real CellAverage( Kokkos::View<Real ***> U, GridStructure *Grid,
+  Real CellAverage( View3D U, GridStructure *Grid,
                     ModalBasis *Basis, UInt iCF, UInt iX, int extrapolate );
 
   int Get_Limited( UInt iX ) const;

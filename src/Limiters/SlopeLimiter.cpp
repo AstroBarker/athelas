@@ -47,8 +47,7 @@ SlopeLimiter::SlopeLimiter( GridStructure *Grid, ProblemIn *pin )
  * Apply the Troubled Cell Indicator of Fu & Shu (2017)
  * to flag cells for limiting
  **/
-void SlopeLimiter::DetectTroubledCells( Kokkos::View<Real ***> U,
-                                        GridStructure *Grid,
+void SlopeLimiter::DetectTroubledCells( View3D U, GridStructure *Grid,
                                         ModalBasis *Basis ) {
   const UInt ilo = Grid->Get_ilo( );
   const UInt ihi = Grid->Get_ihi( );
@@ -89,8 +88,8 @@ void SlopeLimiter::DetectTroubledCells( Kokkos::View<Real ***> U,
 /**
  * Apply the slope limiter. We use a vertex based, heirarchical slope limiter.
  **/
-void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real ***> U,
-                                      GridStructure *Grid, ModalBasis *Basis ) {
+void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
+                                      ModalBasis *Basis ) {
 
   // Do not apply for first order method. No slopes!
   if ( order == 1 ) {
@@ -238,7 +237,7 @@ void SlopeLimiter::ApplySlopeLimiter( Kokkos::View<Real ***> U,
 /**
  * Limit the quadratic term.
  **/
-void SlopeLimiter::LimitQuadratic( Kokkos::View<Real ***> U, ModalBasis *Basis,
+void SlopeLimiter::LimitQuadratic( View3D U, ModalBasis *Basis,
                                    Kokkos::View<Real[3]> d2w, UInt iX,
                                    UInt nNodes ) {
 
@@ -278,8 +277,9 @@ void SlopeLimiter::LimitQuadratic( Kokkos::View<Real ***> U, ModalBasis *Basis,
 
   // Limited Slopes
   for ( UInt iCF = 0; iCF < 3; iCF++ ) {
-    Phi2       = BarthJespersen( dw_v_L( iCF ), dw_v_R( iCF ), dw_c_L( iCF ),
-                                 dw_c_T( iCF ), dw_c_R( iCF ), alpha );
+    Phi2 = BarthJespersen( dw_v_L( iCF ), dw_v_R( iCF ), dw_c_L( iCF ),
+                           dw_c_T( iCF ), dw_c_R( iCF ), alpha );
+
     d2U( iCF ) = Phi2 * d2w( iCF ); // 2nd derivative
   }
 
@@ -305,7 +305,7 @@ void SlopeLimiter::LimitQuadratic( Kokkos::View<Real ***> U, ModalBasis *Basis,
  *  -1 : Extrapolate polynomial from iX+1 into iX
  *  +1 : Extrapolate polynomial from iX-1 into iX
  **/
-Real SlopeLimiter::CellAverage( Kokkos::View<Real ***> U, GridStructure *Grid,
+Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
                                 ModalBasis *Basis, UInt iCF, UInt iX,
                                 int extrapolate ) {
   const UInt nNodes = Grid->Get_nNodes( );
