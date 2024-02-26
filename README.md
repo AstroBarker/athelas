@@ -69,6 +69,7 @@ The build system may not be perfect yet. Your mileage may vary.
 - Relativistic hydro
 - Gravity
 - Multigroup radiation
+- Non-relativistic MHD
 
 # Dependencies
 * LAPACKE
@@ -90,7 +91,9 @@ Simply call `tools/bash/format.sh` to format the `.hpp` and `.cpp` files.
  - [ ] New TCI
  - [ ] linter
  - [ ] format on make
- - [ ] Rad: Riemann solvers
+ - [ ] Rad: Riemann solvers beyond LLF?
+ - [ ] Adjust numerical fluxes for 1D MHD
+ - [ ] Implement 1.5D NRMHD
 
 
 # BUGS: 
