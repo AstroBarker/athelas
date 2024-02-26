@@ -109,16 +109,18 @@ int main( int argc, char *argv[] )
 
     // --- Evolution loop ---
     UInt iStep   = 0;
-    UInt i_print = 100;
-    UInt i_write = 5;
-    UInt i_out   = 1;
+    UInt i_print = 100; // std out
+    UInt i_write = 100; // h5 out
+    UInt i_out   = 1; // output label, start 1
     std::cout << " ~ Step\tt\tdt" << std::endl;
-    while ( t < t_end && iStep <= 1 )
+    while ( t < t_end && iStep >= 0 )
     {
 
       // TODO: ComputeTimestep_Rad
       dt = ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL );
-      dt = std::pow(10.0, -11.0);
+      if ( opts.do_rad ){ // hack
+        dt = std::pow(10.0, -22.0);
+      }
 
       if ( t + dt > t_end )
       {
@@ -130,15 +132,21 @@ int main( int argc, char *argv[] )
         std::printf( " ~ %d \t %.5e \t %.5e\n", iStep, t, dt );
       }
 
-      SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state,
-                         Grid, &Basis, &eos, &S_Limiter, 
-                         opts );
-      SSPRK.UpdateRadiation( Compute_Increment_Explicit_Rad, dt, &state,
-                             Grid, &Basis, &eos, &S_Limiter, 
-                             opts );
-      SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state,
-                         Grid, &Basis, &eos, &S_Limiter, 
-                         opts );
+      if ( !opts.do_rad ){
+        SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, &state,
+                           Grid, &Basis, &eos, &S_Limiter, 
+                           opts );
+      } else {
+        SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state,
+                           Grid, &Basis, &eos, &S_Limiter, 
+                           opts );
+        SSPRK.UpdateRadiation( Compute_Increment_Explicit_Rad, dt, &state,
+                               Grid, &Basis, &eos, &S_Limiter, 
+                               opts );
+        SSPRK.UpdateFluid( Compute_Increment_Explicit, 1.0 * dt, &state,
+                           Grid, &Basis, &eos, &S_Limiter, 
+                           opts );
+      }
 
       t += dt;
 
