@@ -52,6 +52,8 @@ The build system may not be perfect yet. Your mileage may vary.
 - cmake: bin into build
 - kokkos parallel slope limiter
 - repalce simpleini reader with different format (TOML, YAML)
+- Rename values in hdf5 output...
+- generalize applyBC for rad and fluid. extents for dims
 
 ### Radiation TODO:
 - radiation riemann solver
