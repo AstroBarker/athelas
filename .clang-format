@@ -14,6 +14,9 @@ SpaceInEmptyParentheses: true
 SpacesInConditionalStatement: true
 SpacesInParentheses: true
 AlignConsecutiveAssignments: true
+AlwaysBreakTemplateDeclarations: Yes
+ContinuationIndentWidth: 4
+
 
 BreakBeforeBraces: Attach
 PointerAlignment: Right
