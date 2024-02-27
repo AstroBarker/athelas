@@ -40,16 +40,3 @@ Real IdealGas::RadiationPressure( const Real T, Real *lambda ) const {
   return constants::a * T * T * T * T;
 }
 
-// nodal specific internal energy
-Real IdealGas::ComputeInternalEnergy( const View3D U, const ModalBasis *Basis,
-                                      const int iX, const int iN ) const {
-  const Real Vel = Basis->BasisEval( U, iX, 1, iN, false );
-  const Real EmT = Basis->BasisEval( U, iX, 2, iN, false );
-
-  return EmT - 0.5 * Vel * Vel;
-}
-
-// cell average specific internal energy
-Real IdealGas::ComputeInternalEnergy( const View3D U, const int iX ) const {
-  return U( 2, iX, 0 ) - 0.5 * U( 1, iX, 0 ) * U( 1, iX, 0 );
-}

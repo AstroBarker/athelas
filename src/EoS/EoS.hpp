@@ -21,9 +21,6 @@ class IdealGas : public EosBase<IdealGas> {
                                        const Real Abar, Real *lambda ) const;
   Real TemperatureFromTauPressure( const Real Tau, const Real P, Real *lambda ) const;
   Real RadiationPressure( const Real T, Real *lambda ) const;
-  Real ComputeInternalEnergy( const View3D U, const ModalBasis *Basis,
-                              const int iX, const int iN ) const;
-  Real ComputeInternalEnergy( const View3D U, const int iX ) const;
 
  private:
   Real gamma;
@@ -40,9 +37,6 @@ class Stellar : public EosBase<Stellar> {
                                        const Real Abar, Real *lambda ) const;
   Real TemperatureFromTauPressure( const Real Tau, const Real P, Real *lambda ) const;
   Real RadiationPressure( const Real T, Real *lambda ) const;
-  Real ComputeInternalEnergy( const View3D U, const ModalBasis *Basis,
-                              const int iX, const int iN ) const;
-  Real ComputeInternalEnergy( const View3D U, const int iX ) const;
 
  private:
   Real gamma;

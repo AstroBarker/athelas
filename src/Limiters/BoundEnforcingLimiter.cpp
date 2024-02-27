@@ -28,9 +28,9 @@ void LimitDensity( View3D U, const ModalBasis *Basis ) {
   if ( order == 1 ) return;
 
   Kokkos::parallel_for(
-      "Limit Density", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
+      "BEF::Limit Density", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
       KOKKOS_LAMBDA( int iX ) {
-        Real theta1 = 100000.0;
+        Real theta1 = 100000.0; // big
         Real nodal  = 0.0;
         Real frac   = 0.0;
         Real avg    = U( 0, iX, 0 );
@@ -53,14 +53,14 @@ void LimitInternalEnergy( View3D U, const ModalBasis *Basis, const EOS *eos ) {
   if ( order == 1 ) return;
 
   Kokkos::parallel_for(
-      "Limit Internal Energy", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
+      "BEF::Limit Internal Energy", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
       KOKKOS_LAMBDA( int iX ) {
         Real theta2 = 10000000.0;
         Real nodal  = 0.0;
         Real temp   = 0.0;
 
         for ( int iN = 0; iN <= order + 1; iN++ ) {
-          nodal = eos->ComputeInternalEnergy( U, Basis, iX, iN );
+          nodal = ComputeInternalEnergy( U, Basis, iX, iN );
 
           if ( nodal >= 0.0 ) {
             temp = 1.0;
@@ -104,7 +104,7 @@ Real ComputeThetaState( const View3D U, const ModalBasis *Basis,
 
 Real TargetFunc( const View3D U, const ModalBasis *Basis, const EOS *eos,
                  const Real theta, const int iX, const int iN ) {
-  const Real w  = std::min( 1.0e-13, eos->ComputeInternalEnergy( U, iX ) );
+  const Real w  = std::min( 1.0e-13, ComputeInternalEnergy( U, iX ) );
   const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
   const Real s2 = ComputeThetaState( U, Basis, theta, 2, iX, iN );
 

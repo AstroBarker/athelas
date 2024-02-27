@@ -27,14 +27,6 @@ class EosBase {
   Real RadiationPressure( const Real T, Real *lambda ) const {
     return static_cast<EOS const *>( this )->RadiationPressure( T, lambda );
   }
-  Real ComputeInternalEnergy( const View3D U, const ModalBasis *Basis,
-                              const int iX, const int iN ) const {
-    return static_cast<EOS const *>( this )->ComputeInternalEnergy( U, Basis,
-                                                                    iX, iN );
-  }
-  Real ComputeInternalEnergy( const View3D U, const int iX ) const {
-    return static_cast<EOS const *>( this )->ComputeInternalEnergy( U, iX );
-  }
 };
 
 #endif // _EOS_BASE_HPP_
