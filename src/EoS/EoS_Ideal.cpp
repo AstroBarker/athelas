@@ -43,7 +43,7 @@ void IdealGas::RadiationPressure( const Real T, Real &Prad ) const {
 }
 
 // nodal specific internal energy
-Real IdealGas::ComputeInternalEnergy( const View3D U, ModalBasis *Basis,
+Real IdealGas::ComputeInternalEnergy( const View3D U, const ModalBasis *Basis,
                                       const UInt iX, const UInt iN ) const {
   const Real Vel = Basis->BasisEval( U, iX, 1, iN, false );
   const Real EmT = Basis->BasisEval( U, iX, 2, iN, false );

@@ -22,8 +22,9 @@
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
-                                      GridStructure &Grid, ModalBasis *Basis,
-                                      EOS *eos, View3D dU, View3D Flux_q,
+                                      GridStructure &Grid,
+                                      const ModalBasis *Basis, const EOS *eos,
+                                      View3D dU, View3D Flux_q,
                                       View2D dFlux_num, View2D uCR_F_L,
                                       View2D uCR_F_R, View1D Flux_U,
                                       View1D Flux_P ) {
@@ -31,6 +32,7 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
   const auto &order  = Basis->Get_Order( );
   const auto &ilo    = Grid.Get_ilo( );
   const auto &ihi    = Grid.Get_ihi( );
+  const int nvars    = uCR.extent( 0 );
 
   // Real rho_L, rho_R, P_L, P_R, Cs_L, Cs_R, lam_L, lam_R, P;
 
@@ -40,7 +42,7 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
   // TODO: Can this just be moved into the below kernel with a iCF loop?
   Kokkos::parallel_for(
       "Interface States; Rad",
-      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, 2 } ),
+      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, nvars } ),
       KOKKOS_LAMBDA( const int iX, const int iCR ) {
         uCR_F_L( iCR, iX ) =
             Basis->BasisEval( uCR, iX - 1, iCR, nNodes + 1, false );
@@ -90,7 +92,7 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
   Kokkos::parallel_for(
       "Surface Term; Rad",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { order, ihi + 1, 2 } ),
+                                              { order, ihi + 1, nvars } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
         const auto &Poly_L   = Basis->Get_Phi( iX, 0, k );
         const auto &Poly_R   = Basis->Get_Phi( iX, nNodes + 1, k );
@@ -108,7 +110,7 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
     Kokkos::parallel_for(
         "Flux_q; Rad",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                                { nNodes, ihi + 1, 2 } ),
+                                                { nNodes, ihi + 1, nvars } ),
         KOKKOS_LAMBDA( const int iN, const int iX, const int iCR ) {
           const Real Tau = Basis->BasisEval( uCF, iX, 0, iN + 1, false );
           const auto P   = ComputeClosure(
@@ -125,7 +127,7 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
     Kokkos::parallel_for(
         "Volume Term; Rad",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                                { order, ihi + 1, 2 } ),
+                                                { order, ihi + 1, nvars } ),
         KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
           Real local_sum = 0.0;
           for ( UInt iN = 0; iN < nNodes; iN++ ) {
@@ -143,17 +145,19 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
 /**
  * Compute rad increment from source terms
  **/
-void ComputeIncrement_Rad_Source( View3D uCR, View3D uCF, GridStructure &Grid,
-                                  ModalBasis *Basis, EOS *eos, View3D dU ) {
+void ComputeIncrement_Rad_Source( const View3D uCR, const View3D uCF,
+                                  GridStructure &Grid, const ModalBasis *Basis,
+                                  const EOS *eos, View3D dU ) {
   const UInt nNodes = Grid.Get_nNodes( );
   const UInt order  = Basis->Get_Order( );
   const UInt ilo    = Grid.Get_ilo( );
   const UInt ihi    = Grid.Get_ihi( );
+  const int nvars   = uCR.extent( 0 );
 
   Kokkos::parallel_for(
       "Rad::Source",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { order, ihi + 1, 2 } ),
+                                              { order, ihi + 1, nvars } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
         Real local_sum = 0.0;
         for ( UInt iN = 0; iN < nNodes; iN++ ) {
@@ -202,15 +206,17 @@ void ComputeIncrement_Rad_Source( View3D uCR, View3D uCF, GridStructure &Grid,
  * BC               : (string) boundary condition type
  **/
 void Compute_Increment_Explicit_Rad( const View3D uCR, const View3D uCF,
-                                     GridStructure &Grid, ModalBasis *Basis,
-                                     EOS *eos, View3D dU, View3D Flux_q,
-                                     View2D dFlux_num, View2D uCR_F_L,
-                                     View2D uCR_F_R, View1D Flux_U,
-                                     View1D Flux_P, const Options opts ) {
+                                     GridStructure &Grid,
+                                     const ModalBasis *Basis, const EOS *eos,
+                                     View3D dU, View3D Flux_q, View2D dFlux_num,
+                                     View2D uCR_F_L, View2D uCR_F_R,
+                                     View1D Flux_U, View1D Flux_P,
+                                     const Options opts ) {
 
   const auto &order = Basis->Get_Order( );
   const auto &ilo   = Grid.Get_ilo( );
   const auto &ihi   = Grid.Get_ihi( );
+  const int nvars   = uCR.extent( 0 );
 
   // --- Apply BC ---
   ApplyBC( uCR, &Grid, order, opts.BC );
@@ -221,7 +227,7 @@ void Compute_Increment_Explicit_Rad( const View3D uCR, const View3D uCF,
   Kokkos::parallel_for(
       "Rad::Zero dU",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                              { order, ihi + 1, 2 } ),
+                                              { order, ihi + 1, nvars } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
         dU( iCR, iX, k ) = 0.0;
       } );
@@ -238,7 +244,7 @@ void Compute_Increment_Explicit_Rad( const View3D uCR, const View3D uCF,
   Kokkos::parallel_for(
       "Rad::Divide Update / Mass Matrix",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { order, ihi + 1, 2 } ),
+                                              { order, ihi + 1, nvars } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
         dU( iCR, iX, k ) /= ( Basis->Get_MassMatrix( iX, k ) );
       } );
