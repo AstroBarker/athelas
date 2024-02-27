@@ -33,7 +33,7 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake -DMACHINE=UBUNTU --build ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -DMACHINE=UBUNTU ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ..
 
 # --- To Do ---
 #     - name: Test
