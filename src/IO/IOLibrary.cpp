@@ -22,8 +22,8 @@
  **/
 void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin,
                                 const Real CFL ) {
-  const UInt nX     = Grid.Get_nElements( );
-  const UInt nNodes = Grid.Get_nNodes( );
+  const int nX     = Grid.Get_nElements( );
+  const int nNodes = Grid.Get_nNodes( );
 
   std::printf( " ~ --- Physics Parameters --- \n" );
   std::printf( " ~ Radiation      : %d\n", pin->do_rad );
@@ -72,7 +72,7 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin,
  * Write simulation output to disk
  **/
 void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
-                 const std::string ProblemName, Real time, UInt order,
+                 const std::string ProblemName, Real time, int order,
                  int i_write ) {
 
   View3D uCF = state->Get_uCF( );
@@ -105,9 +105,9 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
   // conversion to make HDF5 happy
   const char *fn2 = fn.c_str( );
 
-  const UInt nX  = Grid.Get_nElements( );
-  const UInt ilo = Grid.Get_ilo( );
-  const UInt ihi = Grid.Get_ihi( );
+  const int nX  = Grid.Get_nElements( );
+  const int ilo = Grid.Get_ilo( );
+  const int ihi = Grid.Get_ihi( );
 
   const H5std_string FILE_NAME( fn );
   const H5std_string DATASET_NAME( "Grid" );
@@ -120,8 +120,8 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
   std::vector<DataType> dr( nX );
   std::vector<DataType> limiter( nX );
 
-  for ( UInt k = 0; k < order; k++ )
-    for ( UInt iX = ilo; iX <= ihi; iX++ ) {
+  for ( int k = 0; k < order; k++ )
+    for ( int iX = ilo; iX <= ihi; iX++ ) {
       grid[( iX - ilo )].x = Grid.Get_Centers( iX );
       dr[( iX - ilo )].x   = Grid.Get_Widths( iX );
       // std::printf("dr %f\n", Grid.Get_Widths(iX));
@@ -193,7 +193,7 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
 /**
  * Write Modal Basis coefficients and mass matrix
  **/
-void WriteBasis( ModalBasis *Basis, UInt ilo, UInt ihi, UInt nNodes, UInt order,
+void WriteBasis( ModalBasis *Basis, int ilo, int ihi, int nNodes, int order,
                  std::string ProblemName ) {
   std::string fn = "athelas_basis_";
   fn.append( ProblemName );
@@ -205,9 +205,9 @@ void WriteBasis( ModalBasis *Basis, UInt ilo, UInt ihi, UInt nNodes, UInt order,
   const H5std_string DATASET_NAME( "Basis" );
 
   Real *data = new Real[ihi * ( nNodes + 2 ) * order];
-  for ( UInt iX = ilo; iX <= ihi; iX++ )
-    for ( UInt iN = 0; iN < nNodes + 2; iN++ )
-      for ( UInt k = 0; k < order; k++ ) {
+  for ( int iX = ilo; iX <= ihi; iX++ )
+    for ( int iN = 0; iN < nNodes + 2; iN++ )
+      for ( int k = 0; k < order; k++ ) {
         data[( ( iX - ilo ) * ( nNodes + 2 ) + iN ) * order + k] =
             Basis->Get_Phi( iX, iN, k );
       }

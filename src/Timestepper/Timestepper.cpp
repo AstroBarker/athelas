@@ -73,8 +73,8 @@ void TimeStepper::InitializeTimestepper( ) {
   }
 
   // Init to zero
-  for ( UInt i = 0; i < nStages; i++ )
-    for ( UInt j = 0; j < nStages; j++ ) {
+  for ( int i = 0; i < nStages; i++ )
+    for ( int j = 0; j < nStages; j++ ) {
       a_jk( i, j ) = 0.0;
       b_jk( i, j ) = 0.0;
     }
@@ -216,7 +216,7 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
   Grid_s[0] = Grid;
   // StageData holds left interface positions
   Kokkos::parallel_for(
-      ihi + 2, KOKKOS_LAMBDA( UInt iX ) {
+      ihi + 2, KOKKOS_LAMBDA( int iX ) {
         StageData( 0, iX ) = Grid.Get_LeftInterface( iX );
         Flux_U( 0, iX )    = 0.0;
       } );
@@ -236,7 +236,7 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
 
     // --- Inner update loop ---
 
-    for ( UInt j = 0; j < iS; j++ ) {
+    for ( int j = 0; j < iS; j++ ) {
       auto Usj =
           Kokkos::subview( U_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto dUsj =
@@ -256,7 +256,7 @@ void TimeStepper::UpdateFluid( UpdateFunc ComputeIncrement, const Real dt,
           } );
 
       Kokkos::parallel_for(
-          ihi + 2, KOKKOS_LAMBDA( UInt iX ) {
+          ihi + 2, KOKKOS_LAMBDA( int iX ) {
             StageData( iS, iX ) += a_jk( i, j ) * StageData( j, iX ) +
                                    dt * b_jk( i, j ) * Flux_Uj( iX );
           } );
@@ -337,7 +337,7 @@ void TimeStepper::UpdateRadiation( UpdateFunc ComputeIncrementRad,
 
     // --- Inner update loop ---
 
-    for ( UInt j = 0; j < iS; j++ ) {
+    for ( int j = 0; j < iS; j++ ) {
       auto Usj =
           Kokkos::subview( U_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto dUsj =

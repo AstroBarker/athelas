@@ -15,22 +15,22 @@
 #include "Grid.hpp"
 
 // Apply Boundary Conditions to fluid fields
-void ApplyBC( View3D U, GridStructure *Grid, const UInt order,
+void ApplyBC( View3D U, GridStructure *Grid, const int order,
               const std::string BC ) {
 
-  const UInt ilo  = Grid->Get_ilo( );
-  const UInt ihi  = Grid->Get_ihi( );
+  const int ilo  = Grid->Get_ilo( );
+  const int ihi  = Grid->Get_ihi( );
   const int nvars = U.extent( 0 );
 
-  const UInt nX = Grid->Get_nElements( );
-  const UInt nG = Grid->Get_Guard( );
+  const int nX = Grid->Get_nElements( );
+  const int nG = Grid->Get_Guard( );
 
   // ! ? How to correctly implement reflecting BC ? !
   if ( BC == "Reflecting" ) {
-    for ( UInt iCF = 0; iCF < nvars; iCF++ ) {
+    for ( int iCF = 0; iCF < nvars; iCF++ ) {
       // Inner Boudnary
-      for ( UInt iX = 0; iX < ilo; iX++ )
-        for ( UInt k = 0; k < order; k++ ) {
+      for ( int iX = 0; iX < ilo; iX++ )
+        for ( int k = 0; k < order; k++ ) {
           if ( iCF != 1 ) {
             if ( k == 0 ) U( iCF, iX, k ) = +U( iCF, ilo, k );
             if ( k != 0 ) U( iCF, iX, k ) = -U( iCF, ilo, k );
@@ -41,8 +41,8 @@ void ApplyBC( View3D U, GridStructure *Grid, const UInt order,
         }
 
       // Outer Boundary
-      for ( UInt iX = ihi + 1; iX < nX + 2 * nG; iX++ )
-        for ( UInt k = 0; k < order; k++ ) {
+      for ( int iX = ihi + 1; iX < nX + 2 * nG; iX++ )
+        for ( int k = 0; k < order; k++ ) {
           if ( iCF != 1 ) {
             U( iCF, iX, k ) = U( iCF, ihi, k );
           } else {
@@ -51,18 +51,18 @@ void ApplyBC( View3D U, GridStructure *Grid, const UInt order,
         }
     }
   } else if ( BC == "Periodic" ) {
-    for ( UInt iCF = 0; iCF < nvars; iCF++ )
-      for ( UInt iX = 0; iX < ilo; iX++ )
-        for ( UInt k = 0; k < order; k++ ) {
+    for ( int iCF = 0; iCF < nvars; iCF++ )
+      for ( int iX = 0; iX < ilo; iX++ )
+        for ( int k = 0; k < order; k++ ) {
           U( iCF, ilo - 1 - iX, k ) = U( iCF, ihi - iX, k );
           U( iCF, ihi + 1 + iX, k ) = U( iCF, ilo + iX, k );
         }
   } else if ( BC == "ShocklessNoh" ) /* Special case for ShocklessNoh test */
   {
-    // for ( UInt iCF = 0; iCF < 3; iCF++ )
-    for ( UInt iX = 0; iX < ilo; iX++ )
-      for ( UInt k = 0; k < order; k++ )
-      // for ( UInt iCF = 0; iCF < 3; iCF++ )
+    // for ( int iCF = 0; iCF < 3; iCF++ )
+    for ( int iX = 0; iX < ilo; iX++ )
+      for ( int k = 0; k < order; k++ )
+      // for ( int iCF = 0; iCF < 3; iCF++ )
       {
         if ( k == 0 ) {
 
@@ -122,9 +122,9 @@ void ApplyBC( View3D U, GridStructure *Grid, const UInt order,
         }
       }
   } else {
-    for ( UInt iCF = 0; iCF < nvars; iCF++ )
-      for ( UInt iX = 0; iX < ilo; iX++ )
-        for ( UInt k = 0; k < order; k++ ) {
+    for ( int iCF = 0; iCF < nvars; iCF++ )
+      for ( int iX = 0; iX < ilo; iX++ )
+        for ( int k = 0; k < order; k++ ) {
           U( iCF, ilo - 1 - iX, k ) = U( iCF, ilo + iX, k );
           U( iCF, ihi + 1 + iX, k ) = U( iCF, ihi - iX, k );
         }

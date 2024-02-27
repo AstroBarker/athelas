@@ -19,13 +19,13 @@ struct DataType {
 };
 
 void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
-                 const std::string ProblemName, Real time, UInt order,
+                 const std::string ProblemName, Real time, int order,
                  int i_write );
 
 void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin,
                                 const Real CFL );
 
-void WriteBasis( ModalBasis *Basis, UInt ilo, UInt ihi, UInt nNodes, UInt order,
+void WriteBasis( ModalBasis *Basis, int ilo, int ihi, int nNodes, int order,
                  std::string ProblemName );
 
 #endif // _IOLIBRARY_HPP_

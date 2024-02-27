@@ -39,13 +39,13 @@ int main( int argc, char *argv[] ) {
   /* --- Problem Parameters --- */
   const std::string ProblemName = pin.ProblemName;
 
-  const UInt &nX      = pin.nElements;
-  const UInt &order   = pin.pOrder;
-  const UInt &nNodes  = pin.nNodes;
-  const UInt &nStages = pin.nStages;
-  const UInt &tOrder  = pin.tOrder;
+  const int &nX      = pin.nElements;
+  const int &order   = pin.pOrder;
+  const int &nNodes  = pin.nNodes;
+  const int &nStages = pin.nStages;
+  const int &tOrder  = pin.tOrder;
 
-  const UInt &nGuard = pin.nGhost;
+  const int &nGuard = pin.nGhost;
 
   Real t           = 0.0;
   Real dt          = 0.0;
@@ -106,10 +106,10 @@ int main( int argc, char *argv[] ) {
     Kokkos::Timer timer;
 
     // --- Evolution loop ---
-    UInt iStep   = 0;
-    UInt i_print = 100; // std out
-    UInt i_write = 100; // h5 out
-    UInt i_out   = 1;   // output label, start 1
+    int iStep   = 0;
+    int i_print = 100; // std out
+    int i_write = 100; // h5 out
+    int i_out   = 1;   // output label, start 1
     std::cout << " ~ Step\tt\tdt" << std::endl;
     while ( t < t_end && iStep >= 0 ) {
 
@@ -166,7 +166,7 @@ int main( int argc, char *argv[] ) {
  * at least order^2.
  * ! Broken for nNodes > order !
  **/
-int NumNodes( UInt order ) {
+int NumNodes( int order ) {
   if ( order <= 4 ) {
     return order;
   } else {
@@ -177,7 +177,7 @@ int NumNodes( UInt order ) {
 /**
  * Compute the CFL timestep restriction.
  **/
-Real ComputeCFL( Real CFL, UInt order, UInt nStages, UInt tOrder ) {
+Real ComputeCFL( Real CFL, int order, int nStages, int tOrder ) {
   Real c = 1.0;
 
   if ( nStages == tOrder ) c = 1.0;

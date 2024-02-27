@@ -63,7 +63,7 @@ void Tri_Sym_Diag( int n, Real *d, Real *e, Real *array ) {
 /**
  * Use LAPACKE to invert a matrix M using LU factorization.
  **/
-void InvertMatrix( Real *M, UInt n ) {
+void InvertMatrix( Real *M, int n ) {
   lapack_int info1, info2;
 
   int *IPIV = new int[n];

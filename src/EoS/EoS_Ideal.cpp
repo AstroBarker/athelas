@@ -13,38 +13,36 @@
 #include "EoS.hpp"
 #include "PolynomialBasis.hpp"
 
-void IdealGas::PressureFromConserved( const Real Tau, const Real V,
-                                      const Real EmT, Real &P ) const {
+Real IdealGas::PressureFromConserved( const Real Tau, const Real V,
+                                      const Real EmT ) const {
   const Real Em = EmT - 0.5 * V * V;
   const Real Ev = Em / Tau;
-  P             = ( gamma - 1.0 ) * Ev;
+  return ( gamma - 1.0 ) * Ev;
 }
 
-void IdealGas::SoundSpeedFromConserved( const Real Tau, const Real V,
-                                        const Real EmT, Real &Cs ) const {
+Real IdealGas::SoundSpeedFromConserved( const Real Tau, const Real V,
+                                        const Real EmT ) const {
   const Real Em = EmT - 0.5 * V * V;
-  Cs            = sqrt( gamma * ( gamma - 1.0 ) * Em );
+  return std::sqrt( gamma * ( gamma - 1.0 ) * Em );
 }
 
-void IdealGas::TemperatureFromTauPressureAbar( const Real Tau, const Real P,
-                                               const Real Abar,
-                                               Real &T ) const {
-  T = ( P * Abar * Tau ) / ( constants::N_A * constants::k_B );
+Real IdealGas::TemperatureFromTauPressureAbar( const Real Tau, const Real P,
+                                               const Real Abar ) const {
+  return  ( P * Abar * Tau ) / ( constants::N_A * constants::k_B );
 }
 
-void IdealGas::TemperatureFromTauPressure( const Real Tau, const Real P,
-                                           Real &T ) const {
+Real IdealGas::TemperatureFromTauPressure( const Real Tau, const Real P ) const {
   const Real Abar = 1.0;
-  TemperatureFromTauPressureAbar( Tau, P, Abar, T );
+  return TemperatureFromTauPressureAbar( Tau, P, Abar );
 }
 
-void IdealGas::RadiationPressure( const Real T, Real &Prad ) const {
-  Prad = constants::a * T * T * T * T;
+Real IdealGas::RadiationPressure( const Real T ) const {
+  return constants::a * T * T * T * T;
 }
 
 // nodal specific internal energy
 Real IdealGas::ComputeInternalEnergy( const View3D U, const ModalBasis *Basis,
-                                      const UInt iX, const UInt iN ) const {
+                                      const int iX, const int iN ) const {
   const Real Vel = Basis->BasisEval( U, iX, 1, iN, false );
   const Real EmT = Basis->BasisEval( U, iX, 2, iN, false );
 
@@ -52,6 +50,6 @@ Real IdealGas::ComputeInternalEnergy( const View3D U, const ModalBasis *Basis,
 }
 
 // cell average specific internal energy
-Real IdealGas::ComputeInternalEnergy( const View3D U, const UInt iX ) const {
+Real IdealGas::ComputeInternalEnergy( const View3D U, const int iX ) const {
   return U( 2, iX, 0 ) - 0.5 * U( 1, iX, 0 ) * U( 1, iX, 0 );
 }

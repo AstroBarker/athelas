@@ -6,7 +6,6 @@
 #include "Kokkos_Core.hpp"
 
 using Real   = double;
-using UInt   = unsigned int;
 using View3D = Kokkos::View<Real ***>;
 using View2D = Kokkos::View<Real **>;
 using View1D = Kokkos::View<Real *>;
