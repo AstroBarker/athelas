@@ -166,8 +166,9 @@ void ComputeIncrement_Rad_Source( const View3D uCR, const View3D uCF,
           const Real Em_T = Basis->BasisEval( uCF, iX, 2, iN + 1, false );
 
           const Real Abar = 1.0; // TODO: update abar
-          const Real P = eos->PressureFromConserved( 1.0 / D, V, Em_T );
-          const Real T = eos->TemperatureFromTauPressureAbar( 1.0 / D, P, Abar );
+          Real lambda[2] = {Abar, 0.0}; 
+          const Real P = eos->PressureFromConserved( 1.0 / D, V, Em_T, lambda );
+          const Real T = eos->TemperatureFromTauPressure( 1.0 / D, P, lambda );
 
           const Real kappa = ComputeOpacity( D, V, Em_T );
           const Real X     = ComputeEmissivity( D, V, Em_T );

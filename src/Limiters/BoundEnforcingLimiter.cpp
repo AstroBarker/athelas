@@ -113,7 +113,7 @@ Real TargetFunc( const View3D U, const ModalBasis *Basis, const EOS *eos,
   return e - w;
 }
 
-Real Bisection( const Kokkos::View<Real ***> U, ModalBasis *Basis, EOS *eos,
+Real Bisection( const View3D U, ModalBasis *Basis, EOS *eos,
                 const int iX, const int iN ) {
   const Real TOL       = 1e-10;
   const int MAX_ITERS = 100;
