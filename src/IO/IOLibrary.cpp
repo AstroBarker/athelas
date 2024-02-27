@@ -193,7 +193,8 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
 /**
  * Write Modal Basis coefficients and mass matrix
  **/
-void WriteBasis( ModalBasis *Basis, int ilo, int ihi, int nNodes, int order,
+void WriteBasis( ModalBasis *Basis, unsigned int ilo, unsigned int ihi,
+                 unsigned int nNodes, unsigned int order,
                  std::string ProblemName ) {
   std::string fn = "athelas_basis_";
   fn.append( ProblemName );
@@ -205,9 +206,9 @@ void WriteBasis( ModalBasis *Basis, int ilo, int ihi, int nNodes, int order,
   const H5std_string DATASET_NAME( "Basis" );
 
   Real *data = new Real[ihi * ( nNodes + 2 ) * order];
-  for ( int iX = ilo; iX <= ihi; iX++ )
-    for ( int iN = 0; iN < nNodes + 2; iN++ )
-      for ( int k = 0; k < order; k++ ) {
+  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
+    for ( unsigned int iN = 0; iN < nNodes + 2; iN++ )
+      for ( unsigned int k = 0; k < order; k++ ) {
         data[( ( iX - ilo ) * ( nNodes + 2 ) + iN ) * order + k] =
             Basis->Get_Phi( iX, iN, k );
       }
