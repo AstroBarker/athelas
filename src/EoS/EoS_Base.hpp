@@ -31,8 +31,8 @@ class EosBase {
   void RadiationPressure( const Real T, Real &Prad ) const {
     static_cast<EOS const *>( this )->RadiationPressure( T, Prad );
   }
-  Real ComputeInternalEnergy( const View3D U, ModalBasis *Basis, const UInt iX,
-                              const UInt iN ) const {
+  Real ComputeInternalEnergy( const View3D U, const ModalBasis *Basis,
+                              const UInt iX, const UInt iN ) const {
     return static_cast<EOS const *>( this )->ComputeInternalEnergy( U, Basis,
                                                                     iX, iN );
   }

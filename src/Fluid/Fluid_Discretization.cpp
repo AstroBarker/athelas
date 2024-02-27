@@ -21,15 +21,16 @@
 
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
-                                        ModalBasis *Basis, EOS *eos, View3D dU,
-                                        View3D Flux_q, View2D dFlux_num,
-                                        View2D uCF_F_L, View2D uCF_F_R,
-                                        View1D Flux_U, View1D Flux_P,
-                                        const Options opts ) {
+                                        const ModalBasis *Basis, const EOS *eos,
+                                        View3D dU, View3D Flux_q,
+                                        View2D dFlux_num, View2D uCF_F_L,
+                                        View2D uCF_F_R, View1D Flux_U,
+                                        View1D Flux_P, const Options opts ) {
   const auto &nNodes = Grid.Get_nNodes( );
   const auto &order  = Basis->Get_Order( );
   const auto &ilo    = Grid.Get_ilo( );
   const auto &ihi    = Grid.Get_ihi( );
+  const int nvars    = U.extent( 0 );
 
   // Real rho_L, rho_R, P_L, P_R, Cs_L, Cs_R, lam_L, lam_R, P;
 
@@ -38,7 +39,7 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
   // Left/Right face states
   Kokkos::parallel_for(
       "Interface States",
-      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, 3 } ),
+      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, nvars } ),
       KOKKOS_LAMBDA( const int iX, const int iCF ) {
         uCF_F_L( iCF, iX ) =
             Basis->BasisEval( U, iX - 1, iCF, nNodes + 1, false );
@@ -84,7 +85,7 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
   Kokkos::parallel_for(
       "Surface Term",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { order, ihi + 1, 3 } ),
+                                              { order, ihi + 1, nvars } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         const auto &Poly_L   = Basis->Get_Phi( iX, 0, k );
         const auto &Poly_R   = Basis->Get_Phi( iX, nNodes + 1, k );
@@ -102,7 +103,7 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
     Kokkos::parallel_for(
         "Flux_q",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                                { nNodes, ihi + 1, 3 } ),
+                                                { nNodes, ihi + 1, nvars } ),
         KOKKOS_LAMBDA( const int iN, const int iX, const int iCF ) {
           Real P = 0.0;
           eos->PressureFromConserved(
@@ -118,7 +119,7 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
     Kokkos::parallel_for(
         "Volume Term",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                                { order, ihi + 1, 3 } ),
+                                                { order, ihi + 1, nvars } ),
         KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
           Real local_sum = 0.0;
           for ( UInt iN = 0; iN < nNodes; iN++ ) {
@@ -136,8 +137,9 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
 /**
  * Compute fluid increment from geometry in spherical symmetry
  **/
-void ComputeIncrement_Fluid_Geometry( View3D U, GridStructure &Grid,
-                                      ModalBasis *Basis, EOS *eos, View3D dU ) {
+void ComputeIncrement_Fluid_Geometry( const View3D U, GridStructure &Grid,
+                                      const ModalBasis *Basis, const EOS *eos,
+                                      View3D dU ) {
   const UInt nNodes = Grid.Get_nNodes( );
   const UInt order  = Basis->Get_Order( );
   const UInt ilo    = Grid.Get_ilo( );
@@ -170,8 +172,9 @@ void ComputeIncrement_Fluid_Geometry( View3D U, GridStructure &Grid,
  * Compute fluid increment from radiation sources
  * TODO: Modify inputs?
  **/
-void ComputeIncrement_Fluid_Rad( View3D uCF, View3D uCR, GridStructure &Grid,
-                                 ModalBasis *Basis, EOS *eos, View3D dU ) {
+void ComputeIncrement_Fluid_Rad( const View3D uCF, const View3D uCR,
+                                 GridStructure &Grid, const ModalBasis *Basis,
+                                 const EOS *eos, View3D dU ) {
   const UInt nNodes = Grid.Get_nNodes( );
   const UInt order  = Basis->Get_Order( );
   const UInt ilo    = Grid.Get_ilo( );
@@ -233,9 +236,9 @@ void ComputeIncrement_Fluid_Rad( View3D uCF, View3D uCR, GridStructure &Grid,
  * uCF_L, uCF_R     : holds interface data
  * BC               : (string) boundary condition type
  **/
-void Compute_Increment_Explicit( const View3D U, View3D uCR,
-                                 GridStructure &Grid, ModalBasis *Basis,
-                                 EOS *eos, View3D dU, View3D Flux_q,
+void Compute_Increment_Explicit( const View3D U, const View3D uCR,
+                                 GridStructure &Grid, const ModalBasis *Basis,
+                                 const EOS *eos, View3D dU, View3D Flux_q,
                                  View2D dFlux_num, View2D uCF_F_L,
                                  View2D uCF_F_R, View1D Flux_U, View1D Flux_P,
                                  const Options opts ) {
@@ -243,6 +246,7 @@ void Compute_Increment_Explicit( const View3D U, View3D uCR,
   const auto &order = Basis->Get_Order( );
   const auto &ilo   = Grid.Get_ilo( );
   const auto &ihi   = Grid.Get_ihi( );
+  const int nvars   = U.extent( 0 );
 
   // --- Apply BC ---
   ApplyBC( U, &Grid, order, opts.BC );
@@ -256,7 +260,7 @@ void Compute_Increment_Explicit( const View3D U, View3D uCR,
   Kokkos::parallel_for(
       "Zero dU",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                              { order, ihi + 1, 3 } ),
+                                              { order, ihi + 1, nvars } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         dU( iCF, iX, k ) = 0.0;
       } );
@@ -272,7 +276,7 @@ void Compute_Increment_Explicit( const View3D U, View3D uCR,
   Kokkos::parallel_for(
       "Fluid::Divide Update / Mass Matrix",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { order, ihi + 1, 3 } ),
+                                              { order, ihi + 1, nvars } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
         dU( iCF, iX, k ) /= ( Basis->Get_MassMatrix( iX, k ) );
       } );

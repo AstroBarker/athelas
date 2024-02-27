@@ -21,7 +21,7 @@
 #include "PolynomialBasis.hpp"
 #include "Utilities.hpp"
 
-void LimitDensity( Kokkos::View<Real ***> U, ModalBasis *Basis ) {
+void LimitDensity( View3D U, const ModalBasis *Basis ) {
   const Real EPSILON = 1.0e-13; // maybe make this smarter
   const UInt order   = Basis->Get_Order( );
 
@@ -47,8 +47,7 @@ void LimitDensity( Kokkos::View<Real ***> U, ModalBasis *Basis ) {
       } );
 }
 
-void LimitInternalEnergy( Kokkos::View<Real ***> U, ModalBasis *Basis,
-                          EOS *eos ) {
+void LimitInternalEnergy( View3D U, const ModalBasis *Basis, const EOS *eos ) {
   const UInt order = Basis->Get_Order( );
 
   if ( order == 1 ) return;
@@ -82,8 +81,8 @@ void LimitInternalEnergy( Kokkos::View<Real ***> U, ModalBasis *Basis,
       } );
 }
 
-void ApplyBoundEnforcingLimiter( Kokkos::View<Real ***> U, ModalBasis *Basis,
-                                 EOS *eos )
+void ApplyBoundEnforcingLimiter( View3D U, const ModalBasis *Basis,
+                                 const EOS *eos )
 
 {
   LimitDensity( U, Basis );
@@ -93,7 +92,7 @@ void ApplyBoundEnforcingLimiter( Kokkos::View<Real ***> U, ModalBasis *Basis,
 /* --- Utility Functions --- */
 
 // ( 1 - theta ) U_bar + theta U_q
-Real ComputeThetaState( const Kokkos::View<Real ***> U, ModalBasis *Basis,
+Real ComputeThetaState( const View3D U, const ModalBasis *Basis,
                         const Real theta, const UInt iCF, const UInt iX,
                         const UInt iN ) {
   Real result = Basis->BasisEval( U, iX, iCF, iN, false );
@@ -103,7 +102,7 @@ Real ComputeThetaState( const Kokkos::View<Real ***> U, ModalBasis *Basis,
   return result;
 }
 
-Real TargetFunc( const Kokkos::View<Real ***> U, ModalBasis *Basis, EOS *eos,
+Real TargetFunc( const View3D U, const ModalBasis *Basis, const EOS *eos,
                  const Real theta, const UInt iX, const UInt iN ) {
   const Real w  = std::min( 1.0e-13, eos->ComputeInternalEnergy( U, iX ) );
   const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
@@ -134,7 +133,7 @@ Real Bisection( const Kokkos::View<Real ***> U, ModalBasis *Basis, EOS *eos,
     fa = TargetFunc( U, Basis, eos, a, iX, iN );
     fc = TargetFunc( U, Basis, eos, c, iX, iN );
 
-    if ( std::abs( fc <= TOL / 10.0 ) || ( b - a ) / 2.0 < TOL ) {
+    if ( std::abs( fc ) <= TOL / 10.0 || ( b - a ) / 2.0 < TOL ) {
       return c;
     }
 
@@ -152,8 +151,8 @@ Real Bisection( const Kokkos::View<Real ***> U, ModalBasis *Basis, EOS *eos,
   return c;
 }
 
-Real Backtrace( const View3D U, ModalBasis *Basis, EOS *eos, const UInt iX,
-                const UInt iN ) {
+Real Backtrace( const View3D U, const ModalBasis *Basis, const EOS *eos,
+                const UInt iX, const UInt iN ) {
   Real theta = 1.0;
   Real nodal = -1.0;
 

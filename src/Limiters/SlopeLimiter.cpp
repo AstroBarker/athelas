@@ -48,7 +48,7 @@ SlopeLimiter::SlopeLimiter( GridStructure *Grid, ProblemIn *pin )
  * to flag cells for limiting
  **/
 void SlopeLimiter::DetectTroubledCells( View3D U, GridStructure *Grid,
-                                        ModalBasis *Basis ) {
+                                        const ModalBasis *Basis ) {
   const UInt ilo = Grid->Get_ilo( );
   const UInt ihi = Grid->Get_ihi( );
 
@@ -89,7 +89,7 @@ void SlopeLimiter::DetectTroubledCells( View3D U, GridStructure *Grid,
  * Apply the slope limiter. We use a vertex based, heirarchical slope limiter.
  **/
 void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
-                                      ModalBasis *Basis ) {
+                                      const ModalBasis *Basis ) {
 
   // Do not apply for first order method. No slopes!
   if ( order == 1 ) {
@@ -99,6 +99,7 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
   const UInt &ilo    = Grid->Get_ilo( );
   const UInt &ihi    = Grid->Get_ihi( );
   const UInt &nNodes = Grid->Get_nNodes( );
+  const int nvars    = U.extent( 0 );
 
   // --- Apply troubled cell indicator ---
   // Exit if we don't need to limit slopes
@@ -111,7 +112,7 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
 
     // Check if TCI val is less than TCI_Threshold
     int j = 0;
-    for ( UInt iCF = 0; iCF < 3; iCF++ ) {
+    for ( UInt iCF = 0; iCF < nvars; iCF++ ) {
       if ( D( iCF, iX ) > TCI_Threshold && TCI_Option ) {
         j++;
       }
@@ -133,7 +134,7 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
     // Note: using cell averages
 
     if ( CharacteristicLimiting_Option ) {
-      for ( int iCF = 0; iCF < 3; iCF++ ) {
+      for ( int iCF = 0; iCF < nvars; iCF++ ) {
         Mult2( iCF ) = U( iCF, iX, 0 );
       }
       ComputeCharacteristicDecomposition( Mult2, R, R_inv );
@@ -146,7 +147,7 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
 
     // --- Limit Quadratic Term ---
     if ( order >= 3 ) {
-      for ( int iCF = 0; iCF < 3; iCF++ ) {
+      for ( int iCF = 0; iCF < nvars; iCF++ ) {
         Mult1( iCF ) = U( iCF, iX, 2 );
       }
       MatMul( 1.0, R_inv, Mult1, 1.0, d2w );
@@ -155,7 +156,7 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
     }
 
     // --- Compute info for limiter ---
-    for ( UInt iCF = 0; iCF < 3; iCF++ ) {
+    for ( UInt iCF = 0; iCF < nvars; iCF++ ) {
       Mult1( iCF ) = 0.0;
       Mult2( iCF ) = 0.0;
       Mult3( iCF ) = 0.0;
@@ -193,7 +194,7 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
     MatMul( 1.0, R_inv, dU_c_T, 1.0, dw_c_T );
 
     // Limited Slopes
-    for ( UInt iCF = 0; iCF < 3; iCF++ ) {
+    for ( UInt iCF = 0; iCF < nvars; iCF++ ) {
       Phi1 = BarthJespersen( w_v_L( iCF ), w_v_R( iCF ), w_c_L( iCF ),
                              w_c_T( iCF ), w_c_R( iCF ), alpha );
 
@@ -237,9 +238,10 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
 /**
  * Limit the quadratic term.
  **/
-void SlopeLimiter::LimitQuadratic( View3D U, ModalBasis *Basis,
-                                   Kokkos::View<Real[3]> d2w, UInt iX,
-                                   UInt nNodes ) {
+void SlopeLimiter::LimitQuadratic( View3D U, const ModalBasis *Basis,
+                                   Kokkos::View<Real[3]> d2w, const UInt iX,
+                                   const UInt nNodes ) {
+  const int nvars = U.extent( 0 );
 
   Real Phi2 = 0.0;
 
@@ -248,7 +250,7 @@ void SlopeLimiter::LimitQuadratic( View3D U, ModalBasis *Basis,
   }
 
   // --- Compute info for limiter ---
-  for ( UInt iCF = 0; iCF < 3; iCF++ ) {
+  for ( UInt iCF = 0; iCF < nvars; iCF++ ) {
     dU_c_L( iCF ) = U( iCF, iX - 1, 1 );
     dU_c_T( iCF ) = U( iCF, iX, 1 );
     dU_c_R( iCF ) = U( iCF, iX + 1, 1 );
@@ -276,7 +278,7 @@ void SlopeLimiter::LimitQuadratic( View3D U, ModalBasis *Basis,
   MatMul( 1.0, R_inv, dU_v_R, 1.0, dw_v_R );
 
   // Limited Slopes
-  for ( UInt iCF = 0; iCF < 3; iCF++ ) {
+  for ( UInt iCF = 0; iCF < nvars; iCF++ ) {
     Phi2 = BarthJespersen( dw_v_L( iCF ), dw_v_R( iCF ), dw_c_L( iCF ),
                            dw_c_T( iCF ), dw_c_R( iCF ), alpha );
 
@@ -288,12 +290,12 @@ void SlopeLimiter::LimitQuadratic( View3D U, ModalBasis *Basis,
     // d2U -> R d2U
     MatMul( 1.0, R, d2U, 1.0, Mult2 );
 
-    for ( UInt iCF = 0; iCF < 3; iCF++ ) {
+    for ( UInt iCF = 0; iCF < nvars; iCF++ ) {
       d2U( iCF ) = Mult2( iCF );
     }
   }
 
-  for ( UInt iCF = 0; iCF < 3; iCF++ ) {
+  for ( UInt iCF = 0; iCF < nvars; iCF++ ) {
     U( iCF, iX, 2 ) = d2U( iCF );
   }
 }
@@ -306,8 +308,8 @@ void SlopeLimiter::LimitQuadratic( View3D U, ModalBasis *Basis,
  *  +1 : Extrapolate polynomial from iX-1 into iX
  **/
 Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
-                                ModalBasis *Basis, UInt iCF, UInt iX,
-                                int extrapolate ) {
+                                const ModalBasis *Basis, const UInt iCF,
+                                const UInt iX, const int extrapolate ) {
   const UInt nNodes = Grid->Get_nNodes( );
 
   Real avg  = 0.0;

@@ -16,8 +16,8 @@
 #include "state.hpp"
 
 typedef void ( *UpdateFunc )( const View3D, const View3D, GridStructure &,
-                              ModalBasis *, EOS *eos, View3D, View3D, View2D,
-                              View2D, View2D, View1D, View1D,
+                              const ModalBasis *, const EOS *eos, View3D,
+                              View3D, View2D, View2D, View2D, View1D, View1D,
                               const Options opts );
 
 class TimeStepper {
@@ -29,11 +29,13 @@ class TimeStepper {
   void InitializeTimestepper( );
 
   void UpdateFluid( UpdateFunc ComputeIncrement, const Real dt, State *state,
-                    GridStructure &Grid, ModalBasis *Basis, EOS *eos,
-                    SlopeLimiter *S_Limiter, const Options opts );
+                    GridStructure &Grid, const ModalBasis *Basis,
+                    const EOS *eos, SlopeLimiter *S_Limiter,
+                    const Options opts );
   void UpdateRadiation( UpdateFunc ComputeIncrementRad, const Real dt,
-                        State *state, GridStructure &Grid, ModalBasis *Basis,
-                        EOS *eos, SlopeLimiter *S_Limiter, const Options opts );
+                        State *state, GridStructure &Grid,
+                        const ModalBasis *Basis, const EOS *eos,
+                        SlopeLimiter *S_Limiter, const Options opts );
 
  private:
   const UInt mSize;
