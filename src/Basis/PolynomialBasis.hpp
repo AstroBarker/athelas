@@ -31,9 +31,8 @@ class ModalBasis {
   Real Ortho( const int order, const int iX, const int i_eta, const Real eta,
               Real eta_c, const Kokkos::View<Real ***> uCF, GridStructure *Grid,
               const bool derivative_option );
-  Real InnerProduct( const int m, const int n, const int iX,
-                     const Real eta_c, const Kokkos::View<Real ***> uCF,
-                     GridStructure *Grid );
+  Real InnerProduct( const int m, const int n, const int iX, const Real eta_c,
+                     const Kokkos::View<Real ***> uCF, GridStructure *Grid );
   Real InnerProduct( const int n, const int iX, const Real eta_c,
                      const Kokkos::View<Real ***> uCF, GridStructure *Grid );
   void InitializeTaylorBasis( const Kokkos::View<Real ***> U,

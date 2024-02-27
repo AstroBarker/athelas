@@ -99,7 +99,7 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
   const int &ilo    = Grid->Get_ilo( );
   const int &ihi    = Grid->Get_ihi( );
   const int &nNodes = Grid->Get_nNodes( );
-  const int nvars    = U.extent( 0 );
+  const int nvars   = U.extent( 0 );
 
   // --- Apply troubled cell indicator ---
   // Exit if we don't need to limit slopes
@@ -317,7 +317,7 @@ Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
   Real X;
 
   // Used to set loop bounds
-  int mult   = 1;
+  int mult  = 1;
   int end   = nNodes;
   int start = 0;
 

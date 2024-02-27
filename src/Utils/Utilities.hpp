@@ -13,8 +13,8 @@ constexpr int sgn( T val ) {
 
 // nodal specific internal energy
 template <class T>
-Real ComputeInternalEnergy( T U, const ModalBasis *Basis,
-                            const int iX, const int iN ) {
+Real ComputeInternalEnergy( T U, const ModalBasis *Basis, const int iX,
+                            const int iN ) {
   const Real Vel = Basis->BasisEval( U, iX, 1, iN, false );
   const Real EmT = Basis->BasisEval( U, iX, 2, iN, false );
 

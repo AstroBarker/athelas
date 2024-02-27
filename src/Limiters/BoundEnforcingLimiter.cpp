@@ -23,7 +23,7 @@
 
 void LimitDensity( View3D U, const ModalBasis *Basis ) {
   const Real EPSILON = 1.0e-13; // maybe make this smarter
-  const int order   = Basis->Get_Order( );
+  const int order    = Basis->Get_Order( );
 
   if ( order == 1 ) return;
 
@@ -53,8 +53,8 @@ void LimitInternalEnergy( View3D U, const ModalBasis *Basis, const EOS *eos ) {
   if ( order == 1 ) return;
 
   Kokkos::parallel_for(
-      "BEF::Limit Internal Energy", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
-      KOKKOS_LAMBDA( int iX ) {
+      "BEF::Limit Internal Energy",
+      Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ), KOKKOS_LAMBDA( int iX ) {
         Real theta2 = 10000000.0;
         Real nodal  = 0.0;
         Real temp   = 0.0;
@@ -113,9 +113,9 @@ Real TargetFunc( const View3D U, const ModalBasis *Basis, const EOS *eos,
   return e - w;
 }
 
-Real Bisection( const View3D U, ModalBasis *Basis, EOS *eos,
-                const int iX, const int iN ) {
-  const Real TOL       = 1e-10;
+Real Bisection( const View3D U, ModalBasis *Basis, EOS *eos, const int iX,
+                const int iN ) {
+  const Real TOL      = 1e-10;
   const int MAX_ITERS = 100;
 
   // bisection bounds on theta

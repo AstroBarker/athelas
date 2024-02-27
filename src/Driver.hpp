@@ -5,6 +5,5 @@
 
 int NumNodes( int order );
 
-Real ComputeCFL( Real CFL, int order, int nStages,
-                 int tOrder );
+Real ComputeCFL( Real CFL, int order, int nStages, int tOrder );
 #endif // _DRIVER_HPP_

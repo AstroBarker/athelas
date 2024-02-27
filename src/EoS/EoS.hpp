@@ -15,11 +15,14 @@ class IdealGas : public EosBase<IdealGas> {
   IdealGas( ) = default;
   IdealGas( double gm ) : gamma( gm ) {}
 
-  Real PressureFromConserved( const Real Tau, const Real V, const Real EmT, Real *lambda ) const;
-  Real SoundSpeedFromConserved( const Real Tau, const Real V, const Real EmT, Real *lambda ) const;
+  Real PressureFromConserved( const Real Tau, const Real V, const Real EmT,
+                              Real *lambda ) const;
+  Real SoundSpeedFromConserved( const Real Tau, const Real V, const Real EmT,
+                                Real *lambda ) const;
   Real TemperatureFromTauPressureAbar( const Real Tau, const Real P,
                                        const Real Abar, Real *lambda ) const;
-  Real TemperatureFromTauPressure( const Real Tau, const Real P, Real *lambda ) const;
+  Real TemperatureFromTauPressure( const Real Tau, const Real P,
+                                   Real *lambda ) const;
   Real RadiationPressure( const Real T, Real *lambda ) const;
 
  private:
@@ -31,11 +34,14 @@ class Stellar : public EosBase<Stellar> {
  public:
   Stellar( ) = default;
 
-  Real PressureFromConserved( const Real Tau, const Real V, const Real EmT, Real *lambda ) const;
-  Real SoundSpeedFromConserved( const Real Tau, const Real V, const Real EmT, Real *lambda ) const;
+  Real PressureFromConserved( const Real Tau, const Real V, const Real EmT,
+                              Real *lambda ) const;
+  Real SoundSpeedFromConserved( const Real Tau, const Real V, const Real EmT,
+                                Real *lambda ) const;
   Real TemperatureFromTauPressureAbar( const Real Tau, const Real P,
                                        const Real Abar, Real *lambda ) const;
-  Real TemperatureFromTauPressure( const Real Tau, const Real P, Real *lambda ) const;
+  Real TemperatureFromTauPressure( const Real Tau, const Real P,
+                                   Real *lambda ) const;
   Real RadiationPressure( const Real T, Real *lambda ) const;
 
  private:

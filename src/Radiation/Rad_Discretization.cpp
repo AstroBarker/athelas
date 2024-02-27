@@ -152,7 +152,7 @@ void ComputeIncrement_Rad_Source( const View3D uCR, const View3D uCF,
   const int order  = Basis->Get_Order( );
   const int ilo    = Grid.Get_ilo( );
   const int ihi    = Grid.Get_ihi( );
-  const int nvars   = uCR.extent( 0 );
+  const int nvars  = uCR.extent( 0 );
 
   Kokkos::parallel_for(
       "Rad::Source",
@@ -166,7 +166,7 @@ void ComputeIncrement_Rad_Source( const View3D uCR, const View3D uCF,
           const Real Em_T = Basis->BasisEval( uCF, iX, 2, iN + 1, false );
 
           const Real Abar = 1.0; // TODO: update abar
-          Real lambda[2] = {Abar, 0.0}; 
+          Real lambda[2]  = { Abar, 0.0 };
           const Real P = eos->PressureFromConserved( 1.0 / D, V, Em_T, lambda );
           const Real T = eos->TemperatureFromTauPressure( 1.0 / D, P, lambda );
 

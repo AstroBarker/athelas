@@ -18,8 +18,8 @@
 void ApplyBC( View3D U, GridStructure *Grid, const int order,
               const std::string BC ) {
 
-  const int ilo  = Grid->Get_ilo( );
-  const int ihi  = Grid->Get_ihi( );
+  const int ilo   = Grid->Get_ilo( );
+  const int ihi   = Grid->Get_ihi( );
   const int nvars = U.extent( 0 );
 
   const int nX = Grid->Get_nElements( );

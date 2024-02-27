@@ -29,8 +29,8 @@
  * This has to be called after the problem is initialized.
  **/
 ModalBasis::ModalBasis( PolyBasis::PolyBasis basis, Kokkos::View<Real ***> uPF,
-                        GridStructure *Grid, int pOrder, int nN,
-                        int nElements, int nGuard )
+                        GridStructure *Grid, int pOrder, int nN, int nElements,
+                        int nGuard )
     : nX( nElements ), order( pOrder ), nNodes( nN ),
       mSize( ( nN ) * ( nN + 2 ) * ( nElements + 2 * nGuard ) ),
       MassMatrix( "MassMatrix", nElements + 2 * nGuard, pOrder ),
@@ -289,15 +289,14 @@ void ModalBasis::CheckOrthogonality( const Kokkos::View<Real ***> uPF,
 
   const int ilo = Grid->Get_ilo( );
   const int ihi = Grid->Get_ihi( );
-  Real X         = 0.0;
+  Real X        = 0.0;
 
   Real result = 0.0;
   for ( int iX = ilo; iX <= ihi; iX++ )
     for ( int k1 = 0; k1 < order; k1++ )
       for ( int k2 = 0; k2 < order; k2++ ) {
         result = 0.0;
-        for ( int i_eta = 1; i_eta <= nNodes;
-              i_eta++ ) // loop over quadratures
+        for ( int i_eta = 1; i_eta <= nNodes; i_eta++ ) // loop over quadratures
         {
           X = Grid->NodeCoordinate( iX, i_eta - 1 );
           // Not using an InnerProduct function because their API is odd..
