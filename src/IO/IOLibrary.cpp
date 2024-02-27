@@ -193,7 +193,8 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
 /**
  * Write Modal Basis coefficients and mass matrix
  **/
-void WriteBasis( ModalBasis *Basis, unsigned int ilo, unsigned int ihi, unsigned int nNodes, unsigned int order,
+void WriteBasis( ModalBasis *Basis, unsigned int ilo, unsigned int ihi,
+                 unsigned int nNodes, unsigned int order,
                  std::string ProblemName ) {
   std::string fn = "athelas_basis_";
   fn.append( ProblemName );

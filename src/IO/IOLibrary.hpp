@@ -25,7 +25,8 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
 void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin,
                                 const Real CFL );
 
-void WriteBasis( ModalBasis *Basis, unsigned int ilo, unsigned int ihi, unsigned int nNodes, unsigned int order,
+void WriteBasis( ModalBasis *Basis, unsigned int ilo, unsigned int ihi,
+                 unsigned int nNodes, unsigned int order,
                  std::string ProblemName );
 
 #endif // _IOLIBRARY_HPP_
