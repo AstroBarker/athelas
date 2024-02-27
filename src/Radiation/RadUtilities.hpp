@@ -6,11 +6,11 @@
 #include "Abstractions.hpp"
 
 Real FluxFactor( const Real E, const Real F );
-Real Flux_Rad( Real E, Real F, Real P, Real V, int iRF );
+Real Flux_Rad( Real E, Real F, Real P, Real V, int iCR );
 void RadiationFourForce( Real D, Real V, Real T, Real kappa, Real E, Real F,
                          Real Pr, Real &G0, Real &G );
 Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E, Real F,
-                 Real Pr, int iRF );
+                 Real Pr, int iCR );
 Real ComputeEmissivity( const Real D, const Real V, const Real Em );
 Real ComputeOpacity( const Real D, const Real V, const Real Em );
 Real ComputeClosure( const Real E, const Real F );
