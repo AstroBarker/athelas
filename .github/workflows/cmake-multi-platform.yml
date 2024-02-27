@@ -23,8 +23,8 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        build_type: [Release]
+        os: [ubuntu-latest]
+        build_type: [Release, Debug]
         c_compiler: [gcc, clang, cl]
         include:
           - os: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq git
         # sudo apt-get install -qq make cmake g++
-        sudo apt-get install -qq libhdf5-dev liblapack-dev liblapacke-dev libopenblas-dev
+        sudo apt-get install -qq libhdf5-dev liblapack-dev liblapacke-dev libopenblas-dev libomp-dev
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
