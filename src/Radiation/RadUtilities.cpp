@@ -30,7 +30,7 @@ Real FluxFactor( const Real E, const Real F ) {
  * The radiation fluxes
  * Here E and F are per unit volume
  **/
-Real Flux_Rad( Real E, Real F, Real P, Real V, UInt iRF ) {
+Real Flux_Rad( Real E, Real F, Real P, Real V, int iRF ) {
   assert( iRF == 0 || iRF == 1 );
 
   const Real c = constants::c_cgs;
@@ -65,7 +65,7 @@ void RadiationFourForce( Real D, Real V, Real T, Real kappa, Real E, Real F,
  * NOTE: extra c in second source?
  **/
 Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E, Real F,
-                 Real Pr, UInt iCR ) {
+                 Real Pr, int iCR ) {
   assert( iRF == 0 || iRF == 1 );
 
   const Real c = constants::c_cgs;

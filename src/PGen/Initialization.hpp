@@ -24,20 +24,20 @@
 void InitializeFields( State *state, GridStructure *Grid,
                        const std::string ProblemName ) {
 
-  const unsigned int ilo    = Grid->Get_ilo( );
-  const unsigned int ihi    = Grid->Get_ihi( );
-  const unsigned int nNodes = Grid->Get_nNodes( );
+  const int ilo    = Grid->Get_ilo( );
+  const int ihi    = Grid->Get_ihi( );
+  const int nNodes = Grid->Get_nNodes( );
 
-  const unsigned int iCF_Tau = 0;
-  const unsigned int iCF_V   = 1;
-  const unsigned int iCF_E   = 2;
+  const int iCF_Tau = 0;
+  const int iCF_V   = 1;
+  const int iCF_E   = 2;
 
-  const unsigned int iPF_D = 0;
+  const int iPF_D = 0;
 
-  View3D uCF        = state->Get_uCF( );
-  View3D uPF        = state->Get_uPF( );
-  View3D uCR        = state->Get_uCR( );
-  const UInt pOrder = state->Get_pOrder( );
+  View3D uCF       = state->Get_uCF( );
+  View3D uPF       = state->Get_uPF( );
+  View3D uCR       = state->Get_uCR( );
+  const int pOrder = state->Get_pOrder( );
 
   if ( ProblemName == "Sod" ) {
     const Real V0  = 0.0;
@@ -47,9 +47,9 @@ void InitializeFields( State *state, GridStructure *Grid,
     const Real P_R = 0.1;
 
     Real X1 = 0.0;
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-      for ( unsigned int k = 0; k < pOrder; k++ )
-        for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
+    for ( int iX = ilo; iX <= ihi; iX++ )
+      for ( int k = 0; k < pOrder; k++ )
+        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
           X1                    = Grid->Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
@@ -76,8 +76,8 @@ void InitializeFields( State *state, GridStructure *Grid,
           }
         }
     // Fill density in guard cells
-    for ( unsigned int iX = 0; iX < ilo; iX++ )
-      for ( unsigned int iN = 0; iN < nNodes; iN++ ) {
+    for ( int iX = 0; iX < ilo; iX++ )
+      for ( int iN = 0; iN < nNodes; iN++ ) {
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
@@ -88,9 +88,9 @@ void InitializeFields( State *state, GridStructure *Grid,
     const Real P_R = 1.0;
 
     Real X1 = 0.0;
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-      for ( unsigned int k = 0; k < pOrder; k++ )
-        for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
+    for ( int iX = ilo; iX <= ihi; iX++ )
+      for ( int k = 0; k < pOrder; k++ )
+        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
           X1                    = Grid->Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
@@ -118,8 +118,8 @@ void InitializeFields( State *state, GridStructure *Grid,
           }
         }
     // Fill density in guard cells
-    for ( unsigned int iX = 0; iX < ilo; iX++ )
-      for ( unsigned int iN = 0; iN < nNodes; iN++ ) {
+    for ( int iX = 0; iX < ilo; iX++ )
+      for ( int iN = 0; iN < nNodes; iN++ ) {
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
@@ -132,9 +132,9 @@ void InitializeFields( State *state, GridStructure *Grid,
     const Real P_R = 1.0;
 
     Real X1 = 0.0;
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-      for ( unsigned int k = 0; k < pOrder; k++ )
-        for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
+    for ( int iX = ilo; iX <= ihi; iX++ )
+      for ( int k = 0; k < pOrder; k++ )
+        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
           X1                    = Grid->Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
@@ -161,8 +161,8 @@ void InitializeFields( State *state, GridStructure *Grid,
           }
         }
     // Fill density in guard cells
-    for ( unsigned int iX = 0; iX < ilo; iX++ )
-      for ( unsigned int iN = 0; iN < nNodes; iN++ ) {
+    for ( int iX = 0; iX < ilo; iX++ )
+      for ( int iN = 0; iN < nNodes; iN++ ) {
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
@@ -173,9 +173,9 @@ void InitializeFields( State *state, GridStructure *Grid,
     const Real Amp = 1.0;
 
     Real X1 = 0.0;
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-      for ( unsigned int k = 0; k < pOrder; k++ )
-        for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
+    for ( int iX = ilo; iX <= ihi; iX++ )
+      for ( int k = 0; k < pOrder; k++ )
+        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
           X1 = Grid->Get_Centers( iX );
 
           if ( k != 0 ) {
@@ -193,8 +193,8 @@ void InitializeFields( State *state, GridStructure *Grid,
               ( 2.0 + Amp * sin( 2.0 * constants::PI( ) * X1 ) );
         }
     // Fill density in guard cells
-    for ( unsigned int iX = 0; iX < ilo; iX++ )
-      for ( unsigned int iN = 0; iN < nNodes; iN++ ) {
+    for ( int iX = 0; iX < ilo; iX++ )
+      for ( int iN = 0; iN < nNodes; iN++ ) {
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
@@ -204,13 +204,13 @@ void InitializeFields( State *state, GridStructure *Grid,
     const Real D0 = 1.0;
     const Real E0 = 0.3;
 
-    const unsigned int origin = Grid->Get_nElements( ) / 2;
+    const int origin = Grid->Get_nElements( ) / 2;
 
     const Real P0 = ( 5.0 / 3.0 - 1.0 ) * E0 / Grid->Get_Widths( origin );
 
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-      for ( unsigned int k = 0; k < pOrder; k++ )
-        for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
+    for ( int iX = ilo; iX <= ihi; iX++ )
+      for ( int k = 0; k < pOrder; k++ )
+        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
 
           if ( k != 0 ) {
             uCF( iCF_Tau, iX, k ) = 0.0;
@@ -232,8 +232,8 @@ void InitializeFields( State *state, GridStructure *Grid,
           uPF( iPF_D, iX, iNodeX ) = D0;
         }
     // Fill density in guard cells
-    for ( unsigned int iX = 0; iX < ilo; iX++ )
-      for ( unsigned int iN = 0; iN < nNodes; iN++ ) {
+    for ( int iX = 0; iX < ilo; iX++ )
+      for ( int iN = 0; iN < nNodes; iN++ ) {
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
@@ -246,9 +246,9 @@ void InitializeFields( State *state, GridStructure *Grid,
     const Real P_R = 0.000001;
 
     Real X1 = 0.0;
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-      for ( unsigned int k = 0; k < pOrder; k++ )
-        for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
+    for ( int iX = ilo; iX <= ihi; iX++ )
+      for ( int k = 0; k < pOrder; k++ )
+        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
           X1                    = Grid->NodeCoordinate( iX, iNodeX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
@@ -277,8 +277,8 @@ void InitializeFields( State *state, GridStructure *Grid,
           }
         }
     // Fill density in guard cells
-    for ( unsigned int iX = 0; iX < ilo; iX++ )
-      for ( unsigned int iN = 0; iN < nNodes; iN++ ) {
+    for ( int iX = 0; iX < ilo; iX++ )
+      for ( int iN = 0; iN < nNodes; iN++ ) {
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
@@ -287,9 +287,9 @@ void InitializeFields( State *state, GridStructure *Grid,
     const Real E_M = 1.0;
 
     Real X1 = 0.0;
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-      for ( unsigned int k = 0; k < pOrder; k++ )
-        for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
+    for ( int iX = ilo; iX <= ihi; iX++ )
+      for ( int k = 0; k < pOrder; k++ )
+        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
           X1                    = Grid->Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
@@ -317,8 +317,8 @@ void InitializeFields( State *state, GridStructure *Grid,
           uPF( iPF_D, iX, iNodeX ) = D;
         }
     // Fill density in guard cells
-    for ( unsigned int iX = 0; iX < ilo; iX++ )
-      for ( unsigned int iN = 0; iN < nNodes; iN++ ) {
+    for ( int iX = 0; iX < ilo; iX++ )
+      for ( int iN = 0; iN < nNodes; iN++ ) {
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
@@ -326,9 +326,9 @@ void InitializeFields( State *state, GridStructure *Grid,
 
     Real X1  = 0.0;
     Real amp = 0.999999999999999999999999999999999995;
-    for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-      for ( unsigned int k = 0; k < pOrder; k++ )
-        for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
+    for ( int iX = ilo; iX <= ihi; iX++ )
+      for ( int k = 0; k < pOrder; k++ )
+        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
           X1                    = Grid->Get_Centers( iX );
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;
@@ -377,8 +377,8 @@ void InitializeFields( State *state, GridStructure *Grid,
               ( 1.0 + amp * sin( constants::PI( ) * X1 ) );
         }
     // Fill density in guard cells
-    for ( unsigned int iX = 0; iX < ilo; iX++ )
-      for ( unsigned int iN = 0; iN < nNodes; iN++ ) {
+    for ( int iX = 0; iX < ilo; iX++ )
+      for ( int iN = 0; iN < nNodes; iN++ ) {
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }

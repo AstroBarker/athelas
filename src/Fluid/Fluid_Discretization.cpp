@@ -49,22 +49,24 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
   // --- Calc numerical flux at all faces
   Kokkos::parallel_for(
       "Numerical Fluxes", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
-      KOKKOS_LAMBDA( UInt iX ) {
+      KOKKOS_LAMBDA( int iX ) {
         auto uCF_L = Kokkos::subview( uCF_F_L, Kokkos::ALL, iX );
         auto uCF_R = Kokkos::subview( uCF_F_R, Kokkos::ALL, iX );
 
         const Real rho_L = 1.0 / uCF_L( 0 );
         const Real rho_R = 1.0 / uCF_R( 0 );
-        Real P_L, P_R, Cs_L, Cs_R;
 
-        eos->PressureFromConserved( uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ), P_L );
-        eos->SoundSpeedFromConserved( uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ),
-                                      Cs_L );
+        auto lambda      = nullptr;
+        const Real P_L   = eos->PressureFromConserved( uCF_L( 0 ), uCF_L( 1 ),
+                                                       uCF_L( 2 ), lambda );
+        const Real Cs_L  = eos->SoundSpeedFromConserved( uCF_L( 0 ), uCF_L( 1 ),
+                                                         uCF_L( 2 ), lambda );
         const Real lam_L = Cs_L * rho_L;
 
-        eos->PressureFromConserved( uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ), P_R );
-        eos->SoundSpeedFromConserved( uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ),
-                                      Cs_R );
+        const Real P_R   = eos->PressureFromConserved( uCF_R( 0 ), uCF_R( 1 ),
+                                                       uCF_R( 2 ), lambda );
+        const Real Cs_R  = eos->SoundSpeedFromConserved( uCF_R( 0 ), uCF_R( 1 ),
+                                                         uCF_R( 2 ), lambda );
         const Real lam_R = Cs_R * rho_R;
 
         // --- Numerical Fluxes ---
@@ -105,11 +107,11 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                                 { nNodes, ihi + 1, nvars } ),
         KOKKOS_LAMBDA( const int iN, const int iX, const int iCF ) {
-          Real P = 0.0;
-          eos->PressureFromConserved(
+          auto lambda  = nullptr;
+          const Real P = eos->PressureFromConserved(
               Basis->BasisEval( U, iX, 0, iN + 1, false ),
               Basis->BasisEval( U, iX, 1, iN + 1, false ),
-              Basis->BasisEval( U, iX, 2, iN + 1, false ), P );
+              Basis->BasisEval( U, iX, 2, iN + 1, false ), lambda );
           Flux_q( iCF, iX, iN ) =
               Flux_Fluid( Basis->BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
         } );
@@ -122,7 +124,7 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
                                                 { order, ihi + 1, nvars } ),
         KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
           Real local_sum = 0.0;
-          for ( UInt iN = 0; iN < nNodes; iN++ ) {
+          for ( int iN = 0; iN < nNodes; iN++ ) {
             auto X = Grid.NodeCoordinate( iX, iN );
             local_sum += Grid.Get_Weights( iN ) * Flux_q( iCF, iX, iN ) *
                          Basis->Get_dPhi( iX, iN + 1, k ) *
@@ -140,22 +142,22 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
 void ComputeIncrement_Fluid_Geometry( const View3D U, GridStructure &Grid,
                                       const ModalBasis *Basis, const EOS *eos,
                                       View3D dU ) {
-  const UInt nNodes = Grid.Get_nNodes( );
-  const UInt order  = Basis->Get_Order( );
-  const UInt ilo    = Grid.Get_ilo( );
-  const UInt ihi    = Grid.Get_ihi( );
+  const int nNodes = Grid.Get_nNodes( );
+  const int order  = Basis->Get_Order( );
+  const int ilo    = Grid.Get_ilo( );
+  const int ihi    = Grid.Get_ihi( );
 
   Kokkos::parallel_for(
       "Geometry Term; Fluid",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, ilo }, { order, ihi + 1 } ),
       KOKKOS_LAMBDA( const int k, const int iX ) {
         Real local_sum = 0.0;
-        for ( UInt iN = 0; iN < nNodes; iN++ ) {
-          Real P = 0.0;
-          eos->PressureFromConserved(
+        auto lambda    = nullptr;
+        for ( int iN = 0; iN < nNodes; iN++ ) {
+          const Real P = eos->PressureFromConserved(
               Basis->BasisEval( U, iX, 0, iN + 1, false ),
               Basis->BasisEval( U, iX, 1, iN + 1, false ),
-              Basis->BasisEval( U, iX, 2, iN + 1, false ), P );
+              Basis->BasisEval( U, iX, 2, iN + 1, false ), lambda );
 
           Real X = Grid.NodeCoordinate( iX, iN );
 
@@ -175,10 +177,10 @@ void ComputeIncrement_Fluid_Geometry( const View3D U, GridStructure &Grid,
 void ComputeIncrement_Fluid_Rad( const View3D uCF, const View3D uCR,
                                  GridStructure &Grid, const ModalBasis *Basis,
                                  const EOS *eos, View3D dU ) {
-  const UInt nNodes = Grid.Get_nNodes( );
-  const UInt order  = Basis->Get_Order( );
-  const UInt ilo    = Grid.Get_ilo( );
-  const UInt ihi    = Grid.Get_ihi( );
+  const int nNodes = Grid.Get_nNodes( );
+  const int order  = Basis->Get_Order( );
+  const int ilo    = Grid.Get_ilo( );
+  const int ihi    = Grid.Get_ihi( );
 
   Kokkos::parallel_for(
       "Fluid Source Term; Rad",
@@ -186,7 +188,7 @@ void ComputeIncrement_Fluid_Rad( const View3D uCF, const View3D uCR,
       KOKKOS_LAMBDA( const int k, const int iX ) {
         Real local_sum1 = 0.0;
         Real local_sum2 = 0.0;
-        for ( UInt iN = 0; iN < nNodes; iN++ ) {
+        for ( int iN = 0; iN < nNodes; iN++ ) {
           const Real Tau = Basis->BasisEval( uCF, iX, 0, iN + 1, false );
           const Real Vel = Basis->BasisEval( uCF, iX, 1, iN + 1, false );
           const Real EmT = Basis->BasisEval( uCF, iX, 2, iN + 1, false );
@@ -195,11 +197,10 @@ void ComputeIncrement_Fluid_Rad( const View3D uCF, const View3D uCR,
           const Real Fr = Basis->BasisEval( uCR, iX, 1, iN + 1, false ) / Tau;
           const Real Pr = ComputeClosure( Er, Fr );
 
-          Real P = 0.0;
-          eos->PressureFromConserved( Tau, Vel, EmT, P );
+          auto lambda  = nullptr;
+          const Real P = eos->PressureFromConserved( Tau, Vel, EmT, lambda );
 
-          Real T = 0.0;
-          eos->TemperatureFromTauPressure( Tau, P, T );
+          const Real T = eos->TemperatureFromTauPressure( Tau, P, lambda );
 
           // TODO: kappa and chi will be updated here.
           const Real kappa = ComputeOpacity( Tau, Vel, EmT );
@@ -266,7 +267,7 @@ void Compute_Increment_Explicit( const View3D U, const View3D uCR,
       } );
 
   Kokkos::parallel_for(
-      ihi + 2, KOKKOS_LAMBDA( UInt iX ) { Flux_U( iX ) = 0.0; } );
+      ihi + 2, KOKKOS_LAMBDA( int iX ) { Flux_U( iX ) = 0.0; } );
 
   // --- Fluid Increment : Divergence ---
   ComputeIncrement_Fluid_Divergence( U, Grid, Basis, eos, dU, Flux_q, dFlux_num,

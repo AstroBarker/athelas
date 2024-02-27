@@ -7,9 +7,9 @@
 
 // Fill identity matrix
 template <class T>
-constexpr void IdentityMatrix( T Mat, UInt n ) {
-  for ( UInt i = 0; i < n; i++ )
-    for ( UInt j = 0; j < n; j++ ) {
+constexpr void IdentityMatrix( T Mat, int n ) {
+  for ( int i = 0; i < n; i++ )
+    for ( int j = 0; j < n; j++ ) {
       if ( i == j ) {
         Mat( i, j ) = 1.0;
       } else {
@@ -31,6 +31,6 @@ constexpr void MatMul( Real alpha, M A, V x, Real beta, V y ) {
   }
 }
 void Tri_Sym_Diag( int n, Real *d, Real *e, Real *array );
-void InvertMatrix( Real *M, UInt n );
+void InvertMatrix( Real *M, int n );
 
 #endif // _LINEARALGEBRAMODULES_HPP_

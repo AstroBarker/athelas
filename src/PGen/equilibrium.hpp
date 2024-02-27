@@ -15,29 +15,29 @@
  * Initialize equilibrium rad test
  **/
 void RadEquilibriumInit( View3D uCF, View3D uPF, View3D uCR,
-                         GridStructure *Grid, const UInt pOrder ) {
+                         GridStructure *Grid, const int pOrder ) {
 
-  const unsigned int ilo    = Grid->Get_ilo( );
-  const unsigned int ihi    = Grid->Get_ihi( );
-  const unsigned int nNodes = Grid->Get_nNodes( );
+  const int ilo    = Grid->Get_ilo( );
+  const int ihi    = Grid->Get_ihi( );
+  const int nNodes = Grid->Get_nNodes( );
 
-  const unsigned int iCF_Tau = 0;
-  const unsigned int iCF_V   = 1;
-  const unsigned int iCF_E   = 2;
+  const int iCF_Tau = 0;
+  const int iCF_V   = 1;
+  const int iCF_E   = 2;
 
-  const unsigned int iPF_D = 0;
+  const int iPF_D = 0;
 
-  const unsigned int iCR_E = 0;
-  const unsigned int iCR_F = 1;
+  const int iCR_E = 0;
+  const int iCR_F = 1;
 
   const Real V0 = 0.0;
   const Real D  = std::pow( 10.0, -7.0 );
   const Real P  = 1.0;
 
   Real X1 = 0.0;
-  for ( unsigned int iX = ilo; iX <= ihi; iX++ )
-    for ( unsigned int k = 0; k < pOrder; k++ )
-      for ( unsigned int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
+  for ( int iX = ilo; iX <= ihi; iX++ )
+    for ( int k = 0; k < pOrder; k++ )
+      for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
         X1                    = Grid->Get_Centers( iX );
         uCF( iCF_Tau, iX, k ) = 0.0;
         uCF( iCF_V, iX, k )   = 0.0;
@@ -56,8 +56,8 @@ void RadEquilibriumInit( View3D uCF, View3D uPF, View3D uCR,
         uPF( iPF_D, iX, iNodeX ) = D;
       }
   // Fill density in guard cells
-  for ( unsigned int iX = 0; iX < ilo; iX++ )
-    for ( unsigned int iN = 0; iN < nNodes; iN++ ) {
+  for ( int iX = 0; iX < ilo; iX++ )
+    for ( int iN = 0; iN < nNodes; iN++ ) {
       uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
       uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
     }

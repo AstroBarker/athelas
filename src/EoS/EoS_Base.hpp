@@ -10,34 +10,28 @@
 template <class EOS>
 class EosBase {
  public:
-  void PressureFromConserved( const Real Tau, const Real V, const Real EmT,
-                              Real &P ) const {
-    static_cast<EOS const *>( this )->PressureFromConserved( Tau, V, EmT, P );
+  Real PressureFromConserved( const Real Tau, const Real V, const Real EmT,
+                              Real *lambda ) const {
+    return static_cast<EOS const *>( this )->PressureFromConserved( Tau, V, EmT,
+                                                                    lambda );
   }
-  void SoundSpeedFromConserved( const Real Tau, const Real V, const Real EmT,
-                                Real Cs ) const {
-    static_cast<EOS const *>( this )->SoundSpeedFromConserved( Tau, V, EmT,
-                                                               Cs );
+  Real SoundSpeedFromConserved( const Real Tau, const Real V, const Real EmT,
+                                Real *lambda ) const {
+    return static_cast<EOS const *>( this )->SoundSpeedFromConserved(
+        Tau, V, EmT, lambda );
   }
-  void TemperatureFromTauPressureAbar( const Real Tau, const Real P,
-                                       const Real Abar, Real &T ) const {
-    static_cast<EOS const *>( this )->TemperatureFromTauPressureAbar( Tau, P,
-                                                                      Abar, T );
+  Real TemperatureFromTauPressureAbar( const Real Tau, const Real P,
+                                       const Real Abar, Real *lambda ) const {
+    return static_cast<EOS const *>( this )->TemperatureFromTauPressureAbar(
+        Tau, P, Abar, lambda );
   }
-  void TemperatureFromTauPressure( const Real Tau, const Real P,
-                                   Real &T ) const {
-    static_cast<EOS const *>( this )->TemperatureFromTauPressure( Tau, P, T );
+  Real TemperatureFromTauPressure( const Real Tau, const Real P,
+                                   Real *lambda ) const {
+    return static_cast<EOS const *>( this )->TemperatureFromTauPressure(
+        Tau, P, lambda );
   }
-  void RadiationPressure( const Real T, Real &Prad ) const {
-    static_cast<EOS const *>( this )->RadiationPressure( T, Prad );
-  }
-  Real ComputeInternalEnergy( const View3D U, const ModalBasis *Basis,
-                              const UInt iX, const UInt iN ) const {
-    return static_cast<EOS const *>( this )->ComputeInternalEnergy( U, Basis,
-                                                                    iX, iN );
-  }
-  Real ComputeInternalEnergy( const View3D U, const UInt iX ) const {
-    return static_cast<EOS const *>( this )->ComputeInternalEnergy( U, iX );
+  Real RadiationPressure( const Real T, Real *lambda ) const {
+    return static_cast<EOS const *>( this )->RadiationPressure( T, lambda );
   }
 };
 

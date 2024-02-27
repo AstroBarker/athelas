@@ -52,7 +52,7 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
   // --- Calc numerical flux at all faces
   Kokkos::parallel_for(
       "Numerical Fluxes; Rad", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
-      KOKKOS_LAMBDA( UInt iX ) {
+      KOKKOS_LAMBDA( int iX ) {
         auto uCR_L = Kokkos::subview( uCR_F_L, Kokkos::ALL, iX );
         auto uCR_R = Kokkos::subview( uCR_F_R, Kokkos::ALL, iX );
 
@@ -130,7 +130,7 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
                                                 { order, ihi + 1, nvars } ),
         KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
           Real local_sum = 0.0;
-          for ( UInt iN = 0; iN < nNodes; iN++ ) {
+          for ( int iN = 0; iN < nNodes; iN++ ) {
             auto X = Grid.NodeCoordinate( iX, iN );
             local_sum += Grid.Get_Weights( iN ) * Flux_q( iCR, iX, iN ) *
                          Basis->Get_dPhi( iX, iN + 1, k ) *
@@ -148,11 +148,11 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
 void ComputeIncrement_Rad_Source( const View3D uCR, const View3D uCF,
                                   GridStructure &Grid, const ModalBasis *Basis,
                                   const EOS *eos, View3D dU ) {
-  const UInt nNodes = Grid.Get_nNodes( );
-  const UInt order  = Basis->Get_Order( );
-  const UInt ilo    = Grid.Get_ilo( );
-  const UInt ihi    = Grid.Get_ihi( );
-  const int nvars   = uCR.extent( 0 );
+  const int nNodes = Grid.Get_nNodes( );
+  const int order  = Basis->Get_Order( );
+  const int ilo    = Grid.Get_ilo( );
+  const int ihi    = Grid.Get_ihi( );
+  const int nvars  = uCR.extent( 0 );
 
   Kokkos::parallel_for(
       "Rad::Source",
@@ -160,16 +160,15 @@ void ComputeIncrement_Rad_Source( const View3D uCR, const View3D uCF,
                                               { order, ihi + 1, nvars } ),
       KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
         Real local_sum = 0.0;
-        for ( UInt iN = 0; iN < nNodes; iN++ ) {
+        for ( int iN = 0; iN < nNodes; iN++ ) {
           const Real D    = 1.0 / Basis->BasisEval( uCF, iX, 0, iN + 1, false );
           const Real V    = Basis->BasisEval( uCF, iX, 1, iN + 1, false );
           const Real Em_T = Basis->BasisEval( uCF, iX, 2, iN + 1, false );
 
-          Real T;
-          Real P;
           const Real Abar = 1.0; // TODO: update abar
-          eos->PressureFromConserved( 1.0 / D, V, Em_T, P );
-          eos->TemperatureFromTauPressureAbar( 1.0 / D, P, Abar, T );
+          Real lambda[2]  = { Abar, 0.0 };
+          const Real P = eos->PressureFromConserved( 1.0 / D, V, Em_T, lambda );
+          const Real T = eos->TemperatureFromTauPressure( 1.0 / D, P, lambda );
 
           const Real kappa = ComputeOpacity( D, V, Em_T );
           const Real X     = ComputeEmissivity( D, V, Em_T );
@@ -233,7 +232,7 @@ void Compute_Increment_Explicit_Rad( const View3D uCR, const View3D uCF,
       } );
 
   Kokkos::parallel_for(
-      ihi + 2, KOKKOS_LAMBDA( UInt iX ) { Flux_U( iX ) = 0.0; } );
+      ihi + 2, KOKKOS_LAMBDA( int iX ) { Flux_U( iX ) = 0.0; } );
 
   // --- Increment : Divergence ---
   ComputeIncrement_Rad_Divergence( uCR, uCF, Grid, Basis, eos, dU, Flux_q,

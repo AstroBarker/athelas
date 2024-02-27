@@ -38,9 +38,9 @@ class TimeStepper {
                         SlopeLimiter *S_Limiter, const Options opts );
 
  private:
-  const UInt mSize;
-  const UInt nStages;
-  const UInt tOrder;
+  const int mSize;
+  const int nStages;
+  const int tOrder;
   const std::string BC;
 
   // SSP coefficients

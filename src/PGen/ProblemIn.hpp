@@ -40,13 +40,13 @@ class ProblemIn {
   std::string ProblemName;
   std::string BC;
 
-  UInt nElements;
-  UInt nNodes;
-  UInt nGhost;
+  int nElements;
+  int nNodes;
+  int nGhost;
 
-  UInt pOrder;
-  UInt tOrder;
-  UInt nStages;
+  int pOrder;
+  int tOrder;
+  int nStages;
 
   Real xL;
   Real xR;

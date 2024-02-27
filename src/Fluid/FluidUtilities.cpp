@@ -26,16 +26,16 @@
  **/
 void ComputePrimitiveFromConserved( View3D uCF, View3D uPF, ModalBasis *Basis,
                                     GridStructure *Grid ) {
-  const UInt nNodes = Grid->Get_nNodes( );
-  const UInt ilo    = Grid->Get_ilo( );
-  const UInt ihi    = Grid->Get_ihi( );
+  const int nNodes = Grid->Get_nNodes( );
+  const int ilo    = Grid->Get_ilo( );
+  const int ihi    = Grid->Get_ihi( );
 
   Real Tau = 0.0;
   Real Vel = 0.0;
   Real EmT = 0.0;
 
-  for ( UInt iX = ilo; iX <= ihi; iX++ )
-    for ( UInt iN = 0; iN < nNodes; iN++ ) {
+  for ( int iX = ilo; iX <= ihi; iX++ )
+    for ( int iN = 0; iN < nNodes; iN++ ) {
       // Density
       Tau              = Basis->BasisEval( uCF, 0, iX, iN + 1, false );
       uPF( 0, iX, iN ) = 1.0 / Tau;
@@ -54,7 +54,7 @@ void ComputePrimitiveFromConserved( View3D uCF, View3D uPF, ModalBasis *Basis,
  * Return a component iCF of the flux vector.
  * TODO: Flux_Fluid needs streamlining
  **/
-Real Flux_Fluid( const Real V, const Real P, const UInt iCF ) {
+Real Flux_Fluid( const Real V, const Real P, const int iCF ) {
   if ( iCF == 0 ) {
     return -V;
   } else if ( iCF == 1 ) {
@@ -72,7 +72,7 @@ Real Flux_Fluid( const Real V, const Real P, const UInt iCF ) {
  * TODO: extend to O(b^2)
  **/
 Real Source_Fluid_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E,
-                       Real F, Real Pr, UInt iCF ) {
+                       Real F, Real Pr, int iCF ) {
   assert( iCF == 0 || iCF == 1 || iCF == 2 );
   if ( iCF == 0 ) return 0.0; // rad doesn't source mass
 
@@ -116,8 +116,8 @@ Real ComputeTimestep_Fluid( const View3D U, const GridStructure *Grid, EOS *eos,
   const Real MIN_DT = 0.000000005;
   const Real MAX_DT = 1.0;
 
-  const UInt &ilo = Grid->Get_ilo( );
-  const UInt &ihi = Grid->Get_ihi( );
+  const int &ilo = Grid->Get_ilo( );
+  const int &ihi = Grid->Get_ihi( );
 
   Real dt = 0.0;
   Kokkos::parallel_reduce(
@@ -130,8 +130,9 @@ Real ComputeTimestep_Fluid( const View3D U, const GridStructure *Grid, EOS *eos,
 
         Real dr = Grid->Get_Widths( iX );
 
-        Real Cs = 0.0;
-        eos->SoundSpeedFromConserved( tau_x, vel_x, eint_x, Cs );
+        auto lambda = nullptr;
+        const Real Cs =
+            eos->SoundSpeedFromConserved( tau_x, vel_x, eint_x, lambda );
         Real eigval = Cs;
 
         Real dt_old = std::abs( dr ) / std::abs( eigval );

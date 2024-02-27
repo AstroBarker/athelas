@@ -30,21 +30,21 @@ class SlopeLimiter {
                           const ModalBasis *Basis );
 
   void LimitQuadratic( View3D U, const ModalBasis *Basis,
-                       Kokkos::View<Real[3]> d2w, const UInt iX,
-                       const UInt nNodes );
+                       Kokkos::View<Real[3]> d2w, const int iX,
+                       const int nNodes );
 
   void DetectTroubledCells( View3D U, GridStructure *Grid,
                             const ModalBasis *Basis );
 
   Real CellAverage( View3D U, GridStructure *Grid, const ModalBasis *Basis,
-                    const UInt iCF, const UInt iX, const int extrapolate );
+                    const int iCF, const int iX, const int extrapolate );
 
-  int Get_Limited( UInt iX ) const;
+  int Get_Limited( int iX ) const;
 
   ~SlopeLimiter( ) {}
 
  private:
-  UInt order;
+  int order;
   Real SlopeLimiter_Threshold;
   Real alpha;
   bool CharacteristicLimiting_Option;
