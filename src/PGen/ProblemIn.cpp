@@ -70,7 +70,9 @@ ProblemIn::ProblemIn( const std::string fn ) {
   std::optional<bool> characteristic   = in_table["Limiters"]["characteristic1"].value<bool>();
   characteristic = ini.GetValue( "Limiters", "characteristic" );
 
-  ProblemName = pn;
+  if ( pn ) {
+    ProblemName = pn;
+  }
   BC          = bc;
   Restart     = ( strcmp( rest, "true" ) == 0 ) ? true : false;
   do_rad      = ( strcmp( rad, "true" ) == 0 ) ? true : false;
