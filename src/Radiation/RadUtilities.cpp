@@ -99,8 +99,9 @@ Real ComputeClosure( const Real E, const Real F ) {
   const Real f = FluxFactor( E, F );
   const Real chi =
       ( 3.0 + 4.0 * f * f ) / ( 5.0 + 2.0 * std::sqrt( 4.0 - 3.0 * f * f ) );
-  const Real T = ( 1.0 - chi ) / 2.0 +
-                 ( 3.0 * chi - 1.0 ) * sgn( F ) / 2.0; // TODO: Is this right?
+  const Real T = ( 1.0 - chi ) / 2.0 + ( 3.0 * chi - 1.0 ) *
+                                           utilities::sgn( F ) /
+                                           2.0; // TODO: Is this right?
   return E * T;
 }
 

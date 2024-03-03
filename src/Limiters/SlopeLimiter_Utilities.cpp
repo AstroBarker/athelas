@@ -8,7 +8,7 @@
  *
  * Contains:
  * ---------
- * sgn, minmod, minmodB
+ * BarthJespersen
  **/
 
 #include <algorithm> // std::min, std::max
