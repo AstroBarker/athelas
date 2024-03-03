@@ -18,7 +18,6 @@
 #include "Abstractions.hpp"
 #include "Error.hpp"
 #include "Geometry.hpp"
-#include "SimpleIni.h"
 #include "toml.hpp"
 
 /* hold various program options */
@@ -65,6 +64,8 @@ class ProblemIn {
   bool TCI_Option;
   Real TCI_Threshold;
   bool Characteristic;
+
+  toml::table in_table;
 };
 
 #endif // _PROBLEMIN_HPP_

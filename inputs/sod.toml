@@ -1,4 +1,4 @@
-[problem]
+[Problem]
 problem = "Sod"
 t_end = 0.2
 geometry = "planar"
@@ -10,7 +10,7 @@ BC = "Homogenous"
 CFL = 0.35
 
 [Fluid]
-Basis = "Legendre"
+Basis = "legendre"
 nNodes = 3
 pOrder = 3
 nX = 128
