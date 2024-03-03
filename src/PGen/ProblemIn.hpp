@@ -18,7 +18,7 @@
 #include "Abstractions.hpp"
 #include "Error.hpp"
 #include "Geometry.hpp"
-#include "SimpleIni.h"
+#include "toml.hpp"
 
 /* hold various program options */
 struct Options {
@@ -35,7 +35,7 @@ struct Options {
 class ProblemIn {
 
  public:
-  ProblemIn( std::string fn );
+  ProblemIn( const std::string fn );
 
   std::string ProblemName;
   std::string BC;
@@ -64,6 +64,8 @@ class ProblemIn {
   bool TCI_Option;
   Real TCI_Threshold;
   bool Characteristic;
+
+  toml::table in_table;
 };
 
 #endif // _PROBLEMIN_HPP_
