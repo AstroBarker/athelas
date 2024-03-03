@@ -200,6 +200,9 @@ include_directories(${LAPACK_INCLUDE_DIRS})
 # SimpleIni
 include_directories("external/simpleini")
 
+# toml++
+include_directories("external/tomlplusplus")
+
 # --- main ---
 
 add_executable( main src/Driver.cpp ${ATHELAS_SOURCES} )
