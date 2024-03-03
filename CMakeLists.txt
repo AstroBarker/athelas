@@ -73,7 +73,6 @@ else()
     option(ATHELAS_IMPORT_KOKKOS "If ON, attempt to link to an external Kokkos src. If OFF, build Kokkos from source and package with ATHELAS" OFF)
 endif()
 
-set(INI_DIR "${PROJECT_SOURCE_DIR}/external/simpleini")
 include_directories(src)
 include_directories("src/Geometry")
 include_directories("src/Quadrature")
@@ -196,9 +195,6 @@ else()
     target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
 endif()
 include_directories(${LAPACK_INCLUDE_DIRS})
-
-# SimpleIni
-include_directories("external/simpleini")
 
 # toml++
 include_directories("external/tomlplusplus")
