@@ -17,8 +17,8 @@ We use [Kokkos](https://github.com/kokkos) for shared memory parallelism.
 Currently, most significant data structures use `Kokkos::Views` and loops are parallelised with `Kokkos`.
 More work to port other parts of the code.
 
-# SimpleIni
-We use [SimpleIni](https://github.com/brofield/simpleini) for parsing input files in the for parsing input files in the `.ini` format.
+# TOML++
+We use [toml++](https://github.com/marzer/tomlplusplus) for parsing input files in the for parsing input files in the `.toml` format.
 
 # Installation
 `athelas` uses submoduless to include dependencies. 
@@ -46,14 +46,13 @@ This will create a directory `bin` in the root directory that contains the execu
 ## NOTE: 
 The build system may not be perfect yet. Your mileage may vary.
 
-## TODO
+# TODO
 - function naming overhaul
 - class accessor refactor
 - kokkos parallel slope limiter
-- repalce simpleini reader with different format (TOML, YAML)
 - Rename values in hdf5 output...
 
-### Radiation TODO:
+## Radiation TODO:
 - ... microphysics...
 - implicit update
 
@@ -70,6 +69,7 @@ The build system may not be perfect yet. Your mileage may vary.
 * LAPACKE
 * HDF5
 * Kokkos (avialable as a submodule)
+* TOML++ (submodule)
 
 Hopefully `lapacke` won't be necessary forever, but at present it is needed for initializing the quadrature.
 I find that, on Arch Linux systems, `lapack`, `lapacke`, and `openblas` is sufficient for all `lapacke` needs.

@@ -60,7 +60,7 @@ void LimitInternalEnergy( View3D U, const ModalBasis *Basis, const EOS *eos ) {
         Real temp   = 0.0;
 
         for ( int iN = 0; iN <= order + 1; iN++ ) {
-          nodal = ComputeInternalEnergy( U, Basis, iX, iN );
+          nodal = utilities::ComputeInternalEnergy( U, Basis, iX, iN );
 
           if ( nodal >= 0.0 ) {
             temp = 1.0;
@@ -104,7 +104,7 @@ Real ComputeThetaState( const View3D U, const ModalBasis *Basis,
 
 Real TargetFunc( const View3D U, const ModalBasis *Basis, const EOS *eos,
                  const Real theta, const int iX, const int iN ) {
-  const Real w  = std::min( 1.0e-13, ComputeInternalEnergy( U, iX ) );
+  const Real w = std::min( 1.0e-13, utilities::ComputeInternalEnergy( U, iX ) );
   const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
   const Real s2 = ComputeThetaState( U, Basis, theta, 2, iX, iN );
 
@@ -138,7 +138,7 @@ Real Bisection( const View3D U, ModalBasis *Basis, EOS *eos, const int iX,
     }
 
     // new interval
-    if ( sgn( fc ) == sgn( fa ) ) {
+    if ( utilities::sgn( fc ) == utilities::sgn( fa ) ) {
       a = c;
     } else {
       b = c;
