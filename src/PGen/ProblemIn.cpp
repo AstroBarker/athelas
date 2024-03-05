@@ -46,7 +46,7 @@ ProblemIn::ProblemIn( const std::string fn ) {
   std::optional<int> nN = in_table["Fluid"]["nNodes"].value<int>( );
   std::optional<int> nX = in_table["Fluid"]["nX"].value<int>( );
   std::optional<int> nG = in_table["Fluid"]["nG"].value<int>( );
-  std::optional<int> pO = in_table["Fluid"]["pO"].value<int>( );
+  std::optional<int> pO = in_table["Fluid"]["pOrder"].value<int>( );
 
   // time
   std::optional<int> tO = in_table["Time"]["tOrder"].value<int>( );
