@@ -53,12 +53,14 @@ ProblemIn::ProblemIn( const std::string fn ) {
   std::optional<int> nS = in_table["Time"]["nStages"].value<int>( );
 
   // limiters
-  std::optional<Real> al  = in_table["Limiters"]["alpha"].value<Real>( );
-  std::optional<Real> slt = in_table["Limiters"]["Threshold"].value<Real>( );
   std::optional<bool> tci_opt = in_table["Limiters"]["TCI_Opt"].value<bool>( );
   std::optional<Real> tci_val = in_table["Limiters"]["TCI_val"].value<Real>( );
   std::optional<bool> characteristic =
       in_table["Limiters"]["Characteristic"].value<bool>( );
+  std::optional<Real> gamma1 = in_table["Limiters"]["gamma_l"].value<Real>( );
+  std::optional<Real> gamma2 = in_table["Limiters"]["gamma_i"].value<Real>( );
+  std::optional<Real> gamma3 = in_table["Limiters"]["gamma_r"].value<Real>( );
+  std::optional<Real> wenor  = in_table["Limiters"]["weno_r"].value<Real>( );
 
   if ( pn ) {
     ProblemName = pn.value( );
@@ -116,9 +118,16 @@ ProblemIn::ProblemIn( const std::string fn ) {
   tOrder  = tO.value_or( 1 );
   nStages = nS.value_or( 1 );
 
-  alpha          = al.value_or( 1.0 );
-  SL_Threshold   = slt.value_or( 1.0e-6 );
   TCI_Option     = tci_opt.value_or( false );
   TCI_Threshold  = tci_val.value_or( 0.1 );
   Characteristic = characteristic.value_or( false );
+  gamma_l        = gamma1.value_or( 0.005 );
+  gamma_i        = gamma2.value_or( 0.990 );
+  gamma_r        = gamma3.value_or( 0.005 );
+  if ( ( gamma2 && !gamma1 ) || ( gamma2 && !gamma3 ) ) {
+    gamma_i = gamma2.value( );
+    gamma_l = ( 1.0 - gamma_i ) / 2.0;
+    gamma_r = gamma_l;
+  }
+  weno_r = wenor.value_or( 2.0 );
 }

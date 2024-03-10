@@ -58,10 +58,10 @@ class SlopeLimiter {
   Real TCI_Threshold;
 
   // TODO: from input deck
-  Real gamma_l = 0.005;
-  Real gamma_i = 0.990;
-  Real gamma_r = 0.005;
-  Real weno_r  = 2.0; // nonlinear weight power
+  Real gamma_l;
+  Real gamma_i;
+  Real gamma_r;
+  Real weno_r; // nonlinear weight power
 
   View2D modified_polynomial;
 

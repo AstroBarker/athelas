@@ -59,11 +59,13 @@ class ProblemIn {
   bool Restart;
   bool do_rad;
 
-  Real alpha;
-  Real SL_Threshold;
   bool TCI_Option;
   Real TCI_Threshold;
   bool Characteristic;
+  Real gamma_l;
+  Real gamma_i;
+  Real gamma_r;
+  Real weno_r;
 
   toml::table in_table;
 };

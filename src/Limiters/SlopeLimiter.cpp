@@ -31,12 +31,14 @@ SlopeLimiter::SlopeLimiter( GridStructure *Grid, ProblemIn *pin )
     : order( pin->pOrder ),
       CharacteristicLimiting_Option( pin->Characteristic ),
       TCI_Option( pin->TCI_Option ), TCI_Threshold( pin->TCI_Threshold ),
+      gamma_l( pin->gamma_l ), gamma_i( pin->gamma_i ), gamma_r( pin->gamma_r ),
+      weno_r( pin->weno_r ),
       modified_polynomial( "mmodified_polynomial", 3, pin->pOrder ),
       R( "R Matrix", 3, 3, Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ),
       R_inv( "invR Matrix", 3, 3,
              Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ),
-      U_c_T( "U_c_T", 3 ), w_c_T( "w_c_T", 3 ),
-      Mult( "Mult", 3 ), D( "TCI", 3, Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ),
+      U_c_T( "U_c_T", 3 ), w_c_T( "w_c_T", 3 ), Mult( "Mult", 3 ),
+      D( "TCI", 3, Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ),
       LimitedCell( "LimitedCell",
                    Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ) {}
 
@@ -93,9 +95,9 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
     return;
   }
 
-  const int &ilo    = Grid->Get_ilo( );
-  const int &ihi    = Grid->Get_ihi( );
-  const int nvars   = U.extent( 0 );
+  const int &ilo  = Grid->Get_ilo( );
+  const int &ihi  = Grid->Get_ihi( );
+  const int nvars = U.extent( 0 );
 
   // --- Apply troubled cell indicator ---
   // Exit if we don't need to limit slopes
