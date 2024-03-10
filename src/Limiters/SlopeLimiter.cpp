@@ -10,6 +10,7 @@
 
 #include <algorithm> /* std::min, std::max */
 #include <cstdlib>   /* abs */
+#include <limits>
 
 #include "Kokkos_Core.hpp"
 
@@ -27,19 +28,15 @@
  *limiter
  **/
 SlopeLimiter::SlopeLimiter( GridStructure *Grid, ProblemIn *pin )
-    : order( pin->pOrder ), SlopeLimiter_Threshold( pin->SL_Threshold ),
-      alpha( pin->alpha ), CharacteristicLimiting_Option( pin->Characteristic ),
+    : order( pin->pOrder ),
+      CharacteristicLimiting_Option( pin->Characteristic ),
       TCI_Option( pin->TCI_Option ), TCI_Threshold( pin->TCI_Threshold ),
-      R( "R Matrix" ), R_inv( "invR Matrix" ), SlopeDifference( "SlopeDiff" ),
-      dU( "dU" ), d2U( "d2U" ), d2w( "d2w" ), U_c_L( "U_c_L" ),
-      U_c_T( "U_c_T" ), U_c_R( "U_c_R" ), U_v_L( "U_v_L" ), U_v_R( "U_v_R" ),
-      dU_c_L( "dU_c_L" ), dU_c_T( "dU_c_T" ), dU_c_R( "dU_c_R" ),
-      dU_v_L( "dU_v_L" ), dU_v_R( "dU_v_R" ), w_c_L( "w_c_L" ),
-      w_c_T( "w_c_T" ), w_c_R( "w_c_R" ), w_v_L( "w_v_L" ), w_v_R( "U_v_R" ),
-      dw_c_L( "dw_c_L" ), dw_c_T( "dw_c_T" ), dw_c_R( "dw_c_R" ),
-      dw_v_L( "dw_v_L" ), dw_v_R( "dw_v_R" ), Mult1( "Mult1" ),
-      Mult2( "Mult2" ), Mult3( "Mult3" ),
-      D( "TCI", 3, Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ),
+      modified_polynomial( "mmodified_polynomial", 3, pin->pOrder ),
+      R( "R Matrix", 3, 3, Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ),
+      R_inv( "invR Matrix", 3, 3,
+             Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ),
+      U_c_T( "U_c_T", 3 ), w_c_T( "w_c_T", 3 ),
+      Mult( "Mult", 3 ), D( "TCI", 3, Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ),
       LimitedCell( "LimitedCell",
                    Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ) {}
 
@@ -98,214 +95,116 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
 
   const int &ilo    = Grid->Get_ilo( );
   const int &ihi    = Grid->Get_ihi( );
-  const int &nNodes = Grid->Get_nNodes( );
   const int nvars   = U.extent( 0 );
 
   // --- Apply troubled cell indicator ---
   // Exit if we don't need to limit slopes
 
+  // map to characteristic vars
+  if ( CharacteristicLimiting_Option ) {
+    for ( int iX = ilo; iX <= ihi; iX++ ) {
+      // --- Characteristic Limiting Matrices ---
+      // Note: using cell averages
+      for ( int iCF = 0; iCF < nvars; iCF++ ) {
+        Mult( iCF ) = U( iCF, iX, 0 );
+      }
+
+      auto R_i     = Kokkos::subview( R, Kokkos::ALL, Kokkos::ALL, iX );
+      auto R_inv_i = Kokkos::subview( R_inv, Kokkos::ALL, Kokkos::ALL, iX );
+      ComputeCharacteristicDecomposition( Mult, R_i, R_inv_i );
+      for ( int k = 0; k < order; k++ ) {
+        // store w_.. = invR @ U_..
+        for ( int iCF = 0; iCF < nvars; iCF++ ) {
+          U_c_T( iCF ) = U( iCF, iX, k );
+          w_c_T( iCF ) = 0.0;
+        }
+        MatMul( 1.0, R_inv_i, U_c_T, 1.0, w_c_T );
+
+        for ( int iCF = 0; iCF < nvars; iCF++ ) {
+          U( iCF, iX, k ) = w_c_T( iCF );
+        }
+      }
+    }
+  }
+
   if ( TCI_Option ) DetectTroubledCells( U, Grid, Basis );
 
-  for ( int iX = ilo; iX <= ihi; iX++ ) {
+  for ( int iCF = 0; iCF < nvars; iCF++ ) {
+    for ( int iX = ilo; iX <= ihi; iX++ ) {
 
-    LimitedCell( iX ) = 0;
+      this->LimitedCell( iX ) = 0;
 
-    // Check if TCI val is less than TCI_Threshold
-    int j = 0;
-    for ( int iCF = 0; iCF < nvars; iCF++ ) {
-      if ( D( iCF, iX ) > TCI_Threshold && TCI_Option ) {
-        j++;
-      }
-    }
-
-    if ( j == 0 && TCI_Option ) continue;
-
-    /* Note we have limited this cell */
-    LimitedCell( iX ) = 1;
-
-    for ( int i = 0; i < 3; i++ ) {
-      d2w( i )   = 0.0;
-      Mult1( i ) = 0.0;
-      Mult2( i ) = 0.0;
-      Mult3( i ) = 0.0;
-    }
-
-    // --- Characteristic Limiting Matrices ---
-    // Note: using cell averages
-
-    if ( CharacteristicLimiting_Option ) {
+      // Check if TCI val is less than TCI_Threshold
+      int j = 0;
       for ( int iCF = 0; iCF < nvars; iCF++ ) {
-        Mult2( iCF ) = U( iCF, iX, 0 );
-      }
-      ComputeCharacteristicDecomposition( Mult2, R, R_inv );
-    } else {
-      IdentityMatrix( R, 3 );
-      IdentityMatrix( R_inv, 3 );
-    }
-
-    // ! Anything needed for boundaries? !
-
-    // --- Limit Quadratic Term ---
-    if ( order >= 3 ) {
-      for ( int iCF = 0; iCF < nvars; iCF++ ) {
-        Mult1( iCF ) = U( iCF, iX, 2 );
-      }
-      MatMul( 1.0, R_inv, Mult1, 1.0, d2w );
-
-      LimitQuadratic( U, Basis, d2w, iX, nNodes );
-    }
-
-    // --- Compute info for limiter ---
-    for ( int iCF = 0; iCF < nvars; iCF++ ) {
-      Mult1( iCF ) = 0.0;
-      Mult2( iCF ) = 0.0;
-      Mult3( iCF ) = 0.0;
-
-      U_c_L( iCF ) = U( iCF, iX - 1, 0 );
-      U_c_T( iCF ) = U( iCF, iX, 0 );
-      U_c_R( iCF ) = U( iCF, iX + 1, 0 );
-
-      dU_c_T( iCF ) = U( iCF, iX, 1 );
-
-      U_v_L( iCF ) = Basis->BasisEval( U, iX, iCF, 0, false );
-      U_v_R( iCF ) = Basis->BasisEval( U, iX, iCF, nNodes + 1, false );
-
-      // initialize characteristic forms
-      w_c_L( iCF ) = 0.0;
-      w_c_T( iCF ) = 0.0;
-      w_c_R( iCF ) = 0.0;
-
-      w_v_L( iCF ) = 0.0;
-      w_v_R( iCF ) = 0.0;
-
-      dw_c_T( iCF ) = 0.0;
-    }
-
-    // --- Map limiter variables to characteristics ---
-
-    // store w_.. = invR @ U_..
-    MatMul( 1.0, R_inv, U_c_L, 1.0, w_c_L );
-    MatMul( 1.0, R_inv, U_c_T, 1.0, w_c_T );
-    MatMul( 1.0, R_inv, U_c_R, 1.0, w_c_R );
-
-    MatMul( 1.0, R_inv, U_v_L, 1.0, w_v_L );
-    MatMul( 1.0, R_inv, U_v_R, 1.0, w_v_R );
-
-    MatMul( 1.0, R_inv, dU_c_T, 1.0, dw_c_T );
-
-    // Limited Slopes
-    for ( int iCF = 0; iCF < nvars; iCF++ ) {
-      Phi1 = BarthJespersen( w_v_L( iCF ), w_v_R( iCF ), w_c_L( iCF ),
-                             w_c_T( iCF ), w_c_R( iCF ), alpha );
-
-      dU( iCF ) = Phi1 * dw_c_T( iCF ); // Multiply slope by Phi1
-      if ( order >= 3 ) d2U( iCF ) = Phi1 * d2w( iCF ); // 2nd derivative
-    }
-
-    // Transform back to conserved quantities
-    if ( CharacteristicLimiting_Option ) {
-      // dU -> R dU
-      MatMul( 1.0, R, dU, 1.0, Mult1 );
-      // d2U -> R d2U
-      if ( order >= 3 ) {
-        MatMul( 1.0, R, d2U, 1.0, Mult2 );
-      }
-      for ( int iCF = 0; iCF < 3; iCF++ ) {
-        dU( iCF ) = Mult1( iCF );
-        if ( order >= 3 ) d2U( iCF ) = Mult2( iCF );
-      }
-    }
-
-    // --- Compare Limited to Original Slopes ---
-    for ( int iCF = 0; iCF < 3; iCF++ ) {
-      SlopeDifference( iCF ) = std::abs( U( iCF, iX, 1 ) - dU( iCF ) );
-
-      // if slopes differ too much, replace
-      if ( SlopeDifference( iCF ) >
-           SlopeLimiter_Threshold * std::abs( U( iCF, iX, 0 ) ) ) {
-        for ( int k = 1; k < order; k++ ) {
-          U( iCF, iX, k ) = 0.0;
+        if ( this->D( iCF, iX ) > this->TCI_Threshold && this->TCI_Option ) {
+          j++;
         }
-        U( iCF, iX, 1 ) = dU( iCF );
-        if ( order >= 3 ) U( iCF, iX, 2 ) = d2U( iCF );
       }
+
+      if ( j != 0 || !TCI_Option ) {
+
+        const Real beta_l = SmoothnessIndicator( U, Grid, iX - 1, iCF );
+        const Real beta_i = SmoothnessIndicator( U, Grid, iX, iCF );
+        const Real beta_r = SmoothnessIndicator( U, Grid, iX + 1, iCF );
+
+        // nonlinear weights w
+        Real w_l         = NonLinearWeight( this->gamma_l, beta_l );
+        Real w_i         = NonLinearWeight( this->gamma_i, beta_i );
+        Real w_r         = NonLinearWeight( this->gamma_r, beta_r );
+        const Real sum_w = w_l + w_i + w_r;
+        w_l /= sum_w;
+        w_i /= sum_w;
+        w_r /= sum_w;
+
+        // modify polynomials
+        ModifyPolynomial( U, iX, iCF );
+
+        // update solution via WENO
+        for ( int k = 0; k < this->order; k++ ) {
+          U( iCF, iX, k ) = w_l * this->modified_polynomial( 0, k ) +
+                            w_i * this->modified_polynomial( 1, k ) +
+                            w_r * this->modified_polynomial( 2, k );
+        }
+      }
+
       /* Note we have limited this cell */
-      LimitedCell( iX ) = 1;
+      // LimitedCell( iX ) = 1;
     }
   }
-}
 
-/**
- * Limit the quadratic term.
- **/
-void SlopeLimiter::LimitQuadratic( View3D U, const ModalBasis *Basis,
-                                   Kokkos::View<Real[3]> d2w, const int iX,
-                                   const int nNodes ) {
-  const int nvars = U.extent( 0 );
-
-  Real Phi2 = 0.0;
-
-  for ( int i = 0; i < 3; i++ ) {
-    Mult2( i ) = 0.0;
-  }
-
-  // --- Compute info for limiter ---
-  for ( int iCF = 0; iCF < nvars; iCF++ ) {
-    dU_c_L( iCF ) = U( iCF, iX - 1, 1 );
-    dU_c_T( iCF ) = U( iCF, iX, 1 );
-    dU_c_R( iCF ) = U( iCF, iX + 1, 1 );
-
-    dU_v_L( iCF ) = Basis->BasisEval( U, iX, iCF, 0, true );
-    dU_v_R( iCF ) = Basis->BasisEval( U, iX, iCF, nNodes + 1, true );
-
-    // initialize characteristic forms
-    dw_c_L( iCF ) = 0.0;
-    dw_c_T( iCF ) = 0.0;
-    dw_c_R( iCF ) = 0.0;
-
-    dw_v_L( iCF ) = 0.0;
-    dw_v_R( iCF ) = 0.0;
-  }
-
-  // --- Map limiter variables to characteristics ---
-
-  // store w_.. = invR @ U_..
-  MatMul( 1.0, R_inv, dU_c_L, 1.0, dw_c_L );
-  MatMul( 1.0, R_inv, dU_c_T, 1.0, dw_c_T );
-  MatMul( 1.0, R_inv, dU_c_R, 1.0, dw_c_R );
-
-  MatMul( 1.0, R_inv, dU_v_L, 1.0, dw_v_L );
-  MatMul( 1.0, R_inv, dU_v_R, 1.0, dw_v_R );
-
-  // Limited Slopes
-  for ( int iCF = 0; iCF < nvars; iCF++ ) {
-    Phi2 = BarthJespersen( dw_v_L( iCF ), dw_v_R( iCF ), dw_c_L( iCF ),
-                           dw_c_T( iCF ), dw_c_R( iCF ), alpha );
-
-    d2U( iCF ) = Phi2 * d2w( iCF ); // 2nd derivative
-  }
-
-  // Transform back to conserved quantities
   if ( CharacteristicLimiting_Option ) {
-    // d2U -> R d2U
-    MatMul( 1.0, R, d2U, 1.0, Mult2 );
+    for ( int iX = ilo; iX <= ihi; iX++ ) {
+      // --- Characteristic Limiting Matrices ---
+      // Note: using cell averages
+      for ( int iCF = 0; iCF < nvars; iCF++ ) {
+        Mult( iCF ) = U( iCF, iX, 0 );
+      }
 
-    for ( int iCF = 0; iCF < nvars; iCF++ ) {
-      d2U( iCF ) = Mult2( iCF );
+      auto R_i     = Kokkos::subview( R, Kokkos::ALL, Kokkos::ALL, iX );
+      auto R_inv_i = Kokkos::subview( R_inv, Kokkos::ALL, Kokkos::ALL, iX );
+      // ComputeCharacteristicDecomposition( Mult, R_i, R_inv_i );
+      for ( int k = 0; k < order; k++ ) {
+        // store w_.. = invR @ U_..
+        for ( int iCF = 0; iCF < nvars; iCF++ ) {
+          U_c_T( iCF ) = U( iCF, iX, k );
+          w_c_T( iCF ) = 0.0;
+        }
+        MatMul( 1.0, R_i, U_c_T, 1.0, w_c_T );
+
+        for ( int iCF = 0; iCF < nvars; iCF++ ) {
+          U( iCF, iX, k ) = w_c_T( iCF );
+        }
+      }
     }
-  }
-
-  for ( int iCF = 0; iCF < nvars; iCF++ ) {
-    U( iCF, iX, 2 ) = d2U( iCF );
   }
 }
 
 /**
  * Return the cell average of a field iCF on cell iX.
- * The parameter `int extrapolate` designates how the cell average is computed.
- *  0  : Return stadnard cell average on iX
- *  -1 : Extrapolate polynomial from iX+1 into iX
- *  +1 : Extrapolate polynomial from iX-1 into iX
+ * The parameter `int extrapolate` designates how the cell average is
+ *computed. 0  : Return stadnard cell average on iX -1 : Extrapolate
+ *polynomial from iX+1 into iX +1 : Extrapolate polynomial from iX-1 into iX
  **/
 Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
                                 const ModalBasis *Basis, const int iCF,
@@ -345,6 +244,57 @@ Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
   }
 
   return avg / mass;
+}
+
+/**
+ * Modify polynomials a la
+ * X. Zhong and C.-W. Shu 13, simple compact WENO RKDG slope limiter
+ **/
+Real SlopeLimiter::ModifyPolynomial( const View3D U, const ModalBasis *Basis,
+                                     const Real Ubar_i, const int iX,
+                                     const int iCQ, const int iN ) {
+  return Basis->BasisEval( U, iX, iCQ, iN, false ) - Ubar_i + U( iCQ, iX, 0 );
+}
+void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
+                                     const int iCQ ) {
+  const Real Ubar_i = U( iCQ, iX, 0 );
+  // set to target cell average
+  modified_polynomial( 0, 0 ) = Ubar_i; // left
+  modified_polynomial( 1, 0 ) = Ubar_i; // target cell
+  modified_polynomial( 2, 0 ) = Ubar_i; // right
+  for ( int k = 1; k < this->order; k++ ) {
+    modified_polynomial( 0, k ) = U( iCQ, iX - 1, k );
+    modified_polynomial( 1, k ) = U( iCQ, iX, k );
+    modified_polynomial( 2, k ) = U( iCQ, iX + 1, k );
+  }
+}
+
+// WENO smoothness indicator beta
+Real SlopeLimiter::SmoothnessIndicator( const View3D U,
+                                        const GridStructure *Grid, const int iX,
+                                        const int iCQ ) {
+  const int k   = U.extent( 2 ) - 1;
+  const Real dx = Grid->Get_Widths( iX );
+
+  Real beta = 0.0;                 // output var
+  for ( int s = 1; s <= k; s++ ) { // loop over modes
+    // integrate mode on cell
+    Real local_sum = 0.0;
+    for ( int iN = 0; iN < k; iN++ ) {
+      // Q: how to evaluate derivaitvs at iN?
+      local_sum += Grid->Get_Weights( iN ) * std::pow( U( iCQ, iX, s ), 2.0 );
+    }
+    local_sum *= std::pow( dx, 2.0 * s );
+    beta += local_sum;
+  }
+  return beta;
+}
+
+Real SlopeLimiter::NonLinearWeight( const Real gamma, const Real beta ) {
+  const Real eps = std::numeric_limits<Real>::epsilon( );
+  const Real r   = this->weno_r;
+
+  return gamma / std::pow( beta + eps, r );
 }
 
 // LimitedCell accessor

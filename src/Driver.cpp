@@ -108,7 +108,7 @@ int main( int argc, char *argv[] ) {
     // --- Evolution loop ---
     int iStep   = 0;
     int i_print = 100; // std out
-    int i_write = 100; // h5 out
+    int i_write = 10;  // h5 out
     int i_out   = 1;   // output label, start 1
     std::cout << " ~ Step\tt\tdt" << std::endl;
     while ( t < t_end && iStep >= 0 ) {

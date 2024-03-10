@@ -55,7 +55,7 @@ ProblemIn::ProblemIn( const std::string fn ) {
   // limiters
   std::optional<Real> al  = in_table["Limiters"]["alpha"].value<Real>( );
   std::optional<Real> slt = in_table["Limiters"]["Threshold"].value<Real>( );
-  std::optional<bool> tci_opt = in_table["Limiters"]["TCI_opt"].value<bool>( );
+  std::optional<bool> tci_opt = in_table["Limiters"]["TCI_Opt"].value<bool>( );
   std::optional<Real> tci_val = in_table["Limiters"]["TCI_val"].value<Real>( );
   std::optional<bool> characteristic =
       in_table["Limiters"]["Characteristic"].value<bool>( );

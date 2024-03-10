@@ -26,6 +26,14 @@ class SlopeLimiter {
  public:
   SlopeLimiter( GridStructure *Grid, ProblemIn *pin );
 
+  Real ModifyPolynomial( const View3D U, const ModalBasis *Basis,
+                         const Real Ubar_i, const int iX, const int iCQ,
+                         const int iN );
+  void ModifyPolynomial( const View3D U, const int iX, const int iCQ );
+  Real SmoothnessIndicator( const View3D U, const GridStructure *Grid,
+                            const int iX, const int iCQ );
+  Real NonLinearWeight( const Real gamma, const Real beta );
+
   void ApplySlopeLimiter( View3D U, GridStructure *Grid,
                           const ModalBasis *Basis );
 
@@ -45,54 +53,30 @@ class SlopeLimiter {
 
  private:
   int order;
-  Real SlopeLimiter_Threshold;
-  Real alpha;
   bool CharacteristicLimiting_Option;
   bool TCI_Option;
   Real TCI_Threshold;
 
-  Real Phi1;
-  Real Phi2;
+  // TODO: from input deck
+  Real gamma_l = 0.005;
+  Real gamma_i = 0.990;
+  Real gamma_r = 0.005;
+  Real weno_r  = 2.0; // nonlinear weight power
 
-  Kokkos::View<Real[3][3]> R;
-  Kokkos::View<Real[3][3]> R_inv;
+  View2D modified_polynomial;
 
-  Kokkos::View<Real[3]> SlopeDifference;
-  Kokkos::View<Real[3]> dU;
-  Kokkos::View<Real[3]> d2U;
-  Kokkos::View<Real[3]> d2w;
+  View3D R;
+  View3D R_inv;
 
   // --- Slope limiter quantities ---
 
-  Kokkos::View<Real[3]> U_c_L;
-  Kokkos::View<Real[3]> U_c_T;
-  Kokkos::View<Real[3]> U_c_R;
-  Kokkos::View<Real[3]> U_v_L;
-  Kokkos::View<Real[3]> U_v_R;
-
-  Kokkos::View<Real[3]> dU_c_L;
-  Kokkos::View<Real[3]> dU_c_T;
-  Kokkos::View<Real[3]> dU_c_R;
-  Kokkos::View<Real[3]> dU_v_L;
-  Kokkos::View<Real[3]> dU_v_R;
+  View1D U_c_T;
 
   // characteristic forms
-  Kokkos::View<Real[3]> w_c_L;
-  Kokkos::View<Real[3]> w_c_T;
-  Kokkos::View<Real[3]> w_c_R;
-  Kokkos::View<Real[3]> w_v_L;
-  Kokkos::View<Real[3]> w_v_R;
-
-  Kokkos::View<Real[3]> dw_c_L;
-  Kokkos::View<Real[3]> dw_c_T;
-  Kokkos::View<Real[3]> dw_c_R;
-  Kokkos::View<Real[3]> dw_v_L;
-  Kokkos::View<Real[3]> dw_v_R;
+  View1D w_c_T;
 
   // matrix mult scratch scape
-  Kokkos::View<Real[3]> Mult1;
-  Kokkos::View<Real[3]> Mult2;
-  Kokkos::View<Real[3]> Mult3;
+  View1D Mult;
 
   Kokkos::View<Real **> D;
   Kokkos::View<int *> LimitedCell;
