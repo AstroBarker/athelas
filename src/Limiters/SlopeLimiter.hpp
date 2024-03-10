@@ -31,8 +31,10 @@ class SlopeLimiter {
                          const int iN );
   void ModifyPolynomial( const View3D U, const int iX, const int iCQ );
   Real SmoothnessIndicator( const View3D U, const GridStructure *Grid,
-                            const int iX, const int iCQ );
-  Real NonLinearWeight( const Real gamma, const Real beta );
+                            const int iX, const int i, const int iCQ );
+  Real NonLinearWeight( const Real gamma, const Real beta, const Real tau,
+                        const Real eps );
+  Real Tau( const Real beta_l, const Real beta_i, const Real beta_r );
 
   void ApplySlopeLimiter( View3D U, GridStructure *Grid,
                           const ModalBasis *Basis );

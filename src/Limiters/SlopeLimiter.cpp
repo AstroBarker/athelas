@@ -87,6 +87,8 @@ void SlopeLimiter::DetectTroubledCells( View3D U, GridStructure *Grid,
 /**
  * Apply the slope limiter. We use a compact stencil WENO limiter
  * X. Zhong and C.-W. Shu 13, simple compact WENO RKDG slope limiter
+ * https://www.sciencedirect.com/science/article/pii/S0898122119303372
+ * Zhu 2020
  **/
 void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
                                       const ModalBasis *Basis ) {
@@ -147,21 +149,27 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
 
       if ( j != 0 || !TCI_Option ) {
 
-        const Real beta_l = SmoothnessIndicator( U, Grid, iX - 1, iCF );
-        const Real beta_i = SmoothnessIndicator( U, Grid, iX, iCF );
-        const Real beta_r = SmoothnessIndicator( U, Grid, iX + 1, iCF );
+        // modify polynomials
+        ModifyPolynomial( U, iX, iCF );
+
+        const Real beta_l =
+            SmoothnessIndicator( U, Grid, iX, 0, iCF ); // iX - 1
+        const Real beta_i = SmoothnessIndicator( U, Grid, iX, 1, iCF ); // iX
+        const Real beta_r =
+            SmoothnessIndicator( U, Grid, iX, 2, iCF ); // iX + 1
+        const Real tau = Tau( beta_l, beta_i, beta_r );
 
         // nonlinear weights w
-        Real w_l         = NonLinearWeight( this->gamma_l, beta_l );
-        Real w_i         = NonLinearWeight( this->gamma_i, beta_i );
-        Real w_r         = NonLinearWeight( this->gamma_r, beta_r );
+        Real w_l         = NonLinearWeight( this->gamma_l, beta_l, tau,
+                                            Grid->Get_Widths( iX - 1 ) );
+        Real w_i         = NonLinearWeight( this->gamma_i, beta_i, tau,
+                                            Grid->Get_Widths( iX ) );
+        Real w_r         = NonLinearWeight( this->gamma_r, beta_r, tau,
+                                            Grid->Get_Widths( iX + 1 ) );
         const Real sum_w = w_l + w_i + w_r;
         w_l /= sum_w;
         w_i /= sum_w;
         w_r /= sum_w;
-
-        // modify polynomials
-        ModifyPolynomial( U, iX, iCF );
 
         // update solution via WENO
         for ( int k = 0; k < this->order; k++ ) {
@@ -266,14 +274,11 @@ Real SlopeLimiter::ModifyPolynomial( const View3D U, const ModalBasis *Basis,
  **/
 void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
                                      const int iCQ ) {
-  const Real Ubar_i = U( iCQ, iX, 0 );
-  // set to target cell average
-  modified_polynomial( 0, 0 ) = Ubar_i; // left
-  modified_polynomial( 1, 0 ) = Ubar_i; // target cell
-  modified_polynomial( 2, 0 ) = Ubar_i; // right
-  for ( int k = 1; k < this->order; k++ ) {
+  for ( int k = 0; k < this->order; k++ ) {
     modified_polynomial( 0, k ) = U( iCQ, iX - 1, k );
-    modified_polynomial( 1, k ) = U( iCQ, iX, k );
+    modified_polynomial( 1, k ) = U( iCQ, iX, k ) / gamma_i -
+                                  ( gamma_l / gamma_i ) * U( iCQ, iX - 1, k ) -
+                                  ( gamma_r / gamma_i ) * U( iCQ, iX + 1, k );
     modified_polynomial( 2, k ) = U( iCQ, iX + 1, k );
   }
 }
@@ -281,7 +286,7 @@ void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
 // WENO smoothness indicator beta
 Real SlopeLimiter::SmoothnessIndicator( const View3D U,
                                         const GridStructure *Grid, const int iX,
-                                        const int iCQ ) {
+                                        const int i, const int iCQ ) {
   const int k   = U.extent( 2 ) - 1;
   const Real dx = Grid->Get_Widths( iX );
 
@@ -290,8 +295,8 @@ Real SlopeLimiter::SmoothnessIndicator( const View3D U,
     // integrate mode on cell
     Real local_sum = 0.0;
     for ( int iN = 0; iN < k; iN++ ) {
-      // Q: how to evaluate derivaitvs at iN?
-      local_sum += Grid->Get_Weights( iN ) * std::pow( U( iCQ, iX, s ), 2.0 );
+      local_sum += Grid->Get_Weights( iN ) *
+                   std::pow( modified_polynomial( i, s ), 2.0 );
     }
     local_sum *= std::pow( dx, 2.0 * s );
     beta += local_sum;
@@ -299,11 +304,17 @@ Real SlopeLimiter::SmoothnessIndicator( const View3D U,
   return beta;
 }
 
-Real SlopeLimiter::NonLinearWeight( const Real gamma, const Real beta ) {
-  const Real eps = std::numeric_limits<Real>::epsilon( );
-  const Real r   = this->weno_r;
+Real SlopeLimiter::NonLinearWeight( const Real gamma, const Real beta,
+                                    const Real tau, const Real eps ) {
+  return gamma * ( 1.0 + tau / ( eps + beta ) );
+}
 
-  return gamma / std::pow( beta + eps, r );
+Real SlopeLimiter::Tau( const Real beta_l, const Real beta_i,
+                        const Real beta_r ) {
+  const Real r = this->weno_r;
+  return std::pow(
+      ( std::fabs( beta_i - beta_l ) + std::fabs( beta_i - beta_r ) ) / 2.0,
+      r );
 }
 
 // LimitedCell accessor
