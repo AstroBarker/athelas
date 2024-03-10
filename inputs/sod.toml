@@ -13,16 +13,17 @@ CFL = 0.35
 Basis = "legendre"
 nNodes = 3
 pOrder = 3
-nX = 128
+nX = 512
 nG = 1
 
 [Time]
-tOrder = 4
+tOrder = 3
 nStages = 5
 
 [Limiters]
-alpha = 1.0
-Threshold = 0.0
 TCI_Opt = false
 TCI_val = 0.1
 Characteristic = true
+gamma_i = 0.990
+gamma_r = 0.005
+gamma_l = 0.005
