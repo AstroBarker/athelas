@@ -25,7 +25,7 @@
 
 /**
  * The constructor creates the matrices structures for applying the slope
- *limiter
+ * limiter
  **/
 SlopeLimiter::SlopeLimiter( GridStructure *Grid, ProblemIn *pin )
     : order( pin->pOrder ),
@@ -85,7 +85,8 @@ void SlopeLimiter::DetectTroubledCells( View3D U, GridStructure *Grid,
 }
 
 /**
- * Apply the slope limiter. We use a vertex based, heirarchical slope limiter.
+ * Apply the slope limiter. We use a compact stencil WENO limiter
+ * X. Zhong and C.-W. Shu 13, simple compact WENO RKDG slope limiter
  **/
 void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
                                       const ModalBasis *Basis ) {
@@ -251,12 +252,18 @@ Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
 /**
  * Modify polynomials a la
  * X. Zhong and C.-W. Shu 13, simple compact WENO RKDG slope limiter
+ * UNUSED, point based version.
  **/
 Real SlopeLimiter::ModifyPolynomial( const View3D U, const ModalBasis *Basis,
                                      const Real Ubar_i, const int iX,
                                      const int iCQ, const int iN ) {
   return Basis->BasisEval( U, iX, iCQ, iN, false ) - Ubar_i + U( iCQ, iX, 0 );
 }
+
+/**
+ * Modify polynomials a la
+ * X. Zhong and C.-W. Shu 13, simple compact WENO RKDG slope limiter
+ **/
 void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
                                      const int iCQ ) {
   const Real Ubar_i = U( iCQ, iX, 0 );
