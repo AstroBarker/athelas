@@ -44,9 +44,8 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
       "Interface States; Rad",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, nvars } ),
       KOKKOS_LAMBDA( const int iX, const int iCR ) {
-        uCR_F_L( iCR, iX ) =
-            Basis->BasisEval( uCR, iX - 1, iCR, nNodes + 1, false );
-        uCR_F_R( iCR, iX ) = Basis->BasisEval( uCR, iX, iCR, 0, false );
+        uCR_F_L( iCR, iX ) = Basis->BasisEval( uCR, iX - 1, iCR, nNodes + 1 );
+        uCR_F_R( iCR, iX ) = Basis->BasisEval( uCR, iX, iCR, 0 );
       } );
 
   // --- Calc numerical flux at all faces
@@ -56,8 +55,8 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
         auto uCR_L = Kokkos::subview( uCR_F_L, Kokkos::ALL, iX );
         auto uCR_R = Kokkos::subview( uCR_F_R, Kokkos::ALL, iX );
 
-        const Real tauR = Basis->BasisEval( uCF, iX, 0, 0, false );
-        const Real tauL = Basis->BasisEval( uCF, iX - 1, 0, nNodes + 1, false );
+        const Real tauR = Basis->BasisEval( uCF, iX, 0, 0 );
+        const Real tauL = Basis->BasisEval( uCF, iX - 1, 0, nNodes + 1 );
 
         const Real Em_L = uCR_L( 0 ) / tauL;
         const Real Fm_L = uCR_L( 1 ) / tauL;
@@ -70,10 +69,10 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
         // --- Numerical Fluxes ---
 
         // Riemann Problem
-        Real flux_e   = 0.0;
-        Real flux_f   = 0.0;
-        const Real vR = Basis->BasisEval( uCF, iX, 1, 0, false );
-        const Real vL = Basis->BasisEval( uCF, iX - 1, 1, nNodes + 1, false );
+        Real flux_e      = 0.0;
+        Real flux_f      = 0.0;
+        const Real vR    = Basis->BasisEval( uCF, iX, 1, 0 );
+        const Real vL    = Basis->BasisEval( uCF, iX - 1, 1, nNodes + 1 );
         const Real c_cgs = constants::c_cgs;
 
         Real Fp = Flux_Rad( Em_R, Fm_R, vR, P_R, 0 );
@@ -112,14 +111,14 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                                 { nNodes, ihi + 1, nvars } ),
         KOKKOS_LAMBDA( const int iN, const int iX, const int iCR ) {
-          const Real Tau = Basis->BasisEval( uCF, iX, 0, iN + 1, false );
-          const auto P   = ComputeClosure(
-              Basis->BasisEval( uCR, iX, 0, iN + 1, false ) / Tau,
-              Basis->BasisEval( uCR, iX, 1, iN + 1, false ) / Tau );
+          const Real Tau = Basis->BasisEval( uCF, iX, 0, iN + 1 );
+          const auto P =
+              ComputeClosure( Basis->BasisEval( uCR, iX, 0, iN + 1 ) / Tau,
+                              Basis->BasisEval( uCR, iX, 1, iN + 1 ) / Tau );
           Flux_q( iCR, iX, iN ) =
-              Flux_Rad( Basis->BasisEval( uCR, iX, 0, iN + 1, false ) / Tau,
-                        Basis->BasisEval( uCR, iX, 1, iN + 1, false ) / Tau, P,
-                        Basis->BasisEval( uCF, iX, 1, iN + 1, false ), iCR );
+              Flux_Rad( Basis->BasisEval( uCR, iX, 0, iN + 1 ) / Tau,
+                        Basis->BasisEval( uCR, iX, 1, iN + 1 ) / Tau, P,
+                        Basis->BasisEval( uCF, iX, 1, iN + 1 ), iCR );
         } );
 
     // --- Volume Term ---
@@ -161,9 +160,9 @@ void ComputeIncrement_Rad_Source( const View3D uCR, const View3D uCF,
       KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
         Real local_sum = 0.0;
         for ( int iN = 0; iN < nNodes; iN++ ) {
-          const Real D    = 1.0 / Basis->BasisEval( uCF, iX, 0, iN + 1, false );
-          const Real V    = Basis->BasisEval( uCF, iX, 1, iN + 1, false );
-          const Real Em_T = Basis->BasisEval( uCF, iX, 2, iN + 1, false );
+          const Real D    = 1.0 / Basis->BasisEval( uCF, iX, 0, iN + 1 );
+          const Real V    = Basis->BasisEval( uCF, iX, 1, iN + 1 );
+          const Real Em_T = Basis->BasisEval( uCF, iX, 2, iN + 1 );
 
           const Real Abar = 1.0; // TODO: update abar
           Real lambda[2]  = { Abar, 0.0 };
@@ -173,8 +172,8 @@ void ComputeIncrement_Rad_Source( const View3D uCR, const View3D uCF,
           const Real kappa = ComputeOpacity( D, V, Em_T );
           const Real X     = ComputeEmissivity( D, V, Em_T );
 
-          const Real E_r = Basis->BasisEval( uCR, iX, 0, iN + 1, false ) * D;
-          const Real F_r = Basis->BasisEval( uCR, iX, 1, iN + 1, false ) * D;
+          const Real E_r = Basis->BasisEval( uCR, iX, 0, iN + 1 ) * D;
+          const Real F_r = Basis->BasisEval( uCR, iX, 1, iN + 1 ) * D;
           const Real P_r = ComputeClosure( E_r, F_r );
 
           const Real this_source =

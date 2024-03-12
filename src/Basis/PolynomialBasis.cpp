@@ -352,17 +352,10 @@ void ModalBasis::ComputeMassMatrix( const Kokkos::View<Real ***> uPF,
  * If DerivativeOption is true, evaluate the derivative.
  **/
 Real ModalBasis::BasisEval( Kokkos::View<Real ***> U, const int iX,
-                            const int iCF, const int i_eta,
-                            const bool DerivativeOption ) const {
+                            const int iCF, const int i_eta ) const {
   Real result = 0.0;
-  if ( DerivativeOption ) {
-    for ( int k = 0; k < order; k++ ) {
-      result += dPhi( iX, i_eta, k ) * U( iCF, iX, k );
-    }
-  } else {
-    for ( int k = 0; k < order; k++ ) {
-      result += Phi( iX, i_eta, k ) * U( iCF, iX, k );
-    }
+  for ( int k = 0; k < order; k++ ) {
+    result += Phi( iX, i_eta, k ) * U( iCF, iX, k );
   }
   return result;
 }

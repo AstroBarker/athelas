@@ -114,8 +114,7 @@ class TimeStepper {
 
       // ! This may give poor performance. Why? ! But also helps with Sedov..
       auto Usj =
-          Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL
-          );
+          Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       S_Limiter->ApplySlopeLimiter( Usj, &Grid_s[iS], Basis );
       ApplyBoundEnforcingLimiter( Usj, Basis, eos );
     }

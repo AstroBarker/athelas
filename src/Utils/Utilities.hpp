@@ -21,8 +21,8 @@ constexpr int sgn( T val ) {
 template <class T>
 Real ComputeInternalEnergy( T U, const ModalBasis *Basis, const int iX,
                             const int iN ) {
-  const Real Vel = Basis->BasisEval( U, iX, 1, iN, false );
-  const Real EmT = Basis->BasisEval( U, iX, 2, iN, false );
+  const Real Vel = Basis->BasisEval( U, iX, 1, iN );
+  const Real EmT = Basis->BasisEval( U, iX, 2, iN );
 
   return EmT - 0.5 * Vel * Vel;
 }

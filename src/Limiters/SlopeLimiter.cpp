@@ -161,12 +161,9 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
 
         // nonlinear weights w
         const Real dx_i = Grid->Get_Widths( iX );
-        Real w_l = NonLinearWeight( this->gamma_l, beta_l, tau,
-                                    dx_i );
-        Real w_i = NonLinearWeight( this->gamma_i, beta_i, tau,
-                                    dx_i );
-        Real w_r = NonLinearWeight( this->gamma_r, beta_r, tau,
-                                    dx_i );
+        Real w_l        = NonLinearWeight( this->gamma_l, beta_l, tau, dx_i );
+        Real w_i        = NonLinearWeight( this->gamma_i, beta_i, tau, dx_i );
+        Real w_r        = NonLinearWeight( this->gamma_r, beta_r, tau, dx_i );
 
         const Real sum_w = w_l + w_i + w_r;
         w_l /= sum_w;
@@ -251,7 +248,7 @@ Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
                 iX + extrapolate ); // / Basis.BasisEval( U,
                                     // iX+extrapolate, 0, iN+1, false );
     avg += Grid->Get_Weights( iN - start ) *
-           Basis->BasisEval( U, iX + extrapolate, iCF, iN + 1, false ) *
+           Basis->BasisEval( U, iX + extrapolate, iCF, iN + 1 ) *
            Grid->Get_SqrtGm( X ) * Grid->Get_Widths( iX + extrapolate );
   }
 
@@ -266,17 +263,18 @@ Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
 Real SlopeLimiter::ModifyPolynomial( const View3D U, const ModalBasis *Basis,
                                      const Real Ubar_i, const int iX,
                                      const int iCQ, const int iN ) {
-  return Basis->BasisEval( U, iX, iCQ, iN, false ) - Ubar_i + U( iCQ, iX, 0 );
+  return Basis->BasisEval( U, iX, iCQ, iN ) - Ubar_i + U( iCQ, iX, 0 );
 }
 
 /**
  * Modify polynomials a la
- * X. Zhong and C.-W. Shu 13, simple compact WENO RKDG slope limiter
+ * H. Zhu et al 2020, simple and high-order
+ * compact WENO RKDG slope limiter
  **/
 void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
                                      const int iCQ ) {
   const Real Ubar_i = U( iCQ, iX, 0 );
-  const Real fac = 0.0;
+  const Real fac    = 0.1;
 
   modified_polynomial( 0, 0 ) = Ubar_i;
   modified_polynomial( 2, 0 ) = Ubar_i;
@@ -288,9 +286,10 @@ void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
     modified_polynomial( 2, k ) = 0.0;
   }
   for ( int k = 0; k < this->order; k++ ) {
-    modified_polynomial( 1, k ) = U( iCQ, iX, k ) / gamma_i -
-                                  ( gamma_l / gamma_i ) * modified_polynomial( 0, k ) -
-                                  ( gamma_r / gamma_i ) * modified_polynomial( 2, k );
+    modified_polynomial( 1, k ) =
+        U( iCQ, iX, k ) / gamma_i -
+        ( gamma_l / gamma_i ) * modified_polynomial( 0, k ) -
+        ( gamma_r / gamma_i ) * modified_polynomial( 2, k );
   }
 }
 
@@ -298,8 +297,7 @@ void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
 Real SlopeLimiter::SmoothnessIndicator( const View3D U,
                                         const GridStructure *Grid, const int iX,
                                         const int i, const int iCQ ) {
-  const int k   = U.extent( 2 ) - 1;
-  const Real dx = Grid->Get_Widths( iX );
+  const int k = U.extent( 2 ) - 1;
 
   Real beta = 0.0;                 // output var
   for ( int s = 1; s <= k; s++ ) { // loop over modes
@@ -309,7 +307,6 @@ Real SlopeLimiter::SmoothnessIndicator( const View3D U,
       local_sum += Grid->Get_Weights( iN ) *
                    std::pow( modified_polynomial( i, s ), 2.0 );
     }
-    local_sum *= std::pow( dx, 2.0 * s );
     beta += local_sum;
   }
   return beta;

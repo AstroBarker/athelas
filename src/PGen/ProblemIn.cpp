@@ -130,9 +130,10 @@ ProblemIn::ProblemIn( const std::string fn ) {
     gamma_r = ( 1.0 - gamma_i ) / 2.0;
   }
   const Real sum_g = gamma_l + gamma_i + gamma_r;
-  if ( std::fabs(sum_g - 1.0) > 1.0e-10 ) {
-    std::fprintf(stderr, "{gamma}, sum gamma = { %.10f %.10f %.10f }, %.18e\n", gamma_l, gamma_i, gamma_r, 1.0 - sum_g);
-    throw Error(" ! Linear weights must sum to unity.");
+  if ( std::fabs( sum_g - 1.0 ) > 1.0e-10 ) {
+    std::fprintf( stderr, "{gamma}, sum gamma = { %.10f %.10f %.10f }, %.18e\n",
+                  gamma_l, gamma_i, gamma_r, 1.0 - sum_g );
+    throw Error( " ! Linear weights must sum to unity." );
   }
   weno_r = wenor.value_or( 2.0 );
 }
