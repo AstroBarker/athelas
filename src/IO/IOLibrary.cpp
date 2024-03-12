@@ -51,7 +51,7 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin,
     std::printf( " ~ gamma_l          : %f\n", pin->gamma_l );
     std::printf( " ~ gamma_i          : %f\n", pin->gamma_i );
     std::printf( " ~ gamma_r          : %f\n", pin->gamma_r );
-    std::printf( " ~ weno_r          : %f\n", pin->weno_r );
+    std::printf( " ~ weno_r           : %f\n", pin->weno_r );
   }
   if ( pin->TCI_Option ) {
     std::printf( " ~ TCI Value      : %f\n", pin->TCI_Threshold );

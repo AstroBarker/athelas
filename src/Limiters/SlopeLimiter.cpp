@@ -33,7 +33,7 @@ SlopeLimiter::SlopeLimiter( GridStructure *Grid, ProblemIn *pin )
       TCI_Option( pin->TCI_Option ), TCI_Threshold( pin->TCI_Threshold ),
       gamma_l( pin->gamma_l ), gamma_i( pin->gamma_i ), gamma_r( pin->gamma_r ),
       weno_r( pin->weno_r ),
-      modified_polynomial( "mmodified_polynomial", 3, pin->pOrder ),
+      modified_polynomial( "modified_polynomial", 3, pin->pOrder ),
       R( "R Matrix", 3, 3, Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ),
       R_inv( "invR Matrix", 3, 3,
              Grid->Get_nElements( ) + 2 * Grid->Get_Guard( ) ),
@@ -160,12 +160,14 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         const Real tau = Tau( beta_l, beta_i, beta_r );
 
         // nonlinear weights w
-        Real w_l         = NonLinearWeight( this->gamma_l, beta_l, tau,
-                                            Grid->Get_Widths( iX - 1 ) );
-        Real w_i         = NonLinearWeight( this->gamma_i, beta_i, tau,
-                                            Grid->Get_Widths( iX ) );
-        Real w_r         = NonLinearWeight( this->gamma_r, beta_r, tau,
-                                            Grid->Get_Widths( iX + 1 ) );
+        const Real dx_i = Grid->Get_Widths( iX );
+        Real w_l = NonLinearWeight( this->gamma_l, beta_l, tau,
+                                    dx_i );
+        Real w_i = NonLinearWeight( this->gamma_i, beta_i, tau,
+                                    dx_i );
+        Real w_r = NonLinearWeight( this->gamma_r, beta_r, tau,
+                                    dx_i );
+
         const Real sum_w = w_l + w_i + w_r;
         w_l /= sum_w;
         w_i /= sum_w;
@@ -194,7 +196,6 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
 
       auto R_i     = Kokkos::subview( R, Kokkos::ALL, Kokkos::ALL, iX );
       auto R_inv_i = Kokkos::subview( R_inv, Kokkos::ALL, Kokkos::ALL, iX );
-      // ComputeCharacteristicDecomposition( Mult, R_i, R_inv_i );
       for ( int k = 0; k < order; k++ ) {
         // store w_.. = invR @ U_..
         for ( int iCF = 0; iCF < nvars; iCF++ ) {
@@ -274,12 +275,22 @@ Real SlopeLimiter::ModifyPolynomial( const View3D U, const ModalBasis *Basis,
  **/
 void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
                                      const int iCQ ) {
+  const Real Ubar_i = U( iCQ, iX, 0 );
+  const Real fac = 0.0;
+
+  modified_polynomial( 0, 0 ) = Ubar_i;
+  modified_polynomial( 2, 0 ) = Ubar_i;
+  modified_polynomial( 0, 1 ) = fac * U( iCQ, iX - 1, 1 );
+  modified_polynomial( 2, 1 ) = fac * U( iCQ, iX + 1, 1 );
+
+  for ( int k = 2; k < this->order; k++ ) {
+    modified_polynomial( 0, k ) = 0.0;
+    modified_polynomial( 2, k ) = 0.0;
+  }
   for ( int k = 0; k < this->order; k++ ) {
-    modified_polynomial( 0, k ) = U( iCQ, iX - 1, k );
     modified_polynomial( 1, k ) = U( iCQ, iX, k ) / gamma_i -
-                                  ( gamma_l / gamma_i ) * U( iCQ, iX - 1, k ) -
-                                  ( gamma_r / gamma_i ) * U( iCQ, iX + 1, k );
-    modified_polynomial( 2, k ) = U( iCQ, iX + 1, k );
+                                  ( gamma_l / gamma_i ) * modified_polynomial( 0, k ) -
+                                  ( gamma_r / gamma_i ) * modified_polynomial( 2, k );
   }
 }
 
