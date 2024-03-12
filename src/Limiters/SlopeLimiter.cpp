@@ -85,10 +85,8 @@ void SlopeLimiter::DetectTroubledCells( View3D U, GridStructure *Grid,
 }
 
 /**
- * Apply the slope limiter. We use a compact stencil WENO limiter
- * X. Zhong and C.-W. Shu 13, simple compact WENO RKDG slope limiter
- * https://www.sciencedirect.com/science/article/pii/S0898122119303372
- * Zhu 2020
+ * Apply the slope limiter. We use a compact stencil WENO-Z limiter
+ * H. Zhu 2020, simple, high-order compact WENO RKDG slope limiter
  **/
 void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
                                       const ModalBasis *Basis ) {
@@ -102,10 +100,7 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
   const int &ihi  = Grid->Get_ihi( );
   const int nvars = U.extent( 0 );
 
-  // --- Apply troubled cell indicator ---
-  // Exit if we don't need to limit slopes
-
-  // map to characteristic vars
+  /* map to characteristic vars */
   if ( CharacteristicLimiting_Option ) {
     for ( int iX = ilo; iX <= ihi; iX++ ) {
       // --- Characteristic Limiting Matrices ---
@@ -127,11 +122,14 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
 
         for ( int iCF = 0; iCF < nvars; iCF++ ) {
           U( iCF, iX, k ) = w_c_T( iCF );
-        }
-      }
-    }
-  }
+        } // end loop vars
+      }   // end loop k
+    }     // end loop iX
+  }       // end map tp characteristics
 
+  // --- Apply troubled cell indicator ---
+  // Exit if we don't need to limit slopes
+  // TODO: matter if we TCI on characteristics?
   if ( TCI_Option ) DetectTroubledCells( U, Grid, Basis );
 
   for ( int iCF = 0; iCF < nvars; iCF++ ) {
@@ -145,7 +143,7 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         if ( this->D( iCF, iX ) > this->TCI_Threshold && this->TCI_Option ) {
           j++;
         }
-      }
+      } // end check TCI
 
       if ( j != 0 || !TCI_Option ) {
 
@@ -176,13 +174,16 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
                             w_i * this->modified_polynomial( 1, k ) +
                             w_r * this->modified_polynomial( 2, k );
         }
-      }
 
-      /* Note we have limited this cell */
-      // LimitedCell( iX ) = 1;
-    }
-  }
+        /* Note we have limited this cell */
+        LimitedCell( iX ) = 1;
 
+      } // end if "limit_this_cell"
+
+    } // end loop iX
+  }   // end loop CF
+
+  /* Map back to conserved variables */
   if ( CharacteristicLimiting_Option ) {
     for ( int iX = ilo; iX <= ihi; iX++ ) {
       // --- Characteristic Limiting Matrices ---
@@ -203,11 +204,11 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
 
         for ( int iCF = 0; iCF < nvars; iCF++ ) {
           U( iCF, iX, k ) = w_c_T( iCF );
-        }
-      }
-    }
-  }
-}
+        } // end loop vars
+      }   // end loop k
+    }     // end loop iX
+  }       // end map from characteristics
+} // end apply slope limiter
 
 /**
  * Return the cell average of a field iCF on cell iX.
