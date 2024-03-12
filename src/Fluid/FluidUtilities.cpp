@@ -61,7 +61,7 @@ Real Flux_Fluid( const Real V, const Real P, const int iCF ) {
     return +P;
   } else if ( iCF == 2 ) {
     return +P * V;
-  } else { // Error case. Shouldn't ever trigger.
+  } else {       // Error case. Shouldn't ever trigger.
     throw Error( " ! Please input a valid iCF! (0,1,2). " );
     return -1.0; // just a formality.
   }
