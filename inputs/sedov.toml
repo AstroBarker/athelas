@@ -1,0 +1,29 @@
+[Problem]
+problem = "Sedov"
+t_end = 0.5
+geometry = "planar"
+restart = false
+do_rad = false
+xL = -1.0
+xR = 1.0
+BC = "Homogenous"
+CFL = 0.35
+
+[Fluid]
+Basis = "legendre"
+nNodes = 2
+pOrder = 2
+nX = 512
+nG = 1
+
+[Time]
+tOrder = 3
+nStages = 5
+
+[Limiters]
+TCI_Opt = false
+TCI_val = 0.1
+Characteristic = true
+gamma_i = 0.8
+#gamma_r = 0.005
+#gamma_l = 0.005
