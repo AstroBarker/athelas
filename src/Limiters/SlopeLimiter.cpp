@@ -217,7 +217,7 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
  **/
 Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
                                 const ModalBasis *Basis, const int iCF,
-                                const int iX, const int extrapolate ) {
+                                const int iX, const int extrapolate ) const {
   const int nNodes = Grid->Get_nNodes( );
 
   Real avg  = 0.0;
@@ -257,24 +257,13 @@ Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
 
 /**
  * Modify polynomials a la
- * X. Zhong and C.-W. Shu 13, simple compact WENO RKDG slope limiter
- * UNUSED, point based version.
- **/
-Real SlopeLimiter::ModifyPolynomial( const View3D U, const ModalBasis *Basis,
-                                     const Real Ubar_i, const int iX,
-                                     const int iCQ, const int iN ) {
-  return Basis->BasisEval( U, iX, iCQ, iN ) - Ubar_i + U( iCQ, iX, 0 );
-}
-
-/**
- * Modify polynomials a la
  * H. Zhu et al 2020, simple and high-order
  * compact WENO RKDG slope limiter
  **/
 void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
                                      const int iCQ ) {
   const Real Ubar_i = U( iCQ, iX, 0 );
-  const Real fac    = 0.1;
+  const Real fac    = 1.0;
 
   modified_polynomial( 0, 0 ) = Ubar_i;
   modified_polynomial( 2, 0 ) = Ubar_i;
@@ -296,7 +285,7 @@ void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
 // WENO smoothness indicator beta
 Real SlopeLimiter::SmoothnessIndicator( const View3D U,
                                         const GridStructure *Grid, const int iX,
-                                        const int i, const int iCQ ) {
+                                        const int i, const int iCQ ) const {
   const int k = U.extent( 2 ) - 1;
 
   Real beta = 0.0;                 // output var
@@ -313,12 +302,12 @@ Real SlopeLimiter::SmoothnessIndicator( const View3D U,
 }
 
 Real SlopeLimiter::NonLinearWeight( const Real gamma, const Real beta,
-                                    const Real tau, const Real eps ) {
+                                    const Real tau, const Real eps ) const {
   return gamma * ( 1.0 + tau / ( eps + beta ) );
 }
 
 Real SlopeLimiter::Tau( const Real beta_l, const Real beta_i,
-                        const Real beta_r ) {
+                        const Real beta_r ) const {
   const Real r = this->weno_r;
   return std::pow(
       ( std::fabs( beta_i - beta_l ) + std::fabs( beta_i - beta_r ) ) / 2.0,

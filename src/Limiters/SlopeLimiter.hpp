@@ -26,28 +26,21 @@ class SlopeLimiter {
  public:
   SlopeLimiter( GridStructure *Grid, ProblemIn *pin );
 
-  Real ModifyPolynomial( const View3D U, const ModalBasis *Basis,
-                         const Real Ubar_i, const int iX, const int iCQ,
-                         const int iN );
   void ModifyPolynomial( const View3D U, const int iX, const int iCQ );
   Real SmoothnessIndicator( const View3D U, const GridStructure *Grid,
-                            const int iX, const int i, const int iCQ );
+                            const int iX, const int i, const int iCQ ) const;
   Real NonLinearWeight( const Real gamma, const Real beta, const Real tau,
-                        const Real eps );
-  Real Tau( const Real beta_l, const Real beta_i, const Real beta_r );
+                        const Real eps ) const;
+  Real Tau( const Real beta_l, const Real beta_i, const Real beta_r ) const;
 
   void ApplySlopeLimiter( View3D U, GridStructure *Grid,
                           const ModalBasis *Basis );
-
-  void LimitQuadratic( View3D U, const ModalBasis *Basis,
-                       Kokkos::View<Real[3]> d2w, const int iX,
-                       const int nNodes );
 
   void DetectTroubledCells( View3D U, GridStructure *Grid,
                             const ModalBasis *Basis );
 
   Real CellAverage( View3D U, GridStructure *Grid, const ModalBasis *Basis,
-                    const int iCF, const int iX, const int extrapolate );
+                    const int iCF, const int iX, const int extrapolate ) const;
 
   int Get_Limited( int iX ) const;
 
