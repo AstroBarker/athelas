@@ -112,7 +112,6 @@ class TimeStepper {
       auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
       Grid_s[iS].UpdateGrid( StageDataj );
 
-      // ! This may give poor performance. Why? ! But also helps with Sedov..
       auto Usj =
           Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       S_Limiter->ApplySlopeLimiter( Usj, &Grid_s[iS], Basis );
