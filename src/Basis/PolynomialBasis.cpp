@@ -13,7 +13,7 @@
  **/
 
 #include <algorithm> /* std::sort */
-#include <cstdlib>   /* abs */
+#include <cstdlib> /* abs */
 #include <iostream>
 #include <math.h> /* pow */
 

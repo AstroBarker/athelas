@@ -9,7 +9,7 @@
  **/
 
 #include <algorithm> /* std::min, std::max */
-#include <cstdlib>   /* abs */
+#include <cstdlib> /* abs */
 #include <limits>
 
 #include "Kokkos_Core.hpp"
@@ -70,8 +70,8 @@ void SlopeLimiter::DetectTroubledCells( View3D U, GridStructure *Grid,
           CellAverage( U, Grid, Basis, iCF, iX + 1, -1 ); // from right
       Real cell_avg_R_T =
           CellAverage( U, Grid, Basis, iCF, iX - 1, +1 ); // from left
-      Real cell_avg_L = U( iCF, iX - 1, 0 );              // native left
-      Real cell_avg_R = U( iCF, iX + 1, 0 );              // native right
+      Real cell_avg_L = U( iCF, iX - 1, 0 ); // native left
+      Real cell_avg_R = U( iCF, iX + 1, 0 ); // native right
 
       result += ( std::abs( cell_avg - cell_avg_L_T ) +
                   std::abs( cell_avg - cell_avg_R_T ) );
@@ -123,9 +123,9 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         for ( int iCF = 0; iCF < nvars; iCF++ ) {
           U( iCF, iX, k ) = w_c_T( iCF );
         } // end loop vars
-      }   // end loop k
-    }     // end loop iX
-  }       // end map to characteristics
+      } // end loop k
+    } // end loop iX
+  } // end map to characteristics
 
   // --- Apply troubled cell indicator ---
   // NOTE: applying TCI on characteristic vars
@@ -179,8 +179,8 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         LimitedCell( iX ) = 1;
 
       } // end if "limit_this_cell"
-    }   // end loop iX
-  }     // end loop CF
+    } // end loop iX
+  } // end loop CF
 
   /* Map back to conserved variables */
   if ( CharacteristicLimiting_Option ) {
@@ -204,9 +204,9 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         for ( int iCF = 0; iCF < nvars; iCF++ ) {
           U( iCF, iX, k ) = w_c_T( iCF );
         } // end loop vars
-      }   // end loop k
-    }     // end loop iX
-  }       // end map from characteristics
+      } // end loop k
+    } // end loop iX
+  } // end map from characteristics
 } // end apply slope limiter
 
 /**
@@ -287,7 +287,7 @@ Real SlopeLimiter::SmoothnessIndicator( const View3D U,
                                         const int i, const int iCQ ) const {
   const int k = U.extent( 2 ) - 1;
 
-  Real beta = 0.0;                 // output var
+  Real beta = 0.0; // output var
   for ( int s = 1; s <= k; s++ ) { // loop over modes
     // integrate mode on cell
     Real local_sum = 0.0;

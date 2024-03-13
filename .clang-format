@@ -14,8 +14,8 @@ SpaceInEmptyParentheses: true
 SpacesInConditionalStatement: true
 SpacesInParentheses: true
 AlignConsecutiveAssignments: true
-#AlignTrailingComments:
-#  Kind: Always
+AlignTrailingComments:
+  Kind: Never
 #  OverEmptyLines: 2
 ContinuationIndentWidth: 4
 
