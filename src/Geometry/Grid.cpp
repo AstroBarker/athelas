@@ -1,5 +1,5 @@
 /**
- * File     :  Grid.h
+ * File     :  Grid.cpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -20,7 +20,7 @@ GridStructure::GridStructure( ProblemIn *pin )
       mSize( nElements + 2 * nGhost ), xL( pin->xL ), xR( pin->xR ),
       Geometry( pin->Geometry ), Nodes( "Nodes", pin->nNodes ),
       Weights( "Weights", pin->nNodes ), Centers( "Cetners", mSize ),
-      Widths( "Widths", mSize ), X_L( "Left Interface", mSize ),
+      Widths( "Widths", mSize ), X_L( "Left Interface", mSize + 1 ),
       Mass( "Cell Mass", mSize ), CenterOfMass( "Center of Mass", mSize ),
       Grid( "Grid", mSize, nNodes ) {
   // TODO: Allow LG_Quadrature to take in vectors.
@@ -222,16 +222,15 @@ void GridStructure::UpdateGrid( Kokkos::View<Real *> SData ) {
   const int ihi = Get_ihi( );
 
   Kokkos::parallel_for(
-      "Grid Update 1", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+      "Grid Update 1", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
       KOKKOS_LAMBDA( int iX ) {
-        X_L( iX )    = SData( iX );
-        Widths( iX ) = SData( iX + 1 ) - SData( iX );
-        // std::printf("%d %f %f\n", iX, SData(iX), SData(iX+1));
+        X_L( iX )     = SData( iX );
+        Widths( iX )  = SData( iX + 1 ) - SData( iX );
         Centers( iX ) = 0.5 * ( SData( iX + 1 ) + SData( iX ) );
       } );
 
   Kokkos::parallel_for(
-      "Grid Update 2", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+      "Grid Update 2", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
       KOKKOS_LAMBDA( int iX ) {
         for ( int iN = 0; iN < nNodes; iN++ ) {
           Grid( iX, iN ) = NodeCoordinate( iX, iN );

@@ -37,15 +37,15 @@ void ComputePrimitiveFromConserved( View3D uCF, View3D uPF, ModalBasis *Basis,
   for ( int iX = ilo; iX <= ihi; iX++ )
     for ( int iN = 0; iN < nNodes; iN++ ) {
       // Density
-      Tau              = Basis->BasisEval( uCF, 0, iX, iN + 1, false );
+      Tau              = Basis->BasisEval( uCF, 0, iX, iN + 1 );
       uPF( 0, iX, iN ) = 1.0 / Tau;
 
       // Momentum
-      Vel              = Basis->BasisEval( uCF, 1, iX, iN + 1, false );
+      Vel              = Basis->BasisEval( uCF, 1, iX, iN + 1 );
       uPF( 1, iX, iN ) = uPF( 0, iX, iN ) * Vel;
 
       // Specific Total Energy
-      EmT              = Basis->BasisEval( uCF, 2, iX, iN + 1, false );
+      EmT              = Basis->BasisEval( uCF, 2, iX, iN + 1 );
       uPF( 2, iX, iN ) = EmT / Tau;
     }
 }

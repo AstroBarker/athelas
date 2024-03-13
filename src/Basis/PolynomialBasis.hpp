@@ -42,7 +42,7 @@ class ModalBasis {
   void CheckOrthogonality( const Kokkos::View<Real ***> uCF,
                            GridStructure *Grid );
   Real BasisEval( Kokkos::View<Real ***> U, const int iX, const int iCF,
-                  const int i_eta, const bool DerivativeOption ) const;
+                  const int i_eta ) const;
   void ComputeMassMatrix( const Kokkos::View<Real ***> uCF,
                           GridStructure *Grid );
 

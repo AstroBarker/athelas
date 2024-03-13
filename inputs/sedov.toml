@@ -1,18 +1,18 @@
 [Problem]
-problem = "Sod"
-t_end = 0.2
+problem = "Sedov"
+t_end = 0.5
 geometry = "planar"
 restart = false
 do_rad = false
-xL = 0.0
+xL = -1.0
 xR = 1.0
 BC = "Homogenous"
 CFL = 0.35
 
 [Fluid]
 Basis = "legendre"
-nNodes = 3
-pOrder = 3
+nNodes = 2
+pOrder = 2
 nX = 512
 nG = 1
 
@@ -24,6 +24,6 @@ nStages = 5
 TCI_Opt = false
 TCI_val = 0.1
 Characteristic = true
-gamma_i = 0.998
+gamma_i = 0.8
 #gamma_r = 0.005
 #gamma_l = 0.005

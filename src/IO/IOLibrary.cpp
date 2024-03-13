@@ -48,7 +48,10 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin,
   if ( pin->pOrder == 1 ) {
     printf( " ~ Spatial Order 1: Slope limiter not applied.\n" );
   } else {
-    std::printf( " ~ Alpha          : %f\n", pin->alpha );
+    std::printf( " ~ gamma_l          : %f\n", pin->gamma_l );
+    std::printf( " ~ gamma_i          : %f\n", pin->gamma_i );
+    std::printf( " ~ gamma_r          : %f\n", pin->gamma_r );
+    std::printf( " ~ weno_r           : %f\n", pin->weno_r );
   }
   if ( pin->TCI_Option ) {
     std::printf( " ~ TCI Value      : %f\n", pin->TCI_Threshold );

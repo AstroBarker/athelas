@@ -51,6 +51,8 @@ The build system may not be perfect yet. Your mileage may vary.
 - class accessor refactor
 - kokkos parallel slope limiter
 - Rename values in hdf5 output...
+- BasisEval method without bool arg
+- Fix bugged TCI
 
 ## Radiation TODO:
 - ... microphysics...

@@ -98,7 +98,6 @@ set( ATHELAS_SOURCES
   "src/PGen/ProblemIn.cpp"
   "src/Basis/PolynomialBasis.cpp"
   "src/BC/BoundaryConditionsLibrary.cpp"
-  "src/Limiters/CharacteristicDecomposition.cpp"
   "src/EoS/EoS_Ideal.cpp"
   "src/Fluid/FluidUtilities.cpp"
   "src/Radiation/RadUtilities.cpp"

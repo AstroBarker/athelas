@@ -36,7 +36,7 @@ void LimitDensity( View3D U, const ModalBasis *Basis ) {
         Real avg    = U( 0, iX, 0 );
 
         for ( int iN = 0; iN <= order; iN++ ) {
-          nodal  = Basis->BasisEval( U, iX, 0, iN, false );
+          nodal  = Basis->BasisEval( U, iX, 0, iN );
           frac   = std::abs( ( avg - EPSILON ) / ( avg - nodal ) );
           theta1 = std::min( theta1, std::min( 1.0, frac ) );
         }
@@ -95,7 +95,7 @@ void ApplyBoundEnforcingLimiter( View3D U, const ModalBasis *Basis,
 Real ComputeThetaState( const View3D U, const ModalBasis *Basis,
                         const Real theta, const int iCF, const int iX,
                         const int iN ) {
-  Real result = Basis->BasisEval( U, iX, iCF, iN, false );
+  Real result = Basis->BasisEval( U, iX, iCF, iN );
   result -= U( iCF, iX, 0 );
   result *= theta;
   result += U( iCF, iX, 0 );

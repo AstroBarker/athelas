@@ -21,8 +21,6 @@ tOrder = 1
 nStages = 1
 
 [Limiters]
-alpha = 1.0
-Threshold = 0.0
 TCI_Opt = false
 TCI_val = 0.1
 Characteristic = true

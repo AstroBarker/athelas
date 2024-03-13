@@ -20,6 +20,7 @@
 #include "Utilities.hpp"
 
 /**
+ *  UNUSED
  *  Barth-Jespersen limiter
  *  Parameters:
  *  -----------

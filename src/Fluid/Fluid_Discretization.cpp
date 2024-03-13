@@ -41,9 +41,8 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
       "Interface States",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, nvars } ),
       KOKKOS_LAMBDA( const int iX, const int iCF ) {
-        uCF_F_L( iCF, iX ) =
-            Basis->BasisEval( U, iX - 1, iCF, nNodes + 1, false );
-        uCF_F_R( iCF, iX ) = Basis->BasisEval( U, iX, iCF, 0, false );
+        uCF_F_L( iCF, iX ) = Basis->BasisEval( U, iX - 1, iCF, nNodes + 1 );
+        uCF_F_R( iCF, iX ) = Basis->BasisEval( U, iX, iCF, 0 );
       } );
 
   // --- Calc numerical flux at all faces
@@ -83,6 +82,8 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
         dFlux_num( 2, iX ) = +Flux_U( iX ) * Flux_P( iX );
       } );
 
+  Flux_U( ihi + 2 ) = Flux_U( ihi + 1 );
+
   // --- Surface Term ---
   Kokkos::parallel_for(
       "Surface Term",
@@ -109,11 +110,11 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
         KOKKOS_LAMBDA( const int iN, const int iX, const int iCF ) {
           auto lambda  = nullptr;
           const Real P = eos->PressureFromConserved(
-              Basis->BasisEval( U, iX, 0, iN + 1, false ),
-              Basis->BasisEval( U, iX, 1, iN + 1, false ),
-              Basis->BasisEval( U, iX, 2, iN + 1, false ), lambda );
+              Basis->BasisEval( U, iX, 0, iN + 1 ),
+              Basis->BasisEval( U, iX, 1, iN + 1 ),
+              Basis->BasisEval( U, iX, 2, iN + 1 ), lambda );
           Flux_q( iCF, iX, iN ) =
-              Flux_Fluid( Basis->BasisEval( U, iX, 1, iN + 1, false ), P, iCF );
+              Flux_Fluid( Basis->BasisEval( U, iX, 1, iN + 1 ), P, iCF );
         } );
 
     // --- Volume Term ---
@@ -155,9 +156,9 @@ void ComputeIncrement_Fluid_Geometry( const View3D U, GridStructure &Grid,
         auto lambda    = nullptr;
         for ( int iN = 0; iN < nNodes; iN++ ) {
           const Real P = eos->PressureFromConserved(
-              Basis->BasisEval( U, iX, 0, iN + 1, false ),
-              Basis->BasisEval( U, iX, 1, iN + 1, false ),
-              Basis->BasisEval( U, iX, 2, iN + 1, false ), lambda );
+              Basis->BasisEval( U, iX, 0, iN + 1 ),
+              Basis->BasisEval( U, iX, 1, iN + 1 ),
+              Basis->BasisEval( U, iX, 2, iN + 1 ), lambda );
 
           Real X = Grid.NodeCoordinate( iX, iN );
 
@@ -189,12 +190,12 @@ void ComputeIncrement_Fluid_Rad( const View3D uCF, const View3D uCR,
         Real local_sum1 = 0.0;
         Real local_sum2 = 0.0;
         for ( int iN = 0; iN < nNodes; iN++ ) {
-          const Real Tau = Basis->BasisEval( uCF, iX, 0, iN + 1, false );
-          const Real Vel = Basis->BasisEval( uCF, iX, 1, iN + 1, false );
-          const Real EmT = Basis->BasisEval( uCF, iX, 2, iN + 1, false );
+          const Real Tau = Basis->BasisEval( uCF, iX, 0, iN + 1 );
+          const Real Vel = Basis->BasisEval( uCF, iX, 1, iN + 1 );
+          const Real EmT = Basis->BasisEval( uCF, iX, 2, iN + 1 );
 
-          const Real Er = Basis->BasisEval( uCR, iX, 0, iN + 1, false ) / Tau;
-          const Real Fr = Basis->BasisEval( uCR, iX, 1, iN + 1, false ) / Tau;
+          const Real Er = Basis->BasisEval( uCR, iX, 0, iN + 1 ) / Tau;
+          const Real Fr = Basis->BasisEval( uCR, iX, 1, iN + 1 ) / Tau;
           const Real Pr = ComputeClosure( Er, Fr );
 
           auto lambda  = nullptr;

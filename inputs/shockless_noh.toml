@@ -1,26 +1,27 @@
 [Problem]
-problem = "RadEquilibrium"
-t_end = 1.0e-7
+problem = "ShocklessNoh"
+t_end = 0.5
 geometry = "planar"
 restart = false
-do_rad = true
+do_rad = false
 xL = 0.0
 xR = 1.0
-BC = "Homogenous"
+BC = "ShocklessNoh"
 CFL = 0.35
 
 [Fluid]
 Basis = "Legendre"
-nNodes = 1
-pOrder = 1
-nX = 256
+nNodes = 4
+pOrder = 4
+nX = 128
 nG = 1
 
 [Time]
-tOrder = 1
-nStages = 1
+tOrder = 4
+nStages = 5
 
 [Limiters]
 TCI_Opt = false
 TCI_val = 0.1
 Characteristic = true
+gamma_i = 0.8
