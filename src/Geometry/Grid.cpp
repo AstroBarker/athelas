@@ -126,7 +126,7 @@ bool GridStructure::DoGeometry( ) const {
 // TODO: We will need to replace Centers here, right?
 void GridStructure::CreateGrid( ) {
 
-  const int ilo = nGhost;                 // first real zone
+  const int ilo = nGhost; // first real zone
   const int ihi = nElements + nGhost - 1; // last real zone
 
   for ( int i = 0; i < nElements + 2 * nGhost; i++ ) {

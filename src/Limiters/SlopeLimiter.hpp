@@ -1,5 +1,5 @@
-#ifndef _SLOPELIMITER_HPP_
-#define _SLOPELIMITER_HPP_
+#ifndef SLOPELIMITER_HPP_
+#define SLOPELIMITER_HPP_
 
 /**
  * File     :  SlopeLimiter.hpp
@@ -42,7 +42,7 @@ class SlopeLimiter {
   Real CellAverage( View3D U, GridStructure *Grid, const ModalBasis *Basis,
                     const int iCF, const int iX, const int extrapolate ) const;
 
-  int Get_Limited( int iX ) const;
+  int Get_Limited( const int iX ) const;
 
   ~SlopeLimiter( ) {}
 
@@ -77,4 +77,4 @@ class SlopeLimiter {
   Kokkos::View<int *> LimitedCell;
 };
 
-#endif // _SLOPELIMITER_HPP_
+#endif // SLOPELIMITER_HPP_
