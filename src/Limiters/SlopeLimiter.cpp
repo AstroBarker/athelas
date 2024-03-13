@@ -59,7 +59,7 @@ void SlopeLimiter::DetectTroubledCells( View3D U, GridStructure *Grid,
   for ( int iCF = 0; iCF < 3; iCF++ )
     for ( int iX = ilo; iX <= ihi; iX++ ) {
 
-      if ( iCF == 1 ) continue; /* skip velocit */
+      if ( iCF == 1 ) continue; /* skip velocity */
 
       Real result   = 0.0;
       Real cell_avg = U( iCF, iX, 0 );
@@ -123,13 +123,14 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         for ( int iCF = 0; iCF < nvars; iCF++ ) {
           U( iCF, iX, k ) = w_c_T( iCF );
         } // end loop vars
-      } // end loop k
-    } // end loop iX
-  } // end map to characteristics
+      }   // end loop k
+    }     // end loop iX
+  }       // end map to characteristics
 
   // --- Apply troubled cell indicator ---
-  // Exit if we don't need to limit slopes
-  // TODO: matter if we TCI on characteristics?
+  // NOTE: applying TCI on characteristic vars
+  // Could probably reduce some work by checking this first
+  // and skipping as appropriate
   if ( TCI_Option ) DetectTroubledCells( U, Grid, Basis );
 
   for ( int iCF = 0; iCF < nvars; iCF++ ) {
@@ -139,12 +140,11 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
 
       // Check if TCI val is less than TCI_Threshold
       int j = 0;
-      for ( int iCF = 0; iCF < nvars; iCF++ ) {
-        if ( this->D( iCF, iX ) > this->TCI_Threshold && this->TCI_Option ) {
-          j++;
-        }
-      } // end check TCI
+      if ( this->D( iCF, iX ) > this->TCI_Threshold && this->TCI_Option ) {
+        j++;
+      }
 
+      // Do nothing we don't need to limit slopes
       if ( j != 0 || !TCI_Option ) {
 
         // modify polynomials
@@ -179,8 +179,8 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         LimitedCell( iX ) = 1;
 
       } // end if "limit_this_cell"
-    } // end loop iX
-  } // end loop CF
+    }   // end loop iX
+  }     // end loop CF
 
   /* Map back to conserved variables */
   if ( CharacteristicLimiting_Option ) {
@@ -204,16 +204,18 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         for ( int iCF = 0; iCF < nvars; iCF++ ) {
           U( iCF, iX, k ) = w_c_T( iCF );
         } // end loop vars
-      } // end loop k
-    } // end loop iX
-  } // end map from characteristics
+      }   // end loop k
+    }     // end loop iX
+  }       // end map from characteristics
 } // end apply slope limiter
 
 /**
  * Return the cell average of a field iCF on cell iX.
  * The parameter `int extrapolate` designates how the cell average is
- *computed. 0  : Return stadnard cell average on iX -1 : Extrapolate
- *polynomial from iX+1 into iX +1 : Extrapolate polynomial from iX-1 into iX
+ *computed.
+ *  0  : Return stadnard cell average on iX
+ * -1 : Extrapolate left, e.g.,  polynomial from iX+1 into iX
+ * +1 : Extrapolate right, e.g.,  polynomial from iX-1 into iX
  **/
 Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
                                 const ModalBasis *Basis, const int iCF,
@@ -241,12 +243,9 @@ Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
   end = start + nNodes - 1;
 
   for ( int iN = start; iN < end; iN++ ) {
-    X = Grid->NodeCoordinate( iX + extrapolate,
-                              iN ); // Need the metric on target cell
+    X = Grid->NodeCoordinate( iX + extrapolate, iN );
     mass += Grid->Get_Weights( iN - start ) * Grid->Get_SqrtGm( X ) *
-            Grid->Get_Widths(
-                iX + extrapolate ); // / Basis.BasisEval( U,
-                                    // iX+extrapolate, 0, iN+1, false );
+            Grid->Get_Widths( iX + extrapolate );
     avg += Grid->Get_Weights( iN - start ) *
            Basis->BasisEval( U, iX + extrapolate, iCF, iN + 1 ) *
            Grid->Get_SqrtGm( X ) * Grid->Get_Widths( iX + extrapolate );
@@ -306,6 +305,7 @@ Real SlopeLimiter::NonLinearWeight( const Real gamma, const Real beta,
   return gamma * ( 1.0 + tau / ( eps + beta ) );
 }
 
+// weno-z tay variable
 Real SlopeLimiter::Tau( const Real beta_l, const Real beta_i,
                         const Real beta_r ) const {
   const Real r = this->weno_r;
@@ -315,4 +315,6 @@ Real SlopeLimiter::Tau( const Real beta_l, const Real beta_i,
 }
 
 // LimitedCell accessor
-int SlopeLimiter::Get_Limited( int iX ) const { return LimitedCell( iX ); }
+int SlopeLimiter::Get_Limited( const int iX ) const {
+  return LimitedCell( iX );
+}
