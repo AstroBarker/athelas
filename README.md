@@ -51,8 +51,6 @@ The build system may not be perfect yet. Your mileage may vary.
 - class accessor refactor
 - kokkos parallel slope limiter
 - Rename values in hdf5 output...
-- BasisEval method without bool arg
-- Fix bugged TCI
 
 ## Radiation TODO:
 - ... microphysics...
@@ -85,7 +83,6 @@ Simply call `tools/bash/format.sh` to format the `.hpp` and `.cpp` files.
 # TODO:
  - [x] Initialize with input file at runtime
  - [x] Bound enforcing limiter
- - [ ] New TCI
  - [ ] format on make
  - [ ] Rad: Riemann solvers beyond LLF?
  - [ ] Adjust numerical fluxes for 1D MHD
