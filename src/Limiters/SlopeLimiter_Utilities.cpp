@@ -12,7 +12,7 @@
  **/
 
 #include <algorithm> // std::min, std::max
-#include <cstdlib>   /* abs */
+#include <cstdlib> /* abs */
 #include <iostream>
 #include <limits>
 
