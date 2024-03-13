@@ -24,8 +24,8 @@
  * from conserved quantities. Primitive quantities are stored at Gauss-Legendre
  * nodes.
  **/
-void ComputePrimitiveFromConserved( View3D uCF, View3D uPF, ModalBasis *Basis,
-                                    GridStructure *Grid ) {
+void ComputePrimitiveFromConserved( View3D<Real> uCF, View3D<Real> uPF,
+                                    ModalBasis *Basis, GridStructure *Grid ) {
   const int nNodes = Grid->Get_nNodes( );
   const int ilo    = Grid->Get_ilo( );
   const int ihi    = Grid->Get_ihi( );
@@ -110,8 +110,8 @@ void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
 /**
  * Compute the fluid timestep.
  **/
-Real ComputeTimestep_Fluid( const View3D U, const GridStructure *Grid, EOS *eos,
-                            const Real CFL ) {
+Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
+                            EOS *eos, const Real CFL ) {
 
   const Real MIN_DT = 0.000000005;
   const Real MAX_DT = 1.0;

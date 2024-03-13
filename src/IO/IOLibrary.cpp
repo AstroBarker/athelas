@@ -78,8 +78,8 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
                  const std::string ProblemName, Real time, int order,
                  int i_write ) {
 
-  View3D uCF = state->Get_uCF( );
-  View3D uPF = state->Get_uPF( );
+  View3D<Real> uCF = state->Get_uCF( );
+  View3D<Real> uPF = state->Get_uPF( );
 
   std::string fn = "athelas_";
   auto i_str     = std::to_string( i_write );

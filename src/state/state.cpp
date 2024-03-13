@@ -28,7 +28,7 @@ int State::Get_nCR( ) const { return this->nCR; }
 int State::Get_pOrder( ) const { return this->pOrder; }
 
 // view accessors
-View3D State::Get_uCF( ) const { return this->uCF; }
-View3D State::Get_uPF( ) const { return this->uPF; }
-View3D State::Get_uAF( ) const { return this->uAF; }
-View3D State::Get_uCR( ) const { return this->uCR; }
+View3D<Real> State::Get_uCF( ) const { return this->uCF; }
+View3D<Real> State::Get_uPF( ) const { return this->uPF; }
+View3D<Real> State::Get_uAF( ) const { return this->uAF; }
+View3D<Real> State::Get_uCR( ) const { return this->uCR; }

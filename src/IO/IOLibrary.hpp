@@ -1,5 +1,5 @@
-#ifndef _IOLIBRARY_HPP_
-#define _IOLIBRARY_HPP_
+#ifndef IOLIBRARY_HPP_
+#define IOLIBRARY_HPP_
 
 #include "Kokkos_Core.hpp"
 
@@ -29,4 +29,4 @@ void WriteBasis( ModalBasis *Basis, unsigned int ilo, unsigned int ihi,
                  unsigned int nNodes, unsigned int order,
                  std::string ProblemName );
 
-#endif // _IOLIBRARY_HPP_
+#endif // IOLIBRARY_HPP_

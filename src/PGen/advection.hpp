@@ -13,8 +13,8 @@
 /**
  * Initialize equilibrium rad test
  **/
-void AdvectionInit( View3D uCF, View3D uPF, View3D uCR, GridStructure *Grid,
-                    const int pOrder ) {
+void AdvectionInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
+                    GridStructure *Grid, const int pOrder ) {
   // Smooth advection problem
   const int ilo    = Grid->Get_ilo( );
   const int ihi    = Grid->Get_ihi( );

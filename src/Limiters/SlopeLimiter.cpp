@@ -46,7 +46,7 @@ SlopeLimiter::SlopeLimiter( GridStructure *Grid, ProblemIn *pin )
  * Apply the Troubled Cell Indicator of Fu & Shu (2017)
  * to flag cells for limiting
  **/
-void SlopeLimiter::DetectTroubledCells( View3D U, GridStructure *Grid,
+void SlopeLimiter::DetectTroubledCells( View3D<Real> U, GridStructure *Grid,
                                         const ModalBasis *Basis ) {
   const int ilo = Grid->Get_ilo( );
   const int ihi = Grid->Get_ihi( );
@@ -88,7 +88,7 @@ void SlopeLimiter::DetectTroubledCells( View3D U, GridStructure *Grid,
  * Apply the slope limiter. We use a compact stencil WENO-Z limiter
  * H. Zhu 2020, simple, high-order compact WENO RKDG slope limiter
  **/
-void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
+void SlopeLimiter::ApplySlopeLimiter( View3D<Real> U, GridStructure *Grid,
                                       const ModalBasis *Basis ) {
 
   // Do not apply for first order method. No slopes!
@@ -123,9 +123,9 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         for ( int iCF = 0; iCF < nvars; iCF++ ) {
           U( iCF, iX, k ) = w_c_T( iCF );
         } // end loop vars
-      } // end loop k
-    } // end loop iX
-  } // end map to characteristics
+      }   // end loop k
+    }     // end loop iX
+  }       // end map to characteristics
 
   // --- Apply troubled cell indicator ---
   // Exit if we don't need to limit slopes
@@ -179,8 +179,8 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         LimitedCell( iX ) = 1;
 
       } // end if "limit_this_cell"
-    } // end loop iX
-  } // end loop CF
+    }   // end loop iX
+  }     // end loop CF
 
   /* Map back to conserved variables */
   if ( CharacteristicLimiting_Option ) {
@@ -204,9 +204,9 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         for ( int iCF = 0; iCF < nvars; iCF++ ) {
           U( iCF, iX, k ) = w_c_T( iCF );
         } // end loop vars
-      } // end loop k
-    } // end loop iX
-  } // end map from characteristics
+      }   // end loop k
+    }     // end loop iX
+  }       // end map from characteristics
 } // end apply slope limiter
 
 /**
@@ -215,7 +215,7 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
  *computed. 0  : Return stadnard cell average on iX -1 : Extrapolate
  *polynomial from iX+1 into iX +1 : Extrapolate polynomial from iX-1 into iX
  **/
-Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
+Real SlopeLimiter::CellAverage( View3D<Real> U, GridStructure *Grid,
                                 const ModalBasis *Basis, const int iCF,
                                 const int iX, const int extrapolate ) const {
   const int nNodes = Grid->Get_nNodes( );
@@ -260,7 +260,7 @@ Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
  * H. Zhu et al 2020, simple and high-order
  * compact WENO RKDG slope limiter
  **/
-void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
+void SlopeLimiter::ModifyPolynomial( const View3D<Real> U, const int iX,
                                      const int iCQ ) {
   const Real Ubar_i = U( iCQ, iX, 0 );
   const Real fac    = 1.0;
@@ -283,7 +283,7 @@ void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
 }
 
 // WENO smoothness indicator beta
-Real SlopeLimiter::SmoothnessIndicator( const View3D U,
+Real SlopeLimiter::SmoothnessIndicator( const View3D<Real> U,
                                         const GridStructure *Grid, const int iX,
                                         const int i, const int iCQ ) const {
   const int k = U.extent( 2 ) - 1;
