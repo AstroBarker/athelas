@@ -1,18 +1,24 @@
-#ifndef _ABSTRACTIONS_HPP_
-#define _ABSTRACTIONS_HPP_
+#ifndef ABSTRACTIONS_HPP_
+#define ABSTRACTIONS_HPP_
 
 #include "Kokkos_Core.hpp"
 
 #include "Kokkos_Core.hpp"
 
-using Real   = double;
-using View3D = Kokkos::View<Real ***>;
-using View2D = Kokkos::View<Real **>;
-using View1D = Kokkos::View<Real *>;
+using Real = double;
+
+template <typename T>
+using View3D = Kokkos::View<T ***>;
+
+template <typename T>
+using View2D = Kokkos::View<T **>;
+
+template <typename T>
+using View1D = Kokkos::View<T *>;
 
 /* Where to put this? */
 namespace PolyBasis {
 enum PolyBasis { Legendre, Taylor };
 }
 
-#endif // _ABSTRACTIONS_HPP_
+#endif // ABSTRACTIONS_HPP_

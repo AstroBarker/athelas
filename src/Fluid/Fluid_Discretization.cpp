@@ -20,12 +20,11 @@
 #include "RadUtilities.hpp"
 
 // Compute the divergence of the flux term for the update
-void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
-                                        const ModalBasis *Basis, const EOS *eos,
-                                        View3D dU, View3D Flux_q,
-                                        View2D dFlux_num, View2D uCF_F_L,
-                                        View2D uCF_F_R, View1D Flux_U,
-                                        View1D Flux_P, const Options opts ) {
+void ComputeIncrement_Fluid_Divergence(
+    const View3D<Real> U, GridStructure &Grid, const ModalBasis *Basis,
+    const EOS *eos, View3D<Real> dU, View3D<Real> Flux_q,
+    View2D<Real> dFlux_num, View2D<Real> uCF_F_L, View2D<Real> uCF_F_R,
+    View1D<Real> Flux_U, View1D<Real> Flux_P, const Options opts ) {
   const auto &nNodes = Grid.Get_nNodes( );
   const auto &order  = Basis->Get_Order( );
   const auto &ilo    = Grid.Get_ilo( );
@@ -140,9 +139,9 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
 /**
  * Compute fluid increment from geometry in spherical symmetry
  **/
-void ComputeIncrement_Fluid_Geometry( const View3D U, GridStructure &Grid,
+void ComputeIncrement_Fluid_Geometry( const View3D<Real> U, GridStructure &Grid,
                                       const ModalBasis *Basis, const EOS *eos,
-                                      View3D dU ) {
+                                      View3D<Real> dU ) {
   const int nNodes = Grid.Get_nNodes( );
   const int order  = Basis->Get_Order( );
   const int ilo    = Grid.Get_ilo( );
@@ -175,9 +174,9 @@ void ComputeIncrement_Fluid_Geometry( const View3D U, GridStructure &Grid,
  * Compute fluid increment from radiation sources
  * TODO: Modify inputs?
  **/
-void ComputeIncrement_Fluid_Rad( const View3D uCF, const View3D uCR,
+void ComputeIncrement_Fluid_Rad( const View3D<Real> uCF, const View3D<Real> uCR,
                                  GridStructure &Grid, const ModalBasis *Basis,
-                                 const EOS *eos, View3D dU ) {
+                                 const EOS *eos, View3D<Real> dU ) {
   const int nNodes = Grid.Get_nNodes( );
   const int order  = Basis->Get_Order( );
   const int ilo    = Grid.Get_ilo( );
@@ -238,11 +237,12 @@ void ComputeIncrement_Fluid_Rad( const View3D uCF, const View3D uCR,
  * uCF_L, uCF_R     : holds interface data
  * BC               : (string) boundary condition type
  **/
-void Compute_Increment_Explicit( const View3D U, const View3D uCR,
+void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
                                  GridStructure &Grid, const ModalBasis *Basis,
-                                 const EOS *eos, View3D dU, View3D Flux_q,
-                                 View2D dFlux_num, View2D uCF_F_L,
-                                 View2D uCF_F_R, View1D Flux_U, View1D Flux_P,
+                                 const EOS *eos, View3D<Real> dU,
+                                 View3D<Real> Flux_q, View2D<Real> dFlux_num,
+                                 View2D<Real> uCF_F_L, View2D<Real> uCF_F_R,
+                                 View1D<Real> Flux_U, View1D<Real> Flux_P,
                                  const Options opts ) {
 
   const auto &order = Basis->Get_Order( );

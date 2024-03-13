@@ -13,7 +13,7 @@
 /**
  * Initialize equilibrium rad test
  **/
-void RadEquilibriumInit( View3D uCF, View3D uPF, View3D uCR,
+void RadEquilibriumInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
                          GridStructure *Grid, const int pOrder ) {
 
   const int ilo    = Grid->Get_ilo( );

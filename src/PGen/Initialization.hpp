@@ -35,9 +35,9 @@ void InitializeFields( State *state, GridStructure *Grid,
 
   const int iPF_D = 0;
 
-  View3D uCF       = state->Get_uCF( );
-  View3D uPF       = state->Get_uPF( );
-  View3D uCR       = state->Get_uCR( );
+  View3D<Real> uCF = state->Get_uCF( );
+  View3D<Real> uPF = state->Get_uPF( );
+  View3D<Real> uCR = state->Get_uCR( );
   const int pOrder = state->Get_pOrder( );
 
   if ( ProblemName == "Sod" ) {

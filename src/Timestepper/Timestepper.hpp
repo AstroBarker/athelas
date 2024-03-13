@@ -231,27 +231,27 @@ class TimeStepper {
   const std::string BC;
 
   // SSP coefficients
-  View2D a_jk;
-  View2D b_jk;
+  View2D<Real> a_jk;
+  View2D<Real> b_jk;
 
   // Hold stage data
   Kokkos::View<Real ****> U_s;
   Kokkos::View<Real ****> dU_s;
-  View3D SumVar_U;
+  View3D<Real> SumVar_U;
   std::vector<GridStructure> Grid_s;
 
   // StageData Holds cell left interface positions
-  View2D StageData;
+  View2D<Real> StageData;
 
   // Variables to pass to update step
-  View3D Flux_q;
+  View3D<Real> Flux_q;
 
-  View2D dFlux_num;
-  View2D uCF_F_L;
-  View2D uCF_F_R;
+  View2D<Real> dFlux_num;
+  View2D<Real> uCF_F_L;
+  View2D<Real> uCF_F_R;
 
-  View2D Flux_U;
-  View1D Flux_P;
+  View2D<Real> Flux_U;
+  View1D<Real> Flux_P;
 };
 
 #endif // TIMESTEPPER_HPP_

@@ -21,13 +21,11 @@
 #include "Rad_Discretization.hpp"
 
 // Compute the divergence of the flux term for the update
-void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
-                                      GridStructure &Grid,
-                                      const ModalBasis *Basis, const EOS *eos,
-                                      View3D dU, View3D Flux_q,
-                                      View2D dFlux_num, View2D uCR_F_L,
-                                      View2D uCR_F_R, View1D Flux_U,
-                                      View1D Flux_P ) {
+void ComputeIncrement_Rad_Divergence(
+    const View3D<Real> uCR, const View3D<Real> uCF, GridStructure &Grid,
+    const ModalBasis *Basis, const EOS *eos, View3D<Real> dU,
+    View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCR_F_L,
+    View2D<Real> uCR_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P ) {
   const auto &nNodes = Grid.Get_nNodes( );
   const auto &order  = Basis->Get_Order( );
   const auto &ilo    = Grid.Get_ilo( );
@@ -144,9 +142,10 @@ void ComputeIncrement_Rad_Divergence( const View3D uCR, const View3D uCF,
 /**
  * Compute rad increment from source terms
  **/
-void ComputeIncrement_Rad_Source( const View3D uCR, const View3D uCF,
-                                  GridStructure &Grid, const ModalBasis *Basis,
-                                  const EOS *eos, View3D dU ) {
+void ComputeIncrement_Rad_Source( const View3D<Real> uCR,
+                                  const View3D<Real> uCF, GridStructure &Grid,
+                                  const ModalBasis *Basis, const EOS *eos,
+                                  View3D<Real> dU ) {
   const int nNodes = Grid.Get_nNodes( );
   const int order  = Basis->Get_Order( );
   const int ilo    = Grid.Get_ilo( );
@@ -203,13 +202,12 @@ void ComputeIncrement_Rad_Source( const View3D uCR, const View3D uCF,
  * uCR_L, uCR_R     : holds interface data
  * BC               : (string) boundary condition type
  **/
-void Compute_Increment_Explicit_Rad( const View3D uCR, const View3D uCF,
-                                     GridStructure &Grid,
-                                     const ModalBasis *Basis, const EOS *eos,
-                                     View3D dU, View3D Flux_q, View2D dFlux_num,
-                                     View2D uCR_F_L, View2D uCR_F_R,
-                                     View1D Flux_U, View1D Flux_P,
-                                     const Options opts ) {
+void Compute_Increment_Explicit_Rad(
+    const View3D<Real> uCR, const View3D<Real> uCF, GridStructure &Grid,
+    const ModalBasis *Basis, const EOS *eos, View3D<Real> dU,
+    View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCR_F_L,
+    View2D<Real> uCR_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
+    const Options opts ) {
 
   const auto &order = Basis->Get_Order( );
   const auto &ilo   = Grid.Get_ilo( );

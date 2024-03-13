@@ -1,13 +1,13 @@
 /**
- * File     :  CharacteristicDecomposition.cpp
+ * File     :  CharacteristicDecomposition.hpp
  * --------------
  *
  * Author   : Brandon L. Barker
  * Purpose  : Compute matrices for characteristic decomposition
  **/
 
-#ifndef _CHARACTERISTICDECOMPOSITION_HPP_
-#define _CHARACTERISTICDECOMPOSITION_HPP_
+#ifndef CHARACTERISTICDECOMPOSITION_HPP_
+#define CHARACTERISTICDECOMPOSITION_HPP_
 
 #include <iostream>
 #include <math.h> /* sqrt */
@@ -76,4 +76,4 @@ void ComputeCharacteristicDecomposition( T1 U, T2 R, T2 R_inv ) {
     }
 }
 
-#endif // _CHARACTERISTICDECOMPOSITION_HPP_
+#endif // CHARACTERISTICDECOMPOSITION_HPP_

@@ -26,21 +26,22 @@ class SlopeLimiter {
  public:
   SlopeLimiter( GridStructure *Grid, ProblemIn *pin );
 
-  void ModifyPolynomial( const View3D U, const int iX, const int iCQ );
-  Real SmoothnessIndicator( const View3D U, const GridStructure *Grid,
+  void ModifyPolynomial( const View3D<Real> U, const int iX, const int iCQ );
+  Real SmoothnessIndicator( const View3D<Real> U, const GridStructure *Grid,
                             const int iX, const int i, const int iCQ ) const;
   Real NonLinearWeight( const Real gamma, const Real beta, const Real tau,
                         const Real eps ) const;
   Real Tau( const Real beta_l, const Real beta_i, const Real beta_r ) const;
 
-  void ApplySlopeLimiter( View3D U, GridStructure *Grid,
+  void ApplySlopeLimiter( View3D<Real> U, GridStructure *Grid,
                           const ModalBasis *Basis );
 
-  void DetectTroubledCells( View3D U, GridStructure *Grid,
+  void DetectTroubledCells( View3D<Real> U, GridStructure *Grid,
                             const ModalBasis *Basis );
 
-  Real CellAverage( View3D U, GridStructure *Grid, const ModalBasis *Basis,
-                    const int iCF, const int iX, const int extrapolate ) const;
+  Real CellAverage( View3D<Real> U, GridStructure *Grid,
+                    const ModalBasis *Basis, const int iCF, const int iX,
+                    const int extrapolate ) const;
 
   int Get_Limited( const int iX ) const;
 
@@ -58,23 +59,23 @@ class SlopeLimiter {
   Real gamma_r;
   Real weno_r; // nonlinear weight power
 
-  View2D modified_polynomial;
+  View2D<Real> modified_polynomial;
 
-  View3D R;
-  View3D R_inv;
+  View3D<Real> R;
+  View3D<Real> R_inv;
 
   // --- Slope limiter quantities ---
 
-  View1D U_c_T;
+  View1D<Real> U_c_T;
 
   // characteristic forms
-  View1D w_c_T;
+  View1D<Real> w_c_T;
 
   // matrix mult scratch scape
-  View1D Mult;
+  View1D<Real> Mult;
 
-  Kokkos::View<Real **> D;
-  Kokkos::View<int *> LimitedCell;
+  View2D<Real> D;
+  View1D<int> LimitedCell;
 };
 
 #endif // SLOPELIMITER_HPP_

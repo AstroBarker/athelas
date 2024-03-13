@@ -46,7 +46,7 @@ SlopeLimiter::SlopeLimiter( GridStructure *Grid, ProblemIn *pin )
  * Apply the Troubled Cell Indicator of Fu & Shu (2017)
  * to flag cells for limiting
  **/
-void SlopeLimiter::DetectTroubledCells( View3D U, GridStructure *Grid,
+void SlopeLimiter::DetectTroubledCells( View3D<Real> U, GridStructure *Grid,
                                         const ModalBasis *Basis ) {
   const int ilo = Grid->Get_ilo( );
   const int ihi = Grid->Get_ihi( );
@@ -88,7 +88,7 @@ void SlopeLimiter::DetectTroubledCells( View3D U, GridStructure *Grid,
  * Apply the slope limiter. We use a compact stencil WENO-Z limiter
  * H. Zhu 2020, simple, high-order compact WENO RKDG slope limiter
  **/
-void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
+void SlopeLimiter::ApplySlopeLimiter( View3D<Real> U, GridStructure *Grid,
                                       const ModalBasis *Basis ) {
 
   // Do not apply for first order method. No slopes!
@@ -217,7 +217,7 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
  * -1 : Extrapolate left, e.g.,  polynomial from iX+1 into iX
  * +1 : Extrapolate right, e.g.,  polynomial from iX-1 into iX
  **/
-Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
+Real SlopeLimiter::CellAverage( View3D<Real> U, GridStructure *Grid,
                                 const ModalBasis *Basis, const int iCF,
                                 const int iX, const int extrapolate ) const {
   const int nNodes = Grid->Get_nNodes( );
@@ -259,7 +259,7 @@ Real SlopeLimiter::CellAverage( View3D U, GridStructure *Grid,
  * H. Zhu et al 2020, simple and high-order
  * compact WENO RKDG slope limiter
  **/
-void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
+void SlopeLimiter::ModifyPolynomial( const View3D<Real> U, const int iX,
                                      const int iCQ ) {
   const Real Ubar_i = U( iCQ, iX, 0 );
   const Real fac    = 1.0;
@@ -282,7 +282,7 @@ void SlopeLimiter::ModifyPolynomial( const View3D U, const int iX,
 }
 
 // WENO smoothness indicator beta
-Real SlopeLimiter::SmoothnessIndicator( const View3D U,
+Real SlopeLimiter::SmoothnessIndicator( const View3D<Real> U,
                                         const GridStructure *Grid, const int iX,
                                         const int i, const int iCQ ) const {
   const int k = U.extent( 2 ) - 1;

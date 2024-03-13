@@ -15,7 +15,7 @@
 #include "Grid.hpp"
 
 // Apply Boundary Conditions to fluid fields
-void ApplyBC( View3D U, GridStructure *Grid, const int order,
+void ApplyBC( View3D<Real> U, GridStructure *Grid, const int order,
               const std::string BC ) {
 
   const int ilo   = Grid->Get_ilo( );

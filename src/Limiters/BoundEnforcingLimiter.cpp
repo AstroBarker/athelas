@@ -21,7 +21,7 @@
 #include "PolynomialBasis.hpp"
 #include "Utilities.hpp"
 
-void LimitDensity( View3D U, const ModalBasis *Basis ) {
+void LimitDensity( View3D<Real> U, const ModalBasis *Basis ) {
   const Real EPSILON = 1.0e-13; // maybe make this smarter
   const int order    = Basis->Get_Order( );
 
@@ -47,7 +47,8 @@ void LimitDensity( View3D U, const ModalBasis *Basis ) {
       } );
 }
 
-void LimitInternalEnergy( View3D U, const ModalBasis *Basis, const EOS *eos ) {
+void LimitInternalEnergy( View3D<Real> U, const ModalBasis *Basis,
+                          const EOS *eos ) {
   const int order = Basis->Get_Order( );
 
   if ( order == 1 ) return;
@@ -81,7 +82,7 @@ void LimitInternalEnergy( View3D U, const ModalBasis *Basis, const EOS *eos ) {
       } );
 }
 
-void ApplyBoundEnforcingLimiter( View3D U, const ModalBasis *Basis,
+void ApplyBoundEnforcingLimiter( View3D<Real> U, const ModalBasis *Basis,
                                  const EOS *eos )
 
 {
@@ -92,7 +93,7 @@ void ApplyBoundEnforcingLimiter( View3D U, const ModalBasis *Basis,
 /* --- Utility Functions --- */
 
 // ( 1 - theta ) U_bar + theta U_q
-Real ComputeThetaState( const View3D U, const ModalBasis *Basis,
+Real ComputeThetaState( const View3D<Real> U, const ModalBasis *Basis,
                         const Real theta, const int iCF, const int iX,
                         const int iN ) {
   Real result = Basis->BasisEval( U, iX, iCF, iN );
@@ -102,7 +103,7 @@ Real ComputeThetaState( const View3D U, const ModalBasis *Basis,
   return result;
 }
 
-Real TargetFunc( const View3D U, const ModalBasis *Basis, const EOS *eos,
+Real TargetFunc( const View3D<Real> U, const ModalBasis *Basis, const EOS *eos,
                  const Real theta, const int iX, const int iN ) {
   const Real w = std::min( 1.0e-13, utilities::ComputeInternalEnergy( U, iX ) );
   const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
@@ -113,7 +114,7 @@ Real TargetFunc( const View3D U, const ModalBasis *Basis, const EOS *eos,
   return e - w;
 }
 
-Real Bisection( const View3D U, ModalBasis *Basis, EOS *eos, const int iX,
+Real Bisection( const View3D<Real> U, ModalBasis *Basis, EOS *eos, const int iX,
                 const int iN ) {
   const Real TOL      = 1e-10;
   const int MAX_ITERS = 100;
@@ -151,7 +152,7 @@ Real Bisection( const View3D U, ModalBasis *Basis, EOS *eos, const int iX,
   return c;
 }
 
-Real Backtrace( const View3D U, const ModalBasis *Basis, const EOS *eos,
+Real Backtrace( const View3D<Real> U, const ModalBasis *Basis, const EOS *eos,
                 const int iX, const int iN ) {
   Real theta = 1.0;
   Real nodal = -1.0;
