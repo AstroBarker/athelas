@@ -123,9 +123,9 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         for ( int iCF = 0; iCF < nvars; iCF++ ) {
           U( iCF, iX, k ) = w_c_T( iCF );
         } // end loop vars
-      }   // end loop k
-    }     // end loop iX
-  }       // end map to characteristics
+      } // end loop k
+    } // end loop iX
+  } // end map to characteristics
 
   // --- Apply troubled cell indicator ---
   // Exit if we don't need to limit slopes
@@ -179,8 +179,8 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         LimitedCell( iX ) = 1;
 
       } // end if "limit_this_cell"
-    }   // end loop iX
-  }     // end loop CF
+    } // end loop iX
+  } // end loop CF
 
   /* Map back to conserved variables */
   if ( CharacteristicLimiting_Option ) {
@@ -204,9 +204,9 @@ void SlopeLimiter::ApplySlopeLimiter( View3D U, GridStructure *Grid,
         for ( int iCF = 0; iCF < nvars; iCF++ ) {
           U( iCF, iX, k ) = w_c_T( iCF );
         } // end loop vars
-      }   // end loop k
-    }     // end loop iX
-  }       // end map from characteristics
+      } // end loop k
+    } // end loop iX
+  } // end map from characteristics
 } // end apply slope limiter
 
 /**

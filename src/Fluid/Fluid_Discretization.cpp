@@ -82,6 +82,8 @@ void ComputeIncrement_Fluid_Divergence( const View3D U, GridStructure &Grid,
         dFlux_num( 2, iX ) = +Flux_U( iX ) * Flux_P( iX );
       } );
 
+  Flux_U( ihi + 2 ) = Flux_U( ihi + 1 );
+
   // --- Surface Term ---
   Kokkos::parallel_for(
       "Surface Term",

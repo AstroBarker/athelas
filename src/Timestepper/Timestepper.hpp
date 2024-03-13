@@ -1,5 +1,5 @@
-#ifndef _TIMESTEPPER_HPP_
-#define _TIMESTEPPER_HPP_
+#ifndef TIMESTEPPER_HPP_
+#define TIMESTEPPER_HPP_
 
 /**
  * File     :  Timestepper.hpp
@@ -14,6 +14,7 @@
 #include "EoS.hpp"
 #include "PolynomialBasis.hpp"
 #include "ProblemIn.hpp"
+#include "SlopeLimiter.hpp"
 #include "state.hpp"
 
 class TimeStepper {
@@ -54,7 +55,7 @@ class TimeStepper {
     Grid_s[0] = Grid;
     // StageData holds left interface positions
     Kokkos::parallel_for(
-        ihi + 2, KOKKOS_LAMBDA( int iX ) {
+        ihi + 2, KOKKOS_LAMBDA( const int iX ) {
           StageData( 0, iX ) = Grid.Get_LeftInterface( iX );
           Flux_U( 0, iX )    = 0.0;
         } );
@@ -69,7 +70,6 @@ class TimeStepper {
           KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
             SumVar_U( iCF, iX, k ) = 0.0;
             StageData( iS, iX )    = 0.0;
-            ;
           } );
 
       // --- Inner update loop ---
@@ -94,7 +94,7 @@ class TimeStepper {
             } );
 
         Kokkos::parallel_for(
-            ihi + 2, KOKKOS_LAMBDA( int iX ) {
+            "Timestepper::StageData", ihi + 2, KOKKOS_LAMBDA( const int iX ) {
               StageData( iS, iX ) += a_jk( i, j ) * StageData( j, iX ) +
                                      dt * b_jk( i, j ) * Flux_Uj( iX );
             } );
@@ -254,4 +254,4 @@ class TimeStepper {
   View1D Flux_P;
 };
 
-#endif // _TIMESTEPPER_HPP_
+#endif // TIMESTEPPER_HPP_

@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Abstractions.hpp"
+#include "Grid.hpp"
 #include "PolynomialBasis.hpp"
 
 namespace utilities {

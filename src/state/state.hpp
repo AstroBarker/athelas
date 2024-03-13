@@ -46,4 +46,4 @@ class State {
   View3D uCR; // conserved radiation
 };
 
-#endif        // STATE_HPP_
+#endif // STATE_HPP_

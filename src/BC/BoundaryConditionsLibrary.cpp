@@ -107,9 +107,9 @@ void ApplyBC( View3D U, GridStructure *Grid, const int order,
 
           // Have to keep internal energy consistent with new velocities
           U( 2, ilo - 1 - iX, k ) =
-              U( 2, ilo + iX, 2 );       // * U( 1, ilo + iX, 1 );
+              U( 2, ilo + iX, 2 ); // * U( 1, ilo + iX, 1 );
           U( 2, ihi + 1 + iX, k ) =
-              U( 2, ihi - iX, 2 );       //* U( 1, ihi - iX, 1 );
+              U( 2, ihi - iX, 2 ); //* U( 1, ihi - iX, 1 );
         } else {
           U( 0, ilo - 1 - iX, k ) = 0.0; // U( 0, ilo + iX, k );
           U( 0, ihi + 1 + iX, k ) = 0.0; // U( 0, ihi - iX, k );

@@ -15,7 +15,7 @@
 #include <algorithm> /* std::sort */
 #include <cstdlib>   /* abs */
 #include <iostream>
-#include <math.h>    /* pow */
+#include <math.h> /* pow */
 
 #include "Error.hpp"
 #include "FluidUtilities.hpp"
