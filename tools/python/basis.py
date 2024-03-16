@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import h5py
-import matplotlib.pyplot as plt
-import numpy as np
 
 
 class ModalBasis:
