@@ -74,7 +74,7 @@ time_array = Float64[]
 em_array = Float64[]
 @inbounds for fn in files
   n = length(fn)
-  if (fn[n-2:end] == ".h5" && fn != "athelas_basis_Sedov.h5")
+  if (fn[n-2:end] == ".h5" && fn != "athelas_basis_Sod.h5")
     println(fn)
     data, grid, order = Load_Output( "../build/" * fn )
 
