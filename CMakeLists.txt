@@ -74,20 +74,20 @@ else()
 endif()
 
 include_directories(src)
-include_directories("src/Geometry")
-include_directories("src/Quadrature")
-include_directories("src/Utils")
-include_directories("src/Limiters")
-include_directories("src/Basis")
-include_directories("src/Fluid")
-include_directories("src/Radiation")
-include_directories("src/PGen")
-include_directories("src/LinAlg")
-include_directories("src/EoS")
-include_directories("src/BC")
-include_directories("src/IO")
+include_directories("src/geometry")
+include_directories("src/quadrature")
+include_directories("src/utils")
+include_directories("src/limiters")
+include_directories("src/basis")
+include_directories("src/fluid")
+include_directories("src/radiation")
+include_directories("src/pgen")
+include_directories("src/linalg")
+include_directories("src/eos")
+include_directories("src/bc")
+include_directories("src/io")
 include_directories("src/state")
-include_directories("src/Timestepper")
+include_directories("src/timestepper")
 
 include_directories(athelas PUBLIC
   "${PROJECT_BINARY_DIR}"
@@ -95,23 +95,23 @@ include_directories(athelas PUBLIC
 
 # --- Source Files ---
 set( ATHELAS_SOURCES 
-  "src/PGen/ProblemIn.cpp"
-  "src/Basis/PolynomialBasis.cpp"
-  "src/BC/BoundaryConditionsLibrary.cpp"
-  "src/EoS/EoS_Ideal.cpp"
-  "src/Fluid/FluidUtilities.cpp"
-  "src/Radiation/RadUtilities.cpp"
-  "src/Radiation/Rad_Discretization.cpp"
-  "src/Fluid/Fluid_Discretization.cpp"
-  "src/Geometry/Grid.cpp"
-  "src/IO/IOLibrary.cpp"
-  "src/LinAlg/LinearAlgebraModules.cpp"
-  "src/Quadrature/QuadratureLibrary.cpp"
-  "src/Limiters/SlopeLimiter.cpp"
-  "src/Limiters/BoundEnforcingLimiter.cpp"
-  "src/Limiters/SlopeLimiter_Utilities.cpp"
+  "src/pgen/problem_in.cpp"
+  "src/basis/polynomial_basis.cpp"
+  "src/bc/boundary_conditions.cpp"
+  "src/eos/eos_ideal.cpp"
+  "src/fluid/fluid_utilities.cpp"
+  "src/radiation/rad_utilities.cpp"
+  "src/radiation/rad_discretization.cpp"
+  "src/fluid/fluid_discretization.cpp"
+  "src/geometry/grid.cpp"
+  "src/io/io.cpp"
+  "src/linalg/linear_algebra.cpp"
+  "src/quadrature/quadrature.cpp"
+  "src/limiters/slope_limiter.cpp"
+  "src/limiters/bound_enforcing_limiter.cpp"
+  "src/limiters/slope_limiter_utilities.cpp"
   "src/state/state.cpp"
-  "src/Timestepper/Timestepper.cpp" )
+  "src/timestepper/timestepper.cpp" )
 
 add_library(libathelas ${ATHELAS_SOURCES})
 set_target_properties(libathelas
@@ -200,7 +200,7 @@ include_directories("external/tomlplusplus")
 
 # --- main ---
 
-add_executable( main src/Driver.cpp ${ATHELAS_SOURCES} )
+add_executable( main src/driver.cpp ${ATHELAS_SOURCES} )
 set_target_properties(main
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib"
