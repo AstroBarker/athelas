@@ -38,32 +38,24 @@ cmake --build .
 
 As a temporary fix for Ubuntu CI, we need to pass a `MACHINE` flag.
 On Mac we support `-DMACHINE=MACOS`,
-Ubuntu supports `-DMACHINE=UBUNTU` (primaryily because the CI fails to find `lapacke.h` unless we hold its hand and this is how we do that, for now.)
-The default is `UBUNTU`. Passing anything else should let cmake's `find_package` do its thing. 
+Ubuntu supports `-DMACHINE=UBUNTU` (primarily because the CI fails to find `lapacke.h` unless we hold its hand and this is how we do that, for now.)
+This places the executable in the `build` dir.
 
-This will create a directory `bin` in the root directory that contains the executable.
+## Code Style
+
+We use `clang format` and `ruff` for code cleanliness. 
+Rules are listed in `.clang-format`.
+The current version of `clang-format` used is `clang-format-13`.
+Simply call `tools/bash/format.sh` to format the `.hpp` and `.cpp` files.
+
+Python code linting and formatting is done with `ruff`. 
+Rules are listed in `ruff.toml`. 
+To check all python in the current directory, you may `ruff ..`
+To format a given file according to `ruff.toml`, run `ruff format file.py`. 
+Checks for formatting are performed on each PR.
 
 ## NOTE: 
 The build system may not be perfect yet. Your mileage may vary.
-
-# TODO
-- function naming overhaul
-- class accessor refactor
-- kokkos parallel slope limiter
-- Rename values in hdf5 output...
-
-## Radiation TODO:
-- ... microphysics...
-- implicit update
-
-
-# Future Work
-
-- Grey M1 radiation [WIP]
-- Relativistic hydro
-- Gravity
-- Multigroup radiation
-- Non-relativistic MHD
 
 # Dependencies
 * LAPACKE
@@ -74,19 +66,21 @@ The build system may not be perfect yet. Your mileage may vary.
 Hopefully `lapacke` won't be necessary forever, but at present it is needed for initializing the quadrature.
 I find that, on Arch Linux systems, `lapack`, `lapacke`, and `openblas` is sufficient for all `lapacke` needs.
 
-## Clang-format
+# TODO
 
-We use clang format for code cleanliness. 
-The current version of `clang-format` used is `clang-format-13`.
-Simply call `tools/bash/format.sh` to format the `.hpp` and `.cpp` files.
+- Grey M1 radiation [WIP]
+ - implicit update
+ - overhaul microphysics
+- Relativistic hydro
+- Gravity
+- Multigroup radiation
+- 1.5D Non-relativistic MHD
+- Adjust numerical fluxes for 1D MHD
+- function naming overhaul
+- class accessor refactor
+- kokkos parallel slope limiter
+- Rename values in hdf5 output...
 
-# TODO:
- - [x] Initialize with input file at runtime
- - [x] Bound enforcing limiter
- - [ ] format on make
- - [ ] Rad: Riemann solvers beyond LLF?
- - [ ] Adjust numerical fluxes for 1D MHD
- - [ ] Implement 1.5D NRMHD
 
 
 # BUGS: 
