@@ -28,7 +28,7 @@ git clone --recursive git@github.com:AstroBarker/athelas.git
 ```
 
 # Building
-`athelas` is installed using cmake. From the root directory of `athelas`, run the following:
+`athelas` is built using `cmake`. From the root directory of `athelas`, run the following:
 
 ```sh
 mkdir build && cd build
@@ -40,6 +40,10 @@ As a temporary fix for Ubuntu CI, we need to pass a `MACHINE` flag.
 On Mac we support `-DMACHINE=MACOS`,
 Ubuntu supports `-DMACHINE=UBUNTU` (primarily because the CI fails to find `lapacke.h` unless we hold its hand and this is how we do that, for now.)
 This places the executable in the `build` dir.
+
+
+## NOTE: 
+The build system may not be perfect yet. Your mileage may vary.
 
 # Code Style
 
@@ -54,9 +58,6 @@ To check all python in the current directory, you may `ruff ..`
 To format a given file according to `ruff.toml`, run `ruff format file.py`. 
 
 Checks for formatting are performed on each PR.
-
-## NOTE: 
-The build system may not be perfect yet. Your mileage may vary.
 
 # Dependencies
 * LAPACKE
