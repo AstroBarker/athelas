@@ -21,9 +21,9 @@
 #include "error.hpp"
 #include "fluid_utilities.hpp"
 #include "grid.hpp"
-#include "linear_algebra_modules.hpp"
+#include "linear_algebra.hpp"
 #include "polynomial_basis.hpp"
-#include "quadrature_library.hpp"
+#include "quadrature.hpp"
 
 /**
  * Constructor creates necessary matrices and bases, etc.

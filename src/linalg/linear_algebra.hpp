@@ -1,5 +1,5 @@
-#ifndef _LINEAR_ALGEBRA_MODULES_HPP_
-#define _LINEAR_ALGEBRA_MODULES_HPP_
+#ifndef _LINEAR_ALGEBRA_HPP_
+#define _LINEAR_ALGEBRA_HPP_
 
 #include "Kokkos_Core.hpp"
 
@@ -33,4 +33,4 @@ constexpr void MatMul( Real alpha, M A, V x, Real beta, V y ) {
 void Tri_Sym_Diag( int n, Real *d, Real *e, Real *array );
 void InvertMatrix( Real *M, int n );
 
-#endif // _LINEAR_ALGEBRA_MODULES_HPP_
+#endif // _LINEAR_ALGEBRA_HPP_

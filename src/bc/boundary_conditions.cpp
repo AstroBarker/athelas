@@ -1,5 +1,5 @@
 /**
- * File    :  boundary_conditions_library.cpp
+ * File    :  boundary_conditions.cpp
  * --------------
  *
  * Author  : Brandon L. Barker
@@ -11,7 +11,7 @@
 
 #include "Kokkos_Core.hpp"
 
-#include "boundary_conditions_library.hpp"
+#include "boundary_conditions.hpp"
 #include "grid.hpp"
 
 // Apply Boundary Conditions to fluid fields

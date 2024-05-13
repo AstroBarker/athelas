@@ -13,8 +13,8 @@
 
 #include <math.h> /* atan */
 
-#include "grid.hpp"
 #include "constants.hpp"
+#include "grid.hpp"
 
 GridStructure::GridStructure( ProblemIn *pin )
     : nElements( pin->nElements ), nNodes( pin->nNodes ), nGhost( pin->nGhost ),

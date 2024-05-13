@@ -8,8 +8,8 @@
  **/
 
 #include <algorithm> /* std::min, std::max */
-#include <iostream>
 #include <cstdlib> /* abs */
+#include <iostream>
 #include <limits>
 
 #include "Kokkos_Core.hpp"
@@ -17,7 +17,7 @@
 #include "characteristic_decomposition.hpp"
 #include "error.hpp"
 #include "grid.hpp"
-#include "linear_algebra_modules.hpp"
+#include "linear_algebra.hpp"
 #include "polynomial_basis.hpp"
 #include "slope_limiter.hpp"
 #include "slope_limiter_utilities.hpp"

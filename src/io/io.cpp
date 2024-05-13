@@ -1,5 +1,5 @@
 /**
- * File     :  io_library.cpp
+ * File     :  io.cpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -13,7 +13,7 @@
 #include "H5Cpp.h"
 
 #include "grid.hpp"
-#include "io_library.hpp"
+#include "io.hpp"
 #include "polynomial_basis.hpp"
 #include "slope_limiter.hpp"
 

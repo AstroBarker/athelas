@@ -6,12 +6,12 @@
 #include <string>
 
 #include "abstractions.hpp"
+#include "advection.hpp"
 #include "constants.hpp"
+#include "equilibrium.hpp"
 #include "error.hpp"
 #include "grid.hpp"
 #include "initialization.hpp"
-#include "advection.hpp"
-#include "equilibrium.hpp"
 #include "state.hpp"
 
 #define GAMMA 1.4

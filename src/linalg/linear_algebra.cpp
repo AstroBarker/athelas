@@ -1,5 +1,5 @@
 /**
- * File     :  linear_algebra_modules.cpp
+ * File     :  linear_algebra.cpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -13,8 +13,8 @@
 #include <Kokkos_Core.hpp>
 
 #include "error.hpp"
-#include "linear_algebra_modules.hpp"
 #include "lapacke.h"
+#include "linear_algebra.hpp"
 
 /**
  * Use LAPACKE to diagonalize symmetric tridiagonal matrix with DSTEV

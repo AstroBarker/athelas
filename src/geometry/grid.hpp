@@ -23,7 +23,7 @@
 #include "error.hpp"
 #include "geometry.hpp"
 #include "problem_in.hpp"
-#include "quadrature_library.hpp"
+#include "quadrature.hpp"
 
 class GridStructure {
  public:

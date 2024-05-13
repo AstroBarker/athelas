@@ -11,10 +11,10 @@
 
 #include "Kokkos_Core.hpp"
 
-#include "boundary_conditions_library.hpp"
+#include "boundary_conditions.hpp"
 #include "error.hpp"
-#include "fluid_utilities.hpp"
 #include "fluid_discretization.hpp"
+#include "fluid_utilities.hpp"
 #include "grid.hpp"
 #include "polynomial_basis.hpp"
 #include "rad_utilities.hpp"

@@ -1,5 +1,5 @@
 /**
- * File     :  quadrature_library.cpp
+ * File     :  quadrature.cpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -10,8 +10,8 @@
 #include <math.h>
 
 #include "constants.hpp"
-#include "linear_algebra_modules.hpp"
-#include "quadrature_library.hpp"
+#include "linear_algebra.hpp"
+#include "quadrature.hpp"
 
 namespace quadrature {
 /**
