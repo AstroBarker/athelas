@@ -41,7 +41,7 @@ On Mac we support `-DMACHINE=MACOS`,
 Ubuntu supports `-DMACHINE=UBUNTU` (primarily because the CI fails to find `lapacke.h` unless we hold its hand and this is how we do that, for now.)
 This places the executable in the `build` dir.
 
-## Code Style
+# Code Style
 
 We use `clang format` and `ruff` for code cleanliness. 
 Rules are listed in `.clang-format`.
@@ -52,6 +52,7 @@ Python code linting and formatting is done with `ruff`.
 Rules are listed in `ruff.toml`. 
 To check all python in the current directory, you may `ruff ..`
 To format a given file according to `ruff.toml`, run `ruff format file.py`. 
+
 Checks for formatting are performed on each PR.
 
 ## NOTE: 
