@@ -21,7 +21,7 @@ More work to port other parts of the code.
 We use [toml++](https://github.com/marzer/tomlplusplus) for parsing input files in the for parsing input files in the `.toml` format.
 
 # Installation
-`athelas` uses submoduless to include dependencies. 
+`athelas` uses submodules to include dependencies. 
 The best way to get the source is the following 
 ```sh
 git clone --recursive git@github.com:AstroBarker/athelas.git
