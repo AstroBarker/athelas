@@ -57,25 +57,6 @@ Checks for formatting are performed on each PR.
 ## NOTE: 
 The build system may not be perfect yet. Your mileage may vary.
 
-# TODO
-- function naming overhaul
-- class accessor refactor
-- kokkos parallel slope limiter
-- Rename values in hdf5 output...
-
-## Radiation TODO:
-- ... microphysics...
-- implicit update
-
-
-# Future Work
-
-- Grey M1 radiation [WIP]
-- Relativistic hydro
-- Gravity
-- Multigroup radiation
-- Non-relativistic MHD
-
 # Dependencies
 * LAPACKE
 * HDF5
@@ -85,14 +66,21 @@ The build system may not be perfect yet. Your mileage may vary.
 Hopefully `lapacke` won't be necessary forever, but at present it is needed for initializing the quadrature.
 I find that, on Arch Linux systems, `lapack`, `lapacke`, and `openblas` is sufficient for all `lapacke` needs.
 
+# TODO
 
-# TODO:
- - [x] Initialize with input file at runtime
- - [x] Bound enforcing limiter
- - [ ] format on make
- - [ ] Rad: Riemann solvers beyond LLF?
- - [ ] Adjust numerical fluxes for 1D MHD
- - [ ] Implement 1.5D NRMHD
+- Grey M1 radiation [WIP]
+ - implicit update
+ - overhaul microphysics
+- Relativistic hydro
+- Gravity
+- Multigroup radiation
+- 1.5D Non-relativistic MHD
+- Adjust numerical fluxes for 1D MHD
+- function naming overhaul
+- class accessor refactor
+- kokkos parallel slope limiter
+- Rename values in hdf5 output...
+
 
 
 # BUGS: 
