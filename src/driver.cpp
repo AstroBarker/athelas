@@ -6,6 +6,7 @@
  * Purpose : Main driver routine
  **/
 
+#include <algorithm> // std::min
 #include <iostream>
 #include <string>
 #include <vector>
@@ -51,7 +52,7 @@ int main( int argc, char *argv[] ) {
   Real dt          = 0.0;
   const Real t_end = pin.t_end;
 
-  bool Restart = pin.Restart;
+  const bool Restart = pin.Restart;
 
   const std::string BC   = pin.BC;
   const Real gamma_ideal = 1.4;
@@ -106,17 +107,17 @@ int main( int argc, char *argv[] ) {
     Kokkos::Timer timer;
 
     // --- Evolution loop ---
-    int iStep   = 0;
-    int i_print = 100; // std out
-    int i_write = 10; // h5 out
-    int i_out   = 1; // output label, start 1
+    const int i_print = 1000; // std out
+    const int i_write = 1000; // h5 out
+    int iStep         = 0;
+    int i_out         = 1; // output label, start 1
     std::cout << " ~ Step\tt\tdt" << std::endl;
-    while ( t < t_end && iStep >= 0 ) {
+    while ( t < t_end ) {
 
       // TODO: ComputeTimestep_Rad
       dt = ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL );
       if ( opts.do_rad ) { // hack
-        dt = std::pow( 10.0, -22.0 );
+        dt = std::pow( 10.0, -15.5 );
       }
 
       if ( t + dt > t_end ) {
@@ -135,12 +136,19 @@ int main( int argc, char *argv[] ) {
                            &Basis, &eos, &S_Limiter, opts );
         SSPRK.UpdateRadiation( Compute_Increment_Explicit_Rad, dt, &state, Grid,
                                &Basis, &eos, &S_Limiter, opts );
-        SSPRK.UpdateFluid( Compute_Increment_Explicit, 1.0 * dt, &state, Grid,
+        SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state, Grid,
                            &Basis, &eos, &S_Limiter, opts );
+
+        // SSPRK.UpdateRadHydro( Compute_Increment_Explicit,
+        //                       Compute_Increment_Explicit_Rad,
+        //                       Compute_Increment_Explicit_Rad,
+        //                       Compute_Increment_Explicit_Rad,
+        //                       dt, &state, Grid,
+        //                       &Basis, &eos, &S_Limiter, opts );
       }
 
 #ifdef ATHELAS_DEBUG
-      check_state( &state, Grid.Get_ihi( ) );
+      check_state( &state, Grid.Get_ihi( ), pin.do_rad );
 #endif
 
       t += dt;
@@ -181,15 +189,17 @@ int NumNodes( int order ) {
 /**
  * Compute the CFL timestep restriction.
  **/
-Real ComputeCFL( Real CFL, int order, int nStages, int tOrder ) {
+Real ComputeCFL( const Real CFL, const int order, const int nStages,
+                 const int tOrder ) {
   Real c = 1.0;
 
   if ( nStages == tOrder ) c = 1.0;
   if ( nStages != tOrder ) {
-    if ( tOrder == 2 ) c = 4.0;
-    if ( tOrder == 3 ) c = 2.65062919294483;
-    if ( tOrder == 4 ) c = 1.50818004975927;
+    if ( tOrder == 2 ) c = 1.0;
+    if ( tOrder == 3 ) c = 1.0;
+    if ( tOrder == 4 ) c = 0.76;
   }
 
-  return c * CFL / ( ( 2.0 * (order)-1.0 ) );
+  const Real max_cfl = 0.9;
+  return std::min( c * CFL / ( ( 2.0 * (order)-1.0 ) ), max_cfl );
 }

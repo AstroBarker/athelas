@@ -190,6 +190,8 @@ void ComputeIncrement_Fluid_Rad( const View3D<Real> uCF, const View3D<Real> uCR,
   const int ilo    = Grid.Get_ilo( );
   const int ihi    = Grid.Get_ihi( );
 
+  constexpr Real c = constants::c_cgs;
+
   Kokkos::parallel_for(
       "Fluid :: Source Term; Rad",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, ilo }, { order, ihi + 1 } ),
@@ -202,7 +204,7 @@ void ComputeIncrement_Fluid_Rad( const View3D<Real> uCF, const View3D<Real> uCR,
           const Real EmT = Basis->BasisEval( uCF, iX, 2, iN + 1 );
 
           const Real Er = Basis->BasisEval( uCR, iX, 0, iN + 1 ) / Tau;
-          const Real Fr = Basis->BasisEval( uCR, iX, 1, iN + 1 ) / Tau;
+          const Real Fr = c * c * Basis->BasisEval( uCR, iX, 1, iN + 1 ) / Tau;
           const Real Pr = ComputeClosure( Er, Fr );
 
           auto lambda  = nullptr;
@@ -217,10 +219,10 @@ void ComputeIncrement_Fluid_Rad( const View3D<Real> uCF, const View3D<Real> uCR,
 
           local_sum1 +=
               Grid.Get_Weights( iN ) * Basis->Get_Phi( iX, iN + 1, k ) *
-              Source_Fluid_Rad( Tau, Vel, T, chi, kappa, Er, Fr, Pr, 1 );
+              Source_Fluid_Rad( 1.0 / Tau, Vel, T, chi, kappa, Er, Fr, Pr, 1 );
           local_sum2 +=
               Grid.Get_Weights( iN ) * Basis->Get_Phi( iX, iN + 1, k ) *
-              Source_Fluid_Rad( Tau, Vel, T, chi, kappa, Er, Fr, Pr, 2 );
+              Source_Fluid_Rad( 1.0 / Tau, Vel, T, chi, kappa, Er, Fr, Pr, 2 );
         }
 
         dU( 1, iX, k ) += ( local_sum1 * Grid.Get_Widths( iX ) ) /
@@ -260,6 +262,7 @@ void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
 
   // --- Apply BC ---
   ApplyBC( U, &Grid, order, opts.BC );
+  ApplyBC( uCR, &Grid, order, opts.BC );
 
   // --- Detect Shocks ---
   // TODO: Code up a shock detector...

@@ -6,6 +6,8 @@
  * Purpose  : Utility routines for radiation fields. Includes Riemann solvers.
  **/
 
+#include <algorithm> // std::min, std::max
+#include <cmath> // pow, abs, sqrt
 #include <iostream>
 #include <vector>
 
@@ -16,6 +18,7 @@
 #include "error.hpp"
 #include "polynomial_basis.hpp"
 #include "rad_utilities.hpp"
+#include "riemann.hpp"
 #include "utilities.hpp"
 
 /**
@@ -24,8 +27,8 @@
 Real FluxFactor( const Real E, const Real F ) {
   assert( E > 0.0 &&
           "Radiation :: FluxFactor :: non positive definite energy density." );
-  const Real c = constants::c_cgs;
-  return std::fabs( F ) / ( c * E );
+  constexpr Real c = constants::c_cgs;
+  return std::fabs( c * F ) / ( 1.0 * E );
 }
 
 /**
@@ -33,12 +36,13 @@ Real FluxFactor( const Real E, const Real F ) {
  * Here E and F are per unit volume
  **/
 Real Flux_Rad( Real E, Real F, Real P, Real V, int iCR ) {
-  assert( iCR == 0 || iCR == 1 && "Radiation :: FluxFactor :: bad iCR." );
+  assert( ( iCR == 0 || iCR == 1 ) && "Radiation :: FluxFactor :: bad iCR." );
   assert( E > 0.0 &&
           "Radiation :: FluxFactor :: non positive definite energy density." );
 
-  const Real c = constants::c_cgs;
-  return ( iCR == 0 ) ? c * F - E * V : 1.0 * c * P - F * V;
+  constexpr Real c = constants::c_cgs;
+  // return ( iCR == 0 ) ? c * c * F - E * V : 1.0 * 1.0 * P - F * V;
+  return ( iCR == 0 ) ? c * c * F : P;
 }
 
 /**
@@ -64,12 +68,12 @@ void RadiationFourForce( Real D, Real V, Real T, Real kappa, Real E, Real F,
   assert( E > 0.0 && "Radiation :: RadiationFourFource :: Non positive "
                      "definite radiation energy density." );
 
-  const Real a = constants::a;
-  const Real c = constants::c_cgs;
+  constexpr Real a = constants::a;
+  constexpr Real c = constants::c_cgs;
 
   const Real b     = V / c;
   const Real term1 = E - a * T * T * T * T;
-  F /= 1.0;
+  F *= 1.0;
 
   // O(b^2) ala Fuksman
   G0 = D * kappa * ( term1 - b * F - b * b * E - b * b * Pr );
@@ -87,13 +91,11 @@ void RadiationFourForce( Real D, Real V, Real T, Real kappa, Real E, Real F,
  **/
 Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E, Real F,
                  Real Pr, int iCR ) {
-  assert( iCR == 0 || iCR == 1 && "Radiation :: FluxFactor :: bad iCR." );
-  assert(
-      D >= 0.0 &&
-      "Radiation :: RadiationFourFource :: Non positive definite density." );
-  assert( T > 0.0 &&
-          "Radiation :: RadiationFourFource :: Non positive temperature." );
-  assert( E > 0.0 && "Radiation :: RadiationFourFource :: Non positive "
+  assert( ( iCR == 0 || iCR == 1 ) && "Radiation :: source_rad :: bad iCR." );
+  assert( D >= 0.0 &&
+          "Radiation :: source_rad :: Non positive definite density." );
+  assert( T > 0.0 && "Radiation :: source_rad :: Non positive temperature." );
+  assert( E > 0.0 && "Radiation :: source_rad :: Non positive "
                      "definite radiation energy density." );
 
   const Real c = constants::c_cgs;
@@ -101,7 +103,7 @@ Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E, Real F,
   Real G0, G;
   RadiationFourForce( D, V, T, kappa, E, F, Pr, G0, G );
 
-  return ( iCR == 0 ) ? -c * G0 : -1.0 * c * G;
+  return ( iCR == 0 ) ? -c * G0 : -1.0 * 1.0 * G;
 }
 
 /**
@@ -146,36 +148,37 @@ void llf_flux( const Real Fp, const Real Fm, const Real Up, const Real Um,
  * and references therein
  **/
 Real Lambda_HLL( const Real f, const int sign ) {
-  const Real twothird = 2.0 / 3.0;
+  constexpr Real c        = constants::c_cgs;
+  constexpr Real twothird = 2.0 / 3.0;
+
   const Real f2       = f * f;
   const Real sqrtterm = std::sqrt( 4.0 - 3.0 * f2 );
-  return ( f + sign * std::sqrt( twothird * ( 4.0 - 3.0 * f2 - sqrtterm ) +
+  return c *
+         ( f + sign * std::sqrt( twothird * ( 4.0 - 3.0 * f2 - sqrtterm ) +
                                  2.0 * ( 2.0 - f2 - sqrtterm ) ) ) /
          sqrtterm;
 }
 
-/* HLL Riemann solver for radiation */
-void NumericalFlux_HLL_Rad( const Real E_L, const Real E_R, const Real F_L,
-                            const Real F_R, const Real P_L, const Real P_R,
-                            const Real V_L, const Real V_R, Real &Flux_E,
-                            Real &Flux_F ) {
+/**
+ * HLL Riemann solver for radiation
+ * see 2013ApJS..206...21S (Skinner & Ostriker 2013) Eq 39
+ * and references & discussion therein
+ *
+ * Note: pass in Eulerian varaibles ( _ / cm^3 )
+ **/
+void numerical_flux_hll_rad( const Real E_L, const Real E_R, const Real F_L,
+                             const Real F_R, const Real P_L, const Real P_R,
+                             Real &Flux_E, Real &Flux_F ) {
   // flux factors
   const Real f_L = FluxFactor( E_L, F_L );
   const Real f_R = FluxFactor( E_R, F_R );
 
   // eigenvalues
-  const Real S_r_p = std::max(
+  const Real s_r_p = std::max(
       std::max( Lambda_HLL( f_L, 1.0 ), Lambda_HLL( f_R, 1.0 ) ), 0.0 );
-  const Real S_l_m = std::min(
+  const Real s_l_m = std::min(
       std::min( Lambda_HLL( f_L, -1.0 ), Lambda_HLL( f_R, -1.0 ) ), 0.0 );
 
-  // TODO: what flux to use in the Riemann solver? "Normal," or "Lagrangian"?
-  // For now: using mine.
-  const Real flux_E_L = 0.0;
-  const Real flux_E_R = 0.0;
-  const Real flux_F_L = 0.0;
-  const Real flux_F_R = 0.0;
-
-  Flux_E = 0.0;
-  Flux_F = 0.0;
+  Flux_E = hll( E_L, E_R, F_L, F_R, s_l_m, s_r_p );
+  Flux_F = hll( F_L, F_R, P_L, P_R, s_l_m, s_r_p );
 }

@@ -30,7 +30,10 @@ void ComputeIncrement_Rad_Divergence(
   const auto &order  = Basis->Get_Order( );
   const auto &ilo    = Grid.Get_ilo( );
   const auto &ihi    = Grid.Get_ihi( );
-  const int nvars    = uCR.extent( 0 );
+  const int nvars    = 2;
+
+  constexpr Real c  = constants::c_cgs;
+  constexpr Real c2 = c * c;
 
   // --- Interpolate Conserved Variable to Interfaces ---
 
@@ -47,7 +50,7 @@ void ComputeIncrement_Rad_Divergence(
   // --- Calc numerical flux at all faces
   Kokkos::parallel_for(
       "Radiation :: Numerical Fluxes", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
-      KOKKOS_LAMBDA( int iX ) {
+      KOKKOS_LAMBDA( const int iX ) {
         auto uCR_L = Kokkos::subview( uCR_F_L, Kokkos::ALL, iX );
         auto uCR_R = Kokkos::subview( uCR_F_R, Kokkos::ALL, iX );
 
@@ -69,9 +72,9 @@ void ComputeIncrement_Rad_Divergence(
                 "rad_Discretization :: Numerical Fluxes bad flux." );
 
         const Real Em_L = uCR_L( 0 ) / tauL;
-        const Real Fm_L = uCR_L( 1 ) / tauL;
+        const Real Fm_L = c2 * uCR_L( 1 ) / tauL;
         const Real Em_R = uCR_R( 0 ) / tauR;
-        const Real Fm_R = uCR_R( 1 ) / tauR;
+        const Real Fm_R = c2 * uCR_R( 1 ) / tauR;
 
         const Real P_L = ComputeClosure( Em_L, Fm_L );
         const Real P_R = ComputeClosure( Em_R, Fm_R );
@@ -79,19 +82,30 @@ void ComputeIncrement_Rad_Divergence(
         // --- Numerical Fluxes ---
 
         // Riemann Problem
-        Real flux_e      = 0.0;
-        Real flux_f      = 0.0;
-        const Real vR    = Basis->BasisEval( uCF, iX, 1, 0 );
-        const Real vL    = Basis->BasisEval( uCF, iX - 1, 1, nNodes + 1 );
-        const Real c_cgs = constants::c_cgs;
+        Real flux_e   = 0.0;
+        Real flux_f   = 0.0;
+        const Real vR = Basis->BasisEval( uCF, iX, 1, 0 );
+        const Real vL = Basis->BasisEval( uCF, iX - 1, 1, nNodes + 1 );
 
-        Real Fp = Flux_Rad( Em_R, Fm_R, vR, P_R, 0 );
-        Real Fm = Flux_Rad( Em_L, Fm_L, vL, P_L, 0 );
-        llf_flux( Fp, Fm, Em_R, Em_L, c_cgs, flux_e );
+        // Real Fp = Flux_Rad( Em_R, Fm_R, vR, P_R, 0 );
+        // Real Fm = Flux_Rad( Em_L, Fm_L, vL, P_L, 0 );
+        // llf_flux( Fp, Fm, Em_R, Em_L, c_cgs, flux_e );
 
-        Fp = Flux_Rad( Em_R, Fm_R, P_R, vR, 1 );
-        Fm = Flux_Rad( Em_L, Fm_L, P_L, vL, 1 ); // WEIRD
-        llf_flux( Fp, Fm, Fm_R, Fm_L, c_cgs, flux_f );
+        // Fp = Flux_Rad( Em_R, Fm_R, P_R, vR, 1 );
+        // Fm = Flux_Rad( Em_L, Fm_L, P_L, vL, 1 ); // WEIRD
+        // llf_flux( Fp, Fm, Fm_R, Fm_L, c_cgs, flux_f );
+
+        numerical_flux_hll_rad( Em_L, Em_R, Fm_L, Fm_R, P_L, P_R, flux_e,
+                                flux_f );
+        // HACK
+        const Real vstar = ( vL + vR ) / 2.0;
+        const Real advective_flux_e =
+            ( vstar >= 0.0 ) ? vstar * Em_L : vstar * Em_R;
+        const Real advective_flux_f =
+            ( vstar >= 0.0 ) ? vstar * Fm_L : vstar * Fm_R;
+
+        flux_e += advective_flux_e;
+        flux_f += advective_flux_f;
 
         dFlux_num( 0, iX ) = flux_e;
         dFlux_num( 1, iX ) = flux_f;
@@ -162,7 +176,9 @@ void ComputeIncrement_Rad_Source( const View3D<Real> uCR,
   const int order  = Basis->Get_Order( );
   const int ilo    = Grid.Get_ilo( );
   const int ihi    = Grid.Get_ihi( );
-  const int nvars  = uCR.extent( 0 );
+  const int nvars  = 2;
+
+  constexpr Real c = constants::c_cgs;
 
   Kokkos::parallel_for(
       "Rad :: Source",
@@ -184,7 +200,7 @@ void ComputeIncrement_Rad_Source( const View3D<Real> uCR,
           const Real X     = ComputeEmissivity( D, V, Em_T );
 
           const Real E_r = Basis->BasisEval( uCR, iX, 0, iN + 1 ) * D;
-          const Real F_r = Basis->BasisEval( uCR, iX, 1, iN + 1 ) * D;
+          const Real F_r = c * c * Basis->BasisEval( uCR, iX, 1, iN + 1 ) * D;
           const Real P_r = ComputeClosure( E_r, F_r );
 
           const Real this_source =
@@ -196,6 +212,7 @@ void ComputeIncrement_Rad_Source( const View3D<Real> uCR,
 
         dU( iCR, iX, k ) += ( local_sum * Grid.Get_Widths( iX ) ) /
                             Basis->Get_MassMatrix( iX, k );
+        // std::printf("dU_r %e\n", dU(iCR, iX, k));
       } );
 }
 
@@ -224,10 +241,11 @@ void Compute_Increment_Explicit_Rad(
   const auto &order = Basis->Get_Order( );
   const auto &ilo   = Grid.Get_ilo( );
   const auto &ihi   = Grid.Get_ihi( );
-  const int nvars   = uCR.extent( 0 );
+  const int nvars   = 2;
 
   // --- Apply BC ---
   ApplyBC( uCR, &Grid, order, opts.BC );
+  ApplyBC( uCF, &Grid, order, opts.BC );
 
   // --- Compute Increment for new solution ---
 

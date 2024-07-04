@@ -161,7 +161,7 @@ void GridStructure::CreateGrid( ) {
 /**
  * Compute cell masses
  **/
-void GridStructure::ComputeMass( Kokkos::View<Real ***> uPF ) {
+void GridStructure::ComputeMass( View3D<Real> uPF ) {
   const int nNodes = Get_nNodes( );
   const int ilo    = Get_ilo( );
   const int ihi    = Get_ihi( );
@@ -189,7 +189,7 @@ void GridStructure::ComputeMass( Kokkos::View<Real ***> uPF ) {
 /**
  * Compute cell centers of masses reference coordinates
  **/
-void GridStructure::ComputeCenterOfMass( Kokkos::View<Real ***> uPF ) {
+void GridStructure::ComputeCenterOfMass( View3D<Real> uPF ) {
   const int nNodes = Get_nNodes( );
   const int ilo    = Get_ilo( );
   const int ihi    = Get_ihi( );
@@ -217,7 +217,7 @@ void GridStructure::ComputeCenterOfMass( Kokkos::View<Real ***> uPF ) {
 /**
  * Update grid coordinates using interface velocities.
  **/
-void GridStructure::UpdateGrid( Kokkos::View<Real *> SData ) {
+void GridStructure::UpdateGrid( View1D<Real> SData ) {
 
   const int ilo = Get_ilo( );
   const int ihi = Get_ihi( );

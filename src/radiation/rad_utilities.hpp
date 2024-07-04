@@ -1,5 +1,5 @@
-#ifndef _RAD_UTILITIES_HPP_
-#define _RAD_UTILITIES_HPP_
+#ifndef RAD_UTILITIES_HPP_
+#define RAD_UTILITIES_HPP_
 
 #include "Kokkos_Core.hpp"
 
@@ -17,9 +17,8 @@ Real ComputeClosure( const Real E, const Real F );
 Real Lambda_HLL( const Real f, const int sign );
 void llf_flux( const Real Fp, const Real Fm, const Real Up, const Real Um,
                const Real alpha, Real &out );
-void NumericalFlux_HLL_Rad( const Real E_L, const Real E_R, const Real F_L,
-                            const Real F_R, const Real P_L, const Real P_R,
-                            const Real V_L, const Real V_R, Real &Flux_E,
-                            Real &Flux_F );
+void numerical_flux_hll_rad( const Real E_L, const Real E_R, const Real F_L,
+                             const Real F_R, const Real P_L, const Real P_R,
+                             Real &Flux_E, Real &Flux_F );
 
-#endif // _RAD_UTILITIES_HPP_
+#endif // RAD_UTILITIES_HPP_

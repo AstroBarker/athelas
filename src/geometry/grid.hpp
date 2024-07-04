@@ -49,10 +49,10 @@ class GridStructure {
   int Get_nElements( ) const;
 
   void CreateGrid( );
-  void UpdateGrid( Kokkos::View<Real *> SData );
-  void ComputeMass( Kokkos::View<Real ***> uPF );
-  void ComputeCenterOfMass( Kokkos::View<Real ***> uPF );
-  void ComputeCenterOfMass_Radius( Kokkos::View<Real ***> uPF );
+  void UpdateGrid( View1D<Real> SData );
+  void ComputeMass( View3D<Real> uPF );
+  void ComputeCenterOfMass( View3D<Real> uPF );
+  void ComputeCenterOfMass_Radius( View3D<Real> uPF );
 
   Real &operator( )( int i, int j );
   Real operator( )( int i, int j ) const;
@@ -68,17 +68,17 @@ class GridStructure {
 
   geometry::Geometry Geometry;
 
-  Kokkos::View<Real *> Nodes;
-  Kokkos::View<Real *> Weights;
+  View1D<Real> Nodes;
+  View1D<Real> Weights;
 
-  Kokkos::View<Real *> Centers;
-  Kokkos::View<Real *> Widths;
-  Kokkos::View<Real *> X_L; // left interface coordinate
+  View1D<Real> Centers;
+  View1D<Real> Widths;
+  View1D<Real> X_L; // left interface coordinate
 
-  Kokkos::View<Real *> Mass;
-  Kokkos::View<Real *> CenterOfMass;
+  View1D<Real> Mass;
+  View1D<Real> CenterOfMass;
 
-  Kokkos::View<Real **> Grid;
+  View2D<Real> Grid;
 };
 
 #endif // GRID_HPP_

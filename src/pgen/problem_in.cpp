@@ -74,6 +74,7 @@ ProblemIn::ProblemIn( const std::string fn ) {
 
   if ( bc ) {
     BC = utilities::to_lower( bc.value( ) );
+    std::cout << BC << std::endl;
   } else {
     throw Error( " ! Initialization Error: boundary condition not supplied in "
                  "input deck." );

@@ -73,6 +73,8 @@ I find that, on Arch Linux systems, `lapack`, `lapacke`, and `openblas` is suffi
 - Grey M1 radiation [WIP]
  - implicit update
  - overhaul microphysics
+ - slope limiter
+- Update tableaus for higher SSP coefficient
 - Relativistic hydro
 - Gravity
 - Multigroup radiation
