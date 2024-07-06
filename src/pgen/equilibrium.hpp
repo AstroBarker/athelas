@@ -30,7 +30,6 @@ void RadEquilibriumInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
 
   const Real V0 = 0.0;
   const Real D  = std::pow( 10.0, -7.0 );
-  const Real P  = 1.0;
 
   Real X1 = 0.0;
   for ( int iX = ilo; iX <= ihi; iX++ )

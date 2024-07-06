@@ -204,7 +204,7 @@ void ComputeIncrement_Fluid_Rad( const View3D<Real> uCF, const View3D<Real> uCR,
           const Real EmT = Basis->BasisEval( uCF, iX, 2, iN + 1 );
 
           const Real Er = Basis->BasisEval( uCR, iX, 0, iN + 1 ) / Tau;
-          const Real Fr = c * c * Basis->BasisEval( uCR, iX, 1, iN + 1 ) / Tau;
+          const Real Fr = Basis->BasisEval( uCR, iX, 1, iN + 1 ) / Tau;
           const Real Pr = ComputeClosure( Er, Fr );
 
           auto lambda  = nullptr;
@@ -279,7 +279,7 @@ void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
       } );
 
   Kokkos::parallel_for(
-      ihi + 2, KOKKOS_LAMBDA( int iX ) { Flux_U( iX ) = 0.0; } );
+      ihi + 2, KOKKOS_LAMBDA( const int iX ) { Flux_U( iX ) = 0.0; } );
 
   // --- Fluid Increment : Divergence ---
   ComputeIncrement_Fluid_Divergence( U, Grid, Basis, eos, dU, Flux_q, dFlux_num,

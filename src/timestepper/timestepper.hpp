@@ -195,7 +195,7 @@ class TimeStepper {
         auto dUs_j =
             Kokkos::subview( dU_s_r, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
         auto Flux_Uj = Kokkos::subview( Flux_U, j, Kokkos::ALL );
-        ComputeIncrementRad( Us_j, uCF, Grid_s[j], Basis, eos, dUs_j, Flux_q,
+        ComputeIncrementRad( Us_j, uCF, Grid, Basis, eos, dUs_j, Flux_q,
                              dFlux_num, uCF_F_L, uCF_F_R, Flux_Uj, Flux_P,
                              opts );
 
@@ -239,8 +239,8 @@ class TimeStepper {
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                                   { order, ihi + 2, nvars } ),
           KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
-            uCR( iCR, iX, k ) +=
-                dt * explicit_tableau_.b_i( iS ) * dUs_j( iCR, iX, k );
+            const Real dt_b = dt * explicit_tableau_.b_i( iS );
+            uCR( iCR, iX, k ) += dt_b * dUs_j( iCR, iX, k );
           } );
     }
 
@@ -268,7 +268,7 @@ class TimeStepper {
   }
 
   /**
-   * Explicit fluid update with SSPRK methods
+   * Fully coupled IMEX rad hydro update with SSPRK methods
    **/
   template <typename T, typename F, typename G, typename H>
   void UpdateRadHydro_IMEX( T compute_increment_hydro_explicit,
@@ -305,6 +305,7 @@ class TimeStepper {
       // --- Inner update loop ---
 
       for ( int j = 0; j < iS; j++ ) {
+        const Real dt_a = dt * explicit_tableau_.a_ij( iS, j );
         auto Us_j_h =
             Kokkos::subview( U_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
         auto Us_j_r =
@@ -328,7 +329,6 @@ class TimeStepper {
             Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
                                                     { order, ihi + 2 } ),
             KOKKOS_LAMBDA( const int k, const int iX ) {
-              const Real dt_a = dt * explicit_tableau_.a_ij( iS, j );
               SumVar_U( 0, iX, k ) += dt_a * dUs_j_h( 0, iX, k );
               SumVar_U( 1, iX, k ) += dt_a * dUs_j_h( 1, iX, k );
               SumVar_U( 2, iX, k ) += dt_a * dUs_j_h( 2, iX, k );
@@ -367,6 +367,7 @@ class TimeStepper {
     } // end outer loop
 
     for ( unsigned short int iS = 0; iS < nStages; iS++ ) {
+      const Real dt_b = dt * explicit_tableau_.b_i( iS );
       auto Us_i_h =
           Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto Us_i_r =
@@ -388,20 +389,17 @@ class TimeStepper {
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
                                                   { order, ihi + 2 } ),
           KOKKOS_LAMBDA( const int k, const int iX ) {
-            const Real dt_b = dt * explicit_tableau_.b_i( iS );
             uCF( 0, iX, k ) += dt_b * dUs_i_h( 0, iX, k );
             uCF( 1, iX, k ) += dt_b * dUs_i_h( 1, iX, k );
             uCF( 2, iX, k ) += dt_b * dUs_i_h( 2, iX, k );
             uCR( 0, iX, k ) += dt_b * dUs_i_r( 0, iX, k );
             uCR( 1, iX, k ) += dt_b * dUs_i_r( 1, iX, k );
-            // std::printf("dU_i_r %e\n", dUs_i_r( 0, iX, k ));
           } );
 
       Kokkos::parallel_for(
           "Timestepper::StageData::final", ihi + 2,
           KOKKOS_LAMBDA( const int iX ) {
-            StageData( 0, iX ) +=
-                dt * Flux_Ui( iX ) * explicit_tableau_.b_i( iS );
+            StageData( 0, iX ) += dt_b * Flux_Ui( iX );
           } );
       auto StageDataj = Kokkos::subview( StageData, 0, Kokkos::ALL );
       Grid_s[iS].UpdateGrid( StageDataj );

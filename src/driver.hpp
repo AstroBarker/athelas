@@ -3,7 +3,7 @@
 
 #include "abstractions.hpp"
 
-int NumNodes( int order );
+int NumNodes( const int order );
 
 Real ComputeCFL( const Real CFL, const int order, const int nStages,
                  const int tOrder );

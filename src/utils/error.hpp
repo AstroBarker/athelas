@@ -31,7 +31,9 @@ void check_state( T state, const int ihi, const bool do_rad ) {
   const Real c = constants::c_cgs;
 
   Kokkos::parallel_for(
-      "check_state", ihi + 2, KOKKOS_LAMBDA( const int iX ) {
+      "check_state", ihi, KOKKOS_LAMBDA( const int i ) {
+        const int iX = i + 1; // hack
+                              //
         const Real tau   = uCF( 0, iX, 0 ); // cell averages checked
         const Real vel   = uCF( 1, iX, 0 );
         const Real e_m   = uCF( 2, iX, 0 );

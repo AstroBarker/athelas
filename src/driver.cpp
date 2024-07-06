@@ -55,7 +55,7 @@ int main( int argc, char *argv[] ) {
   const bool Restart = pin.Restart;
 
   const std::string BC   = pin.BC;
-  const Real gamma_ideal = 1.4;
+  const Real gamma_ideal = 5.0 / 3.0;
 
   const Real CFL = ComputeCFL( pin.CFL, order, nStages, tOrder );
 
@@ -107,8 +107,8 @@ int main( int argc, char *argv[] ) {
     Kokkos::Timer timer;
 
     // --- Evolution loop ---
-    const int i_print = 1000; // std out
-    const int i_write = 1000; // h5 out
+    const int i_print = 5000; // std out
+    const int i_write = 5000; // h5 out
     int iStep         = 0;
     int i_out         = 1; // output label, start 1
     std::cout << " ~ Step\tt\tdt" << std::endl;
@@ -117,7 +117,7 @@ int main( int argc, char *argv[] ) {
       // TODO: ComputeTimestep_Rad
       dt = ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL );
       if ( opts.do_rad ) { // hack
-        dt = std::pow( 10.0, -15.5 );
+        dt = std::pow( 10.0, -14.0 );
       }
 
       if ( t + dt > t_end ) {
@@ -132,19 +132,20 @@ int main( int argc, char *argv[] ) {
         SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, &state, Grid, &Basis,
                            &eos, &S_Limiter, opts );
       } else {
-        SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state, Grid,
-                           &Basis, &eos, &S_Limiter, opts );
-        SSPRK.UpdateRadiation( Compute_Increment_Explicit_Rad, dt, &state, Grid,
-                               &Basis, &eos, &S_Limiter, opts );
-        SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state, Grid,
-                           &Basis, &eos, &S_Limiter, opts );
+        // SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state,
+        // Grid,
+        //                    &Basis, &eos, &S_Limiter, opts );
+        // SSPRK.UpdateRadiation( Compute_Increment_Explicit_Rad, dt, &state,
+        // Grid,
+        //                        &Basis, &eos, &S_Limiter, opts );
+        // SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state,
+        // Grid,
+        //                    &Basis, &eos, &S_Limiter, opts );
 
-        // SSPRK.UpdateRadHydro( Compute_Increment_Explicit,
-        //                       Compute_Increment_Explicit_Rad,
-        //                       Compute_Increment_Explicit_Rad,
-        //                       Compute_Increment_Explicit_Rad,
-        //                       dt, &state, Grid,
-        //                       &Basis, &eos, &S_Limiter, opts );
+        SSPRK.UpdateRadHydro(
+            Compute_Increment_Explicit, Compute_Increment_Explicit_Rad,
+            Compute_Increment_Explicit_Rad, Compute_Increment_Explicit_Rad, dt,
+            &state, Grid, &Basis, &eos, &S_Limiter, opts );
       }
 
 #ifdef ATHELAS_DEBUG
@@ -178,7 +179,7 @@ int main( int argc, char *argv[] ) {
  * at least order^2.
  * ! Broken for nNodes > order !
  **/
-int NumNodes( int order ) {
+int NumNodes( const int order ) {
   if ( order <= 4 ) {
     return order;
   } else {

@@ -78,7 +78,7 @@ Real Source_Fluid_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E,
   assert( iCF == 0 || iCF == 1 || iCF == 2 );
   if ( iCF == 0 ) return 0.0; // rad doesn't source mass
 
-  const Real c = constants::c_cgs;
+  constexpr Real c = constants::c_cgs;
 
   Real G0, G;
   RadiationFourForce( D, V, T, kappa, E, F, Pr, G0, G );

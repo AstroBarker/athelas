@@ -73,15 +73,15 @@ void RadiationFourForce( Real D, Real V, Real T, Real kappa, Real E, Real F,
 
   const Real b     = V / c;
   const Real term1 = E - a * T * T * T * T;
-  F *= 1.0;
+  F *= c;
 
   // O(b^2) ala Fuksman
-  G0 = D * kappa * ( term1 - b * F - b * b * E - b * b * Pr );
-  G  = D * kappa * ( b * ( term1 - 2.0 * b * b * F ) + ( F - b * E - b * Pr ) );
+  // G0 = D * kappa * ( term1 - b * F - b * b * E - b * b * Pr );
+  // G  = D * kappa * ( b * ( term1 - 2.0 * b * F ) + ( F - b * E - b * Pr ) );
 
   // ala Skinner & Ostriker, simpler.
-  // G0 = D * kappa * ( term1 - b * F );
-  // G = D * kappa * ( F - b * E - b * Pr );
+  G0 = D * kappa * ( term1 - b * F );
+  G  = D * kappa * ( F - b * E - b * Pr );
 }
 
 /**
@@ -103,7 +103,7 @@ Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E, Real F,
   Real G0, G;
   RadiationFourForce( D, V, T, kappa, E, F, Pr, G0, G );
 
-  return ( iCR == 0 ) ? -c * G0 : -1.0 * 1.0 * G;
+  return ( iCR == 0 ) ? -c * G0 : -G;
 }
 
 /**
@@ -111,7 +111,7 @@ Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E, Real F,
  * TODO: actually implement this
  **/
 Real ComputeEmissivity( const Real D, const Real V, const Real Em ) {
-  return 1.0;
+  return ComputeOpacity( D, V, Em );
 }
 
 /**
@@ -119,7 +119,7 @@ Real ComputeEmissivity( const Real D, const Real V, const Real Em ) {
  * TODO: actually implement this
  **/
 Real ComputeOpacity( const Real D, const Real V, const Real Em ) {
-  return 4.0 * std::pow( 10.0, -8.0 );
+  return 4.0 * std::pow( 10.0, -8.0 ) * D;
 }
 
 /* pressure tensor closure */
@@ -132,7 +132,7 @@ Real ComputeClosure( const Real E, const Real F ) {
   const Real chi =
       ( 3.0 + 4.0 * f * f ) / ( 5.0 + 2.0 * std::sqrt( 4.0 - 3.0 * f * f ) );
   const Real T = ( 1.0 - chi ) / 2.0 + ( 3.0 * chi - 1.0 ) *
-                                           utilities::sgn( F ) /
+                                           1.0 / // utilities::sgn(F)
                                            2.0; // TODO: Is this right?
   return E * T;
 }

@@ -191,7 +191,7 @@ void ComputeIncrement_Rad_Source( const View3D<Real> uCR,
           const Real V    = Basis->BasisEval( uCF, iX, 1, iN + 1 );
           const Real Em_T = Basis->BasisEval( uCF, iX, 2, iN + 1 );
 
-          const Real Abar = 1.0; // TODO: update abar
+          const Real Abar = 0.6; // TODO: update abar
           Real lambda[2]  = { Abar, 0.0 };
           const Real P = eos->PressureFromConserved( 1.0 / D, V, Em_T, lambda );
           const Real T = eos->TemperatureFromTauPressure( 1.0 / D, P, lambda );
@@ -200,7 +200,7 @@ void ComputeIncrement_Rad_Source( const View3D<Real> uCR,
           const Real X     = ComputeEmissivity( D, V, Em_T );
 
           const Real E_r = Basis->BasisEval( uCR, iX, 0, iN + 1 ) * D;
-          const Real F_r = c * c * Basis->BasisEval( uCR, iX, 1, iN + 1 ) * D;
+          const Real F_r = Basis->BasisEval( uCR, iX, 1, iN + 1 ) * D;
           const Real P_r = ComputeClosure( E_r, F_r );
 
           const Real this_source =
@@ -212,7 +212,7 @@ void ComputeIncrement_Rad_Source( const View3D<Real> uCR,
 
         dU( iCR, iX, k ) += ( local_sum * Grid.Get_Widths( iX ) ) /
                             Basis->Get_MassMatrix( iX, k );
-        // std::printf("dU_r %e\n", dU(iCR, iX, k));
+        // std::printf("dU_r %e\n", dU(0, iX, k));
       } );
 }
 
@@ -259,7 +259,7 @@ void Compute_Increment_Explicit_Rad(
       } );
 
   Kokkos::parallel_for(
-      ihi + 2, KOKKOS_LAMBDA( int iX ) { Flux_U( iX ) = 0.0; } );
+      ihi + 2, KOKKOS_LAMBDA( const int iX ) { Flux_U( iX ) = 0.0; } );
 
   // --- Increment : Divergence ---
   ComputeIncrement_Rad_Divergence( uCR, uCF, Grid, Basis, eos, dU, Flux_q,
