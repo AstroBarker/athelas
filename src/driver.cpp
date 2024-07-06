@@ -104,15 +104,19 @@ int main( int argc, char *argv[] ) {
     WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, 0 );
 
     // --- Timer ---
-    Kokkos::Timer timer;
+    Kokkos::Timer timer_total;
+    Kokkos::Timer timer_zone_cycles;
+    Real zc_ws = 0.0; // zone cycles / wall second
 
     // --- Evolution loop ---
-    const int i_print = 5000; // std out
-    const int i_write = 5000; // h5 out
-    int iStep         = 0;
-    int i_out         = 1; // output label, start 1
-    std::cout << " ~ Step\tt\tdt" << std::endl;
+    const int i_print = 100; // std out
+    const int i_write = 100; // h5 out
+    int iStep   = 0;
+    int i_out   = 1; // output label, start 1
+    std::cout << " ~ Step    t       dt       zone_cycles / wall_second\n"
+              << std::endl;
     while ( t < t_end ) {
+      timer_zone_cycles.reset( );
 
       // TODO: ComputeTimestep_Rad
       dt = ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL );
@@ -125,7 +129,7 @@ int main( int argc, char *argv[] ) {
       }
 
       if ( iStep % i_print == 0 ) {
-        std::printf( " ~ %d \t %.5e \t %.5e\n", iStep, t, dt );
+        std::printf( " ~ %d %.5e %.5e %.5e \n", iStep, t, dt, zc_ws );
       }
 
       if ( !opts.do_rad ) {
@@ -161,10 +165,12 @@ int main( int argc, char *argv[] ) {
       }
 
       iStep++;
+      Real time_cycle = timer_zone_cycles.seconds( );
+      zc_ws           = nX / time_cycle;
     }
 
     // --- Finalize timer ---
-    Real time = timer.seconds( );
+    Real time = timer_total.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC( state.Get_uCF( ), &Grid, order, BC );
     WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1 );
