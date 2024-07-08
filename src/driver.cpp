@@ -6,6 +6,7 @@
  * Purpose : Main driver routine
  **/
 
+#include <filesystem> // std::exists
 #include <iostream>
 #include <string>
 #include <vector>
@@ -31,9 +32,15 @@
 int main( int argc, char *argv[] ) {
   // Check cmd line args
   if ( argc < 2 ) {
-    throw Error( "No input file passed! Do: ./main IN_FILE" );
+    throw Error( "! No input file passed! Do: ./main IN_FILE" );
   }
 
+  // ensure input deck exists
+  if ( !std::filesystem::exists( argv[1] ) ) {
+    throw Error( " ! Invalid path passed for athelas input deck!\n" );
+  }
+
+  // load input deck
   ProblemIn pin( argv[1] );
 
   /* --- Problem Parameters --- */
@@ -105,7 +112,8 @@ int main( int argc, char *argv[] ) {
     // --- Timer ---
     Kokkos::Timer timer_total;
     Kokkos::Timer timer_zone_cycles;
-    Real zc_ws = 0.0; // zone cycles / wall second
+    Real zc_ws      = 0.0; // zone cycles / wall second
+    Real time_cycle = 0.0;
 
     // --- Evolution loop ---
     int iStep   = 0;
@@ -148,6 +156,8 @@ int main( int argc, char *argv[] ) {
 #endif
 
       t += dt;
+      time_cycle += timer_zone_cycles.seconds( );
+      timer_zone_cycles.reset( );
 
       // Write state
       if ( iStep % i_write == 0 ) {
@@ -155,6 +165,11 @@ int main( int argc, char *argv[] ) {
         i_out += 1;
       }
 
+      if ( iStep % i_print == 0 ) {
+        zc_ws = static_cast<Real>( i_print ) * nX / time_cycle;
+        std::printf( " ~ %d %.5e %.5e %.5e \n", iStep, t, dt, zc_ws );
+        time_cycle = 0.0;
+      }
       iStep++;
       Real time_cycle = timer_zone_cycles.seconds( );
       zc_ws           = nX / time_cycle;
