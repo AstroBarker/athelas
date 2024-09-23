@@ -29,9 +29,9 @@
  * Constructor creates necessary matrices and bases, etc.
  * This has to be called after the problem is initialized.
  **/
-ModalBasis::ModalBasis( PolyBasis::PolyBasis basis, Kokkos::View<Real ***> uPF,
-                        GridStructure *Grid, int pOrder, int nN, int nElements,
-                        int nGuard )
+ModalBasis::ModalBasis( PolyBasis::PolyBasis basis, const View3D<Real> uPF,
+                        GridStructure *Grid, const int pOrder, const int nN,
+                        const int nElements, const int nGuard )
     : nX( nElements ), order( pOrder ), nNodes( nN ),
       mSize( ( nN ) * ( nN + 2 ) * ( nElements + 2 * nGuard ) ),
       MassMatrix( "MassMatrix", nElements + 2 * nGuard, pOrder ),
@@ -64,9 +64,11 @@ ModalBasis::ModalBasis( PolyBasis::PolyBasis basis, Kokkos::View<Real ***> uPF,
  * eta   : coordinate
  * eta_c : center of mass
  **/
-Real ModalBasis::Taylor( int order, Real eta, Real eta_c ) {
+Real ModalBasis::Taylor( const int order, const Real eta, const Real eta_c ) {
 
-  if ( order < 0 ) throw Error( "! Please enter a valid polynomial order.\n" );
+  if ( order < 0 )
+    throw Error(
+        "! polynomial basis :: Please enter a valid polynomial order.\n" );
 
   // Handle constant and linear terms separately -- no need to exponentiate.
   if ( order == 0 ) {
@@ -86,9 +88,11 @@ Real ModalBasis::Taylor( int order, Real eta, Real eta_c ) {
  * eta : coordinate
  * eta_c: center of mass
  **/
-Real ModalBasis::dTaylor( int order, Real eta, Real eta_c ) {
+Real ModalBasis::dTaylor( const int order, const Real eta, const Real eta_c ) {
 
-  if ( order < 0 ) throw Error( " ! Please enter a valid polynomial order.\n" );
+  if ( order < 0 )
+    throw Error(
+        " ! polynomial basis :: Please enter a valid polynomial order.\n" );
 
   // Handle first few terms separately -- no need to call std::pow
   if ( order == 0 ) {
@@ -105,16 +109,16 @@ Real ModalBasis::dTaylor( int order, Real eta, Real eta_c ) {
 /* --- Legendre Methods --- */
 /* TODO: Make sure that x_c offset for Legendre works with COM != 0 */
 
-Real ModalBasis::Legendre( int n, Real x, Real x_c ) {
+Real ModalBasis::Legendre( const int n, const Real x, const Real x_c ) {
   return Legendre( n, x - x_c );
 }
 
-Real ModalBasis::dLegendre( int n, Real x, Real x_c ) {
+Real ModalBasis::dLegendre( const int n, Real x, const Real x_c ) {
   return dLegendre( n, x - x_c );
 }
 
 // Legendre polynomials
-Real ModalBasis::Legendre( int n, Real x ) {
+Real ModalBasis::Legendre( const int n, const Real x ) {
   return ( n == 0 )   ? 1.0
          : ( n == 1 ) ? x
                       : ( ( ( 2 * n ) - 1 ) * x * Legendre( n - 1, x ) -
@@ -123,7 +127,7 @@ Real ModalBasis::Legendre( int n, Real x ) {
 }
 
 // Derivative of Legendre polynomials
-Real ModalBasis::dLegendre( int order, Real x ) {
+Real ModalBasis::dLegendre( const int order, const Real x ) {
 
   Real dPn; // P_n
   // Real dPnp1 = 0.0;
@@ -146,8 +150,7 @@ Real ModalBasis::dLegendre( int order, Real x ) {
  * TODO: Make InnerProduct functions cleaner????
  **/
 Real ModalBasis::InnerProduct( const int m, const int n, const int iX,
-                               const Real eta_c,
-                               const Kokkos::View<Real ***> uPF,
+                               const Real eta_c, const View3D<Real> uPF,
                                GridStructure *Grid ) {
   Real result = 0.0;
   Real eta_q  = 0.0;
@@ -171,8 +174,7 @@ Real ModalBasis::InnerProduct( const int m, const int n, const int iX,
  * <f,g> = \sum_q \rho_q f_q g_q j^0 w_q
  **/
 Real ModalBasis::InnerProduct( const int n, const int iX, const Real eta_c,
-                               const Kokkos::View<Real ***> uPF,
-                               GridStructure *Grid ) {
+                               const View3D<Real> uPF, GridStructure *Grid ) {
   Real result = 0.0;
   Real X      = 0.0;
 
@@ -189,7 +191,7 @@ Real ModalBasis::InnerProduct( const int n, const int iX, const Real eta_c,
 // Gram-Schmidt orthogonalization of basis
 Real ModalBasis::Ortho( const int order, const int iX, const int i_eta,
                         const Real eta, const Real eta_c,
-                        const Kokkos::View<Real ***> uPF, GridStructure *Grid,
+                        const View3D<Real> uPF, GridStructure *Grid,
                         bool const derivative_option ) {
 
   Real result      = 0.0;
@@ -325,7 +327,7 @@ void ModalBasis::CheckOrthogonality( const Kokkos::View<Real ***> uPF,
  * ? If so, how do I expand this ?
  * ? I would need to compute and store more GL nodes, weights ?
  **/
-void ModalBasis::ComputeMassMatrix( const Kokkos::View<Real ***> uPF,
+void ModalBasis::ComputeMassMatrix( const View3D<Real> uPF,
                                     GridStructure *Grid ) {
   const int ilo    = Grid->Get_ilo( );
   const int ihi    = Grid->Get_ihi( );
@@ -352,8 +354,8 @@ void ModalBasis::ComputeMassMatrix( const Kokkos::View<Real ***> uPF,
  * Evaluate (modal) basis on element iX for quantity iCF.
  * If DerivativeOption is true, evaluate the derivative.
  **/
-Real ModalBasis::BasisEval( Kokkos::View<Real ***> U, const int iX,
-                            const int iCF, const int i_eta ) const {
+Real ModalBasis::basis_eval( View3D<Real> U, const int iX, const int iCF,
+                             const int i_eta ) const {
   Real result = 0.0;
   for ( int k = 0; k < order; k++ ) {
     result += Phi( iX, i_eta, k ) * U( iCF, iX, k );
@@ -361,18 +363,40 @@ Real ModalBasis::BasisEval( Kokkos::View<Real ***> U, const int iX,
   return result;
 }
 
+// Same as above, for a 2D vector U_k on a given cell and quantity
+// e.g., U(:, iX, :)
+Real ModalBasis::basis_eval( View2D<Real> U, const int iX, const int iCF,
+                             const int i_eta ) const {
+  Real result = 0.0;
+  for ( int k = 0; k < order; k++ ) {
+    result += Phi( iX, i_eta, k ) * U( iCF, k );
+  }
+  return result;
+}
+
+// Same as above, for a 1D vector U_k on a given cell and quantity
+// e.g., U(iCF, iX, :)
+Real ModalBasis::basis_eval( View1D<Real> U, const int iX,
+                             const int i_eta ) const {
+  Real result = 0.0;
+  for ( int k = 0; k < order; k++ ) {
+    result += Phi( iX, i_eta, k ) * U( k );
+  }
+  return result;
+}
+
 // Accessor for Phi
-Real ModalBasis::Get_Phi( int iX, int i_eta, int k ) const {
+Real ModalBasis::Get_Phi( const int iX, const int i_eta, const int k ) const {
   return Phi( iX, i_eta, k );
 }
 
 // Accessor for dPhi
-Real ModalBasis::Get_dPhi( int iX, int i_eta, int k ) const {
+Real ModalBasis::Get_dPhi( const int iX, const int i_eta, const int k ) const {
   return dPhi( iX, i_eta, k );
 }
 
 // Accessor for mass matrix
-Real ModalBasis::Get_MassMatrix( int iX, int k ) const {
+Real ModalBasis::Get_MassMatrix( const int iX, const int k ) const {
   return MassMatrix( iX, k );
 }
 

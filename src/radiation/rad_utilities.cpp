@@ -125,6 +125,7 @@ Real ComputeOpacity( const Real D, const Real V, const Real Em ) {
 /* pressure tensor closure */
 // TODO: check Closure
 Real ComputeClosure( const Real E, const Real F ) {
+  std::printf(" ! E = %f\n", E);
   assert( E > 0.0 && "Radiation :: ComputeClosure :: Non positive definite "
                      "radiation energy density." );
   if ( E == 0.0 ) return 0.0; // This is a hack

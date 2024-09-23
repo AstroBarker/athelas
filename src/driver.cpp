@@ -109,10 +109,10 @@ int main( int argc, char *argv[] ) {
     Real zc_ws = 0.0; // zone cycles / wall second
 
     // --- Evolution loop ---
-    const int i_print = 100; // std out
+    const int i_print = 1; // std out
     const int i_write = 100; // h5 out
-    int iStep   = 0;
-    int i_out   = 1; // output label, start 1
+    int iStep         = 0;
+    int i_out         = 1; // output label, start 1
     std::cout << " ~ Step    t       dt       zone_cycles / wall_second\n"
               << std::endl;
     while ( t < t_end ) {
@@ -136,6 +136,7 @@ int main( int argc, char *argv[] ) {
         SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, &state, Grid, &Basis,
                            &eos, &S_Limiter, opts );
       } else {
+        // TODO: compile time swap operator splitting
         // SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state,
         // Grid,
         //                    &Basis, &eos, &S_Limiter, opts );
@@ -148,8 +149,8 @@ int main( int argc, char *argv[] ) {
 
         SSPRK.UpdateRadHydro(
             Compute_Increment_Explicit, Compute_Increment_Explicit_Rad,
-            Compute_Increment_Explicit_Rad, Compute_Increment_Explicit_Rad, dt,
-            &state, Grid, &Basis, &eos, &S_Limiter, opts );
+            ComputeIncrement_Fluid_Rad, ComputeIncrement_Rad_Source, dt, &state,
+            Grid, &Basis, &eos, &S_Limiter, opts );
       }
 
 #ifdef ATHELAS_DEBUG

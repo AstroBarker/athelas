@@ -88,6 +88,7 @@ include_directories("src/eos")
 include_directories("src/bc")
 include_directories("src/io")
 include_directories("src/state")
+include_directories("src/solvers")
 include_directories("src/timestepper")
 
 include_directories(athelas PUBLIC

@@ -246,7 +246,7 @@ Real SlopeLimiter::CellAverage( View3D<Real> U, GridStructure *Grid,
     mass += Grid->Get_Weights( iN - start ) * Grid->Get_SqrtGm( X ) *
             Grid->Get_Widths( iX + extrapolate );
     avg += Grid->Get_Weights( iN - start ) *
-           Basis->BasisEval( U, iX + extrapolate, iCF, iN + 1 ) *
+           Basis->basis_eval( U, iX + extrapolate, iCF, iN + 1 ) *
            Grid->Get_SqrtGm( X ) * Grid->Get_Widths( iX + extrapolate );
   }
 

@@ -19,8 +19,8 @@ void Compute_Increment_Explicit_Rad(
     View2D<Real> uCR_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
     const Options opts );
 
-void ComputeIncrement_Rad_Source( const View3D<Real> uCR,
-                                  const View3D<Real> uCF, GridStructure &Grid,
+Real ComputeIncrement_Rad_Source( View2D<Real> uCR, const int k, const int iCR,
+                                  const View2D<Real> uCF, GridStructure &Grid,
                                   const ModalBasis *Basis, const EOS *eos,
-                                  View3D<Real> dU );
+                                  const int iX );
 #endif // RAD_DISCRETIZATION_HPP_

@@ -7,13 +7,13 @@
 
 #include "abstractions.hpp"
 
-namespace Root_Finder_Opts {
+namespace root_finders {
 
 constexpr unsigned int MAX_ITERS = 200;
 constexpr Real FPTOL             = 1.0e-11;
 constexpr Real ZBARTOL           = 1.0e-15;
 constexpr Real ZBARTOLINV        = 1.0e15;
 
-} // namespace Root_Finder_Opts
+} // namespace root_finders
 
 #endif // ROOT_FINDER_OPTS_HPP_
