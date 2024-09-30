@@ -20,6 +20,11 @@ jobs:
           uses: astral-sh/setup-uv@v3
           with:
             version: "latest"
+        - name: Setup venv
+          run: |         
+            uv venv .venv
+            echo "VIRTUAL_ENV=.venv" >> $GITHUB_ENV
+            echo "$PWD/.venv/bin" >> $GITHUB_PATH
         - name: install dependencies
           run: |
             uv pip install "clang-format==19.1.0"
