@@ -21,7 +21,7 @@ ProblemIn::ProblemIn( const std::string fn ) {
     in_table = toml::parse_file( fn_in );
   } catch ( const toml::parse_error &err ) {
     std::cerr << err << "\n";
-    throw Error( " ! Issue reading input deck!" );
+    THROW_ATHELAS_ERROR( " ! Issue reading input deck!" );
   }
 
   std::printf( " ~ Loading Input Deck ...\n" );
@@ -67,7 +67,7 @@ ProblemIn::ProblemIn( const std::string fn ) {
   if ( pn ) {
     ProblemName = pn.value( );
   } else {
-    throw Error(
+    THROW_ATHELAS_ERROR(
         " ! Initialization Error: problem not supplied in input deck." );
   }
   // Validity of ProblemName checked in initialization.
@@ -76,12 +76,13 @@ ProblemIn::ProblemIn( const std::string fn ) {
     BC = utilities::to_lower( bc.value( ) );
     std::cout << BC << std::endl;
   } else {
-    throw Error( " ! Initialization Error: boundary condition not supplied in "
-                 "input deck." );
+    THROW_ATHELAS_ERROR(
+        " ! Initialization Error: boundary condition not supplied in "
+        "input deck." );
   }
   if ( BC != "homogenous" && BC != "reflecting" && BC != "shockless_noh" &&
        BC != "periodic" ) {
-    throw Error(
+    THROW_ATHELAS_ERROR(
         " ! Initialization Error: Bad boundary condition choice. Choose: \n"
         " - homogenous \n"
         " - reflecting \n"
@@ -109,26 +110,30 @@ ProblemIn::ProblemIn( const std::string fn ) {
   if ( x1 ) {
     xL = x1.value( );
   } else {
-    throw Error( " ! Initialization Error: xL not supplied in input deck." );
+    THROW_ATHELAS_ERROR(
+        " ! Initialization Error: xL not supplied in input deck." );
   }
   if ( x2 ) {
     xR = x2.value( );
   } else {
-    throw Error( " ! Initialization Error: xR not supplied in input deck." );
+    THROW_ATHELAS_ERROR(
+        " ! Initialization Error: xR not supplied in input deck." );
   }
-  if ( x1 >= x2 ) throw Error( " ! Initialization Error: x1 >= xz2" );
+  if ( x1 >= x2 ) THROW_ATHELAS_ERROR( " ! Initialization Error: x1 >= xz2" );
 
   if ( tf ) {
     t_end = tf.value( );
   } else {
-    throw Error( " ! Initialization Error: t_end not supplied in input deck." );
+    THROW_ATHELAS_ERROR(
+        " ! Initialization Error: t_end not supplied in input deck." );
   }
-  if ( tf <= 0.0 ) throw Error( " ! Initialization Error: tf <= 0.0" );
+  if ( tf <= 0.0 ) THROW_ATHELAS_ERROR( " ! Initialization Error: tf <= 0.0" );
 
   if ( nX ) {
     nElements = nX.value( );
   } else {
-    throw Error( " ! Initialization Error: nX not supplied in innput deck." );
+    THROW_ATHELAS_ERROR(
+        " ! Initialization Error: nX not supplied in innput deck." );
   }
 
   // many defaults not mentioned below...
@@ -150,14 +155,15 @@ ProblemIn::ProblemIn( const std::string fn ) {
   gamma_r        = gamma3.value_or( 0.005 );
 
   // varous checks
-  if ( CFL <= 0.0 ) throw Error( " ! Initialization : CFL <= 0.0!" );
-  if ( nGhost <= 0 ) throw Error( " ! Initialization : nGhost <= 0!" );
-  if ( pOrder <= 0 ) throw Error( " ! Initialization : pOrder <= 0!" );
-  if ( nNodes <= 0 ) throw Error( " ! Initialization : nNodes <= 0!" );
-  if ( tOrder <= 0 ) throw Error( " ! Initialization : tOrder <= 0!" );
-  if ( nStages <= 0 ) throw Error( " ! Initialization : nStages <= 0!" );
+  if ( CFL <= 0.0 ) THROW_ATHELAS_ERROR( " ! Initialization : CFL <= 0.0!" );
+  if ( nGhost <= 0 ) THROW_ATHELAS_ERROR( " ! Initialization : nGhost <= 0!" );
+  if ( pOrder <= 0 ) THROW_ATHELAS_ERROR( " ! Initialization : pOrder <= 0!" );
+  if ( nNodes <= 0 ) THROW_ATHELAS_ERROR( " ! Initialization : nNodes <= 0!" );
+  if ( tOrder <= 0 ) THROW_ATHELAS_ERROR( " ! Initialization : tOrder <= 0!" );
+  if ( nStages <= 0 )
+    THROW_ATHELAS_ERROR( " ! Initialization : nStages <= 0!" );
   if ( TCI_Threshold <= 0.0 )
-    throw Error( " ! Initialization : TCI_Threshold <= 0.0!" );
+    THROW_ATHELAS_ERROR( " ! Initialization : TCI_Threshold <= 0.0!" );
 
   if ( ( gamma2 && !gamma1 ) || ( gamma2 && !gamma3 ) ) {
     gamma_i = gamma2.value( );
@@ -168,7 +174,8 @@ ProblemIn::ProblemIn( const std::string fn ) {
   if ( std::fabs( sum_g - 1.0 ) > 1.0e-10 ) {
     std::fprintf( stderr, "{gamma}, sum gamma = { %.10f %.10f %.10f }, %.18e\n",
                   gamma_l, gamma_i, gamma_r, 1.0 - sum_g );
-    throw Error( " ! Initialization Error: Linear weights must sum to unity." );
+    THROW_ATHELAS_ERROR(
+        " ! Initialization Error: Linear weights must sum to unity." );
   }
   weno_r = wenor.value_or( 2.0 );
 

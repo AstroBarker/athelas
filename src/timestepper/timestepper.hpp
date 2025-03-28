@@ -14,8 +14,8 @@
 #include "eos.hpp"
 #include "polynomial_basis.hpp"
 #include "problem_in.hpp"
-#include "root_finders.hpp"
 #include "slope_limiter.hpp"
+#include "solvers/root_finders.hpp"
 #include "state.hpp"
 #include "tableau.hpp"
 
@@ -304,10 +304,10 @@ class TimeStepper {
           } );
 
       // --- Inner update loop ---
-      std::printf("FILE :: Line = %s %d\n", __FILE__, __LINE__);
 
       for ( int j = 0; j < iS; j++ ) {
-        const Real dt_a = dt * explicit_tableau_.a_ij( iS, j );
+        const Real dt_a    = dt * explicit_tableau_.a_ij( iS, j );
+        const Real dt_a_im = dt * implicit_tableau_.a_ij( iS, j );
         auto Us_j_h =
             Kokkos::subview( U_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
         auto Us_j_r =
@@ -326,7 +326,6 @@ class TimeStepper {
                                           uCF_F_R, Flux_Uj, Flux_P, opts );
 
         // inner sum
-        std::printf("FILE :: Line = %s %d\n", __FILE__, __LINE__);
         Kokkos::parallel_for(
             "Timestepper 4",
             Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
@@ -339,7 +338,29 @@ class TimeStepper {
               SumVar_U_r( 1, iX, k ) += dt_a * dUs_j_r( 1, iX, k );
             } );
 
-        std::printf("FILE :: Line = %s %d\n", __FILE__, __LINE__);
+        Kokkos::parallel_for(
+            "Timestepper :: implicit piece in inner loop",
+            Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
+                                                    { order, ihi + 2 } ),
+            KOKKOS_LAMBDA( const int k, const int iX ) {
+              auto u_h =
+                  Kokkos::subview( U_s, j, Kokkos::ALL, iX, Kokkos::ALL );
+              auto u_r =
+                  Kokkos::subview( U_s_r, j, Kokkos::ALL, iX, Kokkos::ALL );
+              SumVar_U( 1, iX, k ) +=
+                  dt_a_im * compute_increment_hydro_implicit(
+                                u_h, k, 1, u_r, Grid_s[iS], Basis, eos, iX );
+              SumVar_U( 2, iX, k ) +=
+                  dt_a_im * compute_increment_hydro_implicit(
+                                u_h, k, 2, u_r, Grid_s[iS], Basis, eos, iX );
+              SumVar_U_r( 0, iX, k ) +=
+                  dt_a_im * compute_increment_rad_implicit(
+                                u_r, k, 0, u_h, Grid_s[iS], Basis, eos, iX );
+              SumVar_U_r( 1, iX, k ) +=
+                  dt_a_im * compute_increment_rad_implicit(
+                                u_r, k, 1, u_h, Grid_s[iS], Basis, eos, iX );
+            } );
+
         Kokkos::parallel_for(
             "Timestepper::StageData", ihi + 2, KOKKOS_LAMBDA( const int iX ) {
               StageData( iS, iX ) +=
@@ -350,62 +371,75 @@ class TimeStepper {
       auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
       Grid_s[iS].UpdateGrid( StageDataj );
 
+      // set U_s
+      Kokkos::parallel_for(
+          "Timestepper 5",
+          Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
+                                                  { order, ihi + 2 } ),
+          KOKKOS_LAMBDA( const int k, const int iX ) {
+            U_s( iS, 0, iX, k )   = SumVar_U( 0, iX, k );
+            U_s( iS, 1, iX, k )   = SumVar_U( 1, iX, k );
+            U_s( iS, 2, iX, k )   = SumVar_U( 2, iX, k );
+            U_s_r( iS, 0, iX, k ) = SumVar_U_r( 0, iX, k );
+            U_s_r( iS, 1, iX, k ) = SumVar_U_r( 1, iX, k );
+          } );
+
       // capturing sumvar_u_r bad?
-      auto implicit_rad = [&]( View2D<Real> scratch, const int k, const int iC,
+      auto implicit_rad = [=]( View2D<Real> scratch, const int k, const int iC,
                                const View2D<Real> u_h, GridStructure &Grid,
                                const ModalBasis *Basis, const EOS *eos,
                                const int iX ) {
         return SumVar_U_r( iC, iX, k ) +
                dt * implicit_tableau_.a_ij( iS, iS ) *
-                   compute_increment_rad_implicit( solver_scratch, k, iC, u_h,
-                                                   Grid_s[iS], Basis, eos,
-                                                   iX );
+                   compute_increment_rad_implicit( scratch, k, iC, u_h,
+                                                   Grid_s[iS], Basis, eos, iX );
       };
-      auto implicit_hydro = [&]( View2D<Real> scratch, const int k, const int iC,
-                                 const View2D<Real> u_r, GridStructure &Grid,
-                                 const ModalBasis *Basis, const EOS *eos,
-                                 const int iX ) {
-        return SumVar_U( iC, iX, k ) + dt * implicit_tableau_.a_ij( iS, iS ) *
-                                           compute_increment_hydro_implicit(
-                                               solver_scratch, k, iC, u_r,
-                                               Grid_s[iS], Basis, eos, iX );
+      auto implicit_hydro = [=]( View2D<Real> scratch, const int k,
+                                 const int iC, const View2D<Real> u_r,
+                                 GridStructure &Grid, const ModalBasis *Basis,
+                                 const EOS *eos, const int iX ) {
+        return SumVar_U( iC, iX, k ) +
+               dt * implicit_tableau_.a_ij( iS, iS ) *
+                   compute_increment_hydro_implicit(
+                       scratch, k, iC, u_r, Grid_s[iS], Basis, eos, iX );
       };
 
       // implicit update
       // TODO: matrix-ify this
       // TODO: update hydro
-      std::printf("FILE :: Line = %s %d\n", __FILE__, __LINE__);
       // BUG: maybe need to pass more stuff into fpaa
       Kokkos::parallel_for(
           "Timestepper implicit",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
-                                                  { order, ihi + 2 } ),
+                                                  { order, ihi + 1 } ),
           KOKKOS_LAMBDA( const int k, const int iX ) {
             for ( int iC = 1; iC < 3; iC++ ) {
               // TODO: subview(U_s, iS, Kokkos::ALL, iX, Kokkos::ALL) ?
-              auto u_h = Kokkos::subview( U_s, iS, Kokkos::ALL, iX, Kokkos::ALL );
-              auto u_r = Kokkos::subview( U_s_r, iS, Kokkos::ALL, iX, Kokkos::ALL );
+              auto u_h =
+                  Kokkos::subview( U_s, iS, Kokkos::ALL, iX, Kokkos::ALL );
+              auto u_r =
+                  Kokkos::subview( U_s_r, iS, Kokkos::ALL, iX, Kokkos::ALL );
 
-              //Kokkos::deep_copy(solver_scratch, u_h);
-              solver_scratch = u_h;
+              Kokkos::deep_copy( solver_scratch_h, u_h );
+              // solver_scratch = u_h;
 
               // hydro
+              //              std::printf("HYDRO\n");
               const Real temp1 = root_finders::fixed_point_aa(
-                  implicit_hydro, k, solver_scratch, iC, u_r, Grid_s[iS],
+                  implicit_hydro, k, solver_scratch_h, iC, u_r, Grid_s[iS],
                   Basis, eos, iX );
-                
-              //Kokkos::deep_copy(solver_scratch, u_r);
-              solver_scratch = u_r;
+
+              Kokkos::deep_copy( solver_scratch_r, u_r );
 
               // rad
+              //              std::printf("RAD\n");
               const Real temp2 = root_finders::fixed_point_aa(
-                  implicit_rad, k, solver_scratch, iC - 1, u_h, Grid_s[iS], Basis,
-                  eos, iX );
+                  implicit_rad, k, solver_scratch_r, iC - 1, u_h, Grid_s[iS],
+                  Basis, eos, iX );
               U_s( iS, iC, iX, k )       = temp1;
               U_s_r( iS, iC - 1, iX, k ) = temp2;
             }
           } );
-          std::printf("FILE :: Line = %s %d\n", __FILE__, __LINE__);
 
       // set U_s
       // Kokkos::parallel_for(
@@ -428,7 +462,8 @@ class TimeStepper {
     } // end outer loop
 
     for ( unsigned short int iS = 0; iS < nStages; iS++ ) {
-      const Real dt_b = dt * explicit_tableau_.b_i( iS );
+      const Real dt_b    = dt * explicit_tableau_.b_i( iS );
+      const Real dt_b_im = dt * implicit_tableau_.b_i( iS );
       auto Us_i_h =
           Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto Us_i_r =
@@ -450,11 +485,27 @@ class TimeStepper {
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
                                                   { order, ihi + 2 } ),
           KOKKOS_LAMBDA( const int k, const int iX ) {
+            auto u_h = Kokkos::subview( U_s, iS, Kokkos::ALL, iX, Kokkos::ALL );
+            auto u_r =
+                Kokkos::subview( U_s_r, iS, Kokkos::ALL, iX, Kokkos::ALL );
             uCF( 0, iX, k ) += dt_b * dUs_i_h( 0, iX, k );
             uCF( 1, iX, k ) += dt_b * dUs_i_h( 1, iX, k );
             uCF( 2, iX, k ) += dt_b * dUs_i_h( 2, iX, k );
+            uCF( 1, iX, k ) +=
+                dt_b_im * compute_increment_hydro_implicit(
+                              u_h, k, 1, u_r, Grid_s[iS], Basis, eos, iX );
+            uCF( 2, iX, k ) +=
+                dt_b_im * compute_increment_hydro_implicit(
+                              u_h, k, 2, u_r, Grid_s[iS], Basis, eos, iX );
+
             uCR( 0, iX, k ) += dt_b * dUs_i_r( 0, iX, k );
             uCR( 1, iX, k ) += dt_b * dUs_i_r( 1, iX, k );
+            uCR( 0, iX, k ) +=
+                dt_b_im * compute_increment_rad_implicit(
+                              u_r, k, 0, u_h, Grid_s[iS], Basis, eos, iX );
+            uCR( 1, iX, k ) +=
+                dt_b_im * compute_increment_rad_implicit(
+                              u_r, k, 1, u_h, Grid_s[iS], Basis, eos, iX );
           } );
 
       Kokkos::parallel_for(
@@ -496,7 +547,8 @@ class TimeStepper {
   std::vector<GridStructure> Grid_s;
 
   // scratch space vector length pOrder for implicit solver
-  View2D<Real> solver_scratch;
+  View2D<Real> solver_scratch_h;
+  View2D<Real> solver_scratch_r;
 
   // StageData Holds cell left interface positions
   View2D<Real> StageData;

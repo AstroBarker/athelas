@@ -76,12 +76,12 @@ void RadiationFourForce( Real D, Real V, Real T, Real kappa, Real E, Real F,
   F *= c;
 
   // O(b^2) ala Fuksman
-  // G0 = D * kappa * ( term1 - b * F - b * b * E - b * b * Pr );
-  // G  = D * kappa * ( b * ( term1 - 2.0 * b * F ) + ( F - b * E - b * Pr ) );
+  G0 = D * kappa * ( term1 - b * F - b * b * E - b * b * Pr );
+  G  = D * kappa * ( b * ( term1 - 2.0 * b * F ) + ( F - b * E - b * Pr ) );
 
   // ala Skinner & Ostriker, simpler.
-  G0 = D * kappa * ( term1 - b * F );
-  G  = D * kappa * ( F - b * E - b * Pr );
+  // G0 = D * kappa * ( term1 - b * F );
+  // G  = D * kappa * ( F - b * E - b * Pr );
 }
 
 /**
@@ -125,7 +125,6 @@ Real ComputeOpacity( const Real D, const Real V, const Real Em ) {
 /* pressure tensor closure */
 // TODO: check Closure
 Real ComputeClosure( const Real E, const Real F ) {
-  std::printf(" ! E = %f\n", E);
   assert( E > 0.0 && "Radiation :: ComputeClosure :: Non positive definite "
                      "radiation energy density." );
   if ( E == 0.0 ) return 0.0; // This is a hack

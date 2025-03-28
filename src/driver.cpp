@@ -32,8 +32,11 @@
 int main( int argc, char *argv[] ) {
   // Check cmd line args
   if ( argc < 2 ) {
-    throw Error( "No input file passed! Do: ./main IN_FILE" );
+    THROW_ATHELAS_ERROR( "No input file passed! Do: ./main IN_FILE" );
   }
+
+  signal(SIGSEGV, segfault_handler);
+  signal(SIGABRT, segfault_handler);
 
   ProblemIn pin( argv[1] );
 
@@ -108,9 +111,12 @@ int main( int argc, char *argv[] ) {
     Kokkos::Timer timer_zone_cycles;
     Real zc_ws = 0.0; // zone cycles / wall second
 
+    Real dt_init = 1.0e-15;
+    dt           = dt_init;
+
     // --- Evolution loop ---
     const int i_print = 1; // std out
-    const int i_write = 100; // h5 out
+    const int i_write = 500; // h5 out
     int iStep         = 0;
     int i_out         = 1; // output label, start 1
     std::cout << " ~ Step    t       dt       zone_cycles / wall_second\n"
@@ -119,10 +125,12 @@ int main( int argc, char *argv[] ) {
       timer_zone_cycles.reset( );
 
       // TODO: ComputeTimestep_Rad
-      dt = ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL );
-      if ( opts.do_rad ) { // hack
-        dt = std::pow( 10.0, -14.0 );
-      }
+      dt =
+          std::min( ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL ),
+                    dt * 1.01 );
+      // if ( opts.do_rad ) { // hack
+      //   dt = std::pow( 10.0, -13.0 );
+      // }
 
       if ( t + dt > t_end ) {
         dt = t_end - t;
@@ -147,14 +155,27 @@ int main( int argc, char *argv[] ) {
         // Grid,
         //                    &Basis, &eos, &S_Limiter, opts );
 
-        SSPRK.UpdateRadHydro(
-            Compute_Increment_Explicit, Compute_Increment_Explicit_Rad,
-            ComputeIncrement_Fluid_Rad, ComputeIncrement_Rad_Source, dt, &state,
-            Grid, &Basis, &eos, &S_Limiter, opts );
+        try {
+          SSPRK.UpdateRadHydro(
+              Compute_Increment_Explicit, Compute_Increment_Explicit_Rad,
+              ComputeIncrement_Fluid_Rad, ComputeIncrement_Rad_Source, dt,
+              &state, Grid, &Basis, &eos, &S_Limiter, opts );
+        } catch ( const AthelasError &e ) {
+          std::cerr << e.what( ) << std::endl;
+          return AthelasExitCodes::FAILURE;
+        } catch ( const std::exception &e ) {
+          std::cerr << "Library Error: " << e.what( ) << std::endl;
+          return AthelasExitCodes::FAILURE;
+        }
       }
 
 #ifdef ATHELAS_DEBUG
-      check_state( &state, Grid.Get_ihi( ), pin.do_rad );
+      try {
+        check_state( &state, Grid.Get_ihi( ), pin.do_rad );
+      } catch ( const AthelasError &e ) {
+        std::cerr << e.what( ) << std::endl;
+        return AthelasExitCodes::FAILURE;
+      }
 #endif
 
       t += dt;
@@ -178,7 +199,7 @@ int main( int argc, char *argv[] ) {
   }
   Kokkos::finalize( );
 
-  return 0;
+  return AthelasExitCodes::SUCCESS;
 }
 
 /**

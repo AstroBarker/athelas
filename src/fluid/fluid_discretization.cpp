@@ -190,8 +190,6 @@ Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
   const int nNodes = Grid.Get_nNodes( );
   constexpr Real c = constants::c_cgs;
 
-  std::printf("DEBUG: uCR(k), uCF(k) = %e %e\n", uCF(iCF, k), uCR(iCF, k));
-
   Real local_sum1 = 0.0;
   for ( int iN = 0; iN < nNodes; iN++ ) {
     const Real Tau = Basis->basis_eval( uCF, iX, 0, iN + 1 );
@@ -200,7 +198,6 @@ Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
 
     const Real Er = Basis->basis_eval( uCR, iX, 0, iN + 1 ) / Tau;
     const Real Fr = Basis->basis_eval( uCR, iX, 1, iN + 1 ) / Tau;
-    std::printf("FILE :: Line = %s %d\n", __FILE__, __LINE__);
     const Real Pr = ComputeClosure( Er, Fr );
 
     auto lambda  = nullptr;

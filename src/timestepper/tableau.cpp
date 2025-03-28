@@ -22,25 +22,25 @@ ButcherTableau::ButcherTableau( const int nStages_, const int tOrder_,
 void ButcherTableau::initialize_tableau( ) {
 
   if ( tOrder == 1 and nStages > 1 ) {
-    throw Error( "\n \
+    THROW_ATHELAS_ERROR( "\n \
       ! ButcherTableau :: Issue in setting SSPRK coefficients.\n \
       Please enter an appropriate SSPRK temporal order and nStages\n \
       combination. \n" );
   }
   if ( ( nStages != tOrder && nStages != 5 ) ) {
-    throw Error( "\n \
+    THROW_ATHELAS_ERROR( "\n \
       ! ButcherTableau :: Issue in setting SSPRK coefficients.\n \
       Please enter an appropriate SSPRK temporal order and nStages\n \
       combination. \n" );
   }
   if ( ( tOrder == 4 && nStages != 5 ) ) {
-    throw Error( "\n \
+    THROW_ATHELAS_ERROR( "\n \
       ! ButcherTableau :: Issue in setting SSPRK coefficients.\n \
       Please enter an appropriate SSPRK temporal order and nStages\n \
       combination. \n" );
   }
   if ( tOrder > 4 ) {
-    throw Error(
+    THROW_ATHELAS_ERROR(
         "\n ! ButcherTableau :: Temporal torder > 4 not supported! \n" );
   }
 
@@ -117,8 +117,9 @@ void ButcherTableau::initialize_tableau( ) {
       b_i( 3 )     = 0.12246455;
       b_i( 4 )     = 0.25457495;
     } else {
-      throw Error( " ! ButcherTableau :: Explicit :: Please choose a valid "
-                   "tableau! \n" );
+      THROW_ATHELAS_ERROR(
+          " ! ButcherTableau :: Explicit :: Please choose a valid "
+          "tableau! \n" );
     }
   }
 
@@ -131,13 +132,14 @@ void ButcherTableau::initialize_tableau( ) {
     } else if ( nStages == 2 && tOrder == 2 ) {
       a_ij( 0, 0 ) = 0.71921758;
       a_ij( 1, 0 ) = 0.11776435;
+      a_ij( 1, 1 ) = 0.16301806;
       b_i( 0 )     = 0.5;
       b_i( 1 )     = 0.5;
     } else { // TODO: hack below. remove
       a_ij( 0, 0 ) = 1.0;
       b_i( 0 )     = 1.0;
-      // throw Error( " ! ButcherTableau :: Implicit :: Please choose a valid
-      // tableau! \n" );
+      // THROW_ATHELAS_ERROR( " ! ButcherTableau :: Implicit :: Please choose a
+      // valid tableau! \n" );
     }
 
     // TODO: more tableaus
@@ -157,7 +159,7 @@ ShuOsherTableau::ShuOsherTableau( const int nStages_, const int tOrder_,
 void ShuOsherTableau::initialize_tableau( ) {
 
   if ( tOrder == 1 and nStages > 1 ) {
-    throw Error( "\n \
+    THROW_ATHELAS_ERROR( "\n \
       ! Issue in setting SSPRK coefficients.\n \
       Please enter an appropriate SSPRK temporal order and nStages\n \
       combination. We support first through fourth order timesteppers\n \
@@ -165,7 +167,7 @@ void ShuOsherTableau::initialize_tableau( ) {
       through fourth order.\n === \n" );
   }
   if ( ( nStages != tOrder && nStages != 5 ) ) {
-    throw Error( "\n \
+    THROW_ATHELAS_ERROR( "\n \
       ! Issue in setting SSPRK coefficients.\n \
       Please enter an appropriate SSPRK temporal order and nStages\n \
       combination. We support first through fourth order timesteppers\n \
@@ -173,7 +175,7 @@ void ShuOsherTableau::initialize_tableau( ) {
       through fourth order.\n === \n" );
   }
   if ( ( tOrder == 4 && nStages != 5 ) ) {
-    throw Error( "\n \
+    THROW_ATHELAS_ERROR( "\n \
       ! Issue in setting SSPRK coefficients.\n \
       Please enter an appropriate SSPRK temporal order and nStages\n \
       combination. We support first through fourth order timesteppers\n \
@@ -181,7 +183,7 @@ void ShuOsherTableau::initialize_tableau( ) {
       through fourth order.\n === \n" );
   }
   if ( tOrder > 4 ) {
-    throw Error( "\n ! Temporal torder > 4 not supported! \n" );
+    THROW_ATHELAS_ERROR( "\n ! Temporal torder > 4 not supported! \n" );
   }
 
   // Init to zero
@@ -192,8 +194,9 @@ void ShuOsherTableau::initialize_tableau( ) {
     }
 
   if ( type_ == TableauType::Implicit ) {
-    throw Error( " ! ShuOsherTableau :: No implicit ShuOsher form tableaus "
-                 "implemented." );
+    THROW_ATHELAS_ERROR(
+        " ! ShuOsherTableau :: No implicit ShuOsher form tableaus "
+        "implemented." );
   }
 
   if ( nStages < 5 ) {
@@ -226,8 +229,8 @@ void ShuOsherTableau::initialize_tableau( ) {
     }
   } else if ( nStages == 5 ) {
     if ( tOrder == 1 ) {
-      throw Error( "\n ! We do support a 1st order, 5 stage SSPRK "
-                   "integrator. \n" );
+      THROW_ATHELAS_ERROR( "\n ! We do support a 1st order, 5 stage SSPRK "
+                           "integrator. \n" );
     } else if ( tOrder == 2 ) {
       a_ij( 0, 0 ) = 1.0;
       a_ij( 4, 0 ) = 0.2;

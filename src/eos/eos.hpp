@@ -15,7 +15,7 @@ class IdealGas : public EosBase<IdealGas> {
  public:
   IdealGas( ) = default;
   IdealGas( double gm ) : gamma( gm ) {
-    if ( gamma <= 0.0 ) throw Error( " ! Adiabatic gamma <= 0.0!" );
+    if ( gamma <= 0.0 ) THROW_ATHELAS_ERROR( " ! Adiabatic gamma <= 0.0!" );
   }
 
   Real PressureFromConserved( const Real Tau, const Real V, const Real EmT,

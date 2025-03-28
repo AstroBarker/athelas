@@ -64,7 +64,7 @@ Real Flux_Fluid( const Real V, const Real P, const int iCF ) {
   } else if ( iCF == 2 ) {
     return +P * V;
   } else { // Error case. Shouldn't ever trigger.
-    throw Error( " ! Please input a valid iCF! (0,1,2). " );
+    THROW_ATHELAS_ERROR( " ! Please input a valid iCF! (0,1,2). " );
     return -1.0; // just a formality.
   }
 }
@@ -141,6 +141,7 @@ Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
         const Real Cs =
             eos->SoundSpeedFromConserved( tau_x, vel_x, eint_x, lambda );
         Real eigval = Cs;
+        eigval      = constants::c_cgs;
 
         Real dt_old = std::abs( dr ) / std::abs( eigval );
 
@@ -153,7 +154,7 @@ Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
 
   // could be assertion?
   if ( std::isnan( dt ) ) {
-    throw Error( " ! nan encountered in ComputeTimestep.\n" );
+    THROW_ATHELAS_ERROR( " ! nan encountered in ComputeTimestep.\n" );
   }
 
   return dt;

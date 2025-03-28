@@ -355,7 +355,7 @@ void InitializeFields( State *state, GridStructure *Grid,
   } else if ( ProblemName == "RadEquilibrium" ) {
     RadEquilibriumInit( uCF, uPF, uCR, Grid, pOrder );
   } else {
-    throw Error( " ! Please choose a valid ProblemName" );
+    THROW_ATHELAS_ERROR( " ! Please choose a valid ProblemName" );
   }
 }
 #endif // _INITIALIZATION_HPP_

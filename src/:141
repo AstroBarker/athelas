@@ -23,7 +23,7 @@ namespace root_finders {
 
 template <typename T, typename F, typename... Args>
 Real Residual( F g, T x0, const int k, const int iC, Args... args ) {
-  return g( x0, k, iC, args... ) - x0( iC, k );
+  return g( x0, k, iC, args... ) - x0;
 }
 
 /**
@@ -63,8 +63,7 @@ Real Residual( F g, T x0, const int k, const int iC, Args... args ) {
 //     std::printf( " %d %e %e \n", n, xk, error );
 // #endif
 //     if ( n == root_finders::MAX_ITERS ) {
-//       THROW_ATHELAS_ERROR( " ! Root Finder :: Anderson Accelerated Fixed
-//       Point "
+//       THROW_ATHELAS_ERROR( " ! Root Finder :: Anderson Accelerated Fixed Point "
 //                    "Iteration Failed To "
 //                    "Converge ! \n" );
 //     }
@@ -76,108 +75,66 @@ Real Residual( F g, T x0, const int k, const int iC, Args... args ) {
 /**
  * Anderson accelerated fixed point solver templated on type, function, args...
  **/
-// TODO: NOTE: What if the scratch array contains u_
-//  TODO: the problem here is that the source term functions
-//  want a full basis function U(k), but we are iterating
-//  for a single k, and the source term functions return a Real
-//  NOTE: Potential issue: reference symantics for the views here.
-//    Might need to use vectors throughout
+//TODO: NOTE: What if the scratch array contains u_
+// TODO: the problem here is that the source term functions 
+// want a full basis function U(k), but we are iterating 
+// for a single k, and the source term functions return a Real
+// NOTE: Potential issue: reference symantics for the views here.
+//   Might need to use vectors throughout
 template <typename F, typename T, typename... Args>
 Real fixed_point_aa( F target, const int k, T scratch, const int iC,
                      Args... args ) {
 
-  View2D<Real> scratch_km1( "scratch_km1", scratch.extent( 0 ),
-                            scratch.extent( 1 ) );
-  Kokkos::deep_copy( scratch_km1, scratch );
+  View2D<Real> scratch_km1;
+  Kokkos::deep_copy(scratch_km1, scratch);
 
+  std::printf("DEBUG AA: Entering fixed_point_aa with k=%d, iC=%d\n", k, iC);
+  std::printf("DEBUG AA: Initial scratch(iC,k) = %e\n", scratch(iC,k));
   // auto x0 = scratch[0];
   unsigned int n = 0;
   Real error     = 1.0;
   Real xkm1, xk, xkp1;
-  xk   = scratch( iC, k );
-  xk   = target( scratch, k, iC, args... ); // one fixed point step
+  xk = scratch( iC, k );
+  std::printf("FILE :: Line = %s %d\n", __FILE__, __LINE__);
+  xk = target( scratch, k, iC, args... ); // one fixed point step
   xkm1 = scratch( iC, k );
   xkp1 = xk;
 
   // update scratch
-  scratch( iC, k )     = xk;
-  scratch_km1( iC, k ) = xkm1;
-
-  if ( std::abs( xk - xkm1 ) <= root_finders::RELTOL ) return xk;
-  while ( n <= root_finders::MAX_ITERS && error >= root_finders::RELTOL ) {
+  scratch(iC, k) = xk;
+  scratch_km1(iC, k) = xkm1;
+  if ( std::abs( xk- xkm1 ) <= root_finders::FPTOL ) return xk;
+  std::printf("FILE :: Line = %s %d\n", __FILE__, __LINE__);
+  while ( n <= root_finders::MAX_ITERS && error >= root_finders::FPTOL ) {
     /* Anderson acceleration step */
-    // UPDATED TODO:
+    // UPDATED TODO: 
     // Plan: get number back from xkp1, update scratch
-    // I think the move is to pass in View1D u_h, u_r, construct source term for
-    // k
+    // I think the move is to pass in View1D u_h, u_r, construct source term for k
     Real alpha = -Residual( target, scratch, k, iC, args... ) /
                  ( Residual( target, scratch_km1, k, iC, args... ) -
                    Residual( target, scratch, k, iC, args... ) );
-    // std::printf("alpha = %e\n", alpha);
+    std::printf("FILE :: Line = %s %d\n", __FILE__, __LINE__);
 
     xkp1 = alpha * target( scratch_km1, k, iC, args... ) +
-           ( 1.0 - alpha ) * target( scratch, k, iC, args... );
+                ( 1.0 - alpha ) * target( scratch, k, iC, args... );
+    
+    std::printf("FILE :: Line = %s %d\n", __FILE__, __LINE__);
+    error = std::abs( xk - xkp1);
 
-    error = std::abs( xk - xkp1 ) / std::abs( xk );
-
-    xkm1                 = xk;
-    xk                   = xkp1;
-    scratch( iC, k )     = xk;
-    scratch_km1( iC, k ) = xkm1;
-
-    n += 1;
-    // #ifdef ATHELAS_DEBUG
-    //     std::printf( " %d %e %e \n", n, xk, error );
-    // #endif
-    if ( n == root_finders::MAX_ITERS ) {
-      THROW_ATHELAS_ERROR( " ! Root Finder :: Anderson Accelerated Fixed Point "
-                           "Iteration Failed To "
-                           "Converge ! \n" );
-    }
-  }
-
-  return xk;
-}
-
-template <typename F, typename T, typename... Args>
-Real fixed_point_implicit( F target, const int k, T scratch, const int iC,
-                           Args... args ) {
-
-  // auto x0 = scratch[0];
-  unsigned int n = 0;
-  Real error     = 1.0;
-  Real xkm1, xk, xkp1;
-  xk   = scratch( iC, k );
-  xk   = target( scratch, k, iC, args... ); // one fixed point step
-  xkm1 = scratch( iC, k );
-  xkp1 = xk;
-
-  // update scratch
-  scratch( iC, k ) = xk;
-
-  if ( std::abs( xk - xkm1 ) <= root_finders::RELTOL ) return xk;
-  while ( n <= root_finders::MAX_ITERS && error >= root_finders::RELTOL ) {
-    /* Anderson acceleration step */
-    // UPDATED TODO:
-    // Plan: get number back from xkp1, update scratch
-    // I think the move is to pass in View1D u_h, u_r, construct source term for
-    // k
-
-    xkp1 = target( scratch, k, iC, args... );
-
-    error = std::abs( xk - xkp1 ) / std::abs( xk );
-
-    xk               = xkp1;
-    scratch( iC, k ) = xk;
+    xkm1 = xk;
+    xk   = xkp1
+    scratch(iC, k) = xk;
+    scratch_km1(iC, k) = xkm1;
 
     n += 1;
-    // #ifdef ATHELAS_DEBUG
-    std::printf( " %d %e %e \n", n, xk, error );
-    // #endif
+    std::printf(" ! DEBUG: xk, xkm1, xkp1 (at k) = (%f %f %f)", xk, xkm1, xkp1);
+//#ifdef ATHELAS_DEBUG
+//    std::printf( " %d %e %e \n", n, xk, error );
+//#endif
     if ( n == root_finders::MAX_ITERS ) {
       THROW_ATHELAS_ERROR( " ! Root Finder :: Anderson Accelerated Fixed Point "
-                           "Iteration Failed To "
-                           "Converge ! \n" );
+                   "Iteration Failed To "
+                   "Converge ! \n" );
     }
   }
 
@@ -284,9 +241,8 @@ T AAnewton( F target, F dTarget, T x0, Args... args ) {
     std::printf( " %d %e %e \n", n, xk, error );
 #endif
     if ( n == root_finders::MAX_ITERS ) {
-      THROW_ATHELAS_ERROR(
-          " ! Root Finder :: Anderson Accelerated Newton Iteration "
-          "Failed To Converge ! \n" );
+      THROW_ATHELAS_ERROR( " ! Root Finder :: Anderson Accelerated Newton Iteration "
+                   "Failed To Converge ! \n" );
     }
     ans = xk;
   }

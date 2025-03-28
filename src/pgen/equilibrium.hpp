@@ -26,16 +26,13 @@ void RadEquilibriumInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
   const int iPF_D = 0;
 
   const int iCR_E = 0;
-  const int iCR_F = 1;
 
   const Real V0 = 0.0;
   const Real D  = std::pow( 10.0, -7.0 );
 
-  Real X1 = 0.0;
-  for ( int iX = ilo; iX <= ihi; iX++ )
+  for ( int iX = 0; iX <= ihi + 1; iX++ )
     for ( int k = 0; k < pOrder; k++ )
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-        X1                    = Grid->Get_Centers( iX );
         uCF( iCF_Tau, iX, k ) = 0.0;
         uCF( iCF_V, iX, k )   = 0.0;
         uCF( iCF_E, iX, k )   = 0.0;

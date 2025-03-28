@@ -48,7 +48,7 @@ ModalBasis::ModalBasis( PolyBasis::PolyBasis basis, const View3D<Real> uPF,
     func  = Taylor;
     dfunc = dTaylor;
   } else {
-    throw Error( " ! Bad behavior in ModalBasis constructor !" );
+    THROW_ATHELAS_ERROR( " ! Bad behavior in ModalBasis constructor !" );
   }
 
   InitializeBasis( basis, uPF, Grid );
@@ -67,7 +67,7 @@ ModalBasis::ModalBasis( PolyBasis::PolyBasis basis, const View3D<Real> uPF,
 Real ModalBasis::Taylor( const int order, const Real eta, const Real eta_c ) {
 
   if ( order < 0 )
-    throw Error(
+    THROW_ATHELAS_ERROR(
         "! polynomial basis :: Please enter a valid polynomial order.\n" );
 
   // Handle constant and linear terms separately -- no need to exponentiate.
@@ -91,7 +91,7 @@ Real ModalBasis::Taylor( const int order, const Real eta, const Real eta_c ) {
 Real ModalBasis::dTaylor( const int order, const Real eta, const Real eta_c ) {
 
   if ( order < 0 )
-    throw Error(
+    THROW_ATHELAS_ERROR(
         " ! polynomial basis :: Please enter a valid polynomial order.\n" );
 
   // Handle first few terms separately -- no need to call std::pow
@@ -309,12 +309,12 @@ void ModalBasis::CheckOrthogonality( const Kokkos::View<Real ***> uPF,
         }
 
         if ( k1 == k2 && result == 0.0 ) {
-          throw Error(
+          THROW_ATHELAS_ERROR(
               " ! Basis not orthogonal: Diagonal term equal to zero.\n" );
         }
         if ( k1 != k2 && std::abs( result ) > 1e-10 ) {
           std::printf( "%d %d %.3e \n", k1, k2, result );
-          throw Error(
+          THROW_ATHELAS_ERROR(
               " ! Basis not orthogonal: Off diagonal term non-zero.\n" );
         }
       }
