@@ -20,7 +20,7 @@ struct DataType {
 
 void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
                  const std::string ProblemName, Real time, int order,
-                 int i_write );
+                 int i_write, bool do_rad );
 
 void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin,
                                 const Real CFL );

@@ -77,9 +77,10 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin,
  **/
 void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
                  const std::string ProblemName, Real time, int order,
-                 int i_write ) {
+                 int i_write, bool do_rad ) {
 
   View3D<Real> uCF = state->Get_uCF( );
+  View3D<Real> uCR = state->Get_uCR( );
   View3D<Real> uPF = state->Get_uPF( );
 
   std::string fn = "athelas_";
@@ -114,12 +115,14 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
   const int ihi = Grid.Get_ihi( );
 
   const H5std_string FILE_NAME( fn );
-  const H5std_string DATASET_NAME( "Grid" );
+  const H5std_string DATASET_NAME( "grid" );
   const int size = ( nX * order ); // dataset dimensions
 
   std::vector<DataType> tau( size );
   std::vector<DataType> vel( size );
   std::vector<DataType> eint( size );
+  std::vector<DataType> erad( size );
+  std::vector<DataType> frad( size );
   std::vector<DataType> grid( nX );
   std::vector<DataType> dr( nX );
   std::vector<DataType> limiter( nX );
@@ -133,6 +136,10 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
       tau[( iX - ilo ) + k * nX].x  = uCF( 0, iX, k );
       vel[( iX - ilo ) + k * nX].x  = uCF( 1, iX, k );
       eint[( iX - ilo ) + k * nX].x = uCF( 2, iX, k );
+      if (do_rad) { 
+        erad[( iX - ilo ) + k * nX].x = uCR( 0, iX, k );
+        frad[( iX - ilo ) + k * nX].x = uCR( 1, iX, k );
+      }
     }
 
   // preparation of a dataset and a file.
@@ -153,33 +160,39 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
 
   H5::H5File file( fn2, H5F_ACC_TRUNC );
   // Groups
-  H5::Group group_md   = file.createGroup( "/Metadata" );
-  H5::Group group_grid = file.createGroup( "/Spatial Grid" );
-  H5::Group group_CF   = file.createGroup( "/Conserved Fields" );
-  H5::Group group_DF   = file.createGroup( "/Diagnostic Fields" );
+  H5::Group group_md   = file.createGroup( "/metadata" );
+  H5::Group group_grid = file.createGroup( "/grid" );
+  H5::Group group_CF   = file.createGroup( "/conserved" );
+  H5::Group group_DF   = file.createGroup( "/diagnostic" );
 
   // DataSets
   H5::DataSet dataset_nx( file.createDataSet(
-      "/Metadata/nX", H5::PredType::NATIVE_INT, md_space ) );
+      "/metadata/nx", H5::PredType::NATIVE_INT, md_space ) );
   H5::DataSet dataset_order( file.createDataSet(
-      "/Metadata/Order", H5::PredType::NATIVE_INT, md_space ) );
+      "/metadata/order", H5::PredType::NATIVE_INT, md_space ) );
   H5::DataSet dataset_time( file.createDataSet(
-      "/Metadata/Time", H5::PredType::NATIVE_DOUBLE, md_space ) );
+      "/metadata/time", H5::PredType::NATIVE_DOUBLE, md_space ) );
   H5::DataSet dataset_grid( file.createDataSet(
-      "/Spatial Grid/Grid", H5::PredType::NATIVE_DOUBLE, space_grid ) );
+      "/grid/x", H5::PredType::NATIVE_DOUBLE, space_grid ) );
   H5::DataSet dataset_width( file.createDataSet(
-      "/Spatial Grid/Widths", H5::PredType::NATIVE_DOUBLE, space_grid ) );
+      "/grid/dx", H5::PredType::NATIVE_DOUBLE, space_grid ) );
   H5::DataSet dataset_tau(
-      file.createDataSet( "/Conserved Fields/Specific Volume",
+      file.createDataSet( "/conserved/tau",
                           H5::PredType::NATIVE_DOUBLE, space ) );
   H5::DataSet dataset_vel( file.createDataSet(
-      "/Conserved Fields/Velocity", H5::PredType::NATIVE_DOUBLE, space ) );
+      "/conserved/velocity", H5::PredType::NATIVE_DOUBLE, space ) );
   H5::DataSet dataset_eint(
-      file.createDataSet( "/Conserved Fields/Specific Internal Energy",
+      file.createDataSet( "/conserved/energy",
                           H5::PredType::NATIVE_DOUBLE, space ) );
 
   H5::DataSet dataset_limiter( file.createDataSet(
-      "/Diagnostic Fields/Limiter", H5::PredType::NATIVE_DOUBLE, space_grid ) );
+      "/diagnostic/limiter", H5::PredType::NATIVE_DOUBLE, space_grid ) );
+    H5::DataSet dataset_erad(
+        file.createDataSet( "/conserved/rad_energy",
+                            H5::PredType::NATIVE_DOUBLE, space ) );
+    H5::DataSet dataset_frad(
+        file.createDataSet( "/conserved/rad_momentum",
+                            H5::PredType::NATIVE_DOUBLE, space ) );
 
   // --- Write data ---
   dataset_nx.write( &nX, H5::PredType::NATIVE_INT );
@@ -192,6 +205,11 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
   dataset_tau.write( tau.data( ), H5::PredType::NATIVE_DOUBLE );
   dataset_vel.write( vel.data( ), H5::PredType::NATIVE_DOUBLE );
   dataset_eint.write( eint.data( ), H5::PredType::NATIVE_DOUBLE );
+
+  if (do_rad) {
+    dataset_erad.write( erad.data( ), H5::PredType::NATIVE_DOUBLE );
+    dataset_frad.write( frad.data( ), H5::PredType::NATIVE_DOUBLE );
+  }
 }
 
 /**
