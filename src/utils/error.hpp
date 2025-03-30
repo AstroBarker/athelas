@@ -67,7 +67,7 @@ class AthelasError : public std::exception {
     static thread_local std::string full_message;
     std::ostringstream oss;
 
-    oss << " ! Athelas Error: " << m_message << "\n";
+    oss << "!!! Athelas Error: " << m_message << "\n";
 
     if ( !m_function.empty( ) ) {
       oss << "In function: " << m_function << "\n";
@@ -90,51 +90,62 @@ class AthelasError : public std::exception {
   throw AthelasError( message, __FUNCTION__, __FILE__, __LINE__ )
 
 template <typename T>
-void check_state( T state, const int ihi, const bool do_rad ) {
+void check_state(T state, const int ihi, const bool do_rad) {
+    auto uCR = state->Get_uCR();
+    auto uCF = state->Get_uCF();
+    const Real c = constants::c_cgs;
 
-  auto uCR = state->Get_uCR( );
-  auto uCF = state->Get_uCF( );
+    // Create host mirrors of the views
+    auto uCR_h = Kokkos::create_mirror_view(uCR);
+    auto uCF_h = Kokkos::create_mirror_view(uCF);
+    
+    // Copy data to host
+    Kokkos::deep_copy(uCR_h, uCR);
+    Kokkos::deep_copy(uCF_h, uCF);
 
-  const Real c = constants::c_cgs;
+    // Check state on host
+    for (int iX = 1; iX <= ihi; iX++) {
 
-  Kokkos::parallel_for(
-      "check_state", ihi, KOKKOS_LAMBDA( const int i ) {
-        const int iX = i + 1; // hack
-                              //
-        const Real tau   = uCF( 0, iX, 0 ); // cell averages checked
-        const Real vel   = uCF( 1, iX, 0 );
-        const Real e_m   = uCF( 2, iX, 0 );
-        const Real e_rad = uCR( 0, iX, 0 );
-        const Real f_rad = uCR( 1, iX, 0 );
+        const Real tau = uCF_h(0, iX, 0); // cell averages checked
+        const Real vel = uCF_h(1, iX, 0);
+        const Real e_m = uCF_h(2, iX, 0);
+        const Real e_rad = uCR_h(0, iX, 0);
+        const Real f_rad = uCR_h(1, iX, 0);
 
-        assert( tau > 0.0 && " ! Check state :: Negative or zero density!" );
-        assert( !std::isnan( tau ) &&
-                " ! Check state :: Specific volume NaN!" );
-
-        assert(
-            std::fabs( vel ) < c &&
-            " ! Check state :: Velocity reached or exceeded speed of light!" );
-        assert( !std::isnan( vel ) && " ! Check state :: Velocity NaN!" );
-
-        assert( e_m > 0.0 &&
-                " Check state :: ! Negative or zero specific total energy!" );
-        assert( !std::isnan( e_m ) &&
-                " ! Check state :: Specific energy NaN!" );
-
-        if ( do_rad ) {
-          assert(
-              e_rad > 0.0 &&
-              " ! Check state :: Negative or zero radiation energy density!" );
-          assert( !std::isnan( e_rad ) &&
-                  " ! Check state :: Radiation energy NaN!" );
-
-          // TODO: radiation flux bound
-          // assert ( f_rad >= 0.0 && " Check state :: ! Negative or zero
-          // radiation energy density!" );
-          assert( !std::isnan( f_rad ) &&
-                  " ! Check state :: Radiation flux NaN!" );
+        if (tau <= 0.0) {
+            THROW_ATHELAS_ERROR("Negative or zero density!");
         }
-      } );
+        if (std::isnan(tau)) {
+            THROW_ATHELAS_ERROR("Specific volume NaN!");
+        }
+
+        if (std::fabs(vel) >= c) {
+            THROW_ATHELAS_ERROR("Velocity reached or exceeded speed of light!");
+        }
+        if (std::isnan(vel)) {
+            THROW_ATHELAS_ERROR("Velocity NaN!");
+        }
+
+        if (e_m <= 0.0) {
+            THROW_ATHELAS_ERROR("Negative or zero specific total energy!");
+        }
+        if (std::isnan(e_m)) {
+            THROW_ATHELAS_ERROR("Specific energy NaN!");
+        }
+
+        if (do_rad) {
+            if (std::isnan(e_rad)) {
+                THROW_ATHELAS_ERROR("Radiation energy NaN!");
+            }
+            if (e_rad <= 0.0) {
+                THROW_ATHELAS_ERROR("Negative or zero radiation energy density!");
+            }
+
+            if (std::isnan(f_rad)) {
+                THROW_ATHELAS_ERROR("Radiation flux NaN!");
+            }
+        }
+    }
 }
 
 #endif // ERROR_HPP_
