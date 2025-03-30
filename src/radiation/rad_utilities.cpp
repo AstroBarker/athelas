@@ -27,8 +27,8 @@
 Real FluxFactor( const Real E, const Real F ) {
   assert( E > 0.0 &&
           "Radiation :: FluxFactor :: non positive definite energy density." );
-  constexpr Real c = constants::c_cgs;
-  return std::fabs( c * F ) / ( 1.0 * E );
+  constexpr static Real c = constants::c_cgs;
+  return ( F ) / ( c * E );
 }
 
 /**
@@ -40,9 +40,10 @@ Real Flux_Rad( Real E, Real F, Real P, Real V, int iCR ) {
   assert( E > 0.0 &&
           "Radiation :: FluxFactor :: non positive definite energy density." );
 
-  constexpr Real c = constants::c_cgs;
-  // return ( iCR == 0 ) ? c * c * F - E * V : 1.0 * 1.0 * P - F * V;
-  return ( iCR == 0 ) ? c * c * F : P;
+  constexpr static Real c = constants::c_cgs;
+  return ( iCR == 0 ) ? 1.0 * F - E * V : c * c * P - F * V;
+  //return ( iCR == 0 ) ? c * c * F - E * V : 1.0 * 1.0 * P - F * V;
+  // return ( iCR == 0 ) ? c * c * F : P;
 }
 
 /**
@@ -73,21 +74,20 @@ void RadiationFourForce( Real D, Real V, Real T, Real kappa, Real E, Real F,
 
   const Real b     = V / c;
   const Real term1 = E - a * T * T * T * T;
-  F *= c;
+  F /= c;
 
   // O(b^2) ala Fuksman
   G0 = D * kappa * ( term1 - b * F - b * b * E - b * b * Pr );
   G  = D * kappa * ( b * ( term1 - 2.0 * b * F ) + ( F - b * E - b * Pr ) );
 
   // ala Skinner & Ostriker, simpler.
-  // G0 = D * kappa * ( term1 - b * F );
-  // G  = D * kappa * ( F - b * E - b * Pr );
+  G0 = D * kappa * ( term1 - b * F );
+  G  = D * kappa * ( F - b * E + b * Pr );
 }
 
 /**
  * source terms for radiation
  * TODO: total opacity X
- * NOTE: extra c in second source?
  **/
 Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E, Real F,
                  Real Pr, int iCR ) {
@@ -103,7 +103,7 @@ Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E, Real F,
   Real G0, G;
   RadiationFourForce( D, V, T, kappa, E, F, Pr, G0, G );
 
-  return ( iCR == 0 ) ? -c * G0 : -G;
+  return ( iCR == 0 ) ? -c * G0 : -c * c * G;
 }
 
 /**
@@ -127,7 +127,7 @@ Real ComputeOpacity( const Real D, const Real V, const Real Em ) {
 Real ComputeClosure( const Real E, const Real F ) {
   assert( E > 0.0 && "Radiation :: ComputeClosure :: Non positive definite "
                      "radiation energy density." );
-  if ( E == 0.0 ) return 0.0; // This is a hack
+//  if ( E == 0.0 ) return 0.0; // This is a hack
   const Real f = FluxFactor( E, F );
   const Real chi =
       ( 3.0 + 4.0 * f * f ) / ( 5.0 + 2.0 * std::sqrt( 4.0 - 3.0 * f * f ) );
