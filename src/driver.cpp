@@ -86,6 +86,7 @@ int main( int argc, char *argv[] ) {
       InitializeFields( &state, &Grid, ProblemName );
 
       ApplyBC( state.Get_uCF( ), &Grid, order, BC );
+      ApplyBC( state.Get_uCR( ), &Grid, order, BC );
     }
 
     // --- Datastructure for modal basis ---
@@ -104,7 +105,7 @@ int main( int argc, char *argv[] ) {
 
     // -- print run parameters  and initial condition ---
     PrintSimulationParameters( Grid, &pin, CFL );
-    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, 0 );
+    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, 0, opts.do_rad );
 
     // --- Timer ---
     Kokkos::Timer timer_total;
@@ -116,18 +117,21 @@ int main( int argc, char *argv[] ) {
 
     // --- Evolution loop ---
     const int i_print = 1; // std out
-    const int i_write = 500; // h5 out
+    const int i_write = 1; // h5 out
     int iStep         = 0;
     int i_out         = 1; // output label, start 1
     std::cout << " ~ Step    t       dt       zone_cycles / wall_second\n"
               << std::endl;
     while ( t < t_end ) {
+      ApplyBC( state.Get_uCF( ), &Grid, order, BC );
+      ApplyBC( state.Get_uCR( ), &Grid, order, BC );
       timer_zone_cycles.reset( );
 
       // TODO: ComputeTimestep_Rad
       dt =
           std::min( ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL ),
-                    dt * 1.01 );
+                    dt * 1.1 );
+      dt = std::min(5.0e-12, dt * 1.1);
       // if ( opts.do_rad ) { // hack
       //   dt = std::pow( 10.0, -13.0 );
       // }
@@ -174,6 +178,8 @@ int main( int argc, char *argv[] ) {
         check_state( &state, Grid.Get_ihi( ), pin.do_rad );
       } catch ( const AthelasError &e ) {
         std::cerr << e.what( ) << std::endl;
+        std::printf("!!! Bad State found, writing _final_ output file ...\n");
+        WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1, opts.do_rad );
         return AthelasExitCodes::FAILURE;
       }
 #endif
@@ -182,7 +188,7 @@ int main( int argc, char *argv[] ) {
 
       // Write state
       if ( iStep % i_write == 0 ) {
-        WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, i_out );
+        WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, i_out, opts.do_rad );
         i_out += 1;
       }
 
@@ -195,7 +201,7 @@ int main( int argc, char *argv[] ) {
     Real time = timer_total.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC( state.Get_uCF( ), &Grid, order, BC );
-    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1 );
+    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1, opts.do_rad );
   }
   Kokkos::finalize( );
 
