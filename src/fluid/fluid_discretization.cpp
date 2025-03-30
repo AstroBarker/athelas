@@ -89,6 +89,7 @@ void ComputeIncrement_Fluid_Divergence(
         dFlux_num( 2, iX ) = +Flux_U( iX ) * Flux_P( iX );
       } );
 
+  Flux_U(ilo - 1) = Flux_U(ilo);
   Flux_U( ihi + 2 ) = Flux_U( ihi + 1 );
 
   // --- Surface Term ---
@@ -190,7 +191,7 @@ Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
   const int nNodes = Grid.Get_nNodes( );
   constexpr Real c = constants::c_cgs;
 
-  Real local_sum1 = 0.0;
+  Real local_sum = 0.0;
   for ( int iN = 0; iN < nNodes; iN++ ) {
     const Real Tau = Basis->basis_eval( uCF, iX, 0, iN + 1 );
     const Real Vel = Basis->basis_eval( uCF, iX, 1, iN + 1 );
@@ -202,7 +203,6 @@ Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
 
     auto lambda  = nullptr;
     const Real P = eos->PressureFromConserved( Tau, Vel, EmT, lambda );
-
     const Real T = eos->TemperatureFromTauPressure( Tau, P, lambda );
 
     // TODO: kappa and chi will be updated here.
@@ -210,12 +210,12 @@ Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
 
     const Real chi = ComputeEmissivity( Tau, Vel, EmT );
 
-    local_sum1 +=
+    local_sum +=
         Grid.Get_Weights( iN ) * Basis->Get_Phi( iX, iN + 1, k ) *
         Source_Fluid_Rad( 1.0 / Tau, Vel, T, chi, kappa, Er, Fr, Pr, iCF );
   }
 
-  return ( local_sum1 * Grid.Get_Widths( iX ) ) /
+  return ( local_sum * Grid.Get_Widths( iX ) ) /
          Basis->Get_MassMatrix( iX, k );
 }
 
