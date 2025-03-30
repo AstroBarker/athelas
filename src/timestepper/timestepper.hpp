@@ -340,8 +340,8 @@ class TimeStepper {
 
         Kokkos::parallel_for(
             "Timestepper :: implicit piece in inner loop",
-            Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
-                                                    { order, ihi + 2 } ),
+            Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 1 },
+                                                    { order, ihi + 1 } ),
             KOKKOS_LAMBDA( const int k, const int iX ) {
               auto u_h =
                   Kokkos::subview( U_s, j, Kokkos::ALL, iX, Kokkos::ALL );
@@ -385,7 +385,7 @@ class TimeStepper {
           } );
 
       // capturing sumvar_u_r bad?
-      auto implicit_rad = [=]( View2D<Real> scratch, const int k, const int iC,
+      auto implicit_rad = [&]( View2D<Real> scratch, const int k, const int iC,
                                const View2D<Real> u_h, GridStructure &Grid,
                                const ModalBasis *Basis, const EOS *eos,
                                const int iX ) {
@@ -394,7 +394,7 @@ class TimeStepper {
                    compute_increment_rad_implicit( scratch, k, iC, u_h,
                                                    Grid_s[iS], Basis, eos, iX );
       };
-      auto implicit_hydro = [=]( View2D<Real> scratch, const int k,
+      auto implicit_hydro = [&]( View2D<Real> scratch, const int k,
                                  const int iC, const View2D<Real> u_r,
                                  GridStructure &Grid, const ModalBasis *Basis,
                                  const EOS *eos, const int iX ) {
@@ -458,6 +458,9 @@ class TimeStepper {
       auto Us_j_h =
           Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       S_Limiter->ApplySlopeLimiter( Us_j_h, &Grid_s[iS], Basis );
+      auto Us_j_r =
+          Kokkos::subview( U_s_r, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
+      S_Limiter->ApplySlopeLimiter( Us_j_r, &Grid_s[iS], Basis );
       ApplyBoundEnforcingLimiter( Us_j_h, Basis, eos );
     } // end outer loop
 
@@ -520,6 +523,7 @@ class TimeStepper {
     // TODO: slope limit rad
     Grid = Grid_s[nStages];
     S_Limiter->ApplySlopeLimiter( uCF, &Grid, Basis );
+    S_Limiter->ApplySlopeLimiter( uCR, &Grid, Basis );
     ApplyBoundEnforcingLimiter( uCF, Basis, eos );
   }
 
