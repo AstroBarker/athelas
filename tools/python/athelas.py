@@ -14,6 +14,7 @@ class Athelas:
 
   def __init__(self, fn, basis_fn = None):
     self.uCF = None
+    self.uCR = None
     self.time = None
     self.sOrder = None  # spatial order
     self.nX = None  # number of cells
@@ -42,29 +43,36 @@ class Athelas:
     """
 
     with h5py.File(fn, "r") as f:
-      self.time = f["Metadata/Time"][0]
-      self.sOrder = f["Metadata/Order"][0]
-      self.nX = f["Metadata/nX"][0]
+      self.time = f["metadata/time"][0]
+      self.sOrder = f["metadata/order"][0]
+      self.nX = f["metadata/nx"][0]
 
-      self.r = f["Spatial Grid/Grid"][:]
-      self.dr = f["Spatial Grid/Widths"][:]
+      self.r = f["grid/x"][:]
+      self.dr = f["grid/dx"][:]
 
       nvars = 3
       self.uCF = np.zeros((nvars, self.nX, self.sOrder))
+      self.uCR = np.zeros((2, self.nX, self.sOrder))
 
       n = self.nX
       for i in range(self.sOrder):
-        self.uCF[0, :, i] = f["/Conserved Fields/Specific Volume"][
+        self.uCF[0, :, i] = f["/conserved/tau"][
           (i * n) : ((i + 1) * n)
         ]
-        self.uCF[1, :, i] = f["/Conserved Fields/Velocity"][
+        self.uCF[1, :, i] = f["/conserved/velocity"][
           (i * n) : ((i + 1) * n)
         ]
-        self.uCF[2, :, i] = f["/Conserved Fields/Specific Internal Energy"][
+        self.uCF[2, :, i] = f["/conserved/energy"][
+          (i * n) : ((i + 1) * n)
+        ]
+        self.uCR[0, :, i] = f["/conserved/rad_energy"][
+          (i * n) : ((i + 1) * n)
+        ]
+        self.uCR[1, :, i] = f["/conserved/rad_momentum"][
           (i * n) : ((i + 1) * n)
         ]
 
-      self.slope_limiter = f["Diagnostic Fields/Limiter"][:]
+      self.slope_limiter = f["diagnostic/limiter"][:]
 
       # TODO:
       # uPF, uAF, uCR
@@ -104,8 +112,10 @@ class Athelas:
 
 if __name__ == "__main__":
   # Examples 
-  a = Athelas("athelas_Sod_final.h5", "athelas_basis_Sod.h5")
-  print(a.basis_eval(0, 10, 2))
+  a = Athelas("athelas_RadEquilibrium_00001.h5", "athelas_basis_RadEquilibrium.h5")
+  #a = Athelas("athelas_Sod_00238.h5", "athelas_basis_Sod.h5")
+  #print(a.uCR[1,:,1])
   fig, ax = plt.subplots()
-  ax.plot( a.r, 1.0 / a.uCF[0,:,0] )
+  #ax.plot( a.r, 1.0 / a.uCF[0,:,0] )
+  ax.plot( a.r, a.uCR[0,:,1] )
   plt.savefig("test.png")
