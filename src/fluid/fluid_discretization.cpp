@@ -89,7 +89,7 @@ void ComputeIncrement_Fluid_Divergence(
         dFlux_num( 2, iX ) = +Flux_U( iX ) * Flux_P( iX );
       } );
 
-  Flux_U(ilo - 1) = Flux_U(ilo);
+  Flux_U( ilo - 1 ) = Flux_U( ilo );
   Flux_U( ihi + 2 ) = Flux_U( ihi + 1 );
 
   // --- Surface Term ---
@@ -214,8 +214,7 @@ Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
         Source_Fluid_Rad( 1.0 / Tau, Vel, T, chi, kappa, Er, Fr, Pr, iCF );
   }
 
-  return ( local_sum * Grid.Get_Widths( iX ) ) /
-         Basis->Get_MassMatrix( iX, k );
+  return ( local_sum * Grid.Get_Widths( iX ) ) / Basis->Get_MassMatrix( iX, k );
 }
 
 /** Compute dU for timestep update. e.g., U = U + dU * dt

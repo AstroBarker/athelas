@@ -12,7 +12,7 @@ class Athelas:
   Athelas Python class
   """
 
-  def __init__(self, fn, basis_fn = None):
+  def __init__(self, fn, basis_fn=None):
     self.uCF = None
     self.uCR = None
     self.time = None
@@ -23,7 +23,6 @@ class Athelas:
     self.dr = None  # widths
 
     self.load_(fn)
-    print(self.time)
 
     self.basis = None
     if basis_fn is not None:
@@ -56,18 +55,10 @@ class Athelas:
 
       n = self.nX
       for i in range(self.sOrder):
-        self.uCF[0, :, i] = f["/conserved/tau"][
-          (i * n) : ((i + 1) * n)
-        ]
-        self.uCF[1, :, i] = f["/conserved/velocity"][
-          (i * n) : ((i + 1) * n)
-        ]
-        self.uCF[2, :, i] = f["/conserved/energy"][
-          (i * n) : ((i + 1) * n)
-        ]
-        self.uCR[0, :, i] = f["/conserved/rad_energy"][
-          (i * n) : ((i + 1) * n)
-        ]
+        self.uCF[0, :, i] = f["/conserved/tau"][(i * n) : ((i + 1) * n)]
+        self.uCF[1, :, i] = f["/conserved/velocity"][(i * n) : ((i + 1) * n)]
+        self.uCF[2, :, i] = f["/conserved/energy"][(i * n) : ((i + 1) * n)]
+        self.uCR[0, :, i] = f["/conserved/rad_energy"][(i * n) : ((i + 1) * n)]
         self.uCR[1, :, i] = f["/conserved/rad_momentum"][
           (i * n) : ((i + 1) * n)
         ]
@@ -88,34 +79,37 @@ class Athelas:
 
     result = 0.0
     for k in range(self.basis.order):
-      result += self.basis.phi[iX, iEta, k] * self.uCF[iF,iX,k]
+      result += self.basis.phi[iX, iEta, k] * self.uCF[iF, iX, k]
     return result
 
-  def plot(self, iF, ax, logx = False, logy = False, label = None, color = "teal"):
+  def plot(self, iF, ax, logx=False, logy=False, label=None, color="teal"):
     """
     Basic plot function: plot quantity index iF from uCF.
     TODO: generalize to select uCF, uCR, etc
     """
-      
+
     q = self.uCF[iF, :, 0]
     x = self.r
-    if (logy):
+    if logy:
       q = np.log10(q)
-    if (logx):
+    if logx:
       x = np.log10(x)
-    
-    ax.plot(x, q, label=label, color = color)
+
+    ax.plot(x, q, label=label, color=color)
+
   # End plot
 
 
 # End Athelas
 
 if __name__ == "__main__":
-  # Examples 
-  a = Athelas("athelas_RadEquilibrium_00001.h5", "athelas_basis_RadEquilibrium.h5")
-  #a = Athelas("athelas_Sod_00238.h5", "athelas_basis_Sod.h5")
-  #print(a.uCR[1,:,1])
+  # Examples
+  a = Athelas("athelas_RadAdvection_00040.h5", "athelas_basis_RadAdvection.h5")
+
   fig, ax = plt.subplots()
-  #ax.plot( a.r, 1.0 / a.uCF[0,:,0] )
-  ax.plot( a.r, a.uCR[0,:,1] )
+  q = a.uCR[0, :, 0]
+  print(q)
+  ax.plot(a.r, q)
+  ax.axvline(0.5, color="k", ls="--")
+  ax.legend()
   plt.savefig("test.png")
