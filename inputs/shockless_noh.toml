@@ -1,27 +1,27 @@
-[Problem]
-problem = "ShocklessNoh"
+[problem]
+problem = "shockless_noh"
 t_end = 0.5
 geometry = "planar"
 restart = false
 do_rad = false
-xL = 0.0
-xR = 1.0
-BC = "ShocklessNoh"
-CFL = 0.35
+xl = 0.0
+xr = 1.0
+bc = "shockless_noh"
+cfl = 0.35
 
-[Fluid]
-Basis = "Legendre"
-nNodes = 4
-pOrder = 4
-nX = 128
-nG = 1
+[fluid]
+basis = "legendre"
+nnodes = 4
+porder = 4
+nx = 128
+ng = 1
 
-[Time]
-tOrder = 4
-nStages = 5
+[time]
+torder = 4
+nstages = 5
 
-[Limiters]
-TCI_Opt = false
-TCI_val = 0.1
-Characteristic = true
+[limiters]
+tci_opt = false
+tci_val = 0.1
+characteristic = true
 gamma_i = 0.8

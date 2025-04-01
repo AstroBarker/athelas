@@ -1,29 +1,26 @@
 [problem]
-problem = "sod"
-t_end = 0.1
+problem = "rad_equilibrium"
+t_end = 1.0e-7
 geometry = "planar"
 restart = false
-do_rad = false
+do_rad = true
 xl = 0.0
 xr = 1.0
 bc = "homogenous"
-cfl = 0.35
+cfl = 0.5
 
 [fluid]
 basis = "legendre"
 nnodes = 1
 porder = 1
-nx = 512
+nx = 256
 ng = 1
 
 [time]
-torder = 1
-nstages = 1
+torder = 2
+nstages = 2
 
 [limiters]
 tci_opt = false
 tci_val = 0.1
-characteristic = true
-gamma_i = 0.998
-#gamma_r = 0.005
-#gamma_l = 0.005
+characteristic = false

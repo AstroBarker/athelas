@@ -40,7 +40,7 @@ void InitializeFields( State *state, GridStructure *Grid,
   View3D<Real> uCR = state->Get_uCR( );
   const int pOrder = state->Get_pOrder( );
 
-  if ( ProblemName == "Sod" ) {
+  if ( ProblemName == "sod" ) {
     const Real V0  = 0.0;
     const Real D_L = 1.0;
     const Real D_R = 0.125;
@@ -82,7 +82,7 @@ void InitializeFields( State *state, GridStructure *Grid,
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
-  } else if ( ProblemName == "ShuOsher" ) {
+  } else if ( ProblemName == "shu_osher" ) {
     const Real V0  = 2.629369;
     const Real D_L = 3.857143;
     const Real P_L = 10.333333;
@@ -124,7 +124,7 @@ void InitializeFields( State *state, GridStructure *Grid,
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
-  } else if ( ProblemName == "MovingContact" ) {
+  } else if ( ProblemName == "moving_contact" ) {
     // Moving Contact problem.
     const Real V0  = 0.1;
     const Real D_L = 1.4;
@@ -167,9 +167,9 @@ void InitializeFields( State *state, GridStructure *Grid,
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
-  } else if ( ProblemName == "SmoothAdvection" ) {
+  } else if ( ProblemName == "smooth_advection" ) {
     AdvectionInit( uCF, uPF, uCR, Grid, pOrder );
-  } else if ( ProblemName == "Sedov" ) {
+  } else if ( ProblemName == "sedov" ) {
     // Smooth advection problem
     const Real V0 = 0.0;
     const Real D0 = 1.0;
@@ -208,7 +208,7 @@ void InitializeFields( State *state, GridStructure *Grid,
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
-  } else if ( ProblemName == "Noh" ) {
+  } else if ( ProblemName == "noh" ) {
     const Real V_L = 1.0;
     const Real D_L = 1.0;
     const Real P_L = 0.000001;
@@ -253,7 +253,7 @@ void InitializeFields( State *state, GridStructure *Grid,
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
-  } else if ( ProblemName == "ShocklessNoh" ) {
+  } else if ( ProblemName == "shockless_noh" ) {
     const Real D   = 1.0;
     const Real E_M = 1.0;
 
@@ -293,7 +293,7 @@ void InitializeFields( State *state, GridStructure *Grid,
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
-  } else if ( ProblemName == "SmoothFlow" ) {
+  } else if ( ProblemName == "smooth_flow" ) {
 
     Real X1  = 0.0;
     Real amp = 0.999999999999999999999999999999999995;
@@ -353,9 +353,9 @@ void InitializeFields( State *state, GridStructure *Grid,
         uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
         uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
       }
-  } else if ( ProblemName == "RadEquilibrium" ) {
+  } else if ( ProblemName == "rad_equilibrium" ) {
     RadEquilibriumInit( uCF, uPF, uCR, Grid, pOrder );
-  } else if ( ProblemName == "RadAdvection" ) {
+  } else if ( ProblemName == "rad_advection" ) {
     RadAdvectionInit( uCF, uPF, uCR, Grid, pOrder );
   } else {
     THROW_ATHELAS_ERROR( " ! Please choose a valid ProblemName" );

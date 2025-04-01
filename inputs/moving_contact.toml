@@ -1,29 +1,26 @@
 [problem]
-problem = "sedov"
-t_end = 0.5
+problem = "moving_contact"
+t_end = 5.0
 geometry = "planar"
 restart = false
-do_rad = false
-xl = -1.0
+do_rad = true
+xl = 0.0
 xr = 1.0
 bc = "homogenous"
 cfl = 0.35
 
 [fluid]
 basis = "legendre"
-nnodes = 2
-porder = 2
-nx = 512
+nnodes = 1
+pprder = 1
+nx = 128
 ng = 1
 
 [time]
-torder = 3
-nstages = 5
+torder = 1
+nstages = 1
 
 [limiters]
 tci_opt = false
 tci_val = 0.1
 characteristic = true
-gamma_i = 0.8
-#gamma_r = 0.005
-#gamma_l = 0.005
