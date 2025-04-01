@@ -80,8 +80,6 @@ void ComputeIncrement_Rad_Divergence(
         // Riemann Problem
         Real flux_e   = 0.0;
         Real flux_f   = 0.0;
-        const Real vR = Basis->basis_eval( uCF, iX, 1, 0 );
-        const Real vL = Basis->basis_eval( uCF, iX - 1, 1, nNodes + 1 );
 
         // Real Fp = Flux_Rad( Em_R, Fm_R, vR, P_R, 0 );
         // Real Fm = Flux_Rad( Em_L, Fm_L, vL, P_L, 0 );
