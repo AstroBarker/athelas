@@ -1,3 +1,6 @@
+#ifndef RAD_ADVECTION_HPP_
+#define RAD_ADVECTION_HPP_
+
 #include <iostream>
 #include <math.h> /* sin */
 #include <string>
@@ -11,9 +14,14 @@
 
 /**
  * Initialize radiation advection test
+ * NOTE: EXPERIMENTAL
  **/
-void RadAdvectionInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
-                       GridStructure *Grid, const int pOrder ) {
+void rad_advection_init( State *state, GridStructure *Grid,
+                         const ProblemIn *pin ) {
+  View3D<Real> uCF = state->Get_uCF( );
+  View3D<Real> uPF = state->Get_uPF( );
+  View3D<Real> uCR = state->Get_uCR( );
+  const int pOrder = state->Get_pOrder( );
 
   const int ilo    = Grid->Get_ilo( );
   const int ihi    = Grid->Get_ihi( );
@@ -27,11 +35,11 @@ void RadAdvectionInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
 
   const int iCR_E = 0;
 
-  const Real V0                   = 1.0;
-  const Real D                    = 1.0;
-  constexpr static Real E_rad_amp = 1.0;
-
-  constexpr static Real width = 0.05;
+  const Real V0  = pin->in_table["problem"]["params"]["v0"].value_or( 0.5 );
+  const Real D   = pin->in_table["problem"]["params"]["rho"].value_or( 1.0 );
+  const Real amp = pin->in_table["problem"]["params"]["amp"].value_or( 1.0 );
+  const Real width =
+      pin->in_table["problem"]["params"]["width"].value_or( 0.05 );
 
   for ( int iX = 0; iX <= ihi + 1; iX++ )
     for ( int k = 0; k < pOrder; k++ )
@@ -48,10 +56,9 @@ void RadAdvectionInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
           uCF( iCF_V, iX, 0 )   = V0;
           uCF( iCF_E, iX, 0 )   = 1.0;
           uCR( iCR_E, iX, k ) =
-              E_rad_amp *
-              std::max(
-                  std::exp( -std::pow( ( X1 - 0.5 ) / width, 2.0 ) / 2.0 ),
-                  1.0e-8 );
+              amp * std::max( std::exp( -std::pow( ( X1 - 0.5 ) / width, 2.0 ) /
+                                        2.0 ),
+                              1.0e-8 );
         }
 
         uPF( iPF_D, iX, iNodeX ) = D;
@@ -63,3 +70,4 @@ void RadAdvectionInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
       uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
     }
 }
+#endif // RAD_ADVECTION_HPP_

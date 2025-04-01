@@ -1,32 +1,29 @@
 [problem]
-problem = "sod"
-t_end = 0.1
+problem = "moving_contact"
+t_end = 1.0
 geometry = "planar"
 restart = false
 do_rad = false
 xl = 0.0
 xr = 1.0
-bc = "homogenous"
+bc = "periodic"
 cfl = 0.35
 
 [problem.params]
-v0 = 0.0
-rhoL = 1.0
-rhoR = 0.125
-pL = 1.0
-pR = 0.1
+v0 = 0.1
+rhoL = 1.4
+rhoR = 1.0
 
 [output]
 nlim = -1
 ncycle_out = 100
-dt_hdf5 = 1.0e-2
-dt_init_frac = 5.0
+dt_hdf5 = 0.1
 
 [fluid]
 basis = "legendre"
 nnodes = 1
-porder = 1
-nx = 512
+pprder = 1
+nx = 128
 ng = 1
 
 [time]
@@ -35,12 +32,8 @@ nstages = 1
 
 [eos]
 type = "ideal"
-ideal_gamma = 1.4 # default: 1.4
 
 [limiters]
 tci_opt = false
 tci_val = 0.1
 characteristic = true
-gamma_i = 0.998
-#gamma_r = 0.005
-#gamma_l = 0.005

@@ -1,29 +1,42 @@
-[Problem]
-problem = "Sedov"
+[problem]
+problem = "sedov"
 t_end = 0.5
 geometry = "planar"
 restart = false
 do_rad = false
-xL = -1.0
-xR = 1.0
-BC = "Homogenous"
-CFL = 0.35
+xl = -1.0
+xr = 1.0
+bc = "homogenous"
+cfl = 0.35
 
-[Fluid]
-Basis = "legendre"
-nNodes = 2
-pOrder = 2
-nX = 512
-nG = 1
+[problem.params]
+v0 = 0.0
+rho0 = 1.0
+E0 = 0.3
 
-[Time]
-tOrder = 3
-nStages = 5
+[output]
+nlim = -1
+ncycle_out = 100
+dt_hdf5 = 0.1
 
-[Limiters]
-TCI_Opt = false
-TCI_val = 0.1
-Characteristic = true
+[fluid]
+basis = "legendre"
+nnodes = 2
+porder = 2
+nx = 512
+ng = 1
+
+[time]
+torder = 3
+nstages = 5
+
+[eos]
+type = "ideal"
+
+[limiters]
+tci_opt = false
+tci_val = 0.1
+characteristic = true
 gamma_i = 0.8
 #gamma_r = 0.005
 #gamma_l = 0.005

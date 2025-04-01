@@ -8,6 +8,7 @@
 
 #include <algorithm> // std::min
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -25,6 +26,7 @@
 #include "io.hpp"
 #include "problem_in.hpp"
 #include "rad_discretization.hpp"
+#include "rad_utilities.hpp"
 #include "slope_limiter.hpp"
 #include "state.hpp"
 #include "timestepper.hpp"
@@ -42,7 +44,7 @@ int main( int argc, char *argv[] ) {
   ProblemIn pin( argv[1] );
 
   /* --- Problem Parameters --- */
-  const std::string ProblemName = pin.ProblemName;
+  const std::string problem_name = pin.problem_name;
 
   const int &nX      = pin.nElements;
   const int &order   = pin.pOrder;
@@ -58,8 +60,7 @@ int main( int argc, char *argv[] ) {
 
   const bool Restart = pin.Restart;
 
-  const std::string BC   = pin.BC;
-  const Real gamma_ideal = 5.0 / 3.0;
+  const std::string BC = pin.BC;
 
   const Real CFL = ComputeCFL( pin.CFL, order, nStages, tOrder );
 
@@ -80,21 +81,23 @@ int main( int argc, char *argv[] ) {
     const int nCR = 2;
     State state( nCF, nCR, nPF, nAF, nX, nGuard, nNodes, order );
 
-    IdealGas eos( gamma_ideal );
+    IdealGas eos( pin.ideal_gamma );
 
     if ( not Restart ) {
       // --- Initialize fields ---
-      InitializeFields( &state, &Grid, ProblemName );
+      InitializeFields( &state, &Grid, &eos, &pin );
 
       ApplyBC( state.Get_uCF( ), &Grid, order, BC );
-      ApplyBC( state.Get_uCR( ), &Grid, order, BC );
+      if ( opts.do_rad ) {
+        ApplyBC( state.Get_uCR( ), &Grid, order, BC );
+      }
     }
 
     // --- Datastructure for modal basis ---
     ModalBasis Basis( pin.Basis, state.Get_uPF( ), &Grid, order, nNodes, nX,
                       nGuard );
 
-    WriteBasis( &Basis, nGuard, Grid.Get_ihi( ), nNodes, order, ProblemName );
+    WriteBasis( &Basis, nGuard, Grid.Get_ihi( ), nNodes, order, problem_name );
 
     // --- Initialize timestepper ---
     TimeStepper SSPRK( &pin, Grid );
@@ -106,7 +109,7 @@ int main( int argc, char *argv[] ) {
 
     // -- print run parameters  and initial condition ---
     PrintSimulationParameters( Grid, &pin, CFL );
-    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, 0,
+    WriteState( &state, Grid, &S_Limiter, problem_name, t, order, 0,
                 opts.do_rad );
 
     // --- Timer ---
@@ -118,26 +121,26 @@ int main( int argc, char *argv[] ) {
     Real dt_init = 1.0e-16;
     dt           = dt_init;
 
+    const Real dt_init_frac = pin.dt_init_frac;
+
     // --- Evolution loop ---
-    const int i_print = 100; // std out
-    const int i_write = 500; // h5 out
-    int iStep         = 0;
-    int i_out         = 1; // output label, start 1
+    const double nlim   = ( pin.nlim == -1 )
+                              ? std::numeric_limits<double>::infinity( )
+                              : pin.nlim;
+    const int &i_print  = pin.ncycle_out; // std out
+    const Real &dt_hdf5 = pin.dt_hdf5; // h5 out
+    int iStep           = 0;
+    int i_out           = 1; // output label, start 1
     std::cout << " ~ Step    t       dt       zone_cycles / wall_second\n"
               << std::endl;
-    while ( t < t_end ) {
+    while ( t < t_end && iStep <= nlim ) {
       timer_zone_cycles.reset( );
 
-      // TODO: ComputeTimestep_Rad
-      dt =
-          std::min( ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL ),
-                    dt * 1.5 );
+      dt = std::min(
+          compute_timestep( state.Get_uCF( ), &Grid, &eos, CFL, &opts ),
+          dt * dt_init_frac );
       if ( t + dt > t_end ) {
         dt = t_end - t;
-      }
-
-      if ( iStep % i_print == 0 ) {
-        std::printf( " ~ %d %.5e %.5e %.5e \n", iStep, t, dt, zc_ws );
       }
 
       if ( !opts.do_rad ) {
@@ -175,7 +178,7 @@ int main( int argc, char *argv[] ) {
       } catch ( const AthelasError &e ) {
         std::cerr << e.what( ) << std::endl;
         std::printf( "!!! Bad State found, writing _final_ output file ...\n" );
-        WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1,
+        WriteState( &state, Grid, &S_Limiter, problem_name, t, order, -1,
                     opts.do_rad );
         return AthelasExitCodes::FAILURE;
       }
@@ -186,8 +189,8 @@ int main( int argc, char *argv[] ) {
       timer_zone_cycles.reset( );
 
       // Write state
-      if ( iStep % i_write == 0 ) {
-        WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, i_out,
+      if ( t >= i_out * dt_hdf5 ) {
+        WriteState( &state, Grid, &S_Limiter, problem_name, t, order, i_out,
                     opts.do_rad );
         i_out += 1;
       }
@@ -197,16 +200,15 @@ int main( int argc, char *argv[] ) {
         std::printf( " ~ %d %.5e %.5e %.5e \n", iStep, t, dt, zc_ws );
         time_cycle = 0.0;
       }
+
       iStep++;
-      Real time_cycle = timer_zone_cycles.seconds( );
-      zc_ws           = nX / time_cycle;
     }
 
     // --- Finalize timer ---
     Real time = timer_total.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC( state.Get_uCF( ), &Grid, order, BC );
-    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1,
+    WriteState( &state, Grid, &S_Limiter, problem_name, t, order, -1,
                 opts.do_rad );
   }
   Kokkos::finalize( );
@@ -243,4 +245,18 @@ Real ComputeCFL( const Real CFL, const int order, const int nStages,
 
   const Real max_cfl = 0.95;
   return std::min( c * CFL / ( ( 2.0 * (order)-1.0 ) ), max_cfl );
+}
+
+/**
+ * Compute timestep
+ **/
+Real compute_timestep( const View3D<Real> U, const GridStructure *Grid,
+                       EOS *eos, const Real CFL, const Options *opts ) {
+  Real dt;
+  if ( !opts->do_rad ) {
+    dt = ComputeTimestep_Fluid( U, Grid, eos, CFL );
+  } else {
+    dt = ComputeTimestep_Rad( Grid, CFL );
+  }
+  return dt;
 }

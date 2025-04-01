@@ -1,5 +1,5 @@
 [problem]
-problem = "sod"
+problem = "shu_osher"
 t_end = 0.1
 geometry = "planar"
 restart = false
@@ -10,35 +10,32 @@ bc = "homogenous"
 cfl = 0.35
 
 [problem.params]
-v0 = 0.0
-rhoL = 1.0
-rhoR = 0.125
-pL = 1.0
-pR = 0.1
+v0 = 2.629369
+rhoL = 3.857143
+pL = 10.33333333
+pR = 1.0
 
 [output]
 nlim = -1
 ncycle_out = 100
 dt_hdf5 = 1.0e-2
-dt_init_frac = 5.0
 
 [fluid]
 basis = "legendre"
-nnodes = 1
-porder = 1
+nnodes = 2
+porder = 2
 nx = 512
 ng = 1
 
 [time]
-torder = 1
-nstages = 1
+torder = 2
+nstages = 2
 
 [eos]
 type = "ideal"
-ideal_gamma = 1.4 # default: 1.4
 
 [limiters]
-tci_opt = false
+tci_opt = true
 tci_val = 0.1
 characteristic = true
 gamma_i = 0.998

@@ -116,8 +116,8 @@ void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
 Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
                             EOS *eos, const Real CFL ) {
 
-  const Real MIN_DT = 1.0e-16;
-  const Real MAX_DT = 1.0;
+  const Real MIN_DT = 1.0e-14;
+  const Real MAX_DT = 100.0;
 
   const int &ilo = Grid->Get_ilo( );
   const int &ihi = Grid->Get_ihi( );
@@ -140,7 +140,6 @@ Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
         const Real Cs =
             eos->SoundSpeedFromConserved( tau_x, vel_x, eint_x, lambda );
         Real eigval = Cs;
-        eigval      = constants::c_cgs;
 
         Real dt_old = std::abs( dr ) / std::abs( eigval );
 
@@ -151,10 +150,7 @@ Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
   dt = std::max( CFL * dt, MIN_DT );
   dt = std::min( dt, MAX_DT );
 
-  // could be assertion?
-  if ( std::isnan( dt ) ) {
-    THROW_ATHELAS_ERROR( " ! nan encountered in ComputeTimestep.\n" );
-  }
+  assert( !std::isnan( dt ) && "NaN encounted in ComputeTimestep_Fluid.\n" );
 
   return dt;
 }

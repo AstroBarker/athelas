@@ -1,29 +1,30 @@
 [problem]
-problem = "smooth_advection"
-t_end = 1.0
+problem = "rad_advection"
+t_end = 1.0e-7
 geometry = "planar"
 restart = false
-do_rad = false
+do_rad = true
 xl = 0.0
 xr = 1.0
 bc = "periodic"
-cfl = 0.35
+cfl = 0.5
 
 [problem.params]
-v0 = -1.0
-p0 = 0.1
+v0 = 0.5
+rho = 1.0
 amp = 1.0
+width = 0.05
 
 [output]
 nlim = -1
 ncycle_out = 100
-dt_hdf5 = 0.1
+#dt_hdf5 = 1.0e-2 # default: 100 outputs
 
 [fluid]
 basis = "legendre"
 nnodes = 1
-pprder = 1
-nx = 128
+porder = 1
+nx = 256
 ng = 1
 
 [time]
@@ -32,8 +33,9 @@ nstages = 1
 
 [eos]
 type = "ideal"
+ideal_gamma = 1.66666666666667 # default: 1.4
 
 [limiters]
 tci_opt = false
 tci_val = 0.1
-characteristic = true
+characteristic = false

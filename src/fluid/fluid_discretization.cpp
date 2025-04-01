@@ -247,7 +247,9 @@ void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
 
   // --- Apply BC ---
   ApplyBC( U, &Grid, order, opts.BC );
-  ApplyBC( uCR, &Grid, order, opts.BC );
+  if ( opts.do_rad ) {
+    ApplyBC( uCR, &Grid, order, opts.BC );
+  }
 
   // --- Detect Shocks ---
   // TODO: Code up a shock detector...

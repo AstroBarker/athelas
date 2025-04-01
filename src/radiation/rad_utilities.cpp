@@ -179,3 +179,36 @@ void numerical_flux_hll_rad( const Real E_L, const Real E_R, const Real F_L,
   Flux_E = hll( E_L, E_R, F_L, F_R, s_l_m, s_r_p );
   Flux_F = hll( F_L, F_R, P_L, P_R, s_l_m, s_r_p );
 }
+
+/**
+ * Compute the rad timestep.
+ **/
+Real ComputeTimestep_Rad( const GridStructure *Grid, const Real CFL ) {
+
+  const Real MIN_DT = 1.0e-16;
+  const Real MAX_DT = 100.0;
+
+  const int &ilo = Grid->Get_ilo( );
+  const int &ihi = Grid->Get_ihi( );
+
+  Real dt = 0.0;
+  Kokkos::parallel_reduce(
+      "Compute Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+      KOKKOS_LAMBDA( const int iX, Real &lmin ) {
+        Real dr = Grid->Get_Widths( iX );
+
+        Real eigval = constants::c_cgs;
+
+        Real dt_old = std::abs( dr ) / std::abs( eigval );
+
+        if ( dt_old < lmin ) lmin = dt_old;
+      },
+      Kokkos::Min<Real>( dt ) );
+
+  dt = std::max( CFL * dt, MIN_DT );
+  dt = std::min( dt, MAX_DT );
+
+  assert( !std::isnan( dt ) && "NaN encounted in ComputeTimestep_Rad.\n" );
+
+  return dt;
+}

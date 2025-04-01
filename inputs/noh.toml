@@ -1,6 +1,6 @@
 [problem]
-problem = "sod"
-t_end = 0.1
+problem = "noh"
+t_end = 0.5
 geometry = "planar"
 restart = false
 do_rad = false
@@ -10,37 +10,34 @@ bc = "homogenous"
 cfl = 0.35
 
 [problem.params]
-v0 = 0.0
+vL = 1.0
+vR = -1.0
 rhoL = 1.0
-rhoR = 0.125
-pL = 1.0
-pR = 0.1
+rhoR = 1.0
+pL = 0.000001
+pR = 0.000001
 
 [output]
 nlim = -1
 ncycle_out = 100
-dt_hdf5 = 1.0e-2
-dt_init_frac = 5.0
+dt_hdf5 = 0.1
 
 [fluid]
 basis = "legendre"
-nnodes = 1
-porder = 1
-nx = 512
+nnodes = 2
+porder = 2
+nx = 128
 ng = 1
 
 [time]
-torder = 1
-nstages = 1
+torder = 2
+nstages = 2
 
 [eos]
 type = "ideal"
-ideal_gamma = 1.4 # default: 1.4
 
 [limiters]
 tci_opt = false
 tci_val = 0.1
 characteristic = true
-gamma_i = 0.998
-#gamma_r = 0.005
-#gamma_l = 0.005
+gamma_i = 0.8

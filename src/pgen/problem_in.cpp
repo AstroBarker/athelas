@@ -30,47 +30,67 @@ ProblemIn::ProblemIn( const std::string fn ) {
 
   // problem
   std::optional<std::string> pn =
-      in_table["Problem"]["problem"].value<std::string>( );
-  std::optional<bool> rest = in_table["Problem"]["restart"].value<bool>( );
-  std::optional<bool> rad  = in_table["Problem"]["do_rad"].value<bool>( );
+      in_table["problem"]["problem"].value<std::string>( );
+  std::optional<bool> rest = in_table["problem"]["restart"].value<bool>( );
+  std::optional<bool> rad  = in_table["problem"]["do_rad"].value<bool>( );
   std::optional<std::string> geom =
-      in_table["Problem"]["geometry"].value<std::string>( );
-  std::optional<Real> tf = in_table["Problem"]["t_end"].value<Real>( );
-  std::optional<Real> x1 = in_table["Problem"]["xL"].value<Real>( );
-  std::optional<Real> x2 = in_table["Problem"]["xR"].value<Real>( );
+      in_table["problem"]["geometry"].value<std::string>( );
+  std::optional<Real> tf = in_table["problem"]["t_end"].value<Real>( );
+  std::optional<Real> x1 = in_table["problem"]["xl"].value<Real>( );
+  std::optional<Real> x2 = in_table["problem"]["xr"].value<Real>( );
   std::optional<std::string> bc =
-      in_table["Problem"]["BC"].value<std::string>( );
-  std::optional<Real> cfl = in_table["Problem"]["CFL"].value<Real>( );
+      in_table["problem"]["bc"].value<std::string>( );
+  std::optional<Real> cfl = in_table["problem"]["cfl"].value<Real>( );
+
+  // output
+  nlim         = in_table["output"]["nlim"].value_or( -1 );
+  ncycle_out   = in_table["output"]["ncycle_out"].value_or( 1 );
+  dt_hdf5      = in_table["output"]["dt_hdf5"].value_or( tf.value( ) / 100.0 );
+  dt_init_frac = in_table["output"]["dt_init_frac"].value_or( 2.0 );
+  if ( dt_init_frac <= 1.0 ) {
+    THROW_ATHELAS_ERROR( "dt_init_frac must be strictly > 1.0\n" );
+  }
 
   // fluid
   std::optional<std::string> basis =
-      in_table["Fluid"]["Basis"].value<std::string>( );
-  std::optional<int> nN = in_table["Fluid"]["nNodes"].value<int>( );
-  std::optional<int> nX = in_table["Fluid"]["nX"].value<int>( );
-  std::optional<int> nG = in_table["Fluid"]["nG"].value<int>( );
-  std::optional<int> pO = in_table["Fluid"]["pOrder"].value<int>( );
+      in_table["fluid"]["basis"].value<std::string>( );
+  std::optional<int> nN = in_table["fluid"]["nnodes"].value<int>( );
+  std::optional<int> nX = in_table["fluid"]["nx"].value<int>( );
+  std::optional<int> nG = in_table["fluid"]["ng"].value<int>( );
+  std::optional<int> pO = in_table["fluid"]["porder"].value<int>( );
 
   // time
-  std::optional<int> tO = in_table["Time"]["tOrder"].value<int>( );
-  std::optional<int> nS = in_table["Time"]["nStages"].value<int>( );
+  std::optional<int> tO = in_table["time"]["torder"].value<int>( );
+  std::optional<int> nS = in_table["time"]["nstages"].value<int>( );
+
+  // eos
+  eos_type = in_table["eos"]["type"].value_or( "ideal" );
+  if ( eos_type != "ideal" ) {
+    THROW_ATHELAS_ERROR(
+        "Currently only ideal gas supported (eos_type = ideal).\n" );
+  }
+  ideal_gamma = in_table["eos"]["ideal_gamma"].value_or( 1.4 );
+  if ( ideal_gamma <= 0.0 ) {
+    THROW_ATHELAS_ERROR( "ideal_gamma must be positive.\n" );
+  }
 
   // limiters
-  std::optional<bool> tci_opt = in_table["Limiters"]["TCI_Opt"].value<bool>( );
-  std::optional<Real> tci_val = in_table["Limiters"]["TCI_val"].value<Real>( );
+  std::optional<bool> tci_opt = in_table["limiters"]["tci_opt"].value<bool>( );
+  std::optional<Real> tci_val = in_table["limiters"]["tci_val"].value<Real>( );
   std::optional<bool> characteristic =
-      in_table["Limiters"]["Characteristic"].value<bool>( );
-  std::optional<Real> gamma1 = in_table["Limiters"]["gamma_l"].value<Real>( );
-  std::optional<Real> gamma2 = in_table["Limiters"]["gamma_i"].value<Real>( );
-  std::optional<Real> gamma3 = in_table["Limiters"]["gamma_r"].value<Real>( );
-  std::optional<Real> wenor  = in_table["Limiters"]["weno_r"].value<Real>( );
+      in_table["limiters"]["characteristic"].value<bool>( );
+  std::optional<Real> gamma1 = in_table["limiters"]["gamma_l"].value<Real>( );
+  std::optional<Real> gamma2 = in_table["limiters"]["gamma_i"].value<Real>( );
+  std::optional<Real> gamma3 = in_table["limiters"]["gamma_r"].value<Real>( );
+  std::optional<Real> wenor  = in_table["limiters"]["weno_r"].value<Real>( );
 
   if ( pn ) {
-    ProblemName = pn.value( );
+    problem_name = pn.value( );
   } else {
     THROW_ATHELAS_ERROR(
         " ! Initialization Error: problem not supplied in input deck." );
   }
-  // Validity of ProblemName checked in initialization.
+  // Validity of problem_name checked in initialization.
 
   if ( bc ) {
     BC = utilities::to_lower( bc.value( ) );
