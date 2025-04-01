@@ -6,7 +6,6 @@
  * Purpose : Main driver routine
  **/
 
-
 #include <algorithm> // std::min
 #include <iostream>
 #include <string>

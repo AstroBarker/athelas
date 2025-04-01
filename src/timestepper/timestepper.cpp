@@ -24,8 +24,10 @@
 TimeStepper::TimeStepper( ProblemIn *pin, GridStructure &Grid )
     : mSize( Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) ),
       nStages( pin->nStages ), tOrder( pin->tOrder ), BC( pin->BC ),
-      implicit_tableau_(ButcherTableau(nStages, tOrder, TableauType::Implicit)), 
-      explicit_tableau_(ButcherTableau(nStages, tOrder, TableauType::Explicit)), 
+      implicit_tableau_(
+          ButcherTableau( nStages, tOrder, TableauType::Implicit ) ),
+      explicit_tableau_(
+          ButcherTableau( nStages, tOrder, TableauType::Explicit ) ),
       U_s( "U_s", nStages + 1, 3, mSize + 1, pin->pOrder ),
       dU_s( "dU_s", nStages + 1, 3, mSize + 1, pin->pOrder ),
       U_s_r( "U_s", nStages + 1, 2, mSize + 1, pin->pOrder ),
