@@ -93,7 +93,7 @@ Real fixed_point_aa( F target, const int k, T scratch, const int iC,
   xkm1 = scratch( iC, k );
   xkp1 = xk;
 
-  error = std::abs(xk - xkm1) / std::abs(xk);
+  error = std::abs( xk - xkm1 ) / std::abs( xk );
 
   // update scratch
   scratch( iC, k )     = xk;
@@ -122,7 +122,7 @@ Real fixed_point_aa( F target, const int k, T scratch, const int iC,
     // #endif
 
     // TODO: handle convergence failures?
-    //if ( n == root_finders::MAX_ITERS ) {
+    // if ( n == root_finders::MAX_ITERS ) {
     //  std::printf("FPAA convergence failure! Error: %e\n", error);
     //}
   }

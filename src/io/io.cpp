@@ -136,7 +136,7 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
       tau[( iX - ilo ) + k * nX].x  = uCF( 0, iX, k );
       vel[( iX - ilo ) + k * nX].x  = uCF( 1, iX, k );
       eint[( iX - ilo ) + k * nX].x = uCF( 2, iX, k );
-      if (do_rad) { 
+      if ( do_rad ) {
         erad[( iX - ilo ) + k * nX].x = uCR( 0, iX, k );
         frad[( iX - ilo ) + k * nX].x = uCR( 1, iX, k );
       }
@@ -176,23 +176,19 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
       "/grid/x", H5::PredType::NATIVE_DOUBLE, space_grid ) );
   H5::DataSet dataset_width( file.createDataSet(
       "/grid/dx", H5::PredType::NATIVE_DOUBLE, space_grid ) );
-  H5::DataSet dataset_tau(
-      file.createDataSet( "/conserved/tau",
-                          H5::PredType::NATIVE_DOUBLE, space ) );
+  H5::DataSet dataset_tau( file.createDataSet(
+      "/conserved/tau", H5::PredType::NATIVE_DOUBLE, space ) );
   H5::DataSet dataset_vel( file.createDataSet(
       "/conserved/velocity", H5::PredType::NATIVE_DOUBLE, space ) );
-  H5::DataSet dataset_eint(
-      file.createDataSet( "/conserved/energy",
-                          H5::PredType::NATIVE_DOUBLE, space ) );
+  H5::DataSet dataset_eint( file.createDataSet(
+      "/conserved/energy", H5::PredType::NATIVE_DOUBLE, space ) );
 
   H5::DataSet dataset_limiter( file.createDataSet(
       "/diagnostic/limiter", H5::PredType::NATIVE_DOUBLE, space_grid ) );
-    H5::DataSet dataset_erad(
-        file.createDataSet( "/conserved/rad_energy",
-                            H5::PredType::NATIVE_DOUBLE, space ) );
-    H5::DataSet dataset_frad(
-        file.createDataSet( "/conserved/rad_momentum",
-                            H5::PredType::NATIVE_DOUBLE, space ) );
+  H5::DataSet dataset_erad( file.createDataSet(
+      "/conserved/rad_energy", H5::PredType::NATIVE_DOUBLE, space ) );
+  H5::DataSet dataset_frad( file.createDataSet(
+      "/conserved/rad_momentum", H5::PredType::NATIVE_DOUBLE, space ) );
 
   // --- Write data ---
   dataset_nx.write( &nX, H5::PredType::NATIVE_INT );
@@ -206,7 +202,7 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
   dataset_vel.write( vel.data( ), H5::PredType::NATIVE_DOUBLE );
   dataset_eint.write( eint.data( ), H5::PredType::NATIVE_DOUBLE );
 
-  if (do_rad) {
+  if ( do_rad ) {
     dataset_erad.write( erad.data( ), H5::PredType::NATIVE_DOUBLE );
     dataset_frad.write( frad.data( ), H5::PredType::NATIVE_DOUBLE );
   }

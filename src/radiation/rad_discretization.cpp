@@ -95,7 +95,7 @@ void ComputeIncrement_Rad_Divergence(
                                 flux_f );
 
         // upwind advective fluxes
-        const Real vstar = Flux_U(iX);
+        const Real vstar = Flux_U( iX );
         const Real advective_flux_e =
             ( vstar >= 0.0 ) ? vstar * Em_L : vstar * Em_R;
         const Real advective_flux_f =
@@ -171,7 +171,7 @@ Real ComputeIncrement_Rad_Source( View2D<Real> uCR, const int k, const int iCR,
                                   const int iX ) {
   const int nNodes = Grid.Get_nNodes( );
 
-  Real local_sum   = 0.0;
+  Real local_sum = 0.0;
   for ( int iN = 0; iN < nNodes; iN++ ) {
     const Real D    = 1.0 / Basis->basis_eval( uCF, iX, 0, iN + 1 );
     const Real V    = Basis->basis_eval( uCF, iX, 1, iN + 1 );

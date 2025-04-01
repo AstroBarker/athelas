@@ -79,8 +79,8 @@ void RadiationFourForce( Real D, Real V, Real T, Real kappa, Real E, Real F,
   G  = D * kappa * ( b * ( term1 - 2.0 * b * F ) + ( F - b * E - b * Pr ) );
 
   // ala Skinner & Ostriker, simpler.
-  //G0 = D * kappa * ( term1 - b * F );
-  //G  = D * kappa * ( F - b * E + b * Pr );
+  // G0 = D * kappa * ( term1 - b * F );
+  // G  = D * kappa * ( F - b * E + b * Pr );
 }
 
 /**

@@ -90,24 +90,26 @@ void ApplyBoundEnforcingLimiter( View3D<Real> U, const ModalBasis *Basis,
   LimitInternalEnergy( U, Basis, eos );
 }
 
-void ApplyBoundEnforcingLimiterRad( View3D<Real> U, const ModalBasis *Basis, const EOS *eos ) {
-  if (Basis->Get_Order() == 1) return;
-  LimitRadMomentum(U, Basis, eos);
+void ApplyBoundEnforcingLimiterRad( View3D<Real> U, const ModalBasis *Basis,
+                                    const EOS *eos ) {
+  if ( Basis->Get_Order( ) == 1 ) return;
+  LimitRadMomentum( U, Basis, eos );
 }
-void LimitRadMomentum( View3D<Real> U, const ModalBasis *Basis, const EOS *eos ) {
+void LimitRadMomentum( View3D<Real> U, const ModalBasis *Basis,
+                       const EOS *eos ) {
   const int order = Basis->Get_Order( );
 
   Kokkos::parallel_for(
-      "BEF::Limit Rad Momentum",
-      Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ), KOKKOS_LAMBDA( const int iX ) {
+      "BEF::Limit Rad Momentum", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
+      KOKKOS_LAMBDA( const int iX ) {
         Real theta2 = 10000000.0;
         Real nodal  = 0.0;
         Real temp   = 0.0;
 
         for ( int iN = 0; iN <= order + 1; iN++ ) {
-          nodal = Basis->basis_eval(U, iX, 1, iN);
+          nodal = Basis->basis_eval( U, iX, 1, iN );
 
-          if ( nodal >= 0.0 && nodal <= U(0, iX, 0) ) {
+          if ( nodal >= 0.0 && nodal <= U( 0, iX, 0 ) ) {
             temp = 1.0;
           } else {
             // TODO: Backtracing may be working okay...
@@ -122,7 +124,6 @@ void LimitRadMomentum( View3D<Real> U, const ModalBasis *Basis, const EOS *eos )
           U( 1, iX, k ) *= theta2;
         }
       } );
-
 }
 
 /* --- Utility Functions --- */
@@ -149,9 +150,10 @@ Real TargetFunc( const View3D<Real> U, const ModalBasis *Basis, const EOS *eos,
   return e - w;
 }
 
-Real TargetFuncRad( const View3D<Real> U, const ModalBasis *Basis, const EOS *eos,
-                 const Real theta, const int iX, const int iN ) {
-  const Real w = std::min( 1.0e-13, U(1, iX, 0));
+Real TargetFuncRad( const View3D<Real> U, const ModalBasis *Basis,
+                    const EOS *eos, const Real theta, const int iX,
+                    const int iN ) {
+  const Real w  = std::min( 1.0e-13, U( 1, iX, 0 ) );
   const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
 
   const Real e = s1;
@@ -196,4 +198,3 @@ Real Bisection( const View3D<Real> U, ModalBasis *Basis, EOS *eos, const int iX,
   std::printf( "Max Iters Reach In Bisection\n" );
   return c;
 }
-

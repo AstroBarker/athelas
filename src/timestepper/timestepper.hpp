@@ -407,23 +407,21 @@ class TimeStepper {
       // implicit update
       Kokkos::parallel_for(
           "Timestepper implicit",
-          Kokkos::MDRangePolicy<Kokkos::Rank<3>>(  {1, 1,0},{3, ihi+1, order}  ),
+          Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 1, 1, 0 },
+                                                  { 3, ihi + 1, order } ),
           KOKKOS_LAMBDA( const int iC, const int iX, const int k ) {
-              auto u_h =
-                  Kokkos::subview( U_s, iS, Kokkos::ALL, iX, Kokkos::ALL );
-              auto u_r =
-                  Kokkos::subview( U_s_r, iS, Kokkos::ALL, iX, Kokkos::ALL );
+            auto u_h = Kokkos::subview( U_s, iS, Kokkos::ALL, iX, Kokkos::ALL );
+            auto u_r =
+                Kokkos::subview( U_s_r, iS, Kokkos::ALL, iX, Kokkos::ALL );
 
-              const Real temp2 = root_finders::fixed_point_aa(
-                  implicit_rad, k, u_r, iC - 1, u_h, Grid_s[iS],
-                  Basis, eos, iX );
-              U_s_r( iS, iC - 1, iX, k ) = temp2;
+            const Real temp2 = root_finders::fixed_point_aa(
+                implicit_rad, k, u_r, iC - 1, u_h, Grid_s[iS], Basis, eos, iX );
+            U_s_r( iS, iC - 1, iX, k ) = temp2;
 
-              const Real temp1 = root_finders::fixed_point_aa(
-                  implicit_hydro, k, u_h, iC, u_r, Grid_s[iS],
-                  Basis, eos, iX );
+            const Real temp1 = root_finders::fixed_point_aa(
+                implicit_hydro, k, u_h, iC, u_r, Grid_s[iS], Basis, eos, iX );
 
-              U_s( iS, iC, iX, k ) = temp1;
+            U_s( iS, iC, iX, k ) = temp1;
           } );
 
       // TODO: slope limit rad
@@ -496,7 +494,7 @@ class TimeStepper {
     }
 
     // TODO: slope limit rad
-    Grid = Grid_s[nStages-1];
+    Grid = Grid_s[nStages - 1];
     S_Limiter->ApplySlopeLimiter( uCF, &Grid, Basis );
     S_Limiter->ApplySlopeLimiter( uCR, &Grid, Basis );
     ApplyBoundEnforcingLimiter( uCF, Basis, eos );

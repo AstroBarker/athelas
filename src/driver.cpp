@@ -35,8 +35,8 @@ int main( int argc, char *argv[] ) {
     THROW_ATHELAS_ERROR( "No input file passed! Do: ./main IN_FILE" );
   }
 
-  signal(SIGSEGV, segfault_handler);
-  signal(SIGABRT, segfault_handler);
+  signal( SIGSEGV, segfault_handler );
+  signal( SIGABRT, segfault_handler );
 
   ProblemIn pin( argv[1] );
 
@@ -105,7 +105,8 @@ int main( int argc, char *argv[] ) {
 
     // -- print run parameters  and initial condition ---
     PrintSimulationParameters( Grid, &pin, CFL );
-    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, 0, opts.do_rad );
+    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, 0,
+                opts.do_rad );
 
     // --- Timer ---
     Kokkos::Timer timer_total;
@@ -171,8 +172,9 @@ int main( int argc, char *argv[] ) {
         check_state( &state, Grid.Get_ihi( ), pin.do_rad );
       } catch ( const AthelasError &e ) {
         std::cerr << e.what( ) << std::endl;
-        std::printf("!!! Bad State found, writing _final_ output file ...\n");
-        WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1, opts.do_rad );
+        std::printf( "!!! Bad State found, writing _final_ output file ...\n" );
+        WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1,
+                    opts.do_rad );
         return AthelasExitCodes::FAILURE;
       }
 #endif
@@ -181,7 +183,8 @@ int main( int argc, char *argv[] ) {
 
       // Write state
       if ( iStep % i_write == 0 ) {
-        WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, i_out, opts.do_rad );
+        WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, i_out,
+                    opts.do_rad );
         i_out += 1;
       }
 
@@ -194,7 +197,8 @@ int main( int argc, char *argv[] ) {
     Real time = timer_total.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC( state.Get_uCF( ), &Grid, order, BC );
-    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1, opts.do_rad );
+    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1,
+                opts.do_rad );
   }
   Kokkos::finalize( );
 

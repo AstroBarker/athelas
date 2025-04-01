@@ -9,10 +9,10 @@
 #include "advection.hpp"
 #include "constants.hpp"
 #include "equilibrium.hpp"
-#include "rad_advection.hpp"
 #include "error.hpp"
 #include "grid.hpp"
 #include "initialization.hpp"
+#include "rad_advection.hpp"
 #include "state.hpp"
 
 #define GAMMA 1.4
