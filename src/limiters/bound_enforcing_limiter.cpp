@@ -36,7 +36,7 @@ void LimitDensity( View3D<Real> U, const ModalBasis *Basis ) {
         Real avg    = U( 0, iX, 0 );
 
         for ( int iN = 0; iN <= order; iN++ ) {
-          nodal  = Basis->BasisEval( U, iX, 0, iN );
+          nodal  = Basis->basis_eval( U, iX, 0, iN );
           frac   = std::abs( ( avg - EPSILON ) / ( avg - nodal ) );
           theta1 = std::min( theta1, std::min( 1.0, frac ) );
         }
@@ -67,7 +67,7 @@ void LimitInternalEnergy( View3D<Real> U, const ModalBasis *Basis,
             temp = 1.0;
           } else {
             // TODO: Backtracing may be working okay...
-            temp = Backtrace( U, Basis, eos, iX, iN );
+            temp = Backtrace( U, TargetFunc, Basis, eos, iX, iN );
             // TODO: This is hacked and Does Not Really Work
             // temp = Bisection( U, Basis, iX, iN ) / 2.0;
           }
@@ -90,13 +90,49 @@ void ApplyBoundEnforcingLimiter( View3D<Real> U, const ModalBasis *Basis,
   LimitInternalEnergy( U, Basis, eos );
 }
 
+void ApplyBoundEnforcingLimiterRad( View3D<Real> U, const ModalBasis *Basis,
+                                    const EOS *eos ) {
+  if ( Basis->Get_Order( ) == 1 ) return;
+  LimitRadMomentum( U, Basis, eos );
+}
+void LimitRadMomentum( View3D<Real> U, const ModalBasis *Basis,
+                       const EOS *eos ) {
+  const int order = Basis->Get_Order( );
+
+  Kokkos::parallel_for(
+      "BEF::Limit Rad Momentum", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
+      KOKKOS_LAMBDA( const int iX ) {
+        Real theta2 = 10000000.0;
+        Real nodal  = 0.0;
+        Real temp   = 0.0;
+
+        for ( int iN = 0; iN <= order + 1; iN++ ) {
+          nodal = Basis->basis_eval( U, iX, 1, iN );
+
+          if ( nodal >= 0.0 && nodal <= U( 0, iX, 0 ) ) {
+            temp = 1.0;
+          } else {
+            // TODO: Backtracing may be working okay...
+            temp = Backtrace( U, TargetFuncRad, Basis, eos, iX, iN );
+            // TODO: This is hacked and Does Not Really Work
+            // temp = Bisection( U, Basis, iX, iN ) / 2.0;
+          }
+          theta2 = std::min( theta2, temp );
+        }
+
+        for ( int k = 1; k < order; k++ ) {
+          U( 1, iX, k ) *= theta2;
+        }
+      } );
+}
+
 /* --- Utility Functions --- */
 
 // ( 1 - theta ) U_bar + theta U_q
 Real ComputeThetaState( const View3D<Real> U, const ModalBasis *Basis,
                         const Real theta, const int iCF, const int iX,
                         const int iN ) {
-  Real result = Basis->BasisEval( U, iX, iCF, iN );
+  Real result = Basis->basis_eval( U, iX, iCF, iN );
   result -= U( iCF, iX, 0 );
   result *= theta;
   result += U( iCF, iX, 0 );
@@ -110,6 +146,17 @@ Real TargetFunc( const View3D<Real> U, const ModalBasis *Basis, const EOS *eos,
   const Real s2 = ComputeThetaState( U, Basis, theta, 2, iX, iN );
 
   Real e = s2 - 0.5 * s1 * s1;
+
+  return e - w;
+}
+
+Real TargetFuncRad( const View3D<Real> U, const ModalBasis *Basis,
+                    const EOS *eos, const Real theta, const int iX,
+                    const int iN ) {
+  const Real w  = std::min( 1.0e-13, U( 1, iX, 0 ) );
+  const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
+
+  const Real e = s1;
 
   return e - w;
 }
@@ -150,18 +197,4 @@ Real Bisection( const View3D<Real> U, ModalBasis *Basis, EOS *eos, const int iX,
 
   std::printf( "Max Iters Reach In Bisection\n" );
   return c;
-}
-
-Real Backtrace( const View3D<Real> U, const ModalBasis *Basis, const EOS *eos,
-                const int iX, const int iN ) {
-  Real theta = 1.0;
-  Real nodal = -1.0;
-
-  while ( theta >= 0.01 && nodal < 0.0 ) {
-    nodal = TargetFunc( U, Basis, eos, theta, iX, iN );
-
-    theta -= 0.05;
-  }
-
-  return theta;
 }

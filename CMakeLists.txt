@@ -88,6 +88,7 @@ include_directories("src/eos")
 include_directories("src/bc")
 include_directories("src/io")
 include_directories("src/state")
+include_directories("src/solvers")
 include_directories("src/timestepper")
 
 include_directories(athelas PUBLIC
@@ -112,7 +113,9 @@ set( ATHELAS_SOURCES
   "src/limiters/bound_enforcing_limiter.cpp"
   "src/limiters/slope_limiter_utilities.cpp"
   "src/state/state.cpp"
-  "src/timestepper/timestepper.cpp" )
+  "src/timestepper/tableau.cpp"
+  "src/timestepper/timestepper.cpp"
+  "src/utils/riemann.cpp" )
 
 add_library(libathelas ${ATHELAS_SOURCES})
 set_target_properties(libathelas

@@ -12,6 +12,7 @@
 #include "error.hpp"
 #include "grid.hpp"
 #include "initialization.hpp"
+#include "rad_advection.hpp"
 #include "state.hpp"
 
 #define GAMMA 1.4
@@ -354,8 +355,10 @@ void InitializeFields( State *state, GridStructure *Grid,
       }
   } else if ( ProblemName == "RadEquilibrium" ) {
     RadEquilibriumInit( uCF, uPF, uCR, Grid, pOrder );
+  } else if ( ProblemName == "RadAdvection" ) {
+    RadAdvectionInit( uCF, uPF, uCR, Grid, pOrder );
   } else {
-    throw Error( " ! Please choose a valid ProblemName" );
+    THROW_ATHELAS_ERROR( " ! Please choose a valid ProblemName" );
   }
 }
 #endif // _INITIALIZATION_HPP_

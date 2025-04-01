@@ -34,7 +34,7 @@ Real IdealGas::TemperatureFromTauPressureAbar( const Real Tau, const Real P,
 
 Real IdealGas::TemperatureFromTauPressure( const Real Tau, const Real P,
                                            Real *lambda ) const {
-  const Real Abar = 1.0;
+  const Real Abar = 0.6;
   return TemperatureFromTauPressureAbar( Tau, P, Abar, lambda );
 }
 

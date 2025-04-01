@@ -138,6 +138,6 @@ void ApplyBC( View3D<Real> U, GridStructure *Grid, const int order,
           U( iCF, ihi + 1 + iX, k ) = U( iCF, ihi - iX, k );
         }
   } else {
-    throw Error( " ! Error: BC not supported!" );
+    THROW_ATHELAS_ERROR( " ! Error: BC not supported!" );
   }
 }

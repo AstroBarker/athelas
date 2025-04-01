@@ -30,29 +30,28 @@ void ComputeIncrement_Rad_Divergence(
   const auto &order  = Basis->Get_Order( );
   const auto &ilo    = Grid.Get_ilo( );
   const auto &ihi    = Grid.Get_ihi( );
-  const int nvars    = uCR.extent( 0 );
+  const int nvars    = 2;
 
   // --- Interpolate Conserved Variable to Interfaces ---
 
   // Left/Right face states
-  // TODO: Can this just be moved into the below kernel with a iCF loop?
   Kokkos::parallel_for(
       "Radiation :: Interface States",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, nvars } ),
       KOKKOS_LAMBDA( const int iX, const int iCR ) {
-        uCR_F_L( iCR, iX ) = Basis->BasisEval( uCR, iX - 1, iCR, nNodes + 1 );
-        uCR_F_R( iCR, iX ) = Basis->BasisEval( uCR, iX, iCR, 0 );
+        uCR_F_L( iCR, iX ) = Basis->basis_eval( uCR, iX - 1, iCR, nNodes + 1 );
+        uCR_F_R( iCR, iX ) = Basis->basis_eval( uCR, iX, iCR, 0 );
       } );
 
   // --- Calc numerical flux at all faces
   Kokkos::parallel_for(
       "Radiation :: Numerical Fluxes", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
-      KOKKOS_LAMBDA( int iX ) {
+      KOKKOS_LAMBDA( const int iX ) {
         auto uCR_L = Kokkos::subview( uCR_F_L, Kokkos::ALL, iX );
         auto uCR_R = Kokkos::subview( uCR_F_R, Kokkos::ALL, iX );
 
-        const Real tauR = Basis->BasisEval( uCF, iX, 0, 0 );
-        const Real tauL = Basis->BasisEval( uCF, iX - 1, 0, nNodes + 1 );
+        const Real tauR = Basis->basis_eval( uCF, iX, 0, 0 );
+        const Real tauL = Basis->basis_eval( uCF, iX - 1, 0, nNodes + 1 );
 
         // Debug mode assertions.
         assert( tauL > 0.0 && !std::isnan( tauL ) &&
@@ -79,19 +78,31 @@ void ComputeIncrement_Rad_Divergence(
         // --- Numerical Fluxes ---
 
         // Riemann Problem
-        Real flux_e      = 0.0;
-        Real flux_f      = 0.0;
-        const Real vR    = Basis->BasisEval( uCF, iX, 1, 0 );
-        const Real vL    = Basis->BasisEval( uCF, iX - 1, 1, nNodes + 1 );
-        const Real c_cgs = constants::c_cgs;
+        Real flux_e   = 0.0;
+        Real flux_f   = 0.0;
+        const Real vR = Basis->basis_eval( uCF, iX, 1, 0 );
+        const Real vL = Basis->basis_eval( uCF, iX - 1, 1, nNodes + 1 );
 
-        Real Fp = Flux_Rad( Em_R, Fm_R, vR, P_R, 0 );
-        Real Fm = Flux_Rad( Em_L, Fm_L, vL, P_L, 0 );
-        llf_flux( Fp, Fm, Em_R, Em_L, c_cgs, flux_e );
+        // Real Fp = Flux_Rad( Em_R, Fm_R, vR, P_R, 0 );
+        // Real Fm = Flux_Rad( Em_L, Fm_L, vL, P_L, 0 );
+        // llf_flux( Fp, Fm, Em_R, Em_L, c_cgs, flux_e );
 
-        Fp = Flux_Rad( Em_R, Fm_R, P_R, vR, 1 );
-        Fm = Flux_Rad( Em_L, Fm_L, P_L, vL, 1 ); // WEIRD
-        llf_flux( Fp, Fm, Fm_R, Fm_L, c_cgs, flux_f );
+        // Fp = Flux_Rad( Em_R, Fm_R, P_R, vR, 1 );
+        // Fm = Flux_Rad( Em_L, Fm_L, P_L, vL, 1 ); // WEIRD
+        // llf_flux( Fp, Fm, Fm_R, Fm_L, c_cgs, flux_f );
+
+        numerical_flux_hll_rad( Em_L, Em_R, Fm_L, Fm_R, P_L, P_R, flux_e,
+                                flux_f );
+
+        // upwind advective fluxes
+        const Real vstar = Flux_U( iX );
+        const Real advective_flux_e =
+            ( vstar >= 0.0 ) ? vstar * Em_L : vstar * Em_R;
+        const Real advective_flux_f =
+            ( vstar >= 0.0 ) ? vstar * Fm_L : vstar * Fm_R;
+
+        flux_e += advective_flux_e;
+        flux_f += advective_flux_f;
 
         dFlux_num( 0, iX ) = flux_e;
         dFlux_num( 1, iX ) = flux_f;
@@ -121,14 +132,14 @@ void ComputeIncrement_Rad_Divergence(
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                                 { nNodes, ihi + 1, nvars } ),
         KOKKOS_LAMBDA( const int iN, const int iX, const int iCR ) {
-          const Real Tau = Basis->BasisEval( uCF, iX, 0, iN + 1 );
+          const Real Tau = Basis->basis_eval( uCF, iX, 0, iN + 1 );
           const auto P =
-              ComputeClosure( Basis->BasisEval( uCR, iX, 0, iN + 1 ) / Tau,
-                              Basis->BasisEval( uCR, iX, 1, iN + 1 ) / Tau );
+              ComputeClosure( Basis->basis_eval( uCR, iX, 0, iN + 1 ) / Tau,
+                              Basis->basis_eval( uCR, iX, 1, iN + 1 ) / Tau );
           Flux_q( iCR, iX, iN ) =
-              Flux_Rad( Basis->BasisEval( uCR, iX, 0, iN + 1 ) / Tau,
-                        Basis->BasisEval( uCR, iX, 1, iN + 1 ) / Tau, P,
-                        Basis->BasisEval( uCF, iX, 1, iN + 1 ), iCR );
+              Flux_Rad( Basis->basis_eval( uCR, iX, 0, iN + 1 ) / Tau,
+                        Basis->basis_eval( uCR, iX, 1, iN + 1 ) / Tau, P,
+                        Basis->basis_eval( uCF, iX, 1, iN + 1 ), iCR );
         } );
 
     // --- Volume Term ---
@@ -154,49 +165,38 @@ void ComputeIncrement_Rad_Divergence(
 /**
  * Compute rad increment from source terms
  **/
-void ComputeIncrement_Rad_Source( const View3D<Real> uCR,
-                                  const View3D<Real> uCF, GridStructure &Grid,
+Real ComputeIncrement_Rad_Source( View2D<Real> uCR, const int k, const int iCR,
+                                  const View2D<Real> uCF, GridStructure &Grid,
                                   const ModalBasis *Basis, const EOS *eos,
-                                  View3D<Real> dU ) {
+                                  const int iX ) {
   const int nNodes = Grid.Get_nNodes( );
-  const int order  = Basis->Get_Order( );
-  const int ilo    = Grid.Get_ilo( );
-  const int ihi    = Grid.Get_ihi( );
-  const int nvars  = uCR.extent( 0 );
 
-  Kokkos::parallel_for(
-      "Rad :: Source",
-      Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { order, ihi + 1, nvars } ),
-      KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
-        Real local_sum = 0.0;
-        for ( int iN = 0; iN < nNodes; iN++ ) {
-          const Real D    = 1.0 / Basis->BasisEval( uCF, iX, 0, iN + 1 );
-          const Real V    = Basis->BasisEval( uCF, iX, 1, iN + 1 );
-          const Real Em_T = Basis->BasisEval( uCF, iX, 2, iN + 1 );
+  Real local_sum = 0.0;
+  for ( int iN = 0; iN < nNodes; iN++ ) {
+    const Real D    = 1.0 / Basis->basis_eval( uCF, iX, 0, iN + 1 );
+    const Real V    = Basis->basis_eval( uCF, iX, 1, iN + 1 );
+    const Real Em_T = Basis->basis_eval( uCF, iX, 2, iN + 1 );
 
-          const Real Abar = 1.0; // TODO: update abar
-          Real lambda[2]  = { Abar, 0.0 };
-          const Real P = eos->PressureFromConserved( 1.0 / D, V, Em_T, lambda );
-          const Real T = eos->TemperatureFromTauPressure( 1.0 / D, P, lambda );
+    const Real Abar = 0.6; // TODO: update abar
+    Real lambda[2]  = { Abar, 0.0 };
+    const Real P    = eos->PressureFromConserved( 1.0 / D, V, Em_T, lambda );
+    const Real T    = eos->TemperatureFromTauPressure( 1.0 / D, P, lambda );
 
-          const Real kappa = ComputeOpacity( D, V, Em_T );
-          const Real X     = ComputeEmissivity( D, V, Em_T );
+    const Real kappa = ComputeOpacity( D, V, Em_T );
+    const Real X     = ComputeEmissivity( D, V, Em_T );
 
-          const Real E_r = Basis->BasisEval( uCR, iX, 0, iN + 1 ) * D;
-          const Real F_r = Basis->BasisEval( uCR, iX, 1, iN + 1 ) * D;
-          const Real P_r = ComputeClosure( E_r, F_r );
+    const Real E_r = Basis->basis_eval( uCR, iX, 0, iN + 1 ) * D;
+    const Real F_r = Basis->basis_eval( uCR, iX, 1, iN + 1 ) * D;
+    const Real P_r = ComputeClosure( E_r, F_r );
 
-          const Real this_source =
-              Source_Rad( D, V, T, X, kappa, E_r, F_r, P_r, iCR );
+    const Real this_source =
+        Source_Rad( D, V, T, X, kappa, E_r, F_r, P_r, iCR );
 
-          local_sum += Grid.Get_Weights( iN ) *
-                       Basis->Get_Phi( iX, iN + 1, k ) * this_source;
-        }
+    local_sum +=
+        Grid.Get_Weights( iN ) * Basis->Get_Phi( iX, iN + 1, k ) * this_source;
+  }
 
-        dU( iCR, iX, k ) += ( local_sum * Grid.Get_Widths( iX ) ) /
-                            Basis->Get_MassMatrix( iX, k );
-      } );
+  return ( local_sum * Grid.Get_Widths( iX ) ) / Basis->Get_MassMatrix( iX, k );
 }
 
 /** Compute dU for timestep update. e.g., U = U + dU * dt
@@ -224,10 +224,11 @@ void Compute_Increment_Explicit_Rad(
   const auto &order = Basis->Get_Order( );
   const auto &ilo   = Grid.Get_ilo( );
   const auto &ihi   = Grid.Get_ihi( );
-  const int nvars   = uCR.extent( 0 );
+  const int nvars   = 2;
 
   // --- Apply BC ---
   ApplyBC( uCR, &Grid, order, opts.BC );
+  ApplyBC( uCF, &Grid, order, opts.BC );
 
   // --- Compute Increment for new solution ---
 
@@ -239,9 +240,6 @@ void Compute_Increment_Explicit_Rad(
       KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
         dU( iCR, iX, k ) = 0.0;
       } );
-
-  Kokkos::parallel_for(
-      ihi + 2, KOKKOS_LAMBDA( int iX ) { Flux_U( iX ) = 0.0; } );
 
   // --- Increment : Divergence ---
   ComputeIncrement_Rad_Divergence( uCR, uCF, Grid, Basis, eos, dU, Flux_q,
@@ -258,5 +256,4 @@ void Compute_Increment_Explicit_Rad(
       } );
 
   /* --- Increment Source Terms --- */
-  ComputeIncrement_Rad_Source( uCR, uCF, Grid, Basis, eos, dU );
 }

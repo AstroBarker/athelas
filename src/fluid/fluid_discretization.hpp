@@ -1,5 +1,5 @@
-#ifndef _FLUID_DISCRETIZATION_HPP_
-#define _FLUID_DISCRETIZATION_HPP_
+#ifndef FLUID_DISCRETIZATION_HPP_
+#define FLUID_DISCRETIZATION_HPP_
 
 #include "Kokkos_Core.hpp"
 
@@ -23,9 +23,10 @@ void ComputeIncrement_Fluid_Geometry( const View3D<Real> U, GridStructure &Grid,
 //     Kokkos::View<Real **> uCF_F_R, Kokkos::View<Real *> Flux_U,
 //     Kokkos::View<Real *> Flux_P, const std::string BC );
 
-void ComputeIncrement_Fluid_Rad( const View3D<Real> uCF, const View3D<Real> uCR,
-                                 GridStructure &Grid, const ModalBasis *Basis,
-                                 View3D<Real> dU );
+Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
+                                 const View2D<Real> uCR, GridStructure &Grid,
+                                 const ModalBasis *Basis, const EOS *eos,
+                                 const int iX );
 
 void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
                                  GridStructure &Grid, const ModalBasis *Basis,
@@ -35,4 +36,4 @@ void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
                                  View1D<Real> Flux_U, View1D<Real> Flux_P,
                                  const Options opts );
 
-#endif // _FLUID__DISCRETIZATION_HPP_
+#endif // FLUID__DISCRETIZATION_HPP_

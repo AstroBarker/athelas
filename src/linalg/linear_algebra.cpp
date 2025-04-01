@@ -46,7 +46,7 @@ void Tri_Sym_Diag( int n, Real *d, Real *e, Real *array ) {
   info = LAPACKE_dstev( LAPACK_COL_MAJOR, job, m, d, e, ev, ldz );
 
   if ( info != 0 ) {
-    throw Error(
+    THROW_ATHELAS_ERROR(
         " ! Issue occured in initializing quadrature in Tri_Sym_Diag." );
   }
 
@@ -74,6 +74,6 @@ void InvertMatrix( Real *M, int n ) {
   delete[] IPIV;
 
   if ( info1 != 0 || info2 != 0 ) {
-    throw Error( " ! Issue occured in matrix inversion." );
+    THROW_ATHELAS_ERROR( " ! Issue occured in matrix inversion." );
   }
 }

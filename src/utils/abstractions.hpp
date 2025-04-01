@@ -8,6 +8,9 @@
 using Real = double;
 
 template <typename T>
+using View4D = Kokkos::View<T ****>;
+
+template <typename T>
 using View3D = Kokkos::View<T ***>;
 
 template <typename T>

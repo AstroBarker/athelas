@@ -10,10 +10,10 @@
 #define GAMMA 1.4
 
 /**
- * Initialize equilibrium rad test
+ * Initialize radiation advection test
  **/
-void RadEquilibriumInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
-                         GridStructure *Grid, const int pOrder ) {
+void RadAdvectionInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
+                       GridStructure *Grid, const int pOrder ) {
 
   const int ilo    = Grid->Get_ilo( );
   const int ihi    = Grid->Get_ihi( );
@@ -27,12 +27,16 @@ void RadEquilibriumInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
 
   const int iCR_E = 0;
 
-  const Real V0 = 0.0;
-  const Real D  = std::pow( 10.0, -7.0 );
+  const Real V0                   = 1.0;
+  const Real D                    = 1.0;
+  constexpr static Real E_rad_amp = 1.0;
+
+  constexpr static Real width = 0.05;
 
   for ( int iX = 0; iX <= ihi + 1; iX++ )
     for ( int k = 0; k < pOrder; k++ )
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
+        Real X1               = Grid->Get_Centers( iX );
         uCF( iCF_Tau, iX, k ) = 0.0;
         uCF( iCF_V, iX, k )   = 0.0;
         uCF( iCF_E, iX, k )   = 0.0;
@@ -42,9 +46,12 @@ void RadEquilibriumInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
         if ( k == 0 ) {
           uCF( iCF_Tau, iX, 0 ) = 1.0 / D;
           uCF( iCF_V, iX, 0 )   = V0;
-          uCF( iCF_E, iX, 0 ) = std::pow( 10.0, 10.0 ) * uCF( iCF_Tau, iX, 0 );
-
-          uCR( iCR_E, iX, 0 ) = std::pow( 10.0, 12.0 ) * uCF( iCF_Tau, iX, 0 );
+          uCF( iCF_E, iX, 0 )   = 1.0;
+          uCR( iCR_E, iX, k ) =
+              E_rad_amp *
+              std::max(
+                  std::exp( -std::pow( ( X1 - 0.5 ) / width, 2.0 ) / 2.0 ),
+                  1.0e-8 );
         }
 
         uPF( iPF_D, iX, iNodeX ) = D;

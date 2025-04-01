@@ -1,5 +1,5 @@
-#ifndef _CONSTANTS_HPP_
-#define _CONSTANTS_HPP_
+#ifndef CONSTANTS_HPP_
+#define CONSTANTS_HPP_
 
 #include <math.h> /* atan */
 
@@ -22,4 +22,4 @@ constexpr Real c_cgs    = 2.99792458e+10; // cgs
 constexpr Real c        = 1.0; // natural
 
 } // namespace constants
-#endif // _CONSTANTS_HPP_
+#endif // CONSTANTS_HPP_

@@ -23,39 +23,39 @@ typedef Real BasisFuncType( int, Real, Real );
 
 class ModalBasis {
  public:
-  ModalBasis( PolyBasis::PolyBasis basis, Kokkos::View<Real ***> uCF,
-              GridStructure *Grid, int pOrder, int nN, int nElements,
-              int nGuard );
-  static Real Taylor( int order, Real eta, Real eta_c );
-  static Real dTaylor( int order, Real eta, Real eta_c );
+  ModalBasis( PolyBasis::PolyBasis basis, const View3D<Real> uCF,
+              GridStructure *Grid, const int pOrder, const int nN,
+              const int nElements, const int nGuard );
+  static Real Taylor( const int order, const Real eta, const Real eta_c );
+  static Real dTaylor( const int order, const Real eta, const Real eta_c );
   Real Ortho( const int order, const int iX, const int i_eta, const Real eta,
-              Real eta_c, const Kokkos::View<Real ***> uCF, GridStructure *Grid,
+              const Real eta_c, const View3D<Real> uCF, GridStructure *Grid,
               const bool derivative_option );
   Real InnerProduct( const int m, const int n, const int iX, const Real eta_c,
-                     const Kokkos::View<Real ***> uCF, GridStructure *Grid );
+                     const View3D<Real> uPF, GridStructure *Grid );
   Real InnerProduct( const int n, const int iX, const Real eta_c,
-                     const Kokkos::View<Real ***> uCF, GridStructure *Grid );
-  void InitializeTaylorBasis( const Kokkos::View<Real ***> U,
-                              GridStructure *Grid );
+                     const View3D<Real> uPF, GridStructure *Grid );
+  void InitializeTaylorBasis( const View3D<Real> U, GridStructure *Grid );
   void InitializeBasis( const PolyBasis::PolyBasis basis,
-                        const Kokkos::View<Real ***> uCF, GridStructure *Grid );
-  void CheckOrthogonality( const Kokkos::View<Real ***> uCF,
-                           GridStructure *Grid );
-  Real BasisEval( Kokkos::View<Real ***> U, const int iX, const int iCF,
-                  const int i_eta ) const;
-  void ComputeMassMatrix( const Kokkos::View<Real ***> uCF,
-                          GridStructure *Grid );
+                        const View3D<Real> uCF, GridStructure *Grid );
+  void CheckOrthogonality( const View3D<Real> uCF, GridStructure *Grid );
+  Real basis_eval( View3D<Real> U, const int iX, const int iCF,
+                   const int i_eta ) const;
+  Real basis_eval( View2D<Real> U, const int iX, const int iCF,
+                   const int i_eta ) const;
+  Real basis_eval( View1D<Real> U, const int iX, const int i_eta ) const;
+  void ComputeMassMatrix( const View3D<Real> uCF, GridStructure *Grid );
 
-  Real Get_Phi( int iX, int i_eta, int k ) const;
-  Real Get_dPhi( int iX, int i_eta, int k ) const;
-  Real Get_MassMatrix( int iX, int k ) const;
+  Real Get_Phi( const int iX, const int i_eta, const int k ) const;
+  Real Get_dPhi( const int iX, const int i_eta, const int k ) const;
+  Real Get_MassMatrix( const int iX, const int k ) const;
 
   int Get_Order( ) const;
 
-  static Real Legendre( int order, Real x );
-  static Real dLegendre( int order, Real x );
-  static Real Legendre( int order, Real x, Real x_c );
-  static Real dLegendre( int order, Real x, Real x_c );
+  static Real Legendre( const int order, const Real x );
+  static Real dLegendre( const int order, const Real x );
+  static Real Legendre( const int order, const Real x, const Real x_c );
+  static Real dLegendre( const int order, const Real x, const Real x_c );
 
  private:
   int nX;
@@ -63,13 +63,13 @@ class ModalBasis {
   int nNodes;
   int mSize;
 
-  Kokkos::View<Real **> MassMatrix;
+  View2D<Real> MassMatrix;
 
-  Kokkos::View<Real ***> Phi;
-  Kokkos::View<Real ***> dPhi;
+  View3D<Real> Phi;
+  View3D<Real> dPhi;
 
-  Real ( *func )( int n, Real x, Real x_c );
-  Real ( *dfunc )( int n, Real x, Real x_c );
+  Real ( *func )( const int n, const Real x, const Real x_c );
+  Real ( *dfunc )( const int n, const Real x, Real const x_c );
 };
 
 #endif // POLYNOMIAL_BASIS_HPP_

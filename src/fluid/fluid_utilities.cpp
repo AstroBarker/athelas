@@ -37,15 +37,15 @@ void ComputePrimitiveFromConserved( View3D<Real> uCF, View3D<Real> uPF,
   for ( int iX = ilo; iX <= ihi; iX++ )
     for ( int iN = 0; iN < nNodes; iN++ ) {
       // Density
-      Tau              = Basis->BasisEval( uCF, 0, iX, iN + 1 );
+      Tau              = Basis->basis_eval( uCF, 0, iX, iN + 1 );
       uPF( 0, iX, iN ) = 1.0 / Tau;
 
       // Momentum
-      Vel              = Basis->BasisEval( uCF, 1, iX, iN + 1 );
+      Vel              = Basis->basis_eval( uCF, 1, iX, iN + 1 );
       uPF( 1, iX, iN ) = uPF( 0, iX, iN ) * Vel;
 
       // Specific Total Energy
-      EmT              = Basis->BasisEval( uCF, 2, iX, iN + 1 );
+      EmT              = Basis->basis_eval( uCF, 2, iX, iN + 1 );
       uPF( 2, iX, iN ) = EmT / Tau;
     }
 }
@@ -64,21 +64,20 @@ Real Flux_Fluid( const Real V, const Real P, const int iCF ) {
   } else if ( iCF == 2 ) {
     return +P * V;
   } else { // Error case. Shouldn't ever trigger.
-    throw Error( " ! Please input a valid iCF! (0,1,2). " );
+    THROW_ATHELAS_ERROR( " ! Please input a valid iCF! (0,1,2). " );
     return -1.0; // just a formality.
   }
 }
 
 /**
  * Fluid radiation sources. Kind of redundant with Rad_sources.
- * TODO: extend to O(b^2)
  **/
 Real Source_Fluid_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E,
                        Real F, Real Pr, int iCF ) {
   assert( iCF == 0 || iCF == 1 || iCF == 2 );
   if ( iCF == 0 ) return 0.0; // rad doesn't source mass
 
-  const Real c = constants::c_cgs;
+  constexpr Real c = constants::c_cgs;
 
   Real G0, G;
   RadiationFourForce( D, V, T, kappa, E, F, Pr, G0, G );
@@ -117,7 +116,7 @@ void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
 Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
                             EOS *eos, const Real CFL ) {
 
-  const Real MIN_DT = 0.000000005;
+  const Real MIN_DT = 1.0e-16;
   const Real MAX_DT = 1.0;
 
   const int &ilo = Grid->Get_ilo( );
@@ -126,7 +125,7 @@ Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
   Real dt = 0.0;
   Kokkos::parallel_reduce(
       "Compute Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
-      KOKKOS_LAMBDA( const int &iX, Real &lmin ) {
+      KOKKOS_LAMBDA( const int iX, Real &lmin ) {
         // --- Compute Cell Averages ---
         Real tau_x  = U( 0, iX, 0 );
         Real vel_x  = U( 1, iX, 0 );
@@ -141,6 +140,7 @@ Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
         const Real Cs =
             eos->SoundSpeedFromConserved( tau_x, vel_x, eint_x, lambda );
         Real eigval = Cs;
+        eigval      = constants::c_cgs;
 
         Real dt_old = std::abs( dr ) / std::abs( eigval );
 
@@ -153,7 +153,7 @@ Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
 
   // could be assertion?
   if ( std::isnan( dt ) ) {
-    throw Error( " ! nan encountered in ComputeTimestep.\n" );
+    THROW_ATHELAS_ERROR( " ! nan encountered in ComputeTimestep.\n" );
   }
 
   return dt;
