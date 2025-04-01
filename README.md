@@ -2,7 +2,7 @@
 
 <p align="center">sypherically symmetric Lagrangian radiation-hydrodynamics solver written in C++ </p>
 
-[![Build](https://github.com/AstroBarker/athelas/actions/workflows/cmake.yml/badge.svg)](https://github.com/AstroBarker/athelas/actions/workflows/cmake.yml)
+[![Build](https://github.com/AstroBarker/athelas/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/AstroBarker/athelas/actions/workflows/cmake-multi-platform.yml)
 <p align="center">
 <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL-blue.svg"></a>
 </p>
@@ -10,15 +10,13 @@
 Currently, `athelas` solves the 1D Lagrangian equation of non-relativistic hydrodynamics using a discontinuous Galerkin scheme. It includes planar geometry and spherical symmetry.
 It will be extended to special relativistic hydrodynamics.
 
-Future work will include two-moment radiation transport, a Saha ionization solver, and appropriate stellar equation of state.
-
 # Kokkos
 We use [Kokkos](https://github.com/kokkos) for shared memory parallelism. 
 Currently, most significant data structures use `Kokkos::Views` and loops are parallelised with `Kokkos`.
 More work to port other parts of the code.
 
 # TOML++
-We use [toml++](https://github.com/marzer/tomlplusplus) for parsing input files in the for parsing input files in the `.toml` format.
+We use [toml++](https://github.com/marzer/tomlplusplus) for parsing input files in the `.toml` format.
 
 # Installation
 `athelas` uses submodules to include dependencies. 
@@ -67,25 +65,3 @@ Checks for formatting are performed on each PR.
 
 Hopefully `lapacke` won't be necessary forever, but at present it is needed for initializing the quadrature.
 I find that, on Arch Linux systems, `lapack`, `lapacke`, and `openblas` is sufficient for all `lapacke` needs.
-
-# TODO
-
-- Grey M1 radiation [WIP]
- - implicit update
- - overhaul microphysics
- - slope limiter
-- Update tableaus for higher SSP coefficient
-- Relativistic hydro
-- Gravity
-- Multigroup radiation
-- 1.5D Non-relativistic MHD
-- Adjust numerical fluxes for 1D MHD
-- function naming overhaul
-- class accessor refactor
-- kokkos parallel slope limiter
-- Rename values in hdf5 output...
-
-
-
-# BUGS: 
-- [ ] nNodes > order, crash when SlopeLimiter applied.
