@@ -65,8 +65,8 @@ class TimeStepper {
       Kokkos::parallel_for(
           "Timestepper 3",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                  { order, ihi + 2, nvars } ),
-          KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+                                                  { nvars, ihi + 2, order } ),
+          KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
             SumVar_U( iCF, iX, k ) = U( iCF, iX, k );
             StageData( iS, iX )    = Grid_s[iS].Get_LeftInterface( iX );
           } );
@@ -86,8 +86,8 @@ class TimeStepper {
         Kokkos::parallel_for(
             "Timestepper 4",
             Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                    { order, ihi + 2, nvars } ),
-            KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+                                                    { nvars, ihi + 2, order } ),
+            KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
               SumVar_U( iCF, iX, k ) +=
                   dt * explicit_tableau_.a_ij( iS, j ) * dUs_j( iCF, iX, k );
             } );
@@ -103,8 +103,8 @@ class TimeStepper {
       Kokkos::parallel_for(
           "Timestepper 5",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                  { order, ihi + 2, nvars } ),
-          KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+                                                  { nvars, ihi + 2, order } ),
+          KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
             U_s( iS, iCF, iX, k ) = SumVar_U( iCF, iX, k );
           } );
 
@@ -129,8 +129,8 @@ class TimeStepper {
       Kokkos::parallel_for(
           "Timestepper :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                  { order, ihi + 2, nvars } ),
-          KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+                                                  { nvars, ihi + 2, order } ),
+          KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
             U( iCF, iX, k ) +=
                 dt * explicit_tableau_.b_i( iS ) * dUs_j( iCF, iX, k );
           } );
@@ -138,14 +138,14 @@ class TimeStepper {
       Kokkos::parallel_for(
           "Timestepper::StageData::final", ihi + 2,
           KOKKOS_LAMBDA( const int iX ) {
-            StageData( 0, iX ) +=
+            StageData( iS, iX ) +=
                 dt * Flux_Uj( iX ) * explicit_tableau_.b_i( iS );
           } );
-      auto StageDataj = Kokkos::subview( StageData, 0, Kokkos::ALL );
+      auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
       Grid_s[iS].UpdateGrid( StageDataj );
     }
 
-    Grid = Grid_s[nStages];
+    Grid = Grid_s[nStages - 1];
     S_Limiter->ApplySlopeLimiter( U, &Grid, Basis );
     ApplyBoundEnforcingLimiter( U, Basis, eos );
   }
@@ -183,8 +183,8 @@ class TimeStepper {
       Kokkos::parallel_for(
           "Timestepper :: Rad :: 1",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                  { order, ihi + 2, nvars } ),
-          KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
+                                                  { nvars, ihi + 2, order } ),
+          KOKKOS_LAMBDA( const int iCR, const int iX, const int k ) {
             SumVar_U( iCR, iX, k ) = uCR( iCR, iX, k );
           } );
 
@@ -204,8 +204,8 @@ class TimeStepper {
         Kokkos::parallel_for(
             "Timestepper :: Rad :: 2",
             Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                    { order, ihi + 2, nvars } ),
-            KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
+                                                    { nvars, ihi + 2, order } ),
+            KOKKOS_LAMBDA( const int iCR, const int iX, const int k ) {
               SumVar_U( iCR, iX, k ) +=
                   dt * explicit_tableau_.a_ij( iS, j ) * dUs_j( iCR, iX, k );
             } );
@@ -215,8 +215,8 @@ class TimeStepper {
       Kokkos::parallel_for(
           "Timestepper :: Rad :: 3",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                  { order, ihi + 2, nvars } ),
-          KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
+                                                  { nvars, ihi + 2, order } ),
+          KOKKOS_LAMBDA( const int iCR, const int iX, const int k ) {
             U_s_r( iS, iCR, iX, k ) = SumVar_U( iCR, iX, k );
           } );
 
@@ -238,8 +238,8 @@ class TimeStepper {
       Kokkos::parallel_for(
           "Timestepper :: Rad :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                                  { order, ihi + 2, nvars } ),
-          KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
+                                                  { nvars, ihi + 2, order } ),
+          KOKKOS_LAMBDA( const int iCR, const int iX, const int k ) {
             const Real dt_b = dt * explicit_tableau_.b_i( iS );
             uCR( iCR, iX, k ) += dt_b * dUs_j( iCR, iX, k );
           } );
@@ -293,8 +293,8 @@ class TimeStepper {
       Kokkos::parallel_for(
           "Timestepper 3",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
-                                                  { order, ihi + 2 } ),
-          KOKKOS_LAMBDA( const int k, const int iX ) {
+                                                  { ihi + 2, order } ),
+          KOKKOS_LAMBDA( const int iX, const int k ) {
             SumVar_U( 0, iX, k )   = uCF( 0, iX, k );
             SumVar_U( 1, iX, k )   = uCF( 1, iX, k );
             SumVar_U( 2, iX, k )   = uCF( 2, iX, k );
@@ -329,8 +329,8 @@ class TimeStepper {
         Kokkos::parallel_for(
             "Timestepper 4",
             Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
-                                                    { order, ihi + 2 } ),
-            KOKKOS_LAMBDA( const int k, const int iX ) {
+                                                    { ihi + 2, order } ),
+            KOKKOS_LAMBDA( const int iX, const int k ) {
               SumVar_U( 0, iX, k ) += dt_a * dUs_j_h( 0, iX, k );
               SumVar_U( 1, iX, k ) += dt_a * dUs_j_h( 1, iX, k );
               SumVar_U( 2, iX, k ) += dt_a * dUs_j_h( 2, iX, k );
@@ -341,8 +341,8 @@ class TimeStepper {
         Kokkos::parallel_for(
             "Timestepper :: implicit piece in inner loop",
             Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 1 },
-                                                    { order, ihi + 1 } ),
-            KOKKOS_LAMBDA( const int k, const int iX ) {
+                                                    { ihi + 1, order } ),
+            KOKKOS_LAMBDA( const int iX, const int k ) {
               auto u_h =
                   Kokkos::subview( U_s, j, Kokkos::ALL, iX, Kokkos::ALL );
               auto u_r =
@@ -375,8 +375,8 @@ class TimeStepper {
       Kokkos::parallel_for(
           "Timestepper 5",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
-                                                  { order, ihi + 2 } ),
-          KOKKOS_LAMBDA( const int k, const int iX ) {
+                                                  { ihi + 2, order } ),
+          KOKKOS_LAMBDA( const int iX, const int k ) {
             U_s( iS, 0, iX, k )   = SumVar_U( 0, iX, k );
             U_s( iS, 1, iX, k )   = SumVar_U( 1, iX, k );
             U_s( iS, 2, iX, k )   = SumVar_U( 2, iX, k );
@@ -457,8 +457,8 @@ class TimeStepper {
       Kokkos::parallel_for(
           "Timestepper :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
-                                                  { order, ihi + 2 } ),
-          KOKKOS_LAMBDA( const int k, const int iX ) {
+                                                  { ihi + 2, order } ),
+          KOKKOS_LAMBDA( const int iX, const int k ) {
             auto u_h = Kokkos::subview( U_s, iS, Kokkos::ALL, iX, Kokkos::ALL );
             auto u_r =
                 Kokkos::subview( U_s_r, iS, Kokkos::ALL, iX, Kokkos::ALL );

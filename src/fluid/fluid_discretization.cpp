@@ -36,8 +36,8 @@ void ComputeIncrement_Fluid_Divergence(
   // Left/Right face states
   Kokkos::parallel_for(
       "Fluid :: Interface States",
-      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, nvars } ),
-      KOKKOS_LAMBDA( const int iX, const int iCF ) {
+      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, ilo }, { nvars, ihi + 2 } ),
+      KOKKOS_LAMBDA( const int iCF, const int iX ) {
         uCF_F_L( iCF, iX ) = Basis->basis_eval( U, iX - 1, iCF, nNodes + 1 );
         uCF_F_R( iCF, iX ) = Basis->basis_eval( U, iX, iCF, 0 );
       } );
@@ -96,8 +96,8 @@ void ComputeIncrement_Fluid_Divergence(
   Kokkos::parallel_for(
       "Fluid :: Surface Term",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { order, ihi + 1, nvars } ),
-      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+                                              { nvars, ihi + 1, order } ),
+      KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
         const auto &Poly_L   = Basis->Get_Phi( iX, 0, k );
         const auto &Poly_R   = Basis->Get_Phi( iX, nNodes + 1, k );
         const auto &X_L      = Grid.Get_LeftInterface( iX );
@@ -114,8 +114,8 @@ void ComputeIncrement_Fluid_Divergence(
     Kokkos::parallel_for(
         "Fluid :: Flux_q",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                                { nNodes, ihi + 1, nvars } ),
-        KOKKOS_LAMBDA( const int iN, const int iX, const int iCF ) {
+                                                { nvars, ihi + 1, nNodes } ),
+        KOKKOS_LAMBDA( const int iCF, const int iX, const int iN ) {
           auto lambda  = nullptr;
           const Real P = eos->PressureFromConserved(
               Basis->basis_eval( U, iX, 0, iN + 1 ),
@@ -130,8 +130,8 @@ void ComputeIncrement_Fluid_Divergence(
     Kokkos::parallel_for(
         "Fluid :: Volume Term",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                                { order, ihi + 1, nvars } ),
-        KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+                                                { nvars, ihi + 1, order } ),
+        KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
           Real local_sum = 0.0;
           for ( int iN = 0; iN < nNodes; iN++ ) {
             auto X = Grid.NodeCoordinate( iX, iN );
@@ -159,8 +159,8 @@ void ComputeIncrement_Fluid_Geometry( const View3D<Real> U, GridStructure &Grid,
 
   Kokkos::parallel_for(
       "Fluid :: Geometry Term",
-      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, ilo }, { order, ihi + 1 } ),
-      KOKKOS_LAMBDA( const int k, const int iX ) {
+      Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 1, order } ),
+      KOKKOS_LAMBDA( const int iX, const int k ) {
         Real local_sum = 0.0;
         auto lambda    = nullptr;
         for ( int iN = 0; iN < nNodes; iN++ ) {
@@ -260,8 +260,8 @@ void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
   Kokkos::parallel_for(
       "Zero dU",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
-                                              { order, ihi + 1, nvars } ),
-      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+                                              { nvars, ihi + 1, order } ),
+      KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
         dU( iCF, iX, k ) = 0.0;
       } );
 
@@ -276,8 +276,8 @@ void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
   Kokkos::parallel_for(
       "Fluid::Divide Update / Mass Matrix",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
-                                              { order, ihi + 1, nvars } ),
-      KOKKOS_LAMBDA( const int k, const int iX, const int iCF ) {
+                                              { nvars, ihi + 1, order } ),
+      KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
         dU( iCF, iX, k ) /= ( Basis->Get_MassMatrix( iX, k ) );
       } );
 
