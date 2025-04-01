@@ -67,7 +67,7 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin,
   std::printf( "\n" );
 
   std::printf( " ~ --- Other --- \n" );
-  std::cout << " ~ ProblemName    : " << pin->ProblemName << std::endl;
+  std::cout << " ~ problem_name    : " << pin->problem_name << std::endl;
   std::printf( " ~ CFL            : %f\n", CFL );
   std::printf( "\n" );
 }
@@ -76,7 +76,7 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin,
  * Write simulation output to disk
  **/
 void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
-                 const std::string ProblemName, Real time, int order,
+                 const std::string problem_name, Real time, int order,
                  int i_write, bool do_rad ) {
 
   View3D<Real> uCF = state->Get_uCF( );
@@ -98,7 +98,7 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
     n_pad = 0;
   }
   std::string suffix = std::string( n_pad, '0' ).append( i_str );
-  fn.append( ProblemName );
+  fn.append( problem_name );
   fn.append( "_" );
   if ( i_write != -1 ) {
     fn.append( suffix );
@@ -213,9 +213,9 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
  **/
 void WriteBasis( ModalBasis *Basis, unsigned int ilo, unsigned int ihi,
                  unsigned int nNodes, unsigned int order,
-                 std::string ProblemName ) {
+                 std::string problem_name ) {
   std::string fn = "athelas_basis_";
-  fn.append( ProblemName );
+  fn.append( problem_name );
   fn.append( ".h5" );
 
   const char *fn2 = fn.c_str( );

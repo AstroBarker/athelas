@@ -9,6 +9,11 @@ xr = 1.0
 bc = "homogenous"
 cfl = 0.35
 
+[problem.params]
+v0 = 0.0
+rho0 = 1.0
+E0 = 0.3
+
 [fluid]
 basis = "legendre"
 nnodes = 2

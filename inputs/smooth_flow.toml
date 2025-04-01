@@ -1,31 +1,30 @@
 [problem]
-problem = "moving_contact"
-t_end = 1.0
+problem = "smooth_flow"
+t_end = 0.5
 geometry = "planar"
 restart = false
 do_rad = false
 xl = 0.0
 xr = 1.0
 bc = "periodic"
-cfl = 0.35
+cfl = 0.5
 
 [problem.params]
-v0 = 0.1
-rhoL = 1.4
-rhoR = 1.0
+amp = 0.99999999999999
 
 [fluid]
 basis = "legendre"
-nnodes = 1
-pprder = 1
+nnodes = 2
+porder = 2
 nx = 128
 ng = 1
 
 [time]
-torder = 1
-nstages = 1
+torder = 2
+nstages = 2
 
 [limiters]
 tci_opt = false
 tci_val = 0.1
 characteristic = true
+gamma_i = 0.8

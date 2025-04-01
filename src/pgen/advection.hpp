@@ -1,3 +1,6 @@
+#ifndef ADVECTION_HPP_
+#define ADVECTION_HPP_
+
 #include <iostream>
 #include <math.h> /* sin */
 #include <string>
@@ -12,9 +15,12 @@
 /**
  * Initialize advection test
  **/
-void AdvectionInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
-                    GridStructure *Grid, const int pOrder ) {
+void advection_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
   // Smooth advection problem
+  View3D<Real> uCF = state->Get_uCF( );
+  View3D<Real> uPF = state->Get_uPF( );
+  const int pOrder = state->Get_pOrder( );
+
   const int ilo    = Grid->Get_ilo( );
   const int ihi    = Grid->Get_ihi( );
   const int nNodes = Grid->Get_nNodes( );
@@ -25,9 +31,9 @@ void AdvectionInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
 
   const int iPF_D = 0;
 
-  const Real V0  = -1.0;
-  const Real P0  = 0.01;
-  const Real Amp = 1.0;
+  const Real V0  = pin->in_table["problem"]["params"]["v0"].value_or( -1.0 );
+  const Real P0  = pin->in_table["problem"]["params"]["p0"].value_or( 0.01 );
+  const Real Amp = pin->in_table["problem"]["params"]["amp"].value_or( 1.0 );
 
   Real X1 = 0.0;
   for ( int iX = ilo; iX <= ihi; iX++ )
@@ -56,3 +62,4 @@ void AdvectionInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
       uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
     }
 }
+#endif // ADVECTION_HPP_

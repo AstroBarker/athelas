@@ -9,11 +9,17 @@ xr = 1.0
 bc = "homogenous"
 cfl = 0.5
 
+[problem.params]
+v0 = 0.0
+logrho = -7.0
+logE_gas = 10.0
+logE_rad = 12.0
+
 [fluid]
 basis = "legendre"
 nnodes = 1
 porder = 1
-nx = 256
+nx = 16
 ng = 1
 
 [time]

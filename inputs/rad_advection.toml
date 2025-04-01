@@ -9,6 +9,12 @@ xr = 1.0
 bc = "periodic"
 cfl = 0.5
 
+[problem.params]
+v0 = 0.5
+rho = 1.0
+amp = 1.0
+width = 0.05
+
 [fluid]
 basis = "legendre"
 nnodes = 1

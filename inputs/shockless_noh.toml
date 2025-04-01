@@ -9,16 +9,20 @@ xr = 1.0
 bc = "shockless_noh"
 cfl = 0.35
 
+[problem.params]
+rho = 1.0
+specific_energy = 1.0
+
 [fluid]
 basis = "legendre"
-nnodes = 4
-porder = 4
+nnodes = 2
+porder = 2
 nx = 128
 ng = 1
 
 [time]
-torder = 4
-nstages = 5
+torder = 2
+nstages = 2
 
 [limiters]
 tci_opt = false

@@ -65,12 +65,12 @@ ProblemIn::ProblemIn( const std::string fn ) {
   std::optional<Real> wenor  = in_table["limiters"]["weno_r"].value<Real>( );
 
   if ( pn ) {
-    ProblemName = pn.value( );
+    problem_name = pn.value( );
   } else {
     THROW_ATHELAS_ERROR(
         " ! Initialization Error: problem not supplied in input deck." );
   }
-  // Validity of ProblemName checked in initialization.
+  // Validity of problem_name checked in initialization.
 
   if ( bc ) {
     BC = utilities::to_lower( bc.value( ) );

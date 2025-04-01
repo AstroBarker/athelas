@@ -1,5 +1,5 @@
-#ifndef _INITIALIZATION_HPP_
-#define _INITIALIZATION_HPP_
+#ifndef INITIALIZATION_HPP_
+#define INITIALIZATION_HPP_
 
 #include <iostream>
 #include <math.h> /* sin */
@@ -8,11 +8,18 @@
 #include "abstractions.hpp"
 #include "advection.hpp"
 #include "constants.hpp"
-#include "equilibrium.hpp"
 #include "error.hpp"
 #include "grid.hpp"
-#include "initialization.hpp"
-#include "rad_advection.hpp"
+#include "pgen/moving_contact.hpp"
+#include "pgen/noh.hpp"
+#include "pgen/problem_in.hpp"
+#include "pgen/rad_advection.hpp"
+#include "pgen/rad_equilibrium.hpp"
+#include "pgen/sedov.hpp"
+#include "pgen/shockless_noh.hpp"
+#include "pgen/shu_osher.hpp"
+#include "pgen/smooth_flow.hpp"
+#include "pgen/sod.hpp"
 #include "state.hpp"
 
 #define GAMMA 1.4
@@ -20,345 +27,36 @@
 /**
  * Initialize the conserved Fields for various problems.
  * TODO: For now I initialize constant on each cell. Is there a better way?
- * TODO: iNodeX and order separation
+ * TODO: To be good Kokkos, either make all relevant loops par_for,
+ * or a a device-host copy
  **/
 void InitializeFields( State *state, GridStructure *Grid,
-                       const std::string ProblemName ) {
+                       const ProblemIn *pin ) {
 
-  const int ilo    = Grid->Get_ilo( );
-  const int ihi    = Grid->Get_ihi( );
-  const int nNodes = Grid->Get_nNodes( );
+  const std::string problem_name = pin->problem_name;
 
-  const int iCF_Tau = 0;
-  const int iCF_V   = 1;
-  const int iCF_E   = 2;
-
-  const int iPF_D = 0;
-
-  View3D<Real> uCF = state->Get_uCF( );
-  View3D<Real> uPF = state->Get_uPF( );
-  View3D<Real> uCR = state->Get_uCR( );
-  const int pOrder = state->Get_pOrder( );
-
-  if ( ProblemName == "sod" ) {
-    const Real V0  = 0.0;
-    const Real D_L = 1.0;
-    const Real D_R = 0.125;
-    const Real P_L = 1.0;
-    const Real P_R = 0.1;
-
-    Real X1 = 0.0;
-    for ( int iX = ilo; iX <= ihi; iX++ )
-      for ( int k = 0; k < pOrder; k++ )
-        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-          X1                    = Grid->Get_Centers( iX );
-          uCF( iCF_Tau, iX, k ) = 0.0;
-          uCF( iCF_V, iX, k )   = 0.0;
-          uCF( iCF_E, iX, k )   = 0.0;
-          uCR( 0, iX, k )       = 0.0;
-          uCR( 1, iX, k )       = 0.0;
-
-          if ( X1 <= 0.5 ) {
-            if ( k == 0 ) {
-              uCF( iCF_Tau, iX, 0 ) = 1.0 / D_L;
-              uCF( iCF_V, iX, 0 )   = V0;
-              uCF( iCF_E, iX, 0 )   = ( P_L / 0.4 ) * uCF( iCF_Tau, iX, 0 );
-            }
-
-            uPF( iPF_D, iX, iNodeX ) = D_L;
-          } else { // right domain
-            if ( k == 0 ) {
-              uCF( iCF_Tau, iX, 0 ) = 1.0 / D_R;
-              uCF( iCF_V, iX, 0 )   = V0;
-              uCF( iCF_E, iX, 0 )   = ( P_R / 0.4 ) * uCF( iCF_Tau, iX, 0 );
-            }
-
-            uPF( iPF_D, iX, iNodeX ) = D_R;
-          }
-        }
-    // Fill density in guard cells
-    for ( int iX = 0; iX < ilo; iX++ )
-      for ( int iN = 0; iN < nNodes; iN++ ) {
-        uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
-        uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
-      }
-  } else if ( ProblemName == "shu_osher" ) {
-    const Real V0  = 2.629369;
-    const Real D_L = 3.857143;
-    const Real P_L = 10.333333;
-    const Real P_R = 1.0;
-
-    Real X1 = 0.0;
-    for ( int iX = ilo; iX <= ihi; iX++ )
-      for ( int k = 0; k < pOrder; k++ )
-        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-          X1                    = Grid->Get_Centers( iX );
-          uCF( iCF_Tau, iX, k ) = 0.0;
-          uCF( iCF_V, iX, k )   = 0.0;
-          uCF( iCF_E, iX, k )   = 0.0;
-
-          if ( X1 <= -4.0 ) {
-            if ( k == 0 ) {
-              uCF( iCF_Tau, iX, 0 ) = 1.0 / D_L;
-              uCF( iCF_V, iX, 0 )   = V0;
-              uCF( iCF_E, iX, 0 ) =
-                  ( P_L / 0.4 ) * uCF( iCF_Tau, iX, 0 ) + 0.5 * V0 * V0;
-            }
-
-            uPF( iPF_D, iX, iNodeX ) = D_L;
-          } else { // right domain
-            if ( k == 0 ) {
-              uCF( iCF_Tau, iX, 0 ) =
-                  1.0 / ( 1.0 + 0.2 * sin( 5.0 * constants::PI( ) * X1 ) );
-              uCF( iCF_V, iX, 0 ) = 0.0;
-              uCF( iCF_E, iX, 0 ) = ( P_R / 0.4 ) * uCF( iCF_Tau, iX, 0 );
-            }
-
-            uPF( iPF_D, iX, iNodeX ) =
-                ( 1.0 + 0.2 * sin( 5.0 * constants::PI( ) * X1 ) );
-          }
-        }
-    // Fill density in guard cells
-    for ( int iX = 0; iX < ilo; iX++ )
-      for ( int iN = 0; iN < nNodes; iN++ ) {
-        uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
-        uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
-      }
-  } else if ( ProblemName == "moving_contact" ) {
-    // Moving Contact problem.
-    const Real V0  = 0.1;
-    const Real D_L = 1.4;
-    const Real D_R = 1.0;
-    const Real P_L = 1.0;
-    const Real P_R = 1.0;
-
-    Real X1 = 0.0;
-    for ( int iX = ilo; iX <= ihi; iX++ )
-      for ( int k = 0; k < pOrder; k++ )
-        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-          X1                    = Grid->Get_Centers( iX );
-          uCF( iCF_Tau, iX, k ) = 0.0;
-          uCF( iCF_V, iX, k )   = 0.0;
-          uCF( iCF_E, iX, k )   = 0.0;
-
-          if ( X1 <= 0.5 ) {
-            if ( k == 0 ) {
-              uCF( iCF_Tau, iX, 0 ) = 1.0 / D_L;
-              uCF( iCF_V, iX, 0 )   = V0;
-              uCF( iCF_E, iX, 0 ) =
-                  ( P_L / 0.4 ) * uCF( iCF_Tau, iX, 0 ) + 0.5 * V0 * V0;
-            }
-
-            uPF( iPF_D, iX, iNodeX ) = D_L;
-          } else {
-            if ( k == 0 ) {
-              uCF( iCF_Tau, iX, k ) = 1.0 / D_R;
-              uCF( iCF_V, iX, k )   = V0;
-              uCF( iCF_E, iX, k ) =
-                  ( P_R / 0.4 ) * uCF( iCF_Tau, iX, k ) + 0.5 * V0 * V0;
-            }
-
-            uPF( iPF_D, iX, iNodeX ) = D_R;
-          }
-        }
-    // Fill density in guard cells
-    for ( int iX = 0; iX < ilo; iX++ )
-      for ( int iN = 0; iN < nNodes; iN++ ) {
-        uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
-        uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
-      }
-  } else if ( ProblemName == "smooth_advection" ) {
-    AdvectionInit( uCF, uPF, uCR, Grid, pOrder );
-  } else if ( ProblemName == "sedov" ) {
-    // Smooth advection problem
-    const Real V0 = 0.0;
-    const Real D0 = 1.0;
-    const Real E0 = 0.3;
-
-    const int origin = Grid->Get_nElements( ) / 2;
-
-    const Real P0 = ( 5.0 / 3.0 - 1.0 ) * E0 / Grid->Get_Widths( origin );
-
-    for ( int iX = ilo; iX <= ihi; iX++ )
-      for ( int k = 0; k < pOrder; k++ )
-        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-
-          if ( k != 0 ) {
-            uCF( iCF_Tau, iX, k ) = 0.0;
-            uCF( iCF_V, iX, k )   = 0.0;
-            uCF( iCF_E, iX, k )   = 0.0;
-          } else {
-            uCF( iCF_Tau, iX, k ) = 1.0 / D0;
-            uCF( iCF_V, iX, k )   = V0;
-            if ( iX == origin - 1 || iX == origin ) {
-              uCF( iCF_E, iX, k ) =
-                  ( P0 / ( 5.0 / 3.0 - 1.0 ) ) * uCF( iCF_Tau, iX, k ) +
-                  0.5 * V0 * V0;
-            } else {
-              uCF( iCF_E, iX, k ) =
-                  ( 1.0e-6 / ( 5.0 / 3.0 - 1.0 ) ) * uCF( iCF_Tau, iX, k ) +
-                  0.5 * V0 * V0;
-            }
-          }
-          uPF( iPF_D, iX, iNodeX ) = D0;
-        }
-    // Fill density in guard cells
-    for ( int iX = 0; iX < ilo; iX++ )
-      for ( int iN = 0; iN < nNodes; iN++ ) {
-        uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
-        uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
-      }
-  } else if ( ProblemName == "noh" ) {
-    const Real V_L = 1.0;
-    const Real D_L = 1.0;
-    const Real P_L = 0.000001;
-    const Real D_R = 1.0;
-    const Real V_R = -1.0;
-    const Real P_R = 0.000001;
-
-    Real X1 = 0.0;
-    for ( int iX = ilo; iX <= ihi; iX++ )
-      for ( int k = 0; k < pOrder; k++ )
-        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-          X1                    = Grid->NodeCoordinate( iX, iNodeX );
-          uCF( iCF_Tau, iX, k ) = 0.0;
-          uCF( iCF_V, iX, k )   = 0.0;
-          uCF( iCF_E, iX, k )   = 0.0;
-
-          if ( X1 <= 0.5 ) {
-            if ( k == 0 ) {
-              uCF( iCF_Tau, iX, 0 ) = 1.0 / D_L;
-              uCF( iCF_V, iX, 0 )   = V_L;
-              uCF( iCF_E, iX, 0 ) =
-                  ( P_L / ( GAMMA - 1.0 ) ) * uCF( iCF_Tau, iX, 0 ) +
-                  0.5 * V_L * V_L;
-            }
-
-            uPF( iPF_D, iX, iNodeX ) = D_L;
-          } else { // right domain
-            if ( k == 0 ) {
-              uCF( iCF_Tau, iX, 0 ) = 1.0 / D_R;
-              uCF( iCF_V, iX, 0 )   = V_R;
-              uCF( iCF_E, iX, 0 ) =
-                  ( P_R / ( GAMMA - 1.0 ) ) * uCF( iCF_Tau, iX, 0 ) +
-                  0.5 * V_R * V_R;
-            }
-
-            uPF( iPF_D, iX, iNodeX ) = D_R;
-          }
-        }
-    // Fill density in guard cells
-    for ( int iX = 0; iX < ilo; iX++ )
-      for ( int iN = 0; iN < nNodes; iN++ ) {
-        uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
-        uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
-      }
-  } else if ( ProblemName == "shockless_noh" ) {
-    const Real D   = 1.0;
-    const Real E_M = 1.0;
-
-    Real X1 = 0.0;
-    for ( int iX = ilo; iX <= ihi; iX++ )
-      for ( int k = 0; k < pOrder; k++ )
-        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-          X1                    = Grid->Get_Centers( iX );
-          uCF( iCF_Tau, iX, k ) = 0.0;
-          uCF( iCF_V, iX, k )   = 0.0;
-          uCF( iCF_E, iX, k )   = 0.0;
-
-          if ( k == 0 ) {
-            uCF( iCF_Tau, iX, 0 ) = 1.0 / D;
-            uCF( iCF_V, iX, 0 )   = -X1;
-            uCF( iCF_E, iX, 0 ) =
-                E_M + 0.5 * uCF( iCF_V, iX, 0 ) * uCF( iCF_V, iX, 0 );
-          } else if ( k == 1 ) {
-            uCF( iCF_Tau, iX, k ) = 0.0;
-            uCF( iCF_V, iX, k )   = -Grid->Get_Widths( iX );
-            uCF( iCF_E, iX, k )   = ( -X1 ) * ( -Grid->Get_Widths( iX ) );
-          } else if ( k == 2 ) {
-            uCF( iCF_Tau, iX, k ) = 0.0;
-            uCF( iCF_V, iX, k )   = 0.0;
-            uCF( iCF_E, iX, k )   = uCF( iCF_V, iX, 1 ) * uCF( iCF_V, iX, 1 );
-          } else {
-            uCF( iCF_Tau, iX, k ) = 0.0;
-            uCF( iCF_V, iX, k )   = 0.0;
-            uCF( iCF_E, iX, k )   = 0.0;
-          }
-
-          uPF( iPF_D, iX, iNodeX ) = D;
-        }
-    // Fill density in guard cells
-    for ( int iX = 0; iX < ilo; iX++ )
-      for ( int iN = 0; iN < nNodes; iN++ ) {
-        uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
-        uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
-      }
-  } else if ( ProblemName == "smooth_flow" ) {
-
-    Real X1  = 0.0;
-    Real amp = 0.999999999999999999999999999999999995;
-    for ( int iX = ilo; iX <= ihi; iX++ )
-      for ( int k = 0; k < pOrder; k++ )
-        for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-          X1                    = Grid->Get_Centers( iX );
-          uCF( iCF_Tau, iX, k ) = 0.0;
-          uCF( iCF_V, iX, k )   = 0.0;
-          uCF( iCF_E, iX, k )   = 0.0;
-
-          if ( k == 0 ) {
-            Real D = ( 1.0 + amp * sin( constants::PI( ) * X1 ) );
-            uCF( iCF_Tau, iX, 0 ) = 1.0 / D;
-            uCF( iCF_V, iX, 0 )   = 0.0;
-            uCF( iCF_E, iX, 0 )   = ( D * D * D / 2.0 ) * uCF( iCF_Tau, iX, 0 );
-          } else if ( k == 1 ) {
-            Real D  = ( 1.0 + amp * sin( constants::PI( ) * X1 ) );
-            Real dD = ( amp * constants::PI( ) * cos( constants::PI( ) * X1 ) );
-            uCF( iCF_Tau, iX, k ) =
-                ( -1 / ( D * D ) ) * dD * Grid->Get_Widths( iX );
-            uCF( iCF_V, iX, k ) = 0.0;
-            uCF( iCF_E, iX, k ) =
-                ( ( 2.0 / 2.0 ) * D ) * dD * Grid->Get_Widths( iX );
-          } else if ( k == 2 ) {
-            Real D   = ( 1.0 + amp * sin( constants::PI( ) * X1 ) );
-            Real ddD = -( amp * constants::PI( ) * constants::PI( ) ) *
-                       sin( constants::PI( ) * X1 );
-            uCF( iCF_Tau, iX, k ) = ( 2.0 / ( D * D * D ) ) * ddD *
-                                    Grid->Get_Widths( iX ) *
-                                    Grid->Get_Widths( iX );
-            uCF( iCF_V, iX, k ) = 0.0;
-            uCF( iCF_E, iX, k ) = ( 2.0 / 2.0 ) * ddD * Grid->Get_Widths( iX ) *
-                                  Grid->Get_Widths( iX );
-          } else if ( k == 3 ) {
-            Real D    = ( 1.0 + amp * sin( constants::PI( ) * X1 ) );
-            Real dddD = -( amp * constants::PI( ) * constants::PI( ) *
-                           constants::PI( ) ) *
-                        cos( constants::PI( ) * X1 );
-            uCF( iCF_Tau, iX, k ) =
-                ( -6.0 / ( D * D * D * D ) ) * dddD * Grid->Get_Widths( iX ) *
-                Grid->Get_Widths( iX ) * Grid->Get_Widths( iX );
-            uCF( iCF_V, iX, k ) = 0.0;
-            uCF( iCF_E, iX, k ) = 0.0;
-          } else {
-            uCF( iCF_Tau, iX, k ) = 0.0;
-            uCF( iCF_V, iX, k )   = 0.0;
-            uCF( iCF_E, iX, k )   = 0.0;
-          }
-
-          uPF( iPF_D, iX, iNodeX ) =
-              ( 1.0 + amp * sin( constants::PI( ) * X1 ) );
-        }
-    // Fill density in guard cells
-    for ( int iX = 0; iX < ilo; iX++ )
-      for ( int iN = 0; iN < nNodes; iN++ ) {
-        uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
-        uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
-      }
-  } else if ( ProblemName == "rad_equilibrium" ) {
-    RadEquilibriumInit( uCF, uPF, uCR, Grid, pOrder );
-  } else if ( ProblemName == "rad_advection" ) {
-    RadAdvectionInit( uCF, uPF, uCR, Grid, pOrder );
+  if ( problem_name == "sod" ) {
+    sod_init( state, Grid, pin );
+  } else if ( problem_name == "shu_osher" ) {
+    shu_osher_init( state, Grid, pin );
+  } else if ( problem_name == "moving_contact" ) {
+    moving_contact_init( state, Grid, pin );
+  } else if ( problem_name == "smooth_advection" ) {
+    advection_init( state, Grid, pin );
+  } else if ( problem_name == "sedov" ) {
+    sedov_init( state, Grid, pin );
+  } else if ( problem_name == "noh" ) {
+    noh_init( state, Grid, pin );
+  } else if ( problem_name == "shockless_noh" ) {
+    shockless_noh_init( state, Grid, pin );
+  } else if ( problem_name == "smooth_flow" ) {
+    smooth_flow_init( state, Grid, pin );
+  } else if ( problem_name == "rad_equilibrium" ) {
+    rad_equilibrium_init( state, Grid, pin );
+  } else if ( problem_name == "rad_advection" ) {
+    rad_advection_init( state, Grid, pin );
   } else {
-    THROW_ATHELAS_ERROR( " ! Please choose a valid ProblemName" );
+    THROW_ATHELAS_ERROR( " ! Please choose a valid problem_name" );
   }
 }
-#endif // _INITIALIZATION_HPP_
+#endif // INITIALIZATION_HPP_

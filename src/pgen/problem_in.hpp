@@ -37,7 +37,7 @@ class ProblemIn {
  public:
   ProblemIn( const std::string fn );
 
-  std::string ProblemName;
+  std::string problem_name;
   std::string BC;
 
   int nElements;

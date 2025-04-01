@@ -1,3 +1,6 @@
+#ifndef RAD_EQUILIBRIUM_HPP_
+#define RAD_EQUILIBRIUM_HPP_
+
 #include <iostream>
 #include <math.h> /* sin */
 #include <string>
@@ -12,8 +15,12 @@
 /**
  * Initialize equilibrium rad test
  **/
-void RadEquilibriumInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
-                         GridStructure *Grid, const int pOrder ) {
+void rad_equilibrium_init( State *state, GridStructure *Grid,
+                           const ProblemIn *pin ) {
+  View3D<Real> uCF = state->Get_uCF( );
+  View3D<Real> uPF = state->Get_uPF( );
+  View3D<Real> uCR = state->Get_uCR( );
+  const int pOrder = state->Get_pOrder( );
 
   const int ilo    = Grid->Get_ilo( );
   const int ihi    = Grid->Get_ihi( );
@@ -27,8 +34,16 @@ void RadEquilibriumInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
 
   const int iCR_E = 0;
 
-  const Real V0 = 0.0;
-  const Real D  = std::pow( 10.0, -7.0 );
+  const Real V0 = pin->in_table["problem"]["params"]["v0"].value_or( 0.0 );
+  const Real logD =
+      pin->in_table["problem"]["params"]["logrho"].value_or( -7.0 );
+  const Real logE_gas = pin->in_table["problem"]["params"]["logE_gas"].value_or(
+      10.0 ); // erg / cm^3
+  const Real logE_rad = pin->in_table["problem"]["params"]["logE_rad"].value_or(
+      12.0 ); // erg / cm^3
+  const Real D      = std::pow( 10.0, logD );
+  const Real Ev_gas = std::pow( 10.0, logE_gas );
+  const Real Ev_rad = std::pow( 10.0, logE_rad );
 
   for ( int iX = 0; iX <= ihi + 1; iX++ )
     for ( int k = 0; k < pOrder; k++ )
@@ -42,9 +57,9 @@ void RadEquilibriumInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
         if ( k == 0 ) {
           uCF( iCF_Tau, iX, 0 ) = 1.0 / D;
           uCF( iCF_V, iX, 0 )   = V0;
-          uCF( iCF_E, iX, 0 ) = std::pow( 10.0, 10.0 ) * uCF( iCF_Tau, iX, 0 );
+          uCF( iCF_E, iX, 0 )   = Ev_gas * uCF( iCF_Tau, iX, 0 );
 
-          uCR( iCR_E, iX, 0 ) = std::pow( 10.0, 12.0 ) * uCF( iCF_Tau, iX, 0 );
+          uCR( iCR_E, iX, 0 ) = Ev_rad * uCF( iCF_Tau, iX, 0 );
         }
 
         uPF( iPF_D, iX, iNodeX ) = D;
@@ -56,3 +71,4 @@ void RadEquilibriumInit( View3D<Real> uCF, View3D<Real> uPF, View3D<Real> uCR,
       uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
     }
 }
+#endif // RAD_EQUILIBRIUM_HPP_

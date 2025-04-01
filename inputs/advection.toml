@@ -1,5 +1,5 @@
 [problem]
-problem = "moving_contact"
+problem = "smooth_advection"
 t_end = 1.0
 geometry = "planar"
 restart = false
@@ -10,9 +10,9 @@ bc = "periodic"
 cfl = 0.35
 
 [problem.params]
-v0 = 0.1
-rhoL = 1.4
-rhoR = 1.0
+v0 = -1.0
+p0 = 0.1
+amp = 1.0
 
 [fluid]
 basis = "legendre"
