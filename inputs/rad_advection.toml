@@ -15,6 +15,11 @@ rho = 1.0
 amp = 1.0
 width = 0.05
 
+[output]
+nlim = -1
+ncycle_out = 100
+#dt_hdf5 = 1.0e-2 # default: 100 outputs
+
 [fluid]
 basis = "legendre"
 nnodes = 1

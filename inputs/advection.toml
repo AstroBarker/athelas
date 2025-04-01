@@ -14,6 +14,11 @@ v0 = -1.0
 p0 = 0.1
 amp = 1.0
 
+[output]
+nlim = -1
+ncycle_out = 100
+dt_hdf5 = 0.1
+
 [fluid]
 basis = "legendre"
 nnodes = 1

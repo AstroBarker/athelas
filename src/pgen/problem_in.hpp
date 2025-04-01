@@ -40,6 +40,10 @@ class ProblemIn {
   std::string problem_name;
   std::string BC;
 
+  int nlim;
+  int ncycle_out;
+  Real dt_hdf5;
+
   int nElements;
   int nNodes;
   int nGhost;

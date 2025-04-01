@@ -42,6 +42,11 @@ ProblemIn::ProblemIn( const std::string fn ) {
       in_table["problem"]["bc"].value<std::string>( );
   std::optional<Real> cfl = in_table["problem"]["cfl"].value<Real>( );
 
+  // output
+  nlim       = in_table["output"]["nlim"].value_or( -1 );
+  ncycle_out = in_table["output"]["ncycle_out"].value_or( 1 );
+  dt_hdf5    = in_table["output"]["dt_hdf5"].value_or( tf.value( ) / 100.0 );
+
   // fluid
   std::optional<std::string> basis =
       in_table["fluid"]["basis"].value<std::string>( );

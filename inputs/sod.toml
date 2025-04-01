@@ -16,6 +16,11 @@ rhoR = 0.125
 pL = 1.0
 pR = 0.1
 
+[output]
+nlim = -1
+ncycle_out = 100
+dt_hdf5 = 1.0e-2
+
 [fluid]
 basis = "legendre"
 nnodes = 1

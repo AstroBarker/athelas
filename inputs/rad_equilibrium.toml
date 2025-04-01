@@ -15,6 +15,11 @@ logrho = -7.0
 logE_gas = 10.0
 logE_rad = 12.0
 
+[output]
+nlim = -1
+ncycle_out = 100
+#dt_hdf5 = 1.0e-10 # default: 100 outputs
+
 [fluid]
 basis = "legendre"
 nnodes = 1

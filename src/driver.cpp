@@ -8,6 +8,7 @@
 
 #include <algorithm> // std::min
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -121,13 +122,16 @@ int main( int argc, char *argv[] ) {
     dt           = dt_init;
 
     // --- Evolution loop ---
-    const int i_print = 100; // std out
-    const int i_write = 500; // h5 out
-    int iStep         = 0;
-    int i_out         = 1; // output label, start 1
+    const double nlim   = ( pin.nlim == -1 )
+                              ? std::numeric_limits<double>::infinity( )
+                              : pin.nlim;
+    const int &i_print  = pin.ncycle_out; // std out
+    const Real &dt_hdf5 = pin.dt_hdf5; // h5 out
+    int iStep           = 0;
+    int i_out           = 1; // output label, start 1
     std::cout << " ~ Step    t       dt       zone_cycles / wall_second\n"
               << std::endl;
-    while ( t < t_end ) {
+    while ( t < t_end && iStep <= nlim ) {
       timer_zone_cycles.reset( );
 
       // TODO: ComputeTimestep_Rad
@@ -184,7 +188,7 @@ int main( int argc, char *argv[] ) {
       timer_zone_cycles.reset( );
 
       // Write state
-      if ( iStep % i_write == 0 ) {
+      if ( t >= i_out * dt_hdf5 ) {
         WriteState( &state, Grid, &S_Limiter, problem_name, t, order, i_out,
                     opts.do_rad );
         i_out += 1;

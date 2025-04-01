@@ -13,6 +13,11 @@ cfl = 0.35
 rho = 1.0
 specific_energy = 1.0
 
+[output]
+nlim = -1
+ncycle_out = 100
+dt_hdf5 = 0.05
+
 [fluid]
 basis = "legendre"
 nnodes = 2

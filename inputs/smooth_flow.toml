@@ -12,6 +12,11 @@ cfl = 0.5
 [problem.params]
 amp = 0.99999999999999
 
+[output]
+nlim = -1
+ncycle_out = 100
+dt_hdf5 = 0.1
+
 [fluid]
 basis = "legendre"
 nnodes = 2
