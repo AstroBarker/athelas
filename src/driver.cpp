@@ -85,7 +85,7 @@ int main( int argc, char *argv[] ) {
 
     if ( not Restart ) {
       // --- Initialize fields ---
-      InitializeFields( &state, &Grid, &pin );
+      InitializeFields( &state, &Grid, &eos, &pin );
 
       ApplyBC( state.Get_uCF( ), &Grid, order, BC );
       if ( opts.do_rad ) {
