@@ -43,9 +43,13 @@ ProblemIn::ProblemIn( const std::string fn ) {
   std::optional<Real> cfl = in_table["problem"]["cfl"].value<Real>( );
 
   // output
-  nlim       = in_table["output"]["nlim"].value_or( -1 );
-  ncycle_out = in_table["output"]["ncycle_out"].value_or( 1 );
-  dt_hdf5    = in_table["output"]["dt_hdf5"].value_or( tf.value( ) / 100.0 );
+  nlim         = in_table["output"]["nlim"].value_or( -1 );
+  ncycle_out   = in_table["output"]["ncycle_out"].value_or( 1 );
+  dt_hdf5      = in_table["output"]["dt_hdf5"].value_or( tf.value( ) / 100.0 );
+  dt_init_frac = in_table["output"]["dt_init_frac"].value_or( 2.0 );
+  if ( dt_init_frac <= 1.0 ) {
+    THROW_ATHELAS_ERROR( "dt_init_frac must be strictly > 1.0\n" );
+  }
 
   // fluid
   std::optional<std::string> basis =

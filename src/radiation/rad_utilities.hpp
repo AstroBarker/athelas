@@ -20,5 +20,5 @@ void llf_flux( const Real Fp, const Real Fm, const Real Up, const Real Um,
 void numerical_flux_hll_rad( const Real E_L, const Real E_R, const Real F_L,
                              const Real F_R, const Real P_L, const Real P_R,
                              Real &Flux_E, Real &Flux_F );
-
+Real ComputeTimestep_Rad( const GridStructure *Grid, const Real CFL );
 #endif // RAD_UTILITIES_HPP_

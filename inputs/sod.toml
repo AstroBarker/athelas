@@ -20,6 +20,7 @@ pR = 0.1
 nlim = -1
 ncycle_out = 100
 dt_hdf5 = 1.0e-2
+dt_init_frac = 5.0
 
 [fluid]
 basis = "legendre"

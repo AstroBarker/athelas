@@ -1,5 +1,5 @@
-#ifndef _PROBLEM_IN_HPP_
-#define _PROBLEM_IN_HPP_
+#ifndef PROBLEM_IN_HPP_
+#define PROBLEM_IN_HPP_
 
 /**
  * File     :  problem_in.hpp
@@ -40,9 +40,10 @@ class ProblemIn {
   std::string problem_name;
   std::string BC;
 
-  int nlim;
-  int ncycle_out;
-  Real dt_hdf5;
+  int nlim; // number of cycles
+  int ncycle_out; // std output
+  Real dt_hdf5; // hdf5 output
+  Real dt_init_frac; // ramp up dt
 
   int nElements;
   int nNodes;
@@ -74,4 +75,4 @@ class ProblemIn {
   toml::table in_table;
 };
 
-#endif // _PROBLEMIN_HPP_
+#endif // PROBLEMIN_HPP_

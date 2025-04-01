@@ -26,6 +26,7 @@
 #include "io.hpp"
 #include "problem_in.hpp"
 #include "rad_discretization.hpp"
+#include "rad_utilities.hpp"
 #include "slope_limiter.hpp"
 #include "state.hpp"
 #include "timestepper.hpp"
@@ -121,6 +122,8 @@ int main( int argc, char *argv[] ) {
     Real dt_init = 1.0e-16;
     dt           = dt_init;
 
+    const Real dt_init_frac = pin.dt_init_frac;
+
     // --- Evolution loop ---
     const double nlim   = ( pin.nlim == -1 )
                               ? std::numeric_limits<double>::infinity( )
@@ -134,10 +137,9 @@ int main( int argc, char *argv[] ) {
     while ( t < t_end && iStep <= nlim ) {
       timer_zone_cycles.reset( );
 
-      // TODO: ComputeTimestep_Rad
-      dt =
-          std::min( ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL ),
-                    dt * 1.5 );
+      dt = std::min(
+          compute_timestep( state.Get_uCF( ), &Grid, &eos, CFL, &opts ),
+          dt * dt_init_frac );
       if ( t + dt > t_end ) {
         dt = t_end - t;
       }
@@ -244,4 +246,18 @@ Real ComputeCFL( const Real CFL, const int order, const int nStages,
 
   const Real max_cfl = 0.95;
   return std::min( c * CFL / ( ( 2.0 * (order)-1.0 ) ), max_cfl );
+}
+
+/**
+ * Compute timestep
+ **/
+Real compute_timestep( const View3D<Real> U, const GridStructure *Grid,
+                       EOS *eos, const Real CFL, const Options *opts ) {
+  Real dt;
+  if ( !opts->do_rad ) {
+    dt = ComputeTimestep_Fluid( U, Grid, eos, CFL );
+  } else {
+    dt = ComputeTimestep_Rad( Grid, CFL );
+  }
+  return dt;
 }
