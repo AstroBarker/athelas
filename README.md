@@ -49,7 +49,7 @@ The build system may not be perfect yet. Your mileage may vary.
 
 We use `clang format` and `ruff` for code cleanliness. 
 Rules are listed in `.clang-format`.
-The current version of `clang-format` used is 19.1.0.
+The current version of `clang-format` used is 20.1.0.
 Simply call `tools/bash/format.sh` to format the `.hpp` and `.cpp` files.
 
 Python code linting and formatting is done with `ruff`. 
