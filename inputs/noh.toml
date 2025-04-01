@@ -33,6 +33,9 @@ ng = 1
 torder = 2
 nstages = 2
 
+[eos]
+type = "ideal"
+
 [limiters]
 tci_opt = false
 tci_val = 0.1

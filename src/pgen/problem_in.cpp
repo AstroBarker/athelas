@@ -63,6 +63,17 @@ ProblemIn::ProblemIn( const std::string fn ) {
   std::optional<int> tO = in_table["time"]["torder"].value<int>( );
   std::optional<int> nS = in_table["time"]["nstages"].value<int>( );
 
+  // eos
+  eos_type = in_table["eos"]["type"].value_or( "ideal" );
+  if ( eos_type != "ideal" ) {
+    THROW_ATHELAS_ERROR(
+        "Currently only ideal gas supported (eos_type = ideal).\n" );
+  }
+  ideal_gamma = in_table["eos"]["ideal_gamma"].value_or( 1.4 );
+  if ( ideal_gamma <= 0.0 ) {
+    THROW_ATHELAS_ERROR( "ideal_gamma must be positive.\n" );
+  }
+
   // limiters
   std::optional<bool> tci_opt = in_table["limiters"]["tci_opt"].value<bool>( );
   std::optional<Real> tci_val = in_table["limiters"]["tci_val"].value<Real>( );

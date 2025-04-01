@@ -45,6 +45,9 @@ class ProblemIn {
   Real dt_hdf5; // hdf5 output
   Real dt_init_frac; // ramp up dt
 
+  std::string eos_type;
+  Real ideal_gamma;
+
   int nElements;
   int nNodes;
   int nGhost;

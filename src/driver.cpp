@@ -60,8 +60,7 @@ int main( int argc, char *argv[] ) {
 
   const bool Restart = pin.Restart;
 
-  const std::string BC   = pin.BC;
-  const Real gamma_ideal = 5.0 / 3.0;
+  const std::string BC = pin.BC;
 
   const Real CFL = ComputeCFL( pin.CFL, order, nStages, tOrder );
 
@@ -82,7 +81,7 @@ int main( int argc, char *argv[] ) {
     const int nCR = 2;
     State state( nCF, nCR, nPF, nAF, nX, nGuard, nNodes, order );
 
-    IdealGas eos( gamma_ideal );
+    IdealGas eos( pin.ideal_gamma );
 
     if ( not Restart ) {
       // --- Initialize fields ---

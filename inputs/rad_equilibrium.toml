@@ -32,6 +32,10 @@ ng = 1
 torder = 2
 nstages = 2
 
+[eos]
+type = "ideal"
+ideal_gamma = 1.66666666666667 # default: 1.4
+
 [limiters]
 tci_opt = false
 tci_val = 0.1
