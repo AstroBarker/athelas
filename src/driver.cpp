@@ -42,7 +42,7 @@ int main( int argc, char *argv[] ) {
   ProblemIn pin( argv[1] );
 
   /* --- Problem Parameters --- */
-  const std::string ProblemName = pin.ProblemName;
+  const std::string problem_name = pin.problem_name;
 
   const int &nX      = pin.nElements;
   const int &order   = pin.pOrder;
@@ -84,17 +84,19 @@ int main( int argc, char *argv[] ) {
 
     if ( not Restart ) {
       // --- Initialize fields ---
-      InitializeFields( &state, &Grid, ProblemName );
+      InitializeFields( &state, &Grid, &pin );
 
       ApplyBC( state.Get_uCF( ), &Grid, order, BC );
-      ApplyBC( state.Get_uCR( ), &Grid, order, BC );
+      if ( opts.do_rad ) {
+        ApplyBC( state.Get_uCR( ), &Grid, order, BC );
+      }
     }
 
     // --- Datastructure for modal basis ---
     ModalBasis Basis( pin.Basis, state.Get_uPF( ), &Grid, order, nNodes, nX,
                       nGuard );
 
-    WriteBasis( &Basis, nGuard, Grid.Get_ihi( ), nNodes, order, ProblemName );
+    WriteBasis( &Basis, nGuard, Grid.Get_ihi( ), nNodes, order, problem_name );
 
     // --- Initialize timestepper ---
     TimeStepper SSPRK( &pin, Grid );
@@ -106,7 +108,7 @@ int main( int argc, char *argv[] ) {
 
     // -- print run parameters  and initial condition ---
     PrintSimulationParameters( Grid, &pin, CFL );
-    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, 0,
+    WriteState( &state, Grid, &S_Limiter, problem_name, t, order, 0,
                 opts.do_rad );
 
     // --- Timer ---
@@ -134,10 +136,6 @@ int main( int argc, char *argv[] ) {
                     dt * 1.5 );
       if ( t + dt > t_end ) {
         dt = t_end - t;
-      }
-
-      if ( iStep % i_print == 0 ) {
-        std::printf( " ~ %d %.5e %.5e %.5e \n", iStep, t, dt, zc_ws );
       }
 
       if ( !opts.do_rad ) {
@@ -175,7 +173,7 @@ int main( int argc, char *argv[] ) {
       } catch ( const AthelasError &e ) {
         std::cerr << e.what( ) << std::endl;
         std::printf( "!!! Bad State found, writing _final_ output file ...\n" );
-        WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1,
+        WriteState( &state, Grid, &S_Limiter, problem_name, t, order, -1,
                     opts.do_rad );
         return AthelasExitCodes::FAILURE;
       }
@@ -187,7 +185,7 @@ int main( int argc, char *argv[] ) {
 
       // Write state
       if ( iStep % i_write == 0 ) {
-        WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, i_out,
+        WriteState( &state, Grid, &S_Limiter, problem_name, t, order, i_out,
                     opts.do_rad );
         i_out += 1;
       }
@@ -197,16 +195,15 @@ int main( int argc, char *argv[] ) {
         std::printf( " ~ %d %.5e %.5e %.5e \n", iStep, t, dt, zc_ws );
         time_cycle = 0.0;
       }
+
       iStep++;
-      Real time_cycle = timer_zone_cycles.seconds( );
-      zc_ws           = nX / time_cycle;
     }
 
     // --- Finalize timer ---
     Real time = timer_total.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC( state.Get_uCF( ), &Grid, order, BC );
-    WriteState( &state, Grid, &S_Limiter, ProblemName, t, order, -1,
+    WriteState( &state, Grid, &S_Limiter, problem_name, t, order, -1,
                 opts.do_rad );
   }
   Kokkos::finalize( );
