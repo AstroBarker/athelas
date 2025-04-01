@@ -35,7 +35,6 @@ void ComputeIncrement_Rad_Divergence(
   // --- Interpolate Conserved Variable to Interfaces ---
 
   // Left/Right face states
-  // TODO: Can this just be moved into the below kernel with a iCF loop?
   Kokkos::parallel_for(
       "Radiation :: Interface States",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 2, nvars } ),
@@ -94,8 +93,9 @@ void ComputeIncrement_Rad_Divergence(
 
         numerical_flux_hll_rad( Em_L, Em_R, Fm_L, Fm_R, P_L, P_R, flux_e,
                                 flux_f );
-        // HACK
-        const Real vstar = ( vL + vR ) / 2.0;
+
+        // upwind advective fluxes
+        const Real vstar = Flux_U(iX);
         const Real advective_flux_e =
             ( vstar >= 0.0 ) ? vstar * Em_L : vstar * Em_R;
         const Real advective_flux_f =
@@ -240,9 +240,6 @@ void Compute_Increment_Explicit_Rad(
       KOKKOS_LAMBDA( const int k, const int iX, const int iCR ) {
         dU( iCR, iX, k ) = 0.0;
       } );
-
-  Kokkos::parallel_for(
-      ihi + 2, KOKKOS_LAMBDA( const int iX ) { Flux_U( iX ) = 0.0; } );
 
   // --- Increment : Divergence ---
   ComputeIncrement_Rad_Divergence( uCR, uCF, Grid, Basis, eos, dU, Flux_q,
