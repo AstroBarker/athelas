@@ -71,7 +71,6 @@ Real Flux_Fluid( const Real V, const Real P, const int iCF ) {
 
 /**
  * Fluid radiation sources. Kind of redundant with Rad_sources.
- * TODO: extend to O(b^2)
  **/
 Real Source_Fluid_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E,
                        Real F, Real Pr, int iCF ) {
@@ -117,7 +116,7 @@ void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
 Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
                             EOS *eos, const Real CFL ) {
 
-  const Real MIN_DT = 0.000000005;
+  const Real MIN_DT = 1.0e-16;
   const Real MAX_DT = 1.0;
 
   const int &ilo = Grid->Get_ilo( );
@@ -126,7 +125,7 @@ Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
   Real dt = 0.0;
   Kokkos::parallel_reduce(
       "Compute Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
-      KOKKOS_LAMBDA( const int &iX, Real &lmin ) {
+      KOKKOS_LAMBDA( const int iX, Real &lmin ) {
         // --- Compute Cell Averages ---
         Real tau_x  = U( 0, iX, 0 );
         Real vel_x  = U( 1, iX, 0 );

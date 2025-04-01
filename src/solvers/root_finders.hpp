@@ -75,13 +75,8 @@ Real Residual( F g, T x0, const int k, const int iC, Args... args ) {
 
 /**
  * Anderson accelerated fixed point solver templated on type, function, args...
+ * Note that this is only used for the rad-hydro implicit update
  **/
-// TODO: NOTE: What if the scratch array contains u_
-//  TODO: the problem here is that the source term functions
-//  want a full basis function U(k), but we are iterating
-//  for a single k, and the source term functions return a Real
-//  NOTE: Potential issue: reference symantics for the views here.
-//    Might need to use vectors throughout
 template <typename F, typename T, typename... Args>
 Real fixed_point_aa( F target, const int k, T scratch, const int iC,
                      Args... args ) {
@@ -90,7 +85,6 @@ Real fixed_point_aa( F target, const int k, T scratch, const int iC,
                             scratch.extent( 1 ) );
   Kokkos::deep_copy( scratch_km1, scratch );
 
-  // auto x0 = scratch[0];
   unsigned int n = 0;
   Real error     = 1.0;
   Real xkm1, xk, xkp1;
@@ -99,21 +93,18 @@ Real fixed_point_aa( F target, const int k, T scratch, const int iC,
   xkm1 = scratch( iC, k );
   xkp1 = xk;
 
+  error = std::abs(xk - xkm1) / std::abs(xk);
+
   // update scratch
   scratch( iC, k )     = xk;
   scratch_km1( iC, k ) = xkm1;
 
-  if ( std::abs( xk - xkm1 ) <= root_finders::RELTOL ) return xk;
+  if ( error <= root_finders::RELTOL ) return xk;
   while ( n <= root_finders::MAX_ITERS && error >= root_finders::RELTOL ) {
     /* Anderson acceleration step */
-    // UPDATED TODO:
-    // Plan: get number back from xkp1, update scratch
-    // I think the move is to pass in View1D u_h, u_r, construct source term for
-    // k
     Real alpha = -Residual( target, scratch, k, iC, args... ) /
                  ( Residual( target, scratch_km1, k, iC, args... ) -
                    Residual( target, scratch, k, iC, args... ) );
-    // std::printf("alpha = %e\n", alpha);
 
     xkp1 = alpha * target( scratch_km1, k, iC, args... ) +
            ( 1.0 - alpha ) * target( scratch, k, iC, args... );
@@ -129,16 +120,17 @@ Real fixed_point_aa( F target, const int k, T scratch, const int iC,
     // #ifdef ATHELAS_DEBUG
     //     std::printf( " %d %e %e \n", n, xk, error );
     // #endif
-    if ( n == root_finders::MAX_ITERS ) {
-      THROW_ATHELAS_ERROR( " ! Root Finder :: Anderson Accelerated Fixed Point "
-                           "Iteration Failed To "
-                           "Converge ! \n" );
-    }
+
+    // TODO: handle convergence failures?
+    //if ( n == root_finders::MAX_ITERS ) {
+    //  std::printf("FPAA convergence failure! Error: %e\n", error);
+    //}
   }
 
   return xk;
 }
 
+// unused generic fixed point iteration for implicit update
 template <typename F, typename T, typename... Args>
 Real fixed_point_implicit( F target, const int k, T scratch, const int iC,
                            Args... args ) {
@@ -257,7 +249,7 @@ T newton( F target, F dTarget, T x0, Args... args ) {
 
 /* Anderson Accelerated newton iteration templated on type, function */
 template <typename T, typename F, typename... Args>
-T AAnewton( F target, F dTarget, T x0, Args... args ) {
+T newton_aa( F target, F dTarget, T x0, Args... args ) {
 
   unsigned int n = 0;
   T h            = target( x0, args... ) / dTarget( x0, args... );

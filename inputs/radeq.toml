@@ -6,8 +6,8 @@ restart = false
 do_rad = true
 xL = 0.0
 xR = 1.0
-BC = "Homogenous"
-CFL = 0.35
+BC = "homogenous"
+CFL = 0.5
 
 [Fluid]
 Basis = "Legendre"
@@ -17,10 +17,10 @@ nX = 256
 nG = 1
 
 [Time]
-tOrder = 1
-nStages = 1
+tOrder = 2
+nStages = 2
 
 [Limiters]
 TCI_Opt = false
 TCI_val = 0.1
-Characteristic = true
+Characteristic = false

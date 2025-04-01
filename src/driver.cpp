@@ -112,30 +112,23 @@ int main( int argc, char *argv[] ) {
     Kokkos::Timer timer_zone_cycles;
     Real zc_ws = 0.0; // zone cycles / wall second
 
-    Real dt_init = 1.0e-15;
+    Real dt_init = 1.0e-16;
     dt           = dt_init;
 
     // --- Evolution loop ---
-    const int i_print = 1; // std out
-    const int i_write = 1; // h5 out
+    const int i_print = 100; // std out
+    const int i_write = 500; // h5 out
     int iStep         = 0;
     int i_out         = 1; // output label, start 1
     std::cout << " ~ Step    t       dt       zone_cycles / wall_second\n"
               << std::endl;
     while ( t < t_end ) {
-      ApplyBC( state.Get_uCF( ), &Grid, order, BC );
-      ApplyBC( state.Get_uCR( ), &Grid, order, BC );
       timer_zone_cycles.reset( );
 
       // TODO: ComputeTimestep_Rad
       dt =
           std::min( ComputeTimestep_Fluid( state.Get_uCF( ), &Grid, &eos, CFL ),
-                    dt * 1.1 );
-      dt = std::min(5.0e-12, dt * 1.1);
-      // if ( opts.do_rad ) { // hack
-      //   dt = std::pow( 10.0, -13.0 );
-      // }
-
+                    dt * 1.5 );
       if ( t + dt > t_end ) {
         dt = t_end - t;
       }
@@ -235,6 +228,6 @@ Real ComputeCFL( const Real CFL, const int order, const int nStages,
     if ( tOrder == 4 ) c = 0.76;
   }
 
-  const Real max_cfl = 0.9;
+  const Real max_cfl = 0.95;
   return std::min( c * CFL / ( ( 2.0 * (order)-1.0 ) ), max_cfl );
 }

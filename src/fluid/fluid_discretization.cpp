@@ -189,7 +189,6 @@ Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
                                  const ModalBasis *Basis, const EOS *eos,
                                  const int iX ) {
   const int nNodes = Grid.Get_nNodes( );
-  constexpr Real c = constants::c_cgs;
 
   Real local_sum = 0.0;
   for ( int iN = 0; iN < nNodes; iN++ ) {
@@ -286,8 +285,5 @@ void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
     ComputeIncrement_Fluid_Geometry( U, Grid, Basis, eos, dU );
   }
 
-  /* --- Increment Rad --- */
-  // if ( opts.do_rad ) {
-  //   ComputeIncrement_Fluid_Rad( U, uCR, Grid, Basis, eos, dU );
-  // }
+  /* --- Increment Additional Explicit Sources --- */
 }

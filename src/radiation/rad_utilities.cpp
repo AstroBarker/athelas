@@ -42,8 +42,6 @@ Real Flux_Rad( Real E, Real F, Real P, Real V, int iCR ) {
 
   constexpr static Real c = constants::c_cgs;
   return ( iCR == 0 ) ? 1.0 * F - E * V : c * c * P - F * V;
-  //return ( iCR == 0 ) ? c * c * F - E * V : 1.0 * 1.0 * P - F * V;
-  // return ( iCR == 0 ) ? c * c * F : P;
 }
 
 /**
@@ -81,8 +79,8 @@ void RadiationFourForce( Real D, Real V, Real T, Real kappa, Real E, Real F,
   G  = D * kappa * ( b * ( term1 - 2.0 * b * F ) + ( F - b * E - b * Pr ) );
 
   // ala Skinner & Ostriker, simpler.
-  G0 = D * kappa * ( term1 - b * F );
-  G  = D * kappa * ( F - b * E + b * Pr );
+  //G0 = D * kappa * ( term1 - b * F );
+  //G  = D * kappa * ( F - b * E + b * Pr );
 }
 
 /**
@@ -127,7 +125,6 @@ Real ComputeOpacity( const Real D, const Real V, const Real Em ) {
 Real ComputeClosure( const Real E, const Real F ) {
   assert( E > 0.0 && "Radiation :: ComputeClosure :: Non positive definite "
                      "radiation energy density." );
-//  if ( E == 0.0 ) return 0.0; // This is a hack
   const Real f = FluxFactor( E, F );
   const Real chi =
       ( 3.0 + 4.0 * f * f ) / ( 5.0 + 2.0 * std::sqrt( 4.0 - 3.0 * f * f ) );

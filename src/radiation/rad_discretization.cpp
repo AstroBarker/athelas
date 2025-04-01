@@ -32,9 +32,6 @@ void ComputeIncrement_Rad_Divergence(
   const auto &ihi    = Grid.Get_ihi( );
   const int nvars    = 2;
 
-  constexpr Real c  = constants::c_cgs;
-  constexpr Real c2 = c * c;
-
   // --- Interpolate Conserved Variable to Interfaces ---
 
   // Left/Right face states
@@ -72,9 +69,9 @@ void ComputeIncrement_Rad_Divergence(
                 "rad_Discretization :: Numerical Fluxes bad flux." );
 
         const Real Em_L = uCR_L( 0 ) / tauL;
-        const Real Fm_L = c2 * uCR_L( 1 ) / tauL;
+        const Real Fm_L = uCR_L( 1 ) / tauL;
         const Real Em_R = uCR_R( 0 ) / tauR;
-        const Real Fm_R = c2 * uCR_R( 1 ) / tauR;
+        const Real Fm_R = uCR_R( 1 ) / tauR;
 
         const Real P_L = ComputeClosure( Em_L, Fm_L );
         const Real P_R = ComputeClosure( Em_R, Fm_R );
@@ -174,7 +171,6 @@ Real ComputeIncrement_Rad_Source( View2D<Real> uCR, const int k, const int iCR,
                                   const int iX ) {
   const int nNodes = Grid.Get_nNodes( );
 
-  constexpr Real c = constants::c_cgs;
   Real local_sum   = 0.0;
   for ( int iN = 0; iN < nNodes; iN++ ) {
     const Real D    = 1.0 / Basis->basis_eval( uCF, iX, 0, iN + 1 );
@@ -201,7 +197,6 @@ Real ComputeIncrement_Rad_Source( View2D<Real> uCR, const int k, const int iCR,
   }
 
   return ( local_sum * Grid.Get_Widths( iX ) ) / Basis->Get_MassMatrix( iX, k );
-  // std::printf("dU_r %e\n", dU(0, iX, k));
 }
 
 /** Compute dU for timestep update. e.g., U = U + dU * dt
@@ -264,5 +259,4 @@ void Compute_Increment_Explicit_Rad(
       } );
 
   /* --- Increment Source Terms --- */
-  // ComputeIncrement_Rad_Source( uCR, uCF, Grid, Basis, eos, dU );
 }

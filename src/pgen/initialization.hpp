@@ -9,6 +9,7 @@
 #include "advection.hpp"
 #include "constants.hpp"
 #include "equilibrium.hpp"
+#include "rad_advection.hpp"
 #include "error.hpp"
 #include "grid.hpp"
 #include "initialization.hpp"
@@ -354,6 +355,8 @@ void InitializeFields( State *state, GridStructure *Grid,
       }
   } else if ( ProblemName == "RadEquilibrium" ) {
     RadEquilibriumInit( uCF, uPF, uCR, Grid, pOrder );
+  } else if ( ProblemName == "RadAdvection" ) {
+    RadAdvectionInit( uCF, uPF, uCR, Grid, pOrder );
   } else {
     THROW_ATHELAS_ERROR( " ! Please choose a valid ProblemName" );
   }

@@ -33,8 +33,6 @@ TimeStepper::TimeStepper( ProblemIn *pin, GridStructure &Grid )
       SumVar_U( "SumVar_U", 3, mSize + 1, pin->pOrder ),
       SumVar_U_r( "SumVar_U_r", 2, mSize + 1, pin->pOrder ),
       Grid_s( nStages + 1, GridStructure( pin ) ),
-      solver_scratch_h( "scratch_h", 3, pin->pOrder ),
-      solver_scratch_r( "scratch_r", 2, pin->pOrder ),
       StageData( "StageData", nStages + 1, mSize + 1 ),
       Flux_q( "Flux_q", 3, mSize + 1, Grid.Get_nNodes( ) ),
       dFlux_num( "Numerical Flux", 3, mSize + 1 ),
