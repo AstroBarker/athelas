@@ -9,7 +9,8 @@
 
 using namespace utilities;
 
-SlopeLimiter InitializeSlopeLimiter(const GridStructure *grid, const ProblemIn *pin, const int nvars);
+SlopeLimiter InitializeSlopeLimiter( const GridStructure *grid,
+                                     const ProblemIn *pin, const int nvars );
 
 // Standard minmod function
 template <typename T>

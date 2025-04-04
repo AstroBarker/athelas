@@ -20,8 +20,8 @@
 #include "slope_limiter_utilities.hpp"
 #include "utilities.hpp"
 
-
-SlopeLimiter InitializeSlopeLimiter(const GridStructure *grid, const ProblemIn *pin, const int nvars){
+SlopeLimiter InitializeSlopeLimiter( const GridStructure *grid,
+                                     const ProblemIn *pin, const int nvars ) {
   SlopeLimiter S_Limiter;
   if ( pin->limiter_type == "minmod" ) {
     S_Limiter = TVDMinmod( grid, pin, nvars );
@@ -87,40 +87,40 @@ Real BarthJespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T, Real U_c_R,
  **/
 void DetectTroubledCells( View3D<Real> U, View2D<Real> D,
                           const GridStructure *Grid, const ModalBasis *Basis ) {
-  const int ilo = Grid->Get_ilo( );
-  const int ihi = Grid->Get_ihi( );
-
-  Real denominator = 0.0;
+  const int nvars = U.extent( 0 );
+  const int ilo   = Grid->Get_ilo( );
+  const int ihi   = Grid->Get_ihi( );
 
   // Cell averages by extrapolating L and R neighbors into current cell
 
-  // TODO: Kokkos
-  for ( int iCF = 0; iCF < 3; iCF++ )
-    for ( int iX = ilo; iX <= ihi; iX++ ) {
+  for ( int iC = 0; iC < nvars; iC++ ) {
+    if ( iC == 1 ) continue; /* skip momenta */
+    Kokkos::parallel_for(
+        "SlopeLimiter :: TCI", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+        KOKKOS_LAMBDA( const int iX ) {
+          Real denominator = 0.0;
+          Real result      = 0.0;
+          Real cell_avg    = U( iC, iX, 0 );
 
-      if ( iCF == 1 ) continue; /* skip velocity */
+          // Extrapolate neighboring poly representations into current cell
+          // and compute the new cell averages
+          Real cell_avg_L_T =
+              CellAverage( U, Grid, Basis, iC, iX + 1, -1 ); // from right
+          Real cell_avg_R_T =
+              CellAverage( U, Grid, Basis, iC, iX - 1, +1 ); // from left
+          Real cell_avg_L = U( iC, iX - 1, 0 ); // native left
+          Real cell_avg_R = U( iC, iX + 1, 0 ); // native right
 
-      Real result   = 0.0;
-      Real cell_avg = U( iCF, iX, 0 );
+          result += ( std::abs( cell_avg - cell_avg_L_T ) +
+                      std::abs( cell_avg - cell_avg_R_T ) );
 
-      // Extrapolate neighboring poly representations into current cell
-      // and compute the new cell averages
-      Real cell_avg_L_T =
-          CellAverage( U, Grid, Basis, iCF, iX + 1, -1 ); // from right
-      Real cell_avg_R_T =
-          CellAverage( U, Grid, Basis, iCF, iX - 1, +1 ); // from left
-      Real cell_avg_L = U( iCF, iX - 1, 0 ); // native left
-      Real cell_avg_R = U( iCF, iX + 1, 0 ); // native right
+          denominator = std::max(
+              std::max( std::abs( cell_avg_L ), std::abs( cell_avg_R ) ),
+              cell_avg );
 
-      result += ( std::abs( cell_avg - cell_avg_L_T ) +
-                  std::abs( cell_avg - cell_avg_R_T ) );
-
-      denominator =
-          std::max( std::max( std::abs( cell_avg_L ), std::abs( cell_avg_R ) ),
-                    cell_avg );
-
-      D( iCF, iX ) = result / denominator;
-    }
+          D( iC, iX ) = result / denominator;
+        } ); // par_for iX
+  } // loop iC;
 }
 
 /**

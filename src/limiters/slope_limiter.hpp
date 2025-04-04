@@ -20,14 +20,15 @@ class WENO : public SlopeLimiterBase<WENO> {
         gamma_r( pin->gamma_r ), weno_r( pin->weno_r ),
         characteristic( pin->Characteristic ), tci_opt( pin->TCI_Option ),
         tci_val( pin->TCI_Threshold ),
-        modified_polynomial( "modified_polynomial", 3, pin->pOrder ),
-        R( "R Matrix", 3, 3, grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ),
-        R_inv( "invR Matrix", 3, 3,
-               grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ),
-        U_c_T( "U_c_T", 3 ), w_c_T( "w_c_T", 3 ), Mult( "Mult", 3 ),
-        D( "TCI", 3, grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ),
-        LimitedCell( "LimitedCell",
-                     grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ) {}
+        modified_polynomial( "modified_polynomial", grid->Get_nElements( ) + 2,
+                             3, pin->pOrder ),
+        R( "R Matrix", 3, 3, grid->Get_nElements( ) + 2 ),
+        R_inv( "invR Matrix", 3, 3, grid->Get_nElements( ) + 2 ),
+        U_c_T( "U_c_T", 3, grid->Get_nElements( ) ),
+        w_c_T( "w_c_T", 3, grid->Get_nElements( ) ),
+        Mult( "Mult", 3, grid->Get_nElements( ) ),
+        D( "TCI", 3, grid->Get_nElements( ) + 2 ),
+        LimitedCell( "LimitedCell", grid->Get_nElements( ) + 2 ) {}
 
   void ApplySlopeLimiter( View3D<Real> U, const GridStructure *grid,
                           const ModalBasis *basis );
@@ -45,20 +46,20 @@ class WENO : public SlopeLimiterBase<WENO> {
   bool tci_opt;
   Real tci_val;
 
-  View2D<Real> modified_polynomial;
+  View3D<Real> modified_polynomial;
 
   View3D<Real> R;
   View3D<Real> R_inv;
 
   // --- Slope limiter quantities ---
 
-  View1D<Real> U_c_T;
+  View2D<Real> U_c_T;
 
   // characteristic forms
-  View1D<Real> w_c_T;
+  View2D<Real> w_c_T;
 
   // matrix mult scratch scape
-  View1D<Real> Mult;
+  View2D<Real> Mult;
 
   View2D<Real> D;
   View1D<int> LimitedCell;
@@ -75,7 +76,9 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
         R( "R Matrix", 3, 3, grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ),
         R_inv( "invR Matrix", 3, 3,
                grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ),
-        U_c_T( "U_c_T", 3 ), w_c_T( "w_c_T", 3 ), Mult( "Mult", 3 ),
+        U_c_T( "U_c_T", 3, grid->Get_nElements( ) ),
+        w_c_T( "w_c_T", 3, grid->Get_nElements( ) ),
+        Mult( "Mult", 3, grid->Get_nElements( ) ),
         D( "TCI", 3, grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ),
         LimitedCell( "LimitedCell",
                      grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ) {}
@@ -98,13 +101,13 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
 
   // --- Slope limiter quantities ---
 
-  View1D<Real> U_c_T;
+  View2D<Real> U_c_T;
 
   // characteristic forms
-  View1D<Real> w_c_T;
+  View2D<Real> w_c_T;
 
   // matrix mult scratch scape
-  View1D<Real> Mult;
+  View2D<Real> Mult;
 
   View2D<Real> D;
   View1D<int> LimitedCell;
