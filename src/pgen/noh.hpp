@@ -10,8 +10,6 @@
 #include "error.hpp"
 #include "grid.hpp"
 
-#define GAMMA 1.4
-
 /**
  * Initialize Noh problem
  **/
@@ -39,6 +37,8 @@ void noh_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
       pin->in_table["problem"]["params"]["pL"].value_or( 0.000001 );
   const Real P_R =
       pin->in_table["problem"]["params"]["pR"].value_or( 0.000001 );
+
+  const Real GAMMA = 1.4;
 
   Real X1 = 0.0;
   for ( int iX = ilo; iX <= ihi; iX++ )

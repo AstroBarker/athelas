@@ -22,8 +22,6 @@
 #include "pgen/sod.hpp"
 #include "state.hpp"
 
-#define GAMMA 1.4
-
 /**
  * Initialize the conserved Fields for various problems.
  * TODO: For now I initialize constant on each cell. Is there a better way?

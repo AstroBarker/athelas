@@ -10,8 +10,6 @@
 #include "error.hpp"
 #include "grid.hpp"
 
-#define GAMMA 1.4
-
 /**
  * Initialize sedov blast wave
  **/
@@ -33,12 +31,14 @@ void sedov_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
 
   const Real V0 = pin->in_table["problem"]["params"]["v0"].value_or( 0.0 );
   const Real D0 = pin->in_table["problem"]["params"]["rho0"].value_or( 1.0 );
-  const Real E0 = pin->in_table["problem"]["params"]["rhoR"].value_or( 0.3 );
+  const Real E0 = pin->in_table["problem"]["params"]["E0"].value_or( 0.3 );
 
-  const int origin = Grid->Get_nElements( ) / 2;
+  const int origin = 1;
 
   // TODO: geometry aware volume for energy
-  const Real P0 = ( 5.0 / 3.0 - 1.0 ) * E0 / Grid->Get_Widths( origin );
+  const Real volume = ( 4.0 * M_PI / 3.0 ) *
+                      std::pow( Grid->Get_LeftInterface( origin + 1 ), 3.0 );
+  const Real P0 = ( 5.0 / 3.0 - 1.0 ) * E0 / volume;
 
   for ( int iX = ilo; iX <= ihi; iX++ )
     for ( int k = 0; k < pOrder; k++ )
@@ -51,7 +51,7 @@ void sedov_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
         } else {
           uCF( iCF_Tau, iX, k ) = 1.0 / D0;
           uCF( iCF_V, iX, k )   = V0;
-          if ( iX == origin - 1 || iX == origin ) {
+          if ( iX == origin - 0 || iX == origin ) {
             uCF( iCF_E, iX, k ) =
                 ( P0 / ( 5.0 / 3.0 - 1.0 ) ) * uCF( iCF_Tau, iX, k ) +
                 0.5 * V0 * V0;

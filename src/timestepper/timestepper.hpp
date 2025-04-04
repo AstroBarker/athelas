@@ -15,6 +15,7 @@
 #include "polynomial_basis.hpp"
 #include "problem_in.hpp"
 #include "slope_limiter.hpp"
+#include "slope_limiter_base.hpp"
 #include "solvers/root_finders.hpp"
 #include "state.hpp"
 #include "tableau.hpp"
@@ -68,7 +69,8 @@ class TimeStepper {
                                                   { nvars, ihi + 2, order } ),
           KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
             SumVar_U( iCF, iX, k ) = U( iCF, iX, k );
-            StageData( iS, iX )    = Grid_s[iS].Get_LeftInterface( iX );
+            StageData( iS, iX )    = Grid.Get_LeftInterface( iX );
+            // StageData( iS, iX )    = Grid_s[iS].Get_LeftInterface( iX );
           } );
 
       // --- Inner update loop ---
@@ -113,7 +115,8 @@ class TimeStepper {
 
       auto Us_j =
           Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-      S_Limiter->ApplySlopeLimiter( Us_j, &Grid_s[iS], Basis );
+      // S_Limiter->ApplySlopeLimiter( Us_j, &Grid_s[iS], Basis );
+      ApplySlopeLimiter( S_Limiter, Us_j, &Grid_s[iS], Basis );
       ApplyBoundEnforcingLimiter( Us_j, Basis, eos );
     } // end outer loop
 
@@ -138,15 +141,15 @@ class TimeStepper {
       Kokkos::parallel_for(
           "Timestepper::StageData::final", ihi + 2,
           KOKKOS_LAMBDA( const int iX ) {
-            StageData( iS, iX ) +=
+            StageData( 0, iX ) +=
                 dt * Flux_Uj( iX ) * explicit_tableau_.b_i( iS );
           } );
-      auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
+      auto StageDataj = Kokkos::subview( StageData, 0, Kokkos::ALL );
       Grid_s[iS].UpdateGrid( StageDataj );
     }
 
     Grid = Grid_s[nStages - 1];
-    S_Limiter->ApplySlopeLimiter( U, &Grid, Basis );
+    ApplySlopeLimiter( S_Limiter, U, &Grid, Basis );
     ApplyBoundEnforcingLimiter( U, Basis, eos );
   }
 
@@ -363,7 +366,7 @@ class TimeStepper {
 
         Kokkos::parallel_for(
             "Timestepper::StageData", ihi + 2, KOKKOS_LAMBDA( const int iX ) {
-              StageData( iS, iX ) +=
+              StageData( j, iX ) +=
                   dt * explicit_tableau_.a_ij( iS, j ) * Flux_Uj( iX );
             } );
       } // End inner loop
@@ -427,10 +430,10 @@ class TimeStepper {
       // TODO: slope limit rad
       auto Us_j_h =
           Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-      S_Limiter->ApplySlopeLimiter( Us_j_h, &Grid_s[iS], Basis );
+      ApplySlopeLimiter( S_Limiter, Us_j_h, &Grid_s[iS], Basis );
       auto Us_j_r =
           Kokkos::subview( U_s_r, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-      S_Limiter->ApplySlopeLimiter( Us_j_r, &Grid_s[iS], Basis );
+      ApplySlopeLimiter( S_Limiter, Us_j_r, &Grid_s[iS], Basis );
       ApplyBoundEnforcingLimiter( Us_j_h, Basis, eos );
       ApplyBoundEnforcingLimiterRad( Us_j_r, Basis, eos );
     } // end outer loop
@@ -495,8 +498,8 @@ class TimeStepper {
 
     // TODO: slope limit rad
     Grid = Grid_s[nStages - 1];
-    S_Limiter->ApplySlopeLimiter( uCF, &Grid, Basis );
-    S_Limiter->ApplySlopeLimiter( uCR, &Grid, Basis );
+    ApplySlopeLimiter( S_Limiter, uCF, &Grid, Basis );
+    ApplySlopeLimiter( S_Limiter, uCR, &Grid, Basis );
     ApplyBoundEnforcingLimiter( uCF, Basis, eos );
     ApplyBoundEnforcingLimiterRad( uCR, Basis, eos );
   }
