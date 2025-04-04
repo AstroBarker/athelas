@@ -75,6 +75,7 @@ ProblemIn::ProblemIn( const std::string fn ) {
   }
 
   // limiters
+  do_limiter = in_table["limiters"]["do_limiter"].value_or( true );
   std::optional<bool> tci_opt = in_table["limiters"]["tci_opt"].value<bool>( );
   std::optional<Real> tci_val = in_table["limiters"]["tci_val"].value<Real>( );
   std::optional<bool> characteristic =
@@ -83,6 +84,18 @@ ProblemIn::ProblemIn( const std::string fn ) {
   std::optional<Real> gamma2 = in_table["limiters"]["gamma_i"].value<Real>( );
   std::optional<Real> gamma3 = in_table["limiters"]["gamma_r"].value<Real>( );
   std::optional<Real> wenor  = in_table["limiters"]["weno_r"].value<Real>( );
+  b_tvd                      = in_table["limiters"]["b_tvd"].value_or( 1.0 );
+  m_tvb                      = in_table["limiters"]["m_tvb"].value_or( 1.0 );
+  limiter_type = in_table["limiters"]["type"].value_or( "minmod" );
+  if ( b_tvd < 1.0 || b_tvd > 2.0 ) {
+    THROW_ATHELAS_ERROR( "b_tvd must be in [1.0, 2.0]." );
+  }
+  if ( utilities::to_lower( limiter_type ) != "minmod" &&
+       utilities::to_lower( limiter_type ) != "weno" ) {
+    THROW_ATHELAS_ERROR( "Please choose a valid limiter! Current options: \n"
+                         " - weno \n"
+                         " - minmod" );
+  }
 
   if ( pn ) {
     problem_name = pn.value( );
