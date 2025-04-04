@@ -140,6 +140,17 @@ Real ModalBasis::dLegendre( const int order, const Real x ) {
   return dPn;
 }
 
+Real ModalBasis::dLegendreN( const int poly_order, const int deriv_order,
+                             const Real x ) {
+  if ( deriv_order == 0 ) return Legendre( poly_order, x );
+  if ( poly_order < deriv_order ) return 0.0;
+  if ( deriv_order == 1 ) {
+    return dLegendre( poly_order, x );
+  }
+  return poly_order * dLegendreN( poly_order - 1, deriv_order - 1, x ) +
+         x * dLegendreN( poly_order - 1, deriv_order, x );
+}
+
 /* TODO: the following 2 inner product functions need to be cleaned */
 
 /**
@@ -352,7 +363,6 @@ void ModalBasis::ComputeMassMatrix( const View3D<Real> uPF,
 
 /**
  * Evaluate (modal) basis on element iX for quantity iCF.
- * If DerivativeOption is true, evaluate the derivative.
  **/
 Real ModalBasis::basis_eval( View3D<Real> U, const int iX, const int iCF,
                              const int i_eta ) const {
