@@ -19,8 +19,8 @@ dt_hdf5 = 0.1
 
 [fluid]
 basis = "legendre"
-nnodes = 2
-porder = 2
+nnodes = 1
+porder = 1
 nx = 128
 ng = 1
 

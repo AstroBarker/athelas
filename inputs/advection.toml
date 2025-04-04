@@ -10,7 +10,7 @@ bc = "periodic"
 cfl = 0.35
 
 [problem.params]
-v0 = -1.0
+v0 = 1.0
 p0 = 0.1
 amp = 1.0
 
@@ -21,14 +21,14 @@ dt_hdf5 = 0.1
 
 [fluid]
 basis = "legendre"
-nnodes = 1
-pprder = 1
+nnodes = 3
+pprder = 3
 nx = 128
 ng = 1
 
 [time]
-torder = 1
-nstages = 1
+torder = 4
+nstages = 5
 
 [eos]
 type = "ideal"
