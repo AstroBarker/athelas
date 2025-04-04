@@ -28,6 +28,9 @@
 #include "rad_discretization.hpp"
 #include "rad_utilities.hpp"
 #include "slope_limiter.hpp"
+#include "slope_limiter_base.hpp"
+// #include "slope_limiter_weno.hpp"
+// #include "slope_limiter_tvdminmod.hpp"
 #include "state.hpp"
 #include "timestepper.hpp"
 
@@ -102,10 +105,18 @@ int main( int argc, char *argv[] ) {
     // --- Initialize timestepper ---
     TimeStepper SSPRK( &pin, Grid );
 
-    SlopeLimiter S_Limiter( &Grid, &pin );
+    //    using LIMTER_TYPE = (pin.limiter_type == "minmod") ? TVDMinmod : WENO;
+    //    WENO S_Limiter_( &Grid, &pin, 3 );
+    //    SlopeLimiter S_Limiter = S_Limiter_;
+    SlopeLimiter S_Limiter;
+    if ( pin.limiter_type == "minmod" ) {
+      S_Limiter = TVDMinmod( &Grid, &pin, 3 );
+    } else {
+      S_Limiter = WENO( &Grid, &pin, 3 );
+    }
 
     // --- Limit the initial conditions ---
-    S_Limiter.ApplySlopeLimiter( state.Get_uCF( ), &Grid, &Basis );
+    ApplySlopeLimiter( &S_Limiter, state.Get_uCF( ), &Grid, &Basis );
 
     // -- print run parameters  and initial condition ---
     PrintSimulationParameters( Grid, &pin, CFL );
