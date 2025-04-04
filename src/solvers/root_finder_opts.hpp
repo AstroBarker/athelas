@@ -10,7 +10,7 @@
 namespace root_finders {
 
 constexpr unsigned int MAX_ITERS = 200;
-constexpr Real FPTOL             = 1.0e-11;
+constexpr Real FPTOL             = 1.0e-10;
 constexpr Real RELTOL            = 1.0e-8;
 constexpr Real ZBARTOL           = 1.0e-15;
 constexpr Real ZBARTOLINV        = 1.0e15;

@@ -28,50 +28,78 @@ Real Residual( F g, T x0, const int k, const int iC, Args... args ) {
 
 /**
  * Anderson accelerated fixed point solver templated on type, function, args...
+ * Assumes target is in f(x) = x form
  **/
-// template <typename T, typename F, typename... Args>
-// T fixed_point_aa( F target, T x0, Args... args ) {
-//
-//   // puts f(x) = 0 into fixed point form
-//   auto f = [&]( const Real x, Args... args ) {
-//     return target( x, args... ) + x;
-//   };
-//
-//   unsigned int n = 0;
-//   T error        = 1.0;
-//   T xkm1, xk, xkp1;
-//   xk   = target( x0, args... ); // one fixed point step
-//   xkm1 = x0;
-//   if ( std::abs( xk - x0 ) <= root_finders::FPTOL ) return xk;
-//   while ( n <= root_finders::MAX_ITERS && error >= root_finders::FPTOL ) {
-//     /* Anderson acceleration step */
-//     T alpha =
-//         -Residual( target, xk, args... ) /
-//         ( Residual( target, xkm1, args... ) - Residual( target, xk, args... )
-//         );
-//
-//     T xkp1 = alpha * target( xkm1, args... ) +
-//              ( 1.0 - alpha ) * target( xk, args... );
-//     error = std::abs( xk - xkp1 );
-//
-//     xkm1 = xk;
-//     xk   = xkp1;
-//
-//     n += 1;
-//
-// #ifdef ATHELAS_DEBUG
-//     std::printf( " %d %e %e \n", n, xk, error );
-// #endif
-//     if ( n == root_finders::MAX_ITERS ) {
-//       THROW_ATHELAS_ERROR( " ! Root Finder :: Anderson Accelerated Fixed
-//       Point "
-//                    "Iteration Failed To "
-//                    "Converge ! \n" );
-//     }
-//   }
-//
-//   return xk;
-// }
+template <typename T, typename F, typename... Args>
+T fixed_point_aa( F target, T x0, Args... args ) {
+
+  unsigned int n = 0;
+  T error        = 1.0;
+  T xkm1, xk, xkp1;
+  xk   = target( x0, args... ); // one fixed point step
+  xkm1 = x0;
+  if ( std::abs( xk - x0 ) <= root_finders::FPTOL ) return xk;
+  while ( n <= root_finders::MAX_ITERS && error >= root_finders::FPTOL ) {
+    /* Anderson acceleration step */
+    T alpha =
+        -Residual( target, xk, args... ) /
+        ( Residual( target, xkm1, args... ) - Residual( target, xk, args... ) );
+
+    T xkp1 = alpha * target( xkm1, args... ) +
+             ( 1.0 - alpha ) * target( xk, args... );
+    error = std::abs( xk - xkp1 );
+
+    xkm1 = xk;
+    xk   = xkp1;
+
+    n += 1;
+
+#ifdef ATHELAS_DEBUG
+    // std::printf( " %d %e %e \n", n, xk, error );
+#endif
+  }
+
+  return xk;
+}
+/**
+ * Anderson accelerated fixed point solver templated on type, function, args...
+ * Assumes target is in f(x) = 0 form and transforms
+ **/
+template <typename T, typename F, typename... Args>
+T fixed_point_aa_root( F target, T x0, Args... args ) {
+
+  // puts f(x) = 0 into fixed point form
+  auto f = [&]( const Real x, Args... args ) {
+    return target( x, args... ) + x;
+  };
+  // residual function, used in AA algorithm
+  auto g = [&]( const Real x, Args... args ) { return f( x, args... ) - x; };
+
+  unsigned int n = 0;
+  T error        = 1.0;
+  T xkm1, xk, xkp1;
+  xk   = f( x0, args... ); // one fixed point step
+  xkm1 = x0;
+  if ( std::abs( xk - x0 ) <= root_finders::FPTOL ) return xk;
+  while ( n <= root_finders::MAX_ITERS && error >= root_finders::FPTOL ) {
+    /* Anderson acceleration step */
+    T alpha = -g( xk, args... ) / ( g( xkm1, args... ) - g( xk, args... ) );
+
+    T xkp1 = alpha * f( xkm1, args... ) + ( 1.0 - alpha ) * f( xk, args... );
+    error  = std::abs( xk - xkp1 );
+
+    xkm1 = xk;
+    xk   = xkp1;
+
+    n += 1;
+
+#ifdef ATHELAS_DEBUG
+    // std::printf( " %d %e %e \n", n, xk, error );
+#endif
+  }
+
+  return xk;
+}
 
 /**
  * Anderson accelerated fixed point solver templated on type, function, args...
