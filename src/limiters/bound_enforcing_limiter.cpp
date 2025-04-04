@@ -19,24 +19,36 @@
 #include "eos.hpp"
 #include "error.hpp"
 #include "polynomial_basis.hpp"
+#include "solvers/root_finders.hpp"
 #include "utilities.hpp"
 
+/**
+ * Limit density following K. Schaal et al 2015
+ * ADS: 10.1093/mnras/stv1859
+ *
+ * Find theta = min((rho_avg - eps)/(rho_nodal - rho_avg) ,1)
+ * Scale slope, ... by theta
+ **/
 void LimitDensity( View3D<Real> U, const ModalBasis *Basis ) {
-  const Real EPSILON = 1.0e-13; // maybe make this smarter
-  const int order    = Basis->Get_Order( );
+  constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
+  const int order               = Basis->Get_Order( );
 
   if ( order == 1 ) return;
 
   Kokkos::parallel_for(
       "BEF::Limit Density", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
-      KOKKOS_LAMBDA( int iX ) {
+      KOKKOS_LAMBDA( const int iX ) {
         Real theta1 = 100000.0; // big
         Real nodal  = 0.0;
         Real frac   = 0.0;
         Real avg    = U( 0, iX, 0 );
 
         for ( int iN = 0; iN <= order; iN++ ) {
-          nodal  = Basis->basis_eval( U, iX, 0, iN );
+          nodal = Basis->basis_eval( U, iX, 0, iN );
+          if ( std::isnan( nodal ) ) {
+            theta1 = 0.0;
+            break;
+          }
           frac   = std::abs( ( avg - EPSILON ) / ( avg - nodal ) );
           theta1 = std::min( theta1, std::min( 1.0, frac ) );
         }
@@ -47,6 +59,31 @@ void LimitDensity( View3D<Real> U, const ModalBasis *Basis ) {
       } );
 }
 
+/**
+ * Limit other variables based on K. Schaal et al 2015
+ * in order to preserve positivity of internal energy
+ * ADS: 10.1093/mnras/stv1859
+ *
+ *
+ * Find a theta s.t. (1 - theta) U_bar + theta U_q
+ * is positive for U being the specific internal energy.
+ *
+ * There are three root finders implemented:
+ *  - A Bisection
+ *  - An Anderson accelerated fixed point iteration
+ *  - A simple "back tracing" algorithm (step back from theta = 1)
+ *
+ * The fixed point iteration is default. All yield the same
+ * result and seem stable on difficult problems, but if
+ * stability issues arise, consider switching the solver to
+ * Bisection below.
+ * Note that in the bisection and fixed point solvers
+ * a small delta = 1.0e-3 is subtracted from the root
+ * to ensure positivity. The backtrace algorithm overshoots
+ * the root and so this is not necessary.
+ *
+ * The simulation time is insensitive to solver choice.
+ **/
 void LimitInternalEnergy( View3D<Real> U, const ModalBasis *Basis,
                           const EOS *eos ) {
   const int order = Basis->Get_Order( );
@@ -55,21 +92,24 @@ void LimitInternalEnergy( View3D<Real> U, const ModalBasis *Basis,
 
   Kokkos::parallel_for(
       "BEF::Limit Internal Energy",
-      Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ), KOKKOS_LAMBDA( int iX ) {
-        Real theta2 = 10000000.0;
-        Real nodal  = 0.0;
-        Real temp   = 0.0;
+      Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
+      KOKKOS_LAMBDA( const int iX ) {
+        constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
+        Real theta2                   = 10000000.0;
+        Real nodal                    = 0.0;
+        Real temp                     = 0.0;
 
         for ( int iN = 0; iN <= order + 1; iN++ ) {
           nodal = utilities::ComputeInternalEnergy( U, Basis, iX, iN );
 
-          if ( nodal >= 0.0 ) {
+          if ( nodal > EPSILON ) {
             temp = 1.0;
           } else {
-            // TODO: Backtracing may be working okay...
-            temp = Backtrace( U, TargetFunc, Basis, eos, iX, iN );
-            // TODO: This is hacked and Does Not Really Work
-            // temp = Bisection( U, Basis, iX, iN ) / 2.0;
+            // temp = Backtrace( U, TargetFunc, Basis, eos, iX, iN );
+            // const Real theta_guess = 0.9; // needed for fixed point
+            // temp = root_finders::fixed_point_aa_root(TargetFunc, theta_guess,
+            // U, Basis, eos, iX, iN) - 1.0e-3;
+            temp = Bisection( U, TargetFunc, Basis, eos, iX, iN );
           }
           theta2 = std::min( theta2, temp );
         }
@@ -90,6 +130,7 @@ void ApplyBoundEnforcingLimiter( View3D<Real> U, const ModalBasis *Basis,
   LimitInternalEnergy( U, Basis, eos );
 }
 
+// TODO: much more here.
 void ApplyBoundEnforcingLimiterRad( View3D<Real> U, const ModalBasis *Basis,
                                     const EOS *eos ) {
   if ( Basis->Get_Order( ) == 1 ) return;
@@ -113,9 +154,10 @@ void LimitRadMomentum( View3D<Real> U, const ModalBasis *Basis,
             temp = 1.0;
           } else {
             // TODO: Backtracing may be working okay...
-            temp = Backtrace( U, TargetFuncRad, Basis, eos, iX, iN );
-            // TODO: This is hacked and Does Not Really Work
-            // temp = Bisection( U, Basis, iX, iN ) / 2.0;
+            const Real theta_guess = 0.9;
+            // temp = Backtrace( TargetFuncRad, theta_guess, U, Basis, eos, iX,
+            // iN );
+            temp = Bisection( U, TargetFuncRad, Basis, eos, iX, iN );
           }
           theta2 = std::min( theta2, temp );
         }
@@ -139,9 +181,10 @@ Real ComputeThetaState( const View3D<Real> U, const ModalBasis *Basis,
   return result;
 }
 
-Real TargetFunc( const View3D<Real> U, const ModalBasis *Basis, const EOS *eos,
-                 const Real theta, const int iX, const int iN ) {
-  const Real w = std::min( 1.0e-13, utilities::ComputeInternalEnergy( U, iX ) );
+Real TargetFunc( const Real theta, const View3D<Real> U,
+                 const ModalBasis *Basis, const EOS *eos, const int iX,
+                 const int iN ) {
+  const Real w = std::min( 1.0e-10, utilities::ComputeInternalEnergy( U, iX ) );
   const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
   const Real s2 = ComputeThetaState( U, Basis, theta, 2, iX, iN );
 
@@ -150,8 +193,8 @@ Real TargetFunc( const View3D<Real> U, const ModalBasis *Basis, const EOS *eos,
   return e - w;
 }
 
-Real TargetFuncRad( const View3D<Real> U, const ModalBasis *Basis,
-                    const EOS *eos, const Real theta, const int iX,
+Real TargetFuncRad( const Real theta, const View3D<Real> U,
+                    const ModalBasis *Basis, const EOS *eos, const int iX,
                     const int iN ) {
   const Real w  = std::min( 1.0e-13, U( 1, iX, 0 ) );
   const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
@@ -159,42 +202,4 @@ Real TargetFuncRad( const View3D<Real> U, const ModalBasis *Basis,
   const Real e = s1;
 
   return e - w;
-}
-
-Real Bisection( const View3D<Real> U, ModalBasis *Basis, EOS *eos, const int iX,
-                const int iN ) {
-  const Real TOL      = 1e-10;
-  const int MAX_ITERS = 100;
-
-  // bisection bounds on theta
-  Real a = 0.0;
-  Real b = 1.0;
-  Real c = 0.5;
-
-  Real fa = 0.0; // f(a) etc
-  Real fc = 0.0;
-
-  int n = 0;
-  while ( n <= MAX_ITERS ) {
-    c = ( a + b ) / 2.0;
-
-    fa = TargetFunc( U, Basis, eos, a, iX, iN );
-    fc = TargetFunc( U, Basis, eos, c, iX, iN );
-
-    if ( std::abs( fc ) <= TOL / 10.0 || ( b - a ) / 2.0 < TOL ) {
-      return c;
-    }
-
-    // new interval
-    if ( utilities::sgn( fc ) == utilities::sgn( fa ) ) {
-      a = c;
-    } else {
-      b = c;
-    }
-
-    n++;
-  }
-
-  std::printf( "Max Iters Reach In Bisection\n" );
-  return c;
 }

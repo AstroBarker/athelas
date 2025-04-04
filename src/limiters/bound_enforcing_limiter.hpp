@@ -4,6 +4,7 @@
 #include "abstractions.hpp"
 #include "eos.hpp"
 #include "polynomial_basis.hpp"
+#include "utils/utilities.hpp"
 
 void LimitDensity( View3D<Real> U, const ModalBasis *Basis );
 void LimitInternalEnergy( View3D<Real> U, const ModalBasis *Basis,
@@ -17,24 +18,64 @@ void ApplyBoundEnforcingLimiterRad( View3D<Real> U, const ModalBasis *Basis,
 Real ComputeThetaState( const View3D<Real> U, const ModalBasis *Basis,
                         const EOS *eos, const Real theta, const int iCF,
                         const int iX, const int iN );
-Real TargetFunc( const View3D<Real> U, const ModalBasis *Basis, const EOS *eos,
-                 const Real theta, const int iX, const int iN );
-Real TargetFuncRad( const View3D<Real> U, const ModalBasis *Basis,
-                    const EOS *eos, const Real theta, const int iX,
+Real TargetFunc( const Real theta, const View3D<Real> U,
+                 const ModalBasis *Basis, const EOS *eos, const int iX,
+                 const int iN );
+Real TargetFuncRad( const Real theta, const View3D<Real> U,
+                    const ModalBasis *Basis, const EOS *eos, const int iX,
                     const int iN );
-Real Bisection( const View3D<Real> U, ModalBasis *Basis, EOS *eos, const int iX,
-                const int iN );
+
+template <typename F>
+Real Bisection( const View3D<Real> U, F target, const ModalBasis *Basis,
+                const EOS *eos, const int iX, const int iN ) {
+  const Real TOL      = 1e-10;
+  const int MAX_ITERS = 100;
+  const Real delta    = 1.0e-3; // reduce root by delta
+
+  // bisection bounds on theta
+  Real a = 0.0;
+  Real b = 1.0;
+  Real c = 0.5;
+
+  Real fa = 0.0; // f(a) etc
+  Real fc = 0.0;
+
+  int n = 0;
+  while ( n <= MAX_ITERS ) {
+    c = ( a + b ) / 2.0;
+
+    fa = target( a, U, Basis, eos, iX, iN );
+    fc = target( c, U, Basis, eos, iX, iN );
+
+    if ( std::abs( fc ) <= TOL || ( b - a ) / 2.0 < TOL ) {
+      return c - delta;
+    }
+
+    // new interval
+    if ( utilities::sgn( fc ) == utilities::sgn( fa ) ) {
+      a = c;
+    } else {
+      b = c;
+    }
+
+    n++;
+  }
+
+  std::printf( "Max Iters Reach In Bisection\n" );
+  return c - delta;
+}
 // Real Backtrace( const View3D<Real> U, const ModalBasis *Basis, const EOS
 // *eos,
 //                 const int iX, const int iN );
 template <typename F>
 Real Backtrace( const View3D<Real> U, F target, const ModalBasis *Basis,
                 const EOS *eos, const int iX, const int iN ) {
-  Real theta = 1.0;
-  Real nodal = -1.0;
+  constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
+  Real theta                    = 1.0;
+  Real nodal                    = -1.0;
 
-  while ( theta >= 0.01 && nodal < 0.0 && nodal > U( 0, iX, 0 ) ) {
-    nodal = target( U, Basis, eos, theta, iX, iN );
+  while ( theta >= 0.01 && nodal < EPSILON ) {
+    nodal = target( theta, U, Basis, eos, iX, iN );
 
     theta -= 0.05;
   }
