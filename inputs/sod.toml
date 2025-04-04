@@ -1,13 +1,13 @@
 [problem]
 problem = "sod"
-t_end = 0.1
+t_end = 0.2
 geometry = "planar"
 restart = false
 do_rad = false
 xl = 0.0
 xr = 1.0
 bc = "homogenous"
-cfl = 0.35
+cfl = 0.5
 
 [problem.params]
 v0 = 0.0
@@ -20,27 +20,31 @@ pR = 0.1
 nlim = -1
 ncycle_out = 100
 dt_hdf5 = 1.0e-2
-dt_init_frac = 5.0
+dt_init_frac = 1.5
 
 [fluid]
 basis = "legendre"
-nnodes = 1
-porder = 1
-nx = 512
+nnodes = 3
+porder = 3
+nx = 256
 ng = 1
 
 [time]
-torder = 1
-nstages = 1
+torder = 2
+nstages = 2
 
 [eos]
 type = "ideal"
 ideal_gamma = 1.4 # default: 1.4
 
 [limiters]
+do_limiter = true
+type = "weno"
 tci_opt = false
-tci_val = 0.1
+tci_val = 0.05
 characteristic = true
 gamma_i = 0.998
 #gamma_r = 0.005
 #gamma_l = 0.005
+#b_tvd = 2.0 #minmod
+#m_tvb = 1.0 #minmod

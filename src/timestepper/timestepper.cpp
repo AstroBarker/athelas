@@ -14,6 +14,7 @@
 #include "grid.hpp"
 #include "polynomial_basis.hpp"
 #include "slope_limiter.hpp"
+#include "slope_limiter_base.hpp"
 #include "tableau.hpp"
 #include "timestepper.hpp"
 

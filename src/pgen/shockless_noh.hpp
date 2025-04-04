@@ -10,8 +10,6 @@
 #include "error.hpp"
 #include "grid.hpp"
 
-#define GAMMA 1.4
-
 /**
  * Initialize shockless Noh problem
  **/

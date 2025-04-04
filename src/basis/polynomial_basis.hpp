@@ -56,6 +56,8 @@ class ModalBasis {
   static Real dLegendre( const int order, const Real x );
   static Real Legendre( const int order, const Real x, const Real x_c );
   static Real dLegendre( const int order, const Real x, const Real x_c );
+  static Real dLegendreN( const int poly_order, const int deriv_order,
+                          const Real x );
 
  private:
   int nX;

@@ -49,14 +49,13 @@ void ApplyBC( View3D<Real> U, GridStructure *Grid, const int order,
         }
 
       // Outer Boundary
-      for ( int iX = ihi + 1; iX < nX + 2 * nG; iX++ )
-        for ( int k = 0; k < order; k++ ) {
-          if ( iCF != 1 ) {
-            U( iCF, iX, k ) = U( iCF, ihi, k );
-          } else {
-            U( iCF, iX, k ) = -U( 1, ihi, k );
-          }
+      for ( int k = 0; k < order; k++ ) {
+        if ( iCF != 1 ) {
+          U( iCF, ihi + 1, k ) = U( iCF, ihi, k );
+        } else {
+          U( iCF, ihi + 1, k ) = U( 1, ihi, k );
         }
+      }
     }
   } else if ( utilities::to_lower( BC ) == "periodic" ) {
     for ( int iCF = 0; iCF < nvars; iCF++ )

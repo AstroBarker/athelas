@@ -1,11 +1,11 @@
 [problem]
 problem = "shu_osher"
-t_end = 0.1
+t_end = 1.8
 geometry = "planar"
 restart = false
 do_rad = false
-xl = 0.0
-xr = 1.0
+xl = -5.0
+xr = 5.0
 bc = "homogenous"
 cfl = 0.35
 
@@ -22,22 +22,26 @@ dt_hdf5 = 1.0e-2
 
 [fluid]
 basis = "legendre"
-nnodes = 2
-porder = 2
-nx = 512
+nnodes = 1
+porder = 1
+nx = 256
 ng = 1
 
 [time]
-torder = 2
-nstages = 2
+torder = 3
+nstages = 3
 
 [eos]
 type = "ideal"
+gamma_ideal = 1.4
 
 [limiters]
-tci_opt = true
+do_limiter = true
+type = "minmod"
+weno_r = 2.0
+tci_opt = false
 tci_val = 0.1
-characteristic = true
-gamma_i = 0.998
+characteristic = false
+gamma_i = 0.8
 #gamma_r = 0.005
 #gamma_l = 0.005

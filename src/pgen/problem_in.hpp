@@ -74,6 +74,10 @@ class ProblemIn {
   Real gamma_i;
   Real gamma_r;
   Real weno_r;
+  Real b_tvd;
+  Real m_tvb;
+  std::string limiter_type;
+  bool do_limiter;
 
   toml::table in_table;
 };

@@ -28,6 +28,8 @@
 #include "rad_discretization.hpp"
 #include "rad_utilities.hpp"
 #include "slope_limiter.hpp"
+#include "slope_limiter_base.hpp"
+#include "slope_limiter_utilities.hpp"
 #include "state.hpp"
 #include "timestepper.hpp"
 
@@ -102,10 +104,9 @@ int main( int argc, char *argv[] ) {
     // --- Initialize timestepper ---
     TimeStepper SSPRK( &pin, Grid );
 
-    SlopeLimiter S_Limiter( &Grid, &pin );
-
+    SlopeLimiter S_Limiter = InitializeSlopeLimiter( &Grid, &pin, 3 );
     // --- Limit the initial conditions ---
-    S_Limiter.ApplySlopeLimiter( state.Get_uCF( ), &Grid, &Basis );
+    ApplySlopeLimiter( &S_Limiter, state.Get_uCF( ), &Grid, &Basis );
 
     // -- print run parameters  and initial condition ---
     PrintSimulationParameters( Grid, &pin, CFL );

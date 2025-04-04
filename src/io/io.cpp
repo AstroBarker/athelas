@@ -14,8 +14,8 @@
 
 #include "grid.hpp"
 #include "io.hpp"
+#include "limiters/slope_limiter.hpp"
 #include "polynomial_basis.hpp"
-#include "slope_limiter.hpp"
 
 /**
  * Write to standard output some initialization info
@@ -132,7 +132,7 @@ void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
       grid[( iX - ilo )].x = Grid.Get_Centers( iX );
       dr[( iX - ilo )].x   = Grid.Get_Widths( iX );
       // std::printf("dr %f\n", Grid.Get_Widths(iX));
-      limiter[( iX - ilo )].x       = SL->Get_Limited( iX );
+      limiter[( iX - ilo )].x       = Get_Limited( SL, iX );
       tau[( iX - ilo ) + k * nX].x  = uCF( 0, iX, k );
       vel[( iX - ilo ) + k * nX].x  = uCF( 1, iX, k );
       eint[( iX - ilo ) + k * nX].x = uCF( 2, iX, k );
