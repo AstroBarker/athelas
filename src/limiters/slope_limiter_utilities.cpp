@@ -16,8 +16,20 @@
 #include <iostream>
 #include <limits>
 
+#include "slope_limiter.hpp"
 #include "slope_limiter_utilities.hpp"
 #include "utilities.hpp"
+
+
+SlopeLimiter InitializeSlopeLimiter(const GridStructure *grid, const ProblemIn *pin, const int nvars){
+  SlopeLimiter S_Limiter;
+  if ( pin->limiter_type == "minmod" ) {
+    S_Limiter = TVDMinmod( grid, pin, nvars );
+  } else {
+    S_Limiter = WENO( grid, pin, nvars );
+  }
+  return S_Limiter;
+}
 
 /**
  *  UNUSED

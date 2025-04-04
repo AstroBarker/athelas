@@ -4,9 +4,12 @@
 #include "abstractions.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "geometry/grid.hpp"
+#include "slope_limiter.hpp"
 #include "utils/utilities.hpp"
 
 using namespace utilities;
+
+SlopeLimiter InitializeSlopeLimiter(const GridStructure *grid, const ProblemIn *pin, const int nvars);
 
 // Standard minmod function
 template <typename T>
@@ -53,4 +56,4 @@ Real NonLinearWeight( const Real gamma, const Real beta, const Real tau,
 
 Real Tau( const Real beta_l, const Real beta_i, const Real beta_r,
           const Real weno_r );
-#endif // _SLOPE_LIMITER_UTILITIES_HPP_
+#endif // SLOPE_LIMITER_UTILITIES_HPP_
