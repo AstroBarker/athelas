@@ -1,0 +1,42 @@
+[problem]
+problem = "rad_equilibrium"
+t_end = 1.0e-7
+geometry = "planar"
+restart = false
+do_rad = true
+xl = 0.0
+xr = 1.0
+bc = "homogenous"
+cfl = 0.9
+
+[problem.params]
+v0 = 0.0
+logrho = -7.0
+logE_gas = 10.0
+logE_rad = 12.0
+
+[output]
+nlim = -1
+ncycle_out = 100
+#dt_hdf5 = 1.0e-10 # default: 100 outputs
+dt_init_frac = 1.05
+
+[fluid]
+basis = "legendre"
+nnodes = 2
+porder = 2
+nx = 1
+ng = 1
+
+[time]
+torder = 2
+nstages = 2
+
+[eos]
+type = "ideal"
+ideal_gamma = 1.66666666666667 # default: 1.4
+
+[limiters]
+tci_opt = false
+tci_val = 0.1
+characteristic = false
