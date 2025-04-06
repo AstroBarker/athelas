@@ -1,0 +1,49 @@
+[problem]
+problem = "sedov"
+t_end = 0.05
+geometry = "spherical"
+restart = false
+do_rad = false
+xl = 0.0
+xr = 1.0
+bc = "reflecting"
+cfl = 0.25
+
+[problem.params]
+v0 = 0.0
+rho0 = 1.0
+E0 = 0.5
+
+[output]
+nlim = -1
+ncycle_out = 100
+dt_hdf5 = 0.05
+dt_init_frac = 1.05
+
+[fluid]
+basis = "legendre"
+nnodes = 3
+porder = 3
+nx = 128
+ng = 1
+
+[time]
+torder = 3
+nstages = 3
+
+[eos]
+type = "ideal"
+gamma_ideal = 1.6666666667
+
+[limiters]
+do_limiter = true
+type = "weno"
+b_tvd = 2.0
+m_tvb = 0.001
+tci_opt = true
+tci_val = 0.1
+characteristic = true
+gamma_i = 0.998
+#gamma_r = 0.005
+#gamma_l = 0.005
+weno_r = 2.0

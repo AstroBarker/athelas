@@ -24,9 +24,9 @@ class WENO : public SlopeLimiterBase<WENO> {
                              3, pin->pOrder ),
         R( "R Matrix", 3, 3, grid->Get_nElements( ) + 2 ),
         R_inv( "invR Matrix", 3, 3, grid->Get_nElements( ) + 2 ),
-        U_c_T( "U_c_T", 3, grid->Get_nElements( ) ),
-        w_c_T( "w_c_T", 3, grid->Get_nElements( ) ),
-        Mult( "Mult", 3, grid->Get_nElements( ) ),
+        U_c_T( "U_c_T", 3, grid->Get_nElements( ) + 2 ),
+        w_c_T( "w_c_T", 3, grid->Get_nElements( ) + 2 ),
+        Mult( "Mult", 3, grid->Get_nElements( ) + 2 ),
         D( "TCI", 3, grid->Get_nElements( ) + 2 ),
         LimitedCell( "LimitedCell", grid->Get_nElements( ) + 2 ) {}
 
@@ -76,9 +76,9 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
         R( "R Matrix", 3, 3, grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ),
         R_inv( "invR Matrix", 3, 3,
                grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ),
-        U_c_T( "U_c_T", 3, grid->Get_nElements( ) ),
-        w_c_T( "w_c_T", 3, grid->Get_nElements( ) ),
-        Mult( "Mult", 3, grid->Get_nElements( ) ),
+        U_c_T( "U_c_T", 3, grid->Get_nElements( ) + 2 ),
+        w_c_T( "w_c_T", 3, grid->Get_nElements( ) + 2 ),
+        Mult( "Mult", 3, grid->Get_nElements( ) + 2 ),
         D( "TCI", 3, grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ),
         LimitedCell( "LimitedCell",
                      grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ) {}
