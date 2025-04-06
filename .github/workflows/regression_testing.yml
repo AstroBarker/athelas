@@ -38,6 +38,8 @@ jobs:
         
     - name: Install Python dependencies with uv
       run: |
+        uv venv
+        echo "VIRTUAL_ENV=${{ github.workspace }}/.venv" >> $GITHUB_ENV
         uv pip install numpy h5py
         
     - name: Set reusable strings
