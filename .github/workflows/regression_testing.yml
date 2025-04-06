@@ -1,0 +1,64 @@
+name: GCC Compilation and Regression Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Release, Debug]
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq git
+        sudo apt-get install -qq libhdf5-dev liblapack-dev liblapacke-dev libopenblas-dev libomp-dev
+    
+    - name: Set up Python with uv
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.uv/bin" >> $GITHUB_PATH
+        
+    - name: Install Python dependencies with uv
+      run: |
+        uv pip install numpy h5py
+        
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+        
+    - name: Configure CMake
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_CXX_COMPILER=g++
+        -DCMAKE_C_COMPILER=gcc
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DMACHINE=UBUNTU
+        -S ${{ github.workspace }}
+        
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+      
+    - name: Run Regression Tests
+      working-directory: test/regression
+      run: |
+        python run_regression_tests.py -e ${{ steps.strings.outputs.build-output-dir }}/main
