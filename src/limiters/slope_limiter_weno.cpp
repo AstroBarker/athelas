@@ -38,8 +38,8 @@ void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure *Grid,
     return;
   }
 
-  const int &ilo = Grid->Get_ilo( );
-  const int &ihi = Grid->Get_ihi( );
+  const int &ilo  = Grid->Get_ilo( );
+  const int &ihi  = Grid->Get_ihi( );
   const int nvars = U.extent( 0 );
 
   /* map to characteristic vars */
