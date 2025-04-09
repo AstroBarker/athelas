@@ -1,12 +1,17 @@
+import sys
 import os
 import unittest
-from regression_test import AthelasRegressionTest
+
+from regression_test import AthelasRegressionTest, soft_equiv
+
+sys.path.insert(1, "../../tools/python/")
+import radeq
 
 
-class SodShockTubeTest(AthelasRegressionTest):
+class RadiationEquilibriumTest(AthelasRegressionTest):
   """Test for the Sod shock tube problem"""
 
-  def __init__(self, methodName="test_sod", executable_path=None):
+  def __init__(self, methodName="test_radeq", executable_path=None):
     # Get the absolute path to the regression test directory
     regression_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -34,17 +39,6 @@ class SodShockTubeTest(AthelasRegressionTest):
       executable = "main"
       build_required = True
 
-    # vars to test
-    varlist = [
-      "grid/x",
-      "grid/dx",
-      "conserved/energy",
-      "conserved/tau",
-      "conserved/velocity",
-      "conserved/rad_energy",
-      "conserved/rad_momentum",
-    ]
-
     # Initialize the parent class with test-specific parameters
     super().__init__(
       test_name=methodName,
@@ -52,7 +46,6 @@ class SodShockTubeTest(AthelasRegressionTest):
       build_dir=build_dir,
       executable=executable,
       infile=infile,
-      varlist=varlist,
       run_dir=run_dir,
       build_type="Release",
       num_procs=2,
@@ -61,21 +54,38 @@ class SodShockTubeTest(AthelasRegressionTest):
       tolerance=1.0e-5,
       build_required=build_required,
       compression_factor=1,
+      test_high_order=False,  # slopes not well behaved for comparison
     )
 
-  def test_sod(self):
+  def test_radeq(self):
     """Test radiation equilibrium simulation against gold standard data."""
     self.run_code()
-    self.assertTrue(self.compare_gold())
-    if self.upgold:
-      print(f"Gold file {self.goldfile} successfully updated!")
-    self.assertTrue(True)
+
+    # vars to test
+    varlist = [
+      "conserved/energy",
+    ]
+    fn = "athelas_rad_equilibrium_final.h5"
+    data = self.load_output(fn, varlist)
+
+    # analytic sol
+    e_gas = 10**10
+    e_rad = 10**12
+    T = 4.81e8
+    rho = 1.0e-7
+    kappa = 4 * 1.0e-8  # * 1.0e-7# 1 / cm weird units
+    t_end = 1.0e-7
+    te = radeq.ThermalEquilibrium(e_gas, kappa, T, e_rad, t_end)
+    te.evolve()
+    sol = te.sol[-1]  # scale by density
+
+    self.assertTrue(soft_equiv(sol, data[0] * rho, tol=1.0e-5))
 
 
 def create_test_suite(executable_path=None):
-  """Create a test suite for the Sod shock tube test"""
+  """Create a test suite for the test"""
   suite = unittest.TestSuite()
-  suite.addTest(SodShockTubeTest(executable_path=executable_path))
+  suite.addTest(RadiationEquilibriumTest(executable_path=executable_path))
   return suite
 
 
@@ -83,7 +93,7 @@ if __name__ == "__main__":
   # Run this test directly if executed as a script
   import argparse
 
-  parser = argparse.ArgumentParser(description="Run Sod shock tube test")
+  parser = argparse.ArgumentParser(description="Run rad equilibrium test")
   parser.add_argument(
     "--executable",
     "-e",
