@@ -3,7 +3,7 @@ import unittest
 from regression_test import AthelasRegressionTest
 
 
-class SedovShockTubeTest(AthelasRegressionTest):
+class SedovBlastWaveTest(AthelasRegressionTest):
   """Test for the Sedov blast wave"""
 
   def __init__(self, methodName="test_sedov", executable_path=None):
@@ -59,6 +59,7 @@ class SedovShockTubeTest(AthelasRegressionTest):
       tolerance=1.0e-5,
       build_required=build_required,
       compression_factor=2,
+      test_high_order=True,
     )
 
   def test_sedov(self):
@@ -72,7 +73,7 @@ class SedovShockTubeTest(AthelasRegressionTest):
 
 def create_test_suite(executable_path=None):
   suite = unittest.TestSuite()
-  suite.addTest(SedovShockTubeTest(executable_path=executable_path))
+  suite.addTest(SedovBlastWaveTest(executable_path=executable_path))
   return suite
 
 
