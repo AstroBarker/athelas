@@ -1,8 +1,5 @@
-#ifndef SLOPE_LIMITER_TVDMINMOD_HPP_
-#define SLOPE_LIMITER_TVDMINMOD_HPP_
-
 /**
- * File     :  slope_limiter_tvdminmod.hpp
+ * File     :  slope_limiter_tvdminmod.cpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -159,4 +156,3 @@ void TVDMinmod::ApplySlopeLimiter( View3D<Real> U, const GridStructure *Grid,
 
 // LimitedCell accessor
 int TVDMinmod::Get_Limited( const int iX ) const { return LimitedCell( iX ); }
-#endif // SLOPE_LIMITER_TVDMINMOD_HPP_

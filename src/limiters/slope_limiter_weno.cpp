@@ -1,8 +1,5 @@
-#ifndef SLOPE_LIMITER_WENO_HPP_
-#define SLOPE_LIMITER_WENO_HPP_
-
 /**
- * File     :  slope_limiter_weno.hpp
+ * File     :  slope_limiter_weno.cpp
  * --------------
  *
  * Author   : Brandon L. Barker
@@ -169,4 +166,3 @@ void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure *Grid,
 
 // LimitedCell accessor
 int WENO::Get_Limited( const int iX ) const { return LimitedCell( iX ); }
-#endif // SLOPE_LIMITER_WENO_HPP_

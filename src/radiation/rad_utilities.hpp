@@ -1,18 +1,21 @@
 #ifndef RAD_UTILITIES_HPP_
 #define RAD_UTILITIES_HPP_
 
+#include <tuple>
+
 #include "Kokkos_Core.hpp"
 
 #include "abstractions.hpp"
 
 Real FluxFactor( const Real E, const Real F );
 Real Flux_Rad( Real E, Real F, Real P, Real V, int iCR );
-void RadiationFourForce( Real D, Real V, Real T, Real kappa, Real E, Real F,
-                         Real Pr, Real &G0, Real &G );
-Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E, Real F,
-                 Real Pr, int iCR );
-Real ComputeEmissivity( const Real D, const Real V, const Real Em );
-Real ComputeOpacity( const Real D, const Real V, const Real Em );
+std::tuple<Real, Real> RadiationFourForce( const Real D, const Real V,
+                                           const Real T, const Real kappa_r,
+                                           const Real kappa_p, const Real E,
+                                           const Real F, const Real Pr );
+Real Source_Rad( const Real D, const Real V, const Real T, const Real kappa_r,
+                 const Real kappa_p, const Real E, const Real F, const Real Pr,
+                 const int iCR );
 Real ComputeClosure( const Real E, const Real F );
 Real Lambda_HLL( const Real f, const int sign );
 void llf_flux( const Real Fp, const Real Fm, const Real Up, const Real Um,

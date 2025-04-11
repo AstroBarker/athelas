@@ -187,31 +187,34 @@ void ComputeIncrement_Fluid_Geometry( const View3D<Real> U, GridStructure &Grid,
 Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
                                  const View2D<Real> uCR, GridStructure &Grid,
                                  const ModalBasis *Basis, const EOS *eos,
-                                 const int iX ) {
+                                 const Opacity *opac, const int iX ) {
   const int nNodes = Grid.Get_nNodes( );
 
   Real local_sum = 0.0;
   for ( int iN = 0; iN < nNodes; iN++ ) {
-    const Real Tau = Basis->basis_eval( uCF, iX, 0, iN + 1 );
+    const Real D   = 1.0 / Basis->basis_eval( uCF, iX, 0, iN + 1 );
     const Real Vel = Basis->basis_eval( uCF, iX, 1, iN + 1 );
     const Real EmT = Basis->basis_eval( uCF, iX, 2, iN + 1 );
 
-    const Real Er = Basis->basis_eval( uCR, iX, 0, iN + 1 ) / Tau;
-    const Real Fr = Basis->basis_eval( uCR, iX, 1, iN + 1 ) / Tau;
+    const Real Er = Basis->basis_eval( uCR, iX, 0, iN + 1 ) * D;
+    const Real Fr = Basis->basis_eval( uCR, iX, 1, iN + 1 ) * D;
     const Real Pr = ComputeClosure( Er, Fr );
 
     auto lambda  = nullptr;
-    const Real P = eos->PressureFromConserved( Tau, Vel, EmT, lambda );
-    const Real T = eos->TemperatureFromTauPressure( Tau, P, lambda );
+    const Real P = eos->PressureFromConserved( 1.0 / D, Vel, EmT, lambda );
+    const Real T = eos->TemperatureFromTauPressure( 1.0 / D, P, lambda );
 
-    // TODO: kappa and chi will be updated here.
-    const Real kappa = ComputeOpacity( Tau, Vel, EmT );
+    // TODO: composition
+    const Real X = 1.0;
+    const Real Y = 1.0;
+    const Real Z = 1.0;
 
-    const Real chi = ComputeEmissivity( Tau, Vel, EmT );
+    const Real kappa_r = RosselandMean( opac, D, T, X, Y, Z, lambda );
+    const Real kappa_p = PlanckMean( opac, D, T, X, Y, Z, lambda );
 
     local_sum +=
         Grid.Get_Weights( iN ) * Basis->Get_Phi( iX, iN + 1, k ) *
-        Source_Fluid_Rad( 1.0 / Tau, Vel, T, chi, kappa, Er, Fr, Pr, iCF );
+        Source_Fluid_Rad( D, Vel, T, kappa_r, kappa_p, Er, Fr, Pr, iCF );
   }
 
   return ( local_sum * Grid.Get_Widths( iX ) ) / Basis->Get_MassMatrix( iX, k );

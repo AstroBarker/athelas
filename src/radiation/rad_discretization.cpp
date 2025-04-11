@@ -16,6 +16,7 @@
 #include "eos.hpp"
 #include "error.hpp"
 #include "grid.hpp"
+#include "opacity/opac.hpp"
 #include "polynomial_basis.hpp"
 #include "rad_discretization.hpp"
 #include "rad_utilities.hpp"
@@ -166,7 +167,7 @@ void ComputeIncrement_Rad_Divergence(
 Real ComputeIncrement_Rad_Source( View2D<Real> uCR, const int k, const int iCR,
                                   const View2D<Real> uCF, GridStructure &Grid,
                                   const ModalBasis *Basis, const EOS *eos,
-                                  const int iX ) {
+                                  const Opacity *opac, const int iX ) {
   const int nNodes = Grid.Get_nNodes( );
 
   Real local_sum = 0.0;
@@ -180,15 +181,20 @@ Real ComputeIncrement_Rad_Source( View2D<Real> uCR, const int k, const int iCR,
     const Real P    = eos->PressureFromConserved( 1.0 / D, V, Em_T, lambda );
     const Real T    = eos->TemperatureFromTauPressure( 1.0 / D, P, lambda );
 
-    const Real kappa = ComputeOpacity( D, V, Em_T );
-    const Real X     = ComputeEmissivity( D, V, Em_T );
+    // TODO: composition
+    const Real X = 1.0;
+    const Real Y = 1.0;
+    const Real Z = 1.0;
+
+    const Real kappa_r = RosselandMean( opac, D, T, X, Y, Z, lambda );
+    const Real kappa_p = PlanckMean( opac, D, T, X, Y, Z, lambda );
 
     const Real E_r = Basis->basis_eval( uCR, iX, 0, iN + 1 ) * D;
     const Real F_r = Basis->basis_eval( uCR, iX, 1, iN + 1 ) * D;
     const Real P_r = ComputeClosure( E_r, F_r );
 
     const Real this_source =
-        Source_Rad( D, V, T, X, kappa, E_r, F_r, P_r, iCR );
+        Source_Rad( D, V, T, kappa_r, kappa_p, E_r, F_r, P_r, iCR );
 
     local_sum +=
         Grid.Get_Weights( iN ) * Basis->Get_Phi( iX, iN + 1, k ) * this_source;

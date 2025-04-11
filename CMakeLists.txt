@@ -87,6 +87,7 @@ include_directories("src/linalg")
 include_directories("src/eos")
 include_directories("src/bc")
 include_directories("src/io")
+include_directories("src/opacity")
 include_directories("src/state")
 include_directories("src/solvers")
 include_directories("src/timestepper")
@@ -113,6 +114,8 @@ set( ATHELAS_SOURCES
   "src/limiters/slope_limiter_utilities.cpp"
   "src/limiters/slope_limiter_tvdminmod.cpp"
   "src/limiters/slope_limiter_weno.cpp"
+  "src/opacity/opac_constant.cpp"
+  "src/opacity/opac_powerlaw_rho.cpp"
   "src/state/state.cpp"
   "src/timestepper/tableau.cpp"
   "src/timestepper/timestepper.cpp"

@@ -72,15 +72,14 @@ Real Flux_Fluid( const Real V, const Real P, const int iCF ) {
 /**
  * Fluid radiation sources. Kind of redundant with Rad_sources.
  **/
-Real Source_Fluid_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E,
-                       Real F, Real Pr, int iCF ) {
-  assert( iCF == 0 || iCF == 1 || iCF == 2 );
-  if ( iCF == 0 ) return 0.0; // rad doesn't source mass
+Real Source_Fluid_Rad( const Real D, const Real V, const Real T,
+                       const Real kappa_r, const Real kappa_p, const Real E,
+                       const Real F, const Real Pr, const int iCF ) {
+  assert( iCF == 1 || iCF == 2 );
 
-  constexpr Real c = constants::c_cgs;
+  constexpr static Real c = constants::c_cgs;
 
-  Real G0, G;
-  RadiationFourForce( D, V, T, kappa, E, F, Pr, G0, G );
+  auto [G0, G] = RadiationFourForce( D, V, T, kappa_r, kappa_p, E, F, Pr );
 
   return ( iCF == 1 ) ? G : c * G0;
 }

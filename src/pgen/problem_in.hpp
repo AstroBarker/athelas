@@ -79,6 +79,9 @@ class ProblemIn {
   std::string limiter_type;
   bool do_limiter;
 
+  // opac
+  std::string opac_type;
+
   toml::table in_table;
 };
 

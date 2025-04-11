@@ -130,16 +130,45 @@ void ButcherTableau::initialize_tableau( ) {
       a_ij( 0, 0 ) = 1.0;
       b_i( 0 )     = 1.0;
     } else if ( nStages == 2 && tOrder == 2 ) {
-      a_ij( 0, 0 ) = 0.71921758;
-      a_ij( 1, 0 ) = 0.11776435;
-      a_ij( 1, 1 ) = 0.16301806;
-      b_i( 0 )     = 0.5;
-      b_i( 1 )     = 0.5;
-    } else { // TODO: hack below. remove
-      a_ij( 0, 0 ) = 1.0;
-      b_i( 0 )     = 1.0;
-      // THROW_ATHELAS_ERROR( " ! ButcherTableau :: Implicit :: Please choose a
-      // valid tableau! \n" );
+      constexpr static Real gam = 1.0 - 1.0 / std::sqrt( 2 );
+      a_ij( 0, 0 )              = gam; // 0.71921758;
+      a_ij( 1, 0 )              = 1.0 - gam; // 0.11776435;
+      a_ij( 1, 1 )              = gam; // 0.16301806;
+      b_i( 0 )                  = 0.5;
+      b_i( 1 )                  = 0.5;
+      // L-stable
+    } else if ( nStages == 3 && tOrder == 3 ) {
+      a_ij( 2, 0 ) = 1.0 / 6.0;
+      a_ij( 1, 1 ) = 1.0;
+      a_ij( 2, 1 ) = -1.0 / 3.0;
+      a_ij( 2, 2 ) = 2.0 / 3.0;
+      b_i( 0 )     = 1.0 / 6.0;
+      b_i( 1 )     = 1.0 / 6.0;
+      b_i( 2 )     = 2.0 / 3.0;
+    } else if ( nStages == 5 && tOrder == 4 ) {
+      a_ij( 0, 0 ) = 1.03217796e-16; // just 0?
+      a_ij( 1, 0 ) = 0.510479144;
+      a_ij( 2, 0 ) = 5.06048136e-3;
+      a_ij( 3, 0 ) = 8.321807e-2;
+      a_ij( 4, 0 ) = 7.56636565e-2;
+      a_ij( 1, 1 ) = 1.00124199e-14;
+      a_ij( 2, 1 ) = 1.00953283e-1;
+      a_ij( 3, 1 ) = 1.60838280e-1;
+      a_ij( 4, 1 ) = 1.25319139e-1;
+      a_ij( 2, 2 ) = 1.98541931e-1;
+      a_ij( 3, 2 ) = 3.28641063e-1;
+      a_ij( 4, 2 ) = 7.08147871e-2;
+      a_ij( 3, 3 ) = -3.84714236e-3;
+      a_ij( 4, 3 ) = 6.34597980e-1;
+      a_ij( 4, 4 ) = -7.22101223e-17;
+      b_i( 0 )     = 0.12051432;
+      b_i( 1 )     = 0.22614012;
+      b_i( 2 )     = 0.27630606;
+      b_i( 3 )     = 0.12246455;
+      b_i( 4 )     = 0.25457495;
+    } else {
+      THROW_ATHELAS_ERROR( " ! ButcherTableau :: Implicit :: Please choose a "
+                           "valid tableau! \n" );
     }
 
     // TODO: more tableaus

@@ -74,6 +74,10 @@ ProblemIn::ProblemIn( const std::string fn ) {
     THROW_ATHELAS_ERROR( "ideal_gamma must be positive.\n" );
   }
 
+  // opac
+  opac_type = in_table["opacity"]["type"].value_or( "constant" );
+  // not storing opac args
+
   // limiters
   do_limiter = in_table["limiters"]["do_limiter"].value_or( true );
   std::optional<bool> tci_opt = in_table["limiters"]["tci_opt"].value<bool>( );

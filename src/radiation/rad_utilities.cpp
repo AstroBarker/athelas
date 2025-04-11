@@ -46,17 +46,20 @@ Real Flux_Rad( Real E, Real F, Real P, Real V, int iCR ) {
 
 /**
  * Radiation 4 force for rad-matter interactions
+ * Assumes kappa_e ~ kappa_p, kappa_F ~ kappa_r
  * D : Density
  * V : Velocity
  * T : Temperature
- * kappa : kappa
+ * kappa_r : rosseland kappa
+ * kappa_p : planck kappa
  * E : radiation energy density
  * F : radiation momentum density
  * Pr : radiation momentum closure
- * TODO: total opacity X?
  **/
-void RadiationFourForce( Real D, Real V, Real T, Real kappa, Real E, Real F,
-                         Real Pr, Real &G0, Real &G ) {
+std::tuple<Real, Real> RadiationFourForce( const Real D, const Real V,
+                                           const Real T, const Real kappa_r,
+                                           const Real kappa_p, const Real E,
+                                           const Real F, const Real Pr ) {
   assert(
       D >= 0.0 &&
       "Radiation :: RadiationFourFource :: Non positive definite density." );
@@ -67,28 +70,43 @@ void RadiationFourForce( Real D, Real V, Real T, Real kappa, Real E, Real F,
   assert( E > 0.0 && "Radiation :: RadiationFourFource :: Non positive "
                      "definite radiation energy density." );
 
-  constexpr Real a = constants::a;
-  constexpr Real c = constants::c_cgs;
+  constexpr static Real a = constants::a;
+  constexpr static Real c = constants::c_cgs;
 
   const Real b     = V / c;
   const Real term1 = E - a * T * T * T * T;
-  F /= c;
+  const Real Fc    = F / c;
 
   // O(b^2) ala Fuksman
-  G0 = D * kappa * ( term1 - b * F - b * b * E - b * b * Pr );
-  G  = D * kappa * ( b * ( term1 - 2.0 * b * F ) + ( F - b * E - b * Pr ) );
+  // const Real kappa = kappa_r;
+  // const Real G0 = D * kappa * ( term1 - b * Fc - b * b * E - b * b * Pr );
+  // const Real G  = D * kappa * ( b * ( term1 - 2.0 * b * Fc ) + ( Fc - b * E -
+  // b * Pr ) );
+
+  // Skinner & Ostriker full b^2
+  const Real G0 =
+      D *
+      ( kappa_p * term1 + ( kappa_r - 2.0 * kappa_p ) * b * Fc +
+        0.5 * ( 2.0 * ( kappa_p - kappa_r ) * E + kappa_p * term1 ) * b * b +
+        ( kappa_p - kappa_r ) * b * b * Pr );
+
+  const Real G = D * ( kappa_r * Fc + kappa_p * term1 * b -
+                       kappa_r * b * ( E + Pr ) + 0.5 * kappa_r * Fc * b * b +
+                       2.0 * ( kappa_r - kappa_p ) * b * b * Fc );
 
   // ala Skinner & Ostriker, simpler.
   // G0 = D * kappa * ( term1 - b * F );
   // G  = D * kappa * ( F - b * E + b * Pr );
+  return { G0, G };
 }
 
 /**
  * source terms for radiation
  * TODO: total opacity X
  **/
-Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E, Real F,
-                 Real Pr, int iCR ) {
+Real Source_Rad( const Real D, const Real V, const Real T, const Real kappa_r,
+                 const Real kappa_p, const Real E, const Real F, const Real Pr,
+                 const int iCR ) {
   assert( ( iCR == 0 || iCR == 1 ) && "Radiation :: source_rad :: bad iCR." );
   assert( D >= 0.0 &&
           "Radiation :: source_rad :: Non positive definite density." );
@@ -98,26 +116,9 @@ Real Source_Rad( Real D, Real V, Real T, Real X, Real kappa, Real E, Real F,
 
   const Real c = constants::c_cgs;
 
-  Real G0, G;
-  RadiationFourForce( D, V, T, kappa, E, F, Pr, G0, G );
+  auto [G0, G] = RadiationFourForce( D, V, T, kappa_r, kappa_p, E, F, Pr );
 
   return ( iCR == 0 ) ? -c * G0 : -c * c * G;
-}
-
-/**
- * Emissivity
- * TODO: actually implement this
- **/
-Real ComputeEmissivity( const Real D, const Real V, const Real Em ) {
-  return ComputeOpacity( D, V, Em );
-}
-
-/**
- * Opacity kappa
- * TODO: actually implement this
- **/
-Real ComputeOpacity( const Real D, const Real V, const Real Em ) {
-  return 4.0 * std::pow( 10.0, -8.0 ) * D;
 }
 
 /* pressure tensor closure */

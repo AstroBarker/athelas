@@ -154,7 +154,7 @@ void LimitRadMomentum( View3D<Real> U, const ModalBasis *Basis,
             temp = 1.0;
           } else {
             // TODO: Backtracing may be working okay...
-            const Real theta_guess = 0.9;
+            // const Real theta_guess = 0.9;
             // temp = Backtrace( TargetFuncRad, theta_guess, U, Basis, eos, iX,
             // iN );
             temp = Bisection( U, TargetFuncRad, Basis, eos, iX, iN );
