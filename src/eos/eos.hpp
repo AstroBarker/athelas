@@ -1,9 +1,23 @@
 #ifndef _EOS_HPP_
 #define _EOS_HPP_
-
 /**
- * Specific EoS classes here
- **/
+ * @file eos.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Declares equation of state classes that implement the EosBase interface
+ * 
+ * @details Defines specific equation of state implementations that inherit
+ *          from the EosBase template class. It serves as the central declaration point
+ *          for all EOS classes in the codebase, with their implementations provided in
+ *          separate .cpp files.
+ * 
+ *          We support the following equations of state:
+ *          - IdealGas (default): ideal gas EOS
+ *          - Stellar: currently an unused placceholder
+ * 
+ *          Note: implementations are supplied in eos-specific cpp files.
+ */
 
 #include <variant>
 

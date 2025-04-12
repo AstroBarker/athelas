@@ -1,13 +1,15 @@
 #ifndef TIMESTEPPER_HPP_
 #define TIMESTEPPER_HPP_
-
 /**
- * File     :  timestepper.hpp
+ * @file timestepper.hpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Class for SSPRK timestepping
- **/
+ * @author Brandon L. Barker
+ * @brief Primary time marching routine.
+ *
+ * @details Timestppers for hydro and rad hydro.
+ *          Uses explicity for transport terms and implicit for coupling.
+ */
 
 #include "abstractions.hpp"
 #include "bound_enforcing_limiter.hpp"

@@ -1,10 +1,12 @@
 /**
- * File     :  io.cpp
+ * @file io.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : HDF5 IO routines
- **/
+ * @author Brandon L. Barker
+ * @brief HDF5 and std out IO routines
+ * 
+ * @details Collection of functions for IO
+ */
 
 #include <iostream>
 #include <string>

@@ -1,5 +1,16 @@
 #ifndef RAD_DISCRETIZATION_HPP_
 #define RAD_DISCRETIZATION_HPP_
+/**
+ * @file fluid_discretization.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Contains the main discretization routines for radiation.
+ * 
+ * @details We implement the core DG updates for radiation here, including
+ *          - ComputerIncrement_Rad_Divergence (hyperbolic term)
+ *          - ComputeIncrement_Rad_Source (coupling source term)
+ */
 
 #include "Kokkos_Core.hpp"
 

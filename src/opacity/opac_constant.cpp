@@ -1,11 +1,10 @@
 /**
- * File     :  opac_constant.cpp
+ * @file opac_constant.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : opacity = constant
- * Rosseland and Plank are equal
- **/
+ * @author Brandon L. Barker
+ * @brief Constant opacity model
+ */
 
 #include <math.h>
 

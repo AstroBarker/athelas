@@ -1,3 +1,11 @@
+/**
+ * @file abstractions.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Provides useful definitions.
+ */
+
 #ifndef ABSTRACTIONS_HPP_
 #define ABSTRACTIONS_HPP_
 

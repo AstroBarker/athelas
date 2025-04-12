@@ -1,10 +1,16 @@
 /**
- * File    :  boundary_conditions.cpp
+ * @file boundary_conditions.cpp
  * --------------
  *
- * Author  : Brandon L. Barker
- * Purpose : Apply boundary conditions
- **/
+ * @author Brandon L. Barker
+ * @brief Boundary conditions
+ * 
+ * @details Implemented BCs
+ *            - reflecting
+ *            - periodic
+ *            - homogenous (default)
+ *            - shockless noh
+ */
 
 #include <iostream>
 #include <string>

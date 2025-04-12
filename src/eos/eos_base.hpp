@@ -1,9 +1,32 @@
-#ifndef _EOS_BASE_HPP_
-#define _EOS_BASE_HPP_
-
+#ifndef EOS_BASE_HPP_
+#define EOS_BASE_HPP_
 /**
- * define a base class using curiously recurring template pattern
+ * @file eos_base.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Base class for equations of state using the Curiously Recurring Template Pattern (CRTP)
+ * 
+ * @details This header defines the EosBase template class that serves as the foundation
+ *          for all equation of state implementations in the codebase. It uses the CRTP
+ *          to provide a common interface while allowing derived classes to implement
+ *          specific EOS behaviors.
+ * 
+ *          The class provides the following:
+ *          - PressureFromConserved
+ *          - SoundSpeedFromConserved
+ *          - TemperatureFromTauPressureAbar
+ *          - TemperatureFromTauPressure
+ *          - RadiationPressure
+ *
+ *          These interfaces are implemented for all EOS
+ * 
+ *          Each method is implemented as a non-virtual interface that delegates to
+ *          the derived class implementation through static_cast. This pattern allows
+ *          for compile-time polymorphism with minimal runtime overhead.
+ * 
  **/
+
 #include "abstractions.hpp"
 #include "polynomial_basis.hpp"
 
@@ -35,4 +58,4 @@ class EosBase {
   }
 };
 
-#endif // _EOS_BASE_HPP_
+#endif // EOS_BASE_HPP_

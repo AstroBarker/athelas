@@ -1,5 +1,17 @@
 #ifndef DRIVER_HPP_
 #define DRIVER_HPP_
+/**
+ * @file driver.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Driver
+ * 
+ * @details Functions:
+ *            - NumNodes
+ *            - ComputeCFL
+ *            - compute_timestep
+ */
 
 #include "abstractions.hpp"
 #include "eos.hpp"

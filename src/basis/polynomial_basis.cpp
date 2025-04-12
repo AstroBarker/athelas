@@ -1,16 +1,14 @@
 /**
- * File     :  polynomial_basis.cpp
+ * @file polynomial_basis.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Functions for polynomial basis
- * Contains : Class for basis.
- * Also  Lagrange, Legendre polynomials, arbitrary degree.
- *
- * TODO: Plenty of cleanup to be done. OrthoTaylor, handling of derivatives, and
- * inner products. A lot of nearly duplicate code.
- * Maybe much of this can be compile time, as well.
- **/
+ * @author Brandon L. Barker
+ * @brief Core polynomial basis functions
+ * 
+ * @details Provides means to construct and evaluate bases
+ *            - Legendre
+ *            - Taylor
+ */
 
 #include <algorithm> /* std::sort */
 #include <cstdlib> /* abs */

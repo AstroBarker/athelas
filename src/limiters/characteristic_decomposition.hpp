@@ -1,13 +1,16 @@
-/**
- * File     :  characteristic_decomposition.hpp
- * --------------
- *
- * Author   : Brandon L. Barker
- * Purpose  : Compute matrices for characteristic decomposition
- **/
-
 #ifndef CHARACTERISTIC_DECOMPOSITION_HPP_
 #define CHARACTERISTIC_DECOMPOSITION_HPP_
+/**
+ * @file characteristic_decomposition.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Hydro characteristic decomposition
+ * 
+ * @details Implements a characteristic decomposition of the hydro variables.
+ *          Currently this is only implemented ofr an ideal EOS.
+ *          TODO: Template on EOS? Write down for radiation.
+ */
 
 #include <iostream>
 #include <math.h> /* sqrt */

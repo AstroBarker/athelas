@@ -1,5 +1,12 @@
 #ifndef SHOCKLESS_NOH_HPP_
 #define SHOCKLESS_NOH_HPP_
+/**
+ * @file shockless_noh.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Shockless Noh collapse
+ */
 
 #include <iostream>
 #include <math.h> /* sin */
@@ -11,7 +18,7 @@
 #include "grid.hpp"
 
 /**
- * Initialize shockless Noh problem
+ * @brief Initialize shockless Noh problem
  **/
 void shockless_noh_init( State *state, GridStructure *Grid,
                          const ProblemIn *pin ) {

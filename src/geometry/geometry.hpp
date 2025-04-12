@@ -1,14 +1,16 @@
 #ifndef GEOMETRY_HPP_
 #define GEOMETRY_HPP_
-
 /**
- * File     :  geometry.hpp
+ * @file geometry.hpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Geometry things
- *
- **/
+ * @author Brandon L. Barker
+ * @brief Enum for geometry 
+ * 
+ * @details enum Geometry
+ *          - Planar
+ *          - Spherical
+ */
 
 namespace geometry {
 enum Geometry { Planar, Spherical };

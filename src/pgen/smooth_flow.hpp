@@ -1,5 +1,12 @@
 #ifndef SMOOTH_FLOW_HPP_
 #define SMOOTH_FLOW_HPP_
+/**
+ * @file smooth_flow.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Smooth flow test
+ */
 
 #include <iostream>
 #include <math.h> /* sin */
@@ -11,7 +18,7 @@
 #include "grid.hpp"
 
 /**
- * Initialize smooth flow test problem
+ * @brief Initialize smooth flow test problem
  **/
 void smooth_flow_init( State *state, GridStructure *Grid,
                        const ProblemIn *pin ) {

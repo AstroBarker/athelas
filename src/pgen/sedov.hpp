@@ -1,5 +1,12 @@
 #ifndef SEDOV_HPP_
 #define SEDOV_HPP_
+/**
+ * @file sedov.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Sedov blast wave
+ */
 
 #include <iostream>
 #include <math.h> /* sin */
@@ -11,7 +18,7 @@
 #include "grid.hpp"
 
 /**
- * Initialize sedov blast wave
+ * @brief Initialize sedov blast wave
  **/
 void sedov_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
 

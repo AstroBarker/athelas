@@ -1,5 +1,14 @@
-#ifndef _QUADRATURE_HPP_
-#define _QUADRATURE_HPP_
+#ifndef QUADRATURE_HPP_
+#define QUADRATURE_HPP_
+/**
+ * @file quadrature.cpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Quadrature rules
+ * 
+ * @details Computes Gauss-Legendre nodes and weights
+ */
 
 #include "abstractions.hpp"
 
@@ -8,4 +17,4 @@ Real Jacobi_Matrix( int m, Real *aj, Real *bj );
 void LG_Quadrature( int m, Real *nodes, Real *weights );
 } // namespace quadrature
 
-#endif // _QUADRATURE_HPP_
+#endif // QUADRATURE_HPP_

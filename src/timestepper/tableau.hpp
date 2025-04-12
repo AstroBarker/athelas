@@ -1,14 +1,14 @@
 #ifndef TABLEAU_HPP_
 #define TABLEAU_HPP_
-
 /**
- * File     :  tableau.hpp
+ * @file tableau.hpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Classes for holding Runge-Kutta tableaus
- *
- **/
+ * @author Brandon L. Barker
+ * @brief Class for holding implicit and explicit RK tableaus.
+ * 
+ * @details TODO: describe tableaus.
+ */
 
 #include "Kokkos_Core.hpp"
 
@@ -18,7 +18,7 @@
 enum TableauType { Implicit, Explicit };
 
 /**
- * Butcher tableau class.
+ * @brief Butcher tableau class.
  **/
 class ButcherTableau {
  public:
@@ -39,7 +39,7 @@ class ButcherTableau {
 };
 
 /**
- * Shu Osher tableau class.
+ * @brief Shu Osher tableau class.
  **/
 class ShuOsherTableau {
  public:

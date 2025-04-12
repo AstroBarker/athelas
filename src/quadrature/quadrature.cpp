@@ -1,10 +1,12 @@
 /**
- * File     :  quadrature.cpp
+ * @file quadrature.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Functions necessary for computing quadrature rules
- **/
+ * @author Brandon L. Barker
+ * @brief Quadrature rules
+ * 
+ * @details Computes Gauss-Legendre nodes and weights
+ */
 
 #include <iostream>
 #include <math.h>
@@ -14,19 +16,17 @@
 #include "quadrature.hpp"
 
 namespace quadrature {
-/**
- * Gauss-Legendre Quadrature
- **/
 
-/**
- * Jacobi matrix for Legendre-Gauss quadrature rule
- *
- * Parameters:
- *
- *   int m      : number of quadrature nodes
- *   Real* aj : matrix diagonal    (output)
- *   Real* bj : matrix subdiagonal (output)
- *   Real z   : zero-th moment     (output)
+  /**
+ * @brief Computes the Jacobi matrix for Legendre-Gauss quadrature rule
+ * 
+ * @details Constructs the symmetric tridiagonal Jacobi matrix 
+ *          needed for Legendre-Gauss quadrature. 
+ * 
+ * @param m Number of quadrature nodes (matrix dimension)
+ * @param aj Output array for matrix diagonal elements
+ * @param bj Output array for matrix subdiagonal elements
+ * @return Real The zero-th moment (zemu) needed for weight computation
  */
 Real Jacobi_Matrix( int m, Real *aj, Real *bj ) {
 
@@ -51,8 +51,20 @@ Real Jacobi_Matrix( int m, Real *aj, Real *bj ) {
 }
 
 /**
- * Compute Legendre-Gauss Quadrature
- **/
+ * @brief Generates a Legendre-Gauss quadrature rule with specified number of 
+ *        points
+ * 
+ * @details This function computes a complete Legendre-Gauss quadrature rule 
+ *          with m points. It generates both the quadrature nodes (abscissas) 
+ *          and weights for accurate integration of polynomial functions.
+ * 
+ *          The resulting quadrature rule is optimal for integrating 
+ *          polynomial functions up to degree 2m-1.
+ * 
+ * @param m Number of quadrature points (must be positive)
+ * @param nodes Output array for quadrature nodes (abscissas)
+ * @param weights Output array for quadrature weights
+ */
 void LG_Quadrature( int m, Real *nodes, Real *weights ) {
   Real *aj = new Real[m];
   Real *bj = new Real[m];

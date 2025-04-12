@@ -1,11 +1,15 @@
 /**
- * File     :  fluid_discretization.cpp
+ * @file fluid_discretization.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : The main fluid spatial update routines go here.
- *  Compute divergence term.
- **/
+ * @author Brandon L. Barker
+ * @brief Contains the main discretization routines for the fluid
+ * 
+ * @details We implement the core DG updates for the fluid here, including
+ *          - ComputerIncrement_Fluid_Divergence (hyperbolic term)
+ *          - ComputeIncrement_Fluid_Geometry (geometric source)
+ *          - ComputeIncrement_Fluid_Rad (radiation source term)
+ */
 
 #include <iostream>
 

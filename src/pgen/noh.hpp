@@ -1,5 +1,12 @@
 #ifndef NOH_HPP_
 #define NOH_HPP_
+/**
+ * @file noh.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Noh test
+ */
 
 #include <iostream>
 #include <math.h> /* sin */
@@ -11,7 +18,7 @@
 #include "grid.hpp"
 
 /**
- * Initialize Noh problem
+ * @brief Initialize Noh problem
  **/
 void noh_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
 

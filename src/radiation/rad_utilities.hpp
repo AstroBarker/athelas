@@ -1,5 +1,22 @@
 #ifndef RAD_UTILITIES_HPP_
 #define RAD_UTILITIES_HPP_
+/**
+ * @file rad_utilities.cpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Functions for radiation evolution.
+ * 
+ * @details Key functions for radiation udates:
+ *          - FluxFactor
+ *          - Flux_Rad
+ *          - RadiationFourForce
+ *          - Source_Rad
+ *          - Compute_Closure
+ *          - Lambda_HLL
+ *          - numerical_flux_hll_rad
+ *          - computeTimestep_Rad
+ */
 
 #include <tuple>
 

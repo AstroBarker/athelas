@@ -1,5 +1,12 @@
 #ifndef SOD_HPP_
 #define SOD_HPP_
+/**
+ * @file sod.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Sod shock tube
+ */
 
 #include <iostream>
 #include <math.h> /* sin */
@@ -11,7 +18,7 @@
 #include "grid.hpp"
 
 /**
- * Initialize Sod shock tube
+ * @brief Initialize Sod shock tube
  **/
 void sod_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
 

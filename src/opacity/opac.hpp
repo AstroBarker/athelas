@@ -1,9 +1,22 @@
 #ifndef OPAC_HPP_
 #define OPAC_HPP_
-
 /**
- * Specific opacity classes here
- **/
+ * @file opac.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Declares concrete opacity model classes that implement the OpacBase 
+ *        interface
+ * 
+ * @details This header defines specific opacity model implementations that 
+ *          inherit from the OpacBase template class. It serves as the central 
+ *          declaration point for all opacity model classes in the codebase.
+ * 
+ *          We provide the following opacity models:
+ *          - Constant: A simple model with constant opacity value
+ *          - PowerlawRho: \kappa = k rho^exp
+ * 
+ */
 
 #include "abstractions.hpp"
 #include "error.hpp"

@@ -1,11 +1,19 @@
-/**
- * File    : root_finders.hpp
- * Author  : Brandon Barker
- * Purpose : Root finders
- **/
-
 #ifndef ROOT_FINDERS_HPP_
 #define ROOT_FINDERS_HPP_
+/**
+ * @file root_finders.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Root finders
+ * 
+ * @details Root finders provided for various needs:
+ *          - fixed_point
+ *          - newton
+ *
+ *          Both are implemented with an Anderson acceleration scheme.
+ *          The contents here are in a state of mess..
+ */
 
 #include <cmath>
 #include <cstdio>

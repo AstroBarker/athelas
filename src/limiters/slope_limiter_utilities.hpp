@@ -1,5 +1,12 @@
 #ifndef SLOPE_LIMITER_UTILITIES_HPP_
 #define SLOPE_LIMITER_UTILITIES_HPP_
+/**
+ * @file slope_limiter_utilities.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Utility functions for slope limiters.
+ */
 
 #include "abstractions.hpp"
 #include "basis/polynomial_basis.hpp"

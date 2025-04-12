@@ -1,9 +1,20 @@
 #ifndef SLOPE_LIMITER_BASE_HPP_
 #define SLOPE_LIMITER_BASE_HPP_
-
 /**
- * define a base class using curiously recurring template pattern
- **/
+ * @file slope_limiter_base.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Base class for slope limiters.
+ * 
+ * @details Defines the SlopeLimiterBase template class that serves 
+ *          as the foundation for all slope limiters implemented.
+ * 
+ *          The class provides two key interface methods:
+ *          - ApplySlopeLimiter: Applies the limiter to the solution
+ *          - Get_Limited: Returns whether a cell was limited
+ */
+
 #include "abstractions.hpp"
 #include "polynomial_basis.hpp"
 

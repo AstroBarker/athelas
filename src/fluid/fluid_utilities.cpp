@@ -1,10 +1,12 @@
 /**
- * File     :  fluid_utilities.cpp
+ * @file fluid_utilities.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Utility routines for fluid fields. Includes Riemann solvers.
- **/
+ * @author Brandon L. Barker
+ * @brief Utilities for fluid evolution
+ * 
+ * @details Contains functions necessary for fluid evolution
+ */
 
 #include <algorithm> // std::min, std::max
 #include <cstdlib> /* abs */

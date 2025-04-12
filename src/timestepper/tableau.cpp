@@ -1,11 +1,12 @@
 /**
- * File     :  tableau.cpp
+ * @file tableau.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Classes for holding RK tableaus
- *
- **/
+ * @author Brandon L. Barker
+ * @brief Class for holding implicit and explicit RK tableaus.
+ * 
+ * @details TODO: describe tableaus.
+ */
 
 #include "tableau.hpp"
 #include "constants.hpp"

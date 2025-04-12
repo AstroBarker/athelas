@@ -1,3 +1,11 @@
+/**
+ * @file constants.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Physical constants
+ */
+
 #ifndef CONSTANTS_HPP_
 #define CONSTANTS_HPP_
 

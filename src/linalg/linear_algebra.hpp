@@ -1,5 +1,16 @@
 #ifndef _LINEAR_ALGEBRA_HPP_
 #define _LINEAR_ALGEBRA_HPP_
+/**
+ * @file linear_algebra.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Basic linear algebra functions.
+ * 
+ * @details Linear algebra routines for quadrature and limiters.
+ *          - Tri_Sym_Diag
+ *          - InvertMatrix
+ */
 
 #include "Kokkos_Core.hpp"
 
@@ -19,7 +30,7 @@ constexpr void IdentityMatrix( T Mat, int n ) {
 }
 
 /**
- * Matrix vector multiplication
+ * @brief Matrix vector multiplication
  **/
 template <class M, class V>
 constexpr void MatMul( Real alpha, M A, V x, Real beta, V y ) {

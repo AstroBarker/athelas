@@ -1,13 +1,25 @@
 /**
- * File     :  bound_enforcing_limiter.cpp
+ * @file bound_enforcing_limiter.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Limit solution to maintain physicality
- * TODO: Need to give BEL much more thought
- * TODO: Can some functions here be simplified?
- *   ? If I pass U, iX, iCF, iN... why not just the value
- **/
+ * @author Brandon L. Barker
+ * @brief Implementation of bound enforcing limiters for enforcing physicality.
+ * 
+ * @details This file implements a suite of bound enforcing limiters based on 
+ *          K. Schaal et al 2015 (ADS: 10.1093/mnras/stv1859). These limiters 
+ *          ensure physicality of the solution by preventing negative values of 
+ *          key physical quantities:
+ * 
+ *          - LimitDensity: Prevents negative density by scaling slope 
+ *            coefficients
+ *          - LimitInternalEnergy: Maintains positive internal energy using 
+ *            root-finding algorithms
+ *          - LimitRadMomentum: Ensures physical radiation momentum values
+ * 
+ *          Multiple root finders for the internal energy solve are implemented
+ *          and an Anderson accelerated fixed point iteration is the default.
+ *          point iteration being the default choice.
+ */
 
 #include <algorithm> // std::min, std::max
 #include <cstdlib> /* abs */
@@ -22,13 +34,17 @@
 #include "solvers/root_finders.hpp"
 #include "utilities.hpp"
 
-/**
- * Limit density following K. Schaal et al 2015
- * ADS: 10.1093/mnras/stv1859
- *
- * Find theta = min((rho_avg - eps)/(rho_nodal - rho_avg) ,1)
- * Scale slope, ... by theta
- **/
+ /**
+ * @brief Limits density to maintain physicality following K. Schaal et al 2015
+ * 
+ * @details This function implements the density limiter based on K. Schaal et al 
+ *          2015 (ADS: 10.1093/mnras/stv1859). It finds a scaling factor theta 
+ *          that ensures density remains positive by computing:
+ *          theta = min((rho_avg - eps)/(rho_nodal - rho_avg), 1)
+ * 
+ * @param U The solution array containing conserved variables
+ * @param Basis The modal basis used for the solution representation
+ */
 void LimitDensity( View3D<Real> U, const ModalBasis *Basis ) {
   constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
   const int order               = Basis->Get_Order( );
@@ -60,30 +76,31 @@ void LimitDensity( View3D<Real> U, const ModalBasis *Basis ) {
 }
 
 /**
- * Limit other variables based on K. Schaal et al 2015
- * in order to preserve positivity of internal energy
- * ADS: 10.1093/mnras/stv1859
- *
- *
- * Find a theta s.t. (1 - theta) U_bar + theta U_q
- * is positive for U being the specific internal energy.
- *
- * There are three root finders implemented:
- *  - A Bisection
- *  - An Anderson accelerated fixed point iteration
- *  - A simple "back tracing" algorithm (step back from theta = 1)
- *
- * The fixed point iteration is default. All yield the same
- * result and seem stable on difficult problems, but if
- * stability issues arise, consider switching the solver to
- * Bisection below.
- * Note that in the bisection and fixed point solvers
- * a small delta = 1.0e-3 is subtracted from the root
- * to ensure positivity. The backtrace algorithm overshoots
- * the root and so this is not necessary.
- *
- * The simulation time is insensitive to solver choice.
- **/
+ * @brief Limits the solution to maintain positivity of internal energy
+ * 
+ * @details This function implements the bound enforcing limiter for internal 
+ *          energy based on K. Schaal et al 2015 
+ *          (ADS: 10.1093/mnras/stv1859). It finds a scaling factor theta such 
+ *          that (1 - theta) * U_bar + theta * U_q is positive for U being the 
+ *          specific internal energy.
+ * 
+ *          The function uses three possible root finding algorithms:
+ *          - Bisection: A robust but slower method
+ *          - Anderson accelerated fixed point iteration: The default method
+ *          - Back tracing: A simple algorithm that steps back from theta = 1
+ * 
+ *          All methods yield the same results and are stable on difficult 
+ *          problems. The simulation time is insensitive to solver choice.
+ * 
+ *          Note: In the bisection and fixed point solvers, a small delta = 
+ *          1.0e-3 is subtracted from the root to ensure positivity. The 
+ *          backtrace algorithm overshoots the root, so this adjustment is not 
+ *          necessary.
+ * 
+ * @param U The solution array containing conserved variables
+ * @param Basis The modal basis used for the solution representation
+ * @param eos The equation of state object used for thermodynamic calculations
+ */
 void LimitInternalEnergy( View3D<Real> U, const ModalBasis *Basis,
                           const EOS *eos ) {
   const int order = Basis->Get_Order( );

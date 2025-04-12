@@ -1,9 +1,16 @@
 #ifndef OPAC_VARIANT_HPP_
 #define OPAC_VARIANT_HPP_
-
 /**
- * Specific EoS classes here
- **/
+ * @file opac_variant.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Provides variant-based dispatch for opacity model operations
+ * 
+ * @details This header implements a type-safe way to handle different opacity 
+ *          models at runtime using std::variant. It provides visitor functions 
+ *          that dispatch to the appropriate model's implementation.
+ */
 
 #include <variant>
 

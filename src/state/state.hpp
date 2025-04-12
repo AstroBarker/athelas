@@ -1,16 +1,18 @@
 #ifndef STATE_HPP_
 #define STATE_HPP_
-
 /**
- * File     :  state.hpp
+ * @file state.hpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Class for holding the state data.
- *
- * TODO: pull in eos
- *
- **/
+ * @author Brandon L. Barker
+ * @brief Class for holding state data
+ * 
+ * @details Contains:
+ *          - uCF
+ *          - uPF
+ *          - uAF
+ *          - uCR
+ */
 
 #include "Kokkos_Core.hpp"
 

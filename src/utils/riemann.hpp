@@ -1,5 +1,12 @@
 #ifndef RIEMANN_HPP_
 #define RIEMANN_HPP_
+/**
+ * @file riemann.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Riemann solvers
+ */
 
 #include "abstractions.hpp"
 

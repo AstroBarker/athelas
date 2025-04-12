@@ -1,3 +1,11 @@
+/**
+ * @file rad_advection.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Radiation advection test
+ */
+
 #ifndef RAD_ADVECTION_HPP_
 #define RAD_ADVECTION_HPP_
 
@@ -11,8 +19,8 @@
 #include "grid.hpp"
 
 /**
- * Initialize radiation advection test
- * NOTE: EXPERIMENTAL
+ * @brief Initialize radiation advection test
+ * @note EXPERIMENTAL
  **/
 void rad_advection_init( State *state, GridStructure *Grid,
                          const ProblemIn *pin ) {

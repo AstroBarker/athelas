@@ -1,11 +1,15 @@
 /**
- * File     :  slope_limiter_tvdminmod.cpp
+ * @file slope_limiter_tvdminmod.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Classes for slope limters
- * Contains : SlopeLimiter
- **/
+ * @author Brandon L. Barker
+ * @brief TVB Minmod slope limiter for discontinuous Galerkin methods
+ * 
+ * @details This file implements the Total Variation Diminishing (TVD) Minmod 
+ *          slope limiter based on the work of Cockburn & Shu. The limiter 
+ *          provides a robust, first-order accurate approach to preventing 
+ *          oscillations in discontinuous solutions.
+ */
 
 #include <algorithm> /* std::min, std::max */
 #include <cstdlib> /* abs */

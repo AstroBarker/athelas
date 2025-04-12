@@ -1,10 +1,11 @@
 /**
- * File    :  driver.cpp
+ * @file driver.cpp
  * --------------
  *
- * Author  : Brandon L. Barker
- * Purpose : Main driver routine
- **/
+ * @author Brandon L. Barker
+ * @brief main driver routine
+ * 
+ */
 
 #include <algorithm> // std::min
 #include <iostream>

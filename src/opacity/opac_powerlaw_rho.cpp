@@ -1,11 +1,10 @@
 /**
- * File     :  opac_powerlaw_rho.cpp
+ * @file opac_powerlaw_rho.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : opacity = c * rho^a
- * Rosseland and Plank are equal
- **/
+ * @author Brandon L. Barker
+ * @brief Density power law opacity model
+ */
 
 #include <math.h>
 

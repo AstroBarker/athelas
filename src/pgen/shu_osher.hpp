@@ -1,5 +1,12 @@
 #ifndef SHU_OSHER_HPP_
 #define SHU_OSHER_HPP_
+/**
+ * @file shu_osher.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Shu Osher shock tube
+ */
 
 #include <iostream>
 #include <math.h> /* sin */
@@ -11,7 +18,7 @@
 #include "grid.hpp"
 
 /**
- * Initialize Shu Osher hydro test
+ * @brief Initialize Shu Osher hydro test
  **/
 void shu_osher_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
 

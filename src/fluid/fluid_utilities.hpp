@@ -1,5 +1,19 @@
-#ifndef _FLUID_UTILITIES_HPP_
-#define _FLUID_UTILITIES_HPP_
+#ifndef FLUID_UTILITIES_HPP_
+#define FLUID_UTILITIES_HPP_
+/**
+ * @file fluid_utilities.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Utilities for fluid evolution
+ * 
+ * @details Contains functions necessary for fluid evolution:
+ *          - Flux_Fluid
+ *          - Source_Fluid_Rad
+ *          - NumericalFlux_Gudonov
+ *          - NumericalFlux_HLLC
+ *          - ComputeTimestep_Fluid
+ */
 
 #include "Kokkos_Core.hpp"
 
@@ -20,4 +34,4 @@ void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
 Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
                             EOS *eos, const Real CFL );
 
-#endif // _FLUID_UTILITIES_HPP_
+#endif // FLUID_UTILITIES_HPP_

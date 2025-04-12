@@ -1,5 +1,14 @@
 #ifndef INITIALIZATION_HPP_
 #define INITIALIZATION_HPP_
+/**
+ * @file initialization.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Top level problem initialization
+ * 
+ * @details Calls specific problem pgen functions.
+ */
 
 #include <iostream>
 #include <math.h> /* sin */
