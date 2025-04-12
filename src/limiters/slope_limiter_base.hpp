@@ -6,10 +6,10 @@
  *
  * @author Brandon L. Barker
  * @brief Base class for slope limiters.
- * 
- * @details Defines the SlopeLimiterBase template class that serves 
+ *
+ * @details Defines the SlopeLimiterBase template class that serves
  *          as the foundation for all slope limiters implemented.
- * 
+ *
  *          The class provides two key interface methods:
  *          - ApplySlopeLimiter: Applies the limiter to the solution
  *          - Get_Limited: Returns whether a cell was limited

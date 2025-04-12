@@ -6,14 +6,14 @@
  *
  * @author Brandon L. Barker
  * @brief Base class for opacity models.
- * 
+ *
  * @details Defines the OpacBase template class.
- * 
+ *
  *          The class provides two interface methods:
  *          - PlanckMean
  *          - RosselandMean
- * 
- *          The interface methods take density, temperature, and composition 
+ *
+ *          The interface methods take density, temperature, and composition
  *          parameters to compute the appropriate mean opacity values.
  */
 

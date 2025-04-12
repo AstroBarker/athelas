@@ -4,7 +4,7 @@
  *
  * @author Brandon L. Barker
  * @brief Quadrature rules
- * 
+ *
  * @details Computes Gauss-Legendre nodes and weights
  */
 
@@ -17,12 +17,12 @@
 
 namespace quadrature {
 
-  /**
+/**
  * @brief Computes the Jacobi matrix for Legendre-Gauss quadrature rule
- * 
- * @details Constructs the symmetric tridiagonal Jacobi matrix 
- *          needed for Legendre-Gauss quadrature. 
- * 
+ *
+ * @details Constructs the symmetric tridiagonal Jacobi matrix
+ *          needed for Legendre-Gauss quadrature.
+ *
  * @param m Number of quadrature nodes (matrix dimension)
  * @param aj Output array for matrix diagonal elements
  * @param bj Output array for matrix subdiagonal elements
@@ -51,16 +51,16 @@ Real Jacobi_Matrix( int m, Real *aj, Real *bj ) {
 }
 
 /**
- * @brief Generates a Legendre-Gauss quadrature rule with specified number of 
+ * @brief Generates a Legendre-Gauss quadrature rule with specified number of
  *        points
- * 
- * @details This function computes a complete Legendre-Gauss quadrature rule 
- *          with m points. It generates both the quadrature nodes (abscissas) 
+ *
+ * @details This function computes a complete Legendre-Gauss quadrature rule
+ *          with m points. It generates both the quadrature nodes (abscissas)
  *          and weights for accurate integration of polynomial functions.
- * 
- *          The resulting quadrature rule is optimal for integrating 
+ *
+ *          The resulting quadrature rule is optimal for integrating
  *          polynomial functions up to degree 2m-1.
- * 
+ *
  * @param m Number of quadrature points (must be positive)
  * @param nodes Output array for quadrature nodes (abscissas)
  * @param weights Output array for quadrature weights

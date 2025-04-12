@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief HDF5 and std out IO routines
- * 
+ *
  * @details Collection of functions for IO
  */
 

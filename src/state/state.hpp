@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief Class for holding state data
- * 
+ *
  * @details Contains:
  *          - uCF
  *          - uPF

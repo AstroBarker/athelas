@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief Utilities for fluid evolution
- * 
+ *
  * @details Contains functions necessary for fluid evolution:
  *          - Flux_Fluid
  *          - Source_Fluid_Rad

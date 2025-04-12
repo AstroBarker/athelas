@@ -4,7 +4,7 @@
  *
  * @author Brandon L. Barker
  * @brief Useful utilities
- * 
+ *
  * @details Provides
  *          - sgn
  *          - ComputeInternalEnergy

@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief Basic linear algebra functions.
- * 
+ *
  * @details Linear algebra routines for quadrature and limiters.
  *          - Tri_Sym_Diag
  *          - InvertMatrix

@@ -4,7 +4,7 @@
  *
  * @author Brandon L. Barker
  * @brief Basic linear algebra functions.
- * 
+ *
  * @details Linear algebra routines for quadrature and limiters.
  *          - Tri_Sym_Diag
  *          - InvertMatrix
@@ -20,20 +20,21 @@
 #include "linear_algebra.hpp"
 
 /**
- * @brief Diagonalizes a symmetric tridiagonal matrix using LAPACKE's DSTEV routine
- * 
- * @details This function solves the symmetric tridiagonal eigenvalue problem 
- *          using LAPACKE's DSTEV routine. It computes both eigenvalues and 
- *          eigenvectors, then performs a matrix multiplication with the input 
+ * @brief Diagonalizes a symmetric tridiagonal matrix using LAPACKE's DSTEV
+ * routine
+ *
+ * @details This function solves the symmetric tridiagonal eigenvalue problem
+ *          using LAPACKE's DSTEV routine. It computes both eigenvalues and
+ *          eigenvectors, then performs a matrix multiplication with the input
  *          array.
- * 
+ *
  * @param n The dimension of the matrix
  * @param d Array containing the diagonal elements of the matrix
  * @param e Array containing the subdiagonal elements (length n)
  * @param array Input/output array for the matrix multiplication (Q*)z
- * 
+ *
  * @throws std::runtime_error if LAPACKE_dstev fails
- * 
+ *
  * @note This function is used in quadrature initialization.
  */
 void Tri_Sym_Diag( int n, Real *d, Real *e, Real *array ) {

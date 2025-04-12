@@ -5,13 +5,14 @@
  * --------------
  *
  * @author Brandon L. Barker
- * @brief Base class for equations of state using the Curiously Recurring Template Pattern (CRTP)
- * 
- * @details This header defines the EosBase template class that serves as the foundation
- *          for all equation of state implementations in the codebase. It uses the CRTP
- *          to provide a common interface while allowing derived classes to implement
- *          specific EOS behaviors.
- * 
+ * @brief Base class for equations of state using the Curiously Recurring
+ *Template Pattern (CRTP)
+ *
+ * @details This header defines the EosBase template class that serves as the
+ *foundation for all equation of state implementations in the codebase. It uses
+ *the CRTP to provide a common interface while allowing derived classes to
+ *implement specific EOS behaviors.
+ *
  *          The class provides the following:
  *          - PressureFromConserved
  *          - SoundSpeedFromConserved
@@ -20,11 +21,11 @@
  *          - RadiationPressure
  *
  *          These interfaces are implemented for all EOS
- * 
- *          Each method is implemented as a non-virtual interface that delegates to
- *          the derived class implementation through static_cast. This pattern allows
+ *
+ *          Each method is implemented as a non-virtual interface that delegates
+ *to the derived class implementation through static_cast. This pattern allows
  *          for compile-time polymorphism with minimal runtime overhead.
- * 
+ *
  **/
 
 #include "abstractions.hpp"

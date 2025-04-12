@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief Driver
- * 
+ *
  * @details Functions:
  *            - NumNodes
  *            - ComputeCFL

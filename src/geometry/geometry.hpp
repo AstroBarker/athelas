@@ -5,8 +5,8 @@
  * --------------
  *
  * @author Brandon L. Barker
- * @brief Enum for geometry 
- * 
+ * @brief Enum for geometry
+ *
  * @details enum Geometry
  *          - Planar
  *          - Spherical

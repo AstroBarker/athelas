@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief Class for holding the spatial grid.
- * 
+ *
  * @details This class GridStructure holds key pieces of the grid:
  *          - nx
  *          - nnodes

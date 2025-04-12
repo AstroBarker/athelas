@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief Hydro characteristic decomposition
- * 
+ *
  * @details Implements a characteristic decomposition of the hydro variables.
  *          Currently this is only implemented ofr an ideal EOS.
  *          TODO: Template on EOS? Write down for radiation.

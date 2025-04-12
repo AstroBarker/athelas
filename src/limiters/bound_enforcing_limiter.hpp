@@ -6,18 +6,18 @@
  *
  * @author Brandon L. Barker
  * @brief Implementation of bound enforcing limiters for enforcing physicality.
- * 
- * @details This file implements a suite of bound enforcing limiters based on 
- *          K. Schaal et al 2015 (ADS: 10.1093/mnras/stv1859). These limiters 
- *          ensure physicality of the solution by preventing negative values of 
+ *
+ * @details This file implements a suite of bound enforcing limiters based on
+ *          K. Schaal et al 2015 (ADS: 10.1093/mnras/stv1859). These limiters
+ *          ensure physicality of the solution by preventing negative values of
  *          key physical quantities:
- * 
- *          - LimitDensity: Prevents negative density by scaling slope 
+ *
+ *          - LimitDensity: Prevents negative density by scaling slope
  *            coefficients
- *          - LimitInternalEnergy: Maintains positive internal energy using 
+ *          - LimitInternalEnergy: Maintains positive internal energy using
  *            root-finding algorithms
  *          - LimitRadMomentum: Ensures physical radiation momentum values
- * 
+ *
  *          Multiple root finders for the internal energy solve are implemented
  *          and an Anderson accelerated fixed point iteration is the default.
  *          point iteration being the default choice.

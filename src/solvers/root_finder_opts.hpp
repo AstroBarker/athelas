@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief Root finder options
- * 
+ *
  * @details Compile time root finder options
  *          - FPTOL (absolute tolerance)
  *          - RELTOL (relative tolerance)

@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief Root finders
- * 
+ *
  * @details Root finders provided for various needs:
  *          - fixed_point
  *          - newton

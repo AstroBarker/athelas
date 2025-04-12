@@ -4,7 +4,7 @@
  *
  * @author Brandon L. Barker
  * @brief Utilities for fluid evolution
- * 
+ *
  * @details Contains functions necessary for fluid evolution
  */
 

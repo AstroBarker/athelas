@@ -4,7 +4,7 @@
  *
  * @author Brandon L. Barker
  * @brief main driver routine
- * 
+ *
  */
 
 #include <algorithm> // std::min

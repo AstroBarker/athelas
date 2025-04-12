@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief Quadrature rules
- * 
+ *
  * @details Computes Gauss-Legendre nodes and weights
  */
 

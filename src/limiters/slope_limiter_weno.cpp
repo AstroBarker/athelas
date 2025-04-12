@@ -3,13 +3,13 @@
  * --------------
  *
  * @author Brandon L. Barker
- * @brief Implementation of the WENO-Z slope limiter for discontinuous Galerkin 
+ * @brief Implementation of the WENO-Z slope limiter for discontinuous Galerkin
  *        methods
- * 
- * @details This file implements the WENO-Z slope limiter based on H. Zhu 2020, 
- *          "Simple, high-order compact WENO RKDG slope limiter". The limiter 
- *          uses a compact stencil approach to maintain high-order accuracy while 
- *          preventing oscillations.
+ *
+ * @details This file implements the WENO-Z slope limiter based on H. Zhu 2020,
+ *          "Simple, high-order compact WENO RKDG slope limiter". The limiter
+ *          uses a compact stencil approach to maintain high-order accuracy
+ * while preventing oscillations.
  */
 
 #include <algorithm> /* std::min, std::max */

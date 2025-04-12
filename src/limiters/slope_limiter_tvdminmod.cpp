@@ -4,10 +4,10 @@
  *
  * @author Brandon L. Barker
  * @brief TVB Minmod slope limiter for discontinuous Galerkin methods
- * 
- * @details This file implements the Total Variation Diminishing (TVD) Minmod 
- *          slope limiter based on the work of Cockburn & Shu. The limiter 
- *          provides a robust, first-order accurate approach to preventing 
+ *
+ * @details This file implements the Total Variation Diminishing (TVD) Minmod
+ *          slope limiter based on the work of Cockburn & Shu. The limiter
+ *          provides a robust, first-order accurate approach to preventing
  *          oscillations in discontinuous solutions.
  */
 

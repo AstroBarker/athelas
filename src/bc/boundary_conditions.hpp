@@ -7,7 +7,7 @@
  *
  * @author Brandon L. Barker
  * @brief Boundary conditions
- * 
+ *
  * @details Implemented BCs
  *            - reflecting
  *            - periodic

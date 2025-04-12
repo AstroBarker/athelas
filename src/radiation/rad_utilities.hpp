@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief Functions for radiation evolution.
- * 
+ *
  * @details Key functions for radiation udates:
  *          - FluxFactor
  *          - Flux_Rad

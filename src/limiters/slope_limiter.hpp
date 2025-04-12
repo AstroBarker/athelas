@@ -5,16 +5,16 @@
  * --------------
  *
  * @author Brandon L. Barker
- * @brief Specific slope limiter classes that implement the 
+ * @brief Specific slope limiter classes that implement the
  *        SlopeLimiterBase interface
- * 
- * @details Defines specific slope limiter implementations that 
+ *
+ * @details Defines specific slope limiter implementations that
  *          inherit from the SlopeLimiterBase template class.
  *
  *          We implement the following limiters:
  *          - WENO: Weighted Essentially Non-Oscillatory limiter
  *          - TVDMinmod: Total Variation Diminishing Minmod limiter
- * 
+ *
  *          Both limiters support:
  *          - Characteristic decomposition
  *          - Troubled Cell Indicator (TCI)

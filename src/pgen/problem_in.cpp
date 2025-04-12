@@ -4,7 +4,7 @@
  *
  * @author Brandon L. Barker
  * @brief Class for loading input deck
- * 
+ *
  * @details Loads input deck in TOML format.
  *          See: https://github.com/marzer/tomlplusplus
  */

@@ -4,7 +4,7 @@
  *
  * @author Brandon L. Barker
  * @brief Contains the main discretization routines for the fluid
- * 
+ *
  * @details We implement the core DG updates for the fluid here, including
  *          - ComputerIncrement_Fluid_Divergence (hyperbolic term)
  *          - ComputeIncrement_Fluid_Geometry (geometric source)

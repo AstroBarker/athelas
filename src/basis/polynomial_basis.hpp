@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief Core polynomial basis functions
- * 
+ *
  * @details Provides means to construct and evaluate bases
  *            - Legendre
  *            - Taylor

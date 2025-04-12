@@ -6,7 +6,7 @@
  *
  * @author Brandon L. Barker
  * @brief Class for holding implicit and explicit RK tableaus.
- * 
+ *
  * @details TODO: describe tableaus.
  */
 

@@ -4,18 +4,18 @@
  *
  * @author Brandon L. Barker
  * @brief Implementation of bound enforcing limiters for enforcing physicality.
- * 
- * @details This file implements a suite of bound enforcing limiters based on 
- *          K. Schaal et al 2015 (ADS: 10.1093/mnras/stv1859). These limiters 
- *          ensure physicality of the solution by preventing negative values of 
+ *
+ * @details This file implements a suite of bound enforcing limiters based on
+ *          K. Schaal et al 2015 (ADS: 10.1093/mnras/stv1859). These limiters
+ *          ensure physicality of the solution by preventing negative values of
  *          key physical quantities:
- * 
- *          - LimitDensity: Prevents negative density by scaling slope 
+ *
+ *          - LimitDensity: Prevents negative density by scaling slope
  *            coefficients
- *          - LimitInternalEnergy: Maintains positive internal energy using 
+ *          - LimitInternalEnergy: Maintains positive internal energy using
  *            root-finding algorithms
  *          - LimitRadMomentum: Ensures physical radiation momentum values
- * 
+ *
  *          Multiple root finders for the internal energy solve are implemented
  *          and an Anderson accelerated fixed point iteration is the default.
  *          point iteration being the default choice.
@@ -34,14 +34,14 @@
 #include "solvers/root_finders.hpp"
 #include "utilities.hpp"
 
- /**
+/**
  * @brief Limits density to maintain physicality following K. Schaal et al 2015
- * 
- * @details This function implements the density limiter based on K. Schaal et al 
- *          2015 (ADS: 10.1093/mnras/stv1859). It finds a scaling factor theta 
- *          that ensures density remains positive by computing:
- *          theta = min((rho_avg - eps)/(rho_nodal - rho_avg), 1)
- * 
+ *
+ * @details This function implements the density limiter based on K. Schaal et
+ * al 2015 (ADS: 10.1093/mnras/stv1859). It finds a scaling factor theta that
+ * ensures density remains positive by computing: theta = min((rho_avg -
+ * eps)/(rho_nodal - rho_avg), 1)
+ *
  * @param U The solution array containing conserved variables
  * @param Basis The modal basis used for the solution representation
  */
@@ -77,26 +77,26 @@ void LimitDensity( View3D<Real> U, const ModalBasis *Basis ) {
 
 /**
  * @brief Limits the solution to maintain positivity of internal energy
- * 
- * @details This function implements the bound enforcing limiter for internal 
- *          energy based on K. Schaal et al 2015 
- *          (ADS: 10.1093/mnras/stv1859). It finds a scaling factor theta such 
- *          that (1 - theta) * U_bar + theta * U_q is positive for U being the 
+ *
+ * @details This function implements the bound enforcing limiter for internal
+ *          energy based on K. Schaal et al 2015
+ *          (ADS: 10.1093/mnras/stv1859). It finds a scaling factor theta such
+ *          that (1 - theta) * U_bar + theta * U_q is positive for U being the
  *          specific internal energy.
- * 
+ *
  *          The function uses three possible root finding algorithms:
  *          - Bisection: A robust but slower method
  *          - Anderson accelerated fixed point iteration: The default method
  *          - Back tracing: A simple algorithm that steps back from theta = 1
- * 
- *          All methods yield the same results and are stable on difficult 
+ *
+ *          All methods yield the same results and are stable on difficult
  *          problems. The simulation time is insensitive to solver choice.
- * 
- *          Note: In the bisection and fixed point solvers, a small delta = 
- *          1.0e-3 is subtracted from the root to ensure positivity. The 
- *          backtrace algorithm overshoots the root, so this adjustment is not 
+ *
+ *          Note: In the bisection and fixed point solvers, a small delta =
+ *          1.0e-3 is subtracted from the root to ensure positivity. The
+ *          backtrace algorithm overshoots the root, so this adjustment is not
  *          necessary.
- * 
+ *
  * @param U The solution array containing conserved variables
  * @param Basis The modal basis used for the solution representation
  * @param eos The equation of state object used for thermodynamic calculations
