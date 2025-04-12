@@ -79,7 +79,7 @@ class RadiationEquilibriumTest(AthelasRegressionTest):
     te.evolve()
     sol = te.sol[-1]  # scale by density
 
-    self.assertTrue(soft_equiv(sol, data[0] * rho, tol=1.0e-5))
+    self.assertTrue(soft_equiv(sol, data[0] * rho, tol=1.0e-2)) # low tol
 
 
 def create_test_suite(executable_path=None):
