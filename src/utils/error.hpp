@@ -84,9 +84,12 @@ class AthelasError : public std::exception {
   ~AthelasError( ) noexcept override {}
 };
 
-// Macro to simplify error throwing with file and line information
-#define THROW_ATHELAS_ERROR( message )                                         \
-  throw AthelasError( message, __FUNCTION__, __FILE__, __LINE__ )
+template <typename... Args>
+[[noreturn]] constexpr void THROW_ATHELAS_ERROR(
+    const char *message, const char *function = __builtin_FUNCTION( ),
+    const char *file = __builtin_FILE( ), int line = __builtin_LINE( ) ) {
+  throw AthelasError( message, function, file, line );
+}
 
 template <typename T>
 void check_state( T state, const int ihi, const bool do_rad ) {
