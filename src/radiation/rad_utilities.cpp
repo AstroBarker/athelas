@@ -75,8 +75,6 @@ std::tuple<Real, Real> RadiationFourForce( const Real D, const Real V,
       "Radiation :: RadiationFourFource :: Non positive definite density." );
   assert( T > 0.0 &&
           "Radiation :: RadiationFourFource :: Non positive temperature." );
-  assert( kappa > 0.0 &&
-          "Radiation :: RadiationFourFource :: Non positive opacity." );
   assert( E > 0.0 && "Radiation :: RadiationFourFource :: Non positive "
                      "definite radiation energy density." );
 
