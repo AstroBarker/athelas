@@ -1,17 +1,21 @@
 #ifndef GRID_HPP_
 #define GRID_HPP_
-
 /**
- * File     :  grid.hpp
+ * @file grid.hpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Class for holding the grid data.
- *  For a loop over real zones, loop from ilo to ihi (inclusive).
- *  ilo = nGhost
- *  ihi = nElements - nGhost + 1
+ * @author Brandon L. Barker
+ * @brief Class for holding the spatial grid.
  *
- **/
+ * @details This class GridStructure holds key pieces of the grid:
+ *          - nx
+ *          - nnodes
+ *          - weights
+ *
+ *          For a loop over real zones, loop from ilo to ihi (inclusive).
+ *          ilo = nGhost
+ *          ihi = nElements - nGhost + 1
+ */
 
 #include <algorithm> // std::copy
 #include <iostream>

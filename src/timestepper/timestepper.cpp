@@ -1,10 +1,10 @@
 /**
- * File     :  timestepper.cpp
+ * @file timestepper.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : SSPRK timestepping routines
- **/
+ * @author Brandon L. Barker
+ * @brief Primary time marching routine
+ */
 
 #include <iostream>
 #include <vector>

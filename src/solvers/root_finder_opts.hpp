@@ -1,19 +1,28 @@
 #ifndef ROOT_FINDER_OPTS_HPP_
 #define ROOT_FINDER_OPTS_HPP_
-
 /**
- * This file contains various solver options
- **/
+ * @file root_finder_opts.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Root finder options
+ *
+ * @details Compile time root finder options
+ *          - FPTOL (absolute tolerance)
+ *          - RELTOL (relative tolerance)
+ *
+ *          TODO: these should be runtime..
+ */
 
 #include "abstractions.hpp"
 
 namespace root_finders {
 
-constexpr unsigned int MAX_ITERS = 200;
-constexpr Real FPTOL             = 1.0e-10;
-constexpr Real RELTOL            = 1.0e-8;
-constexpr Real ZBARTOL           = 1.0e-15;
-constexpr Real ZBARTOLINV        = 1.0e15;
+constexpr static unsigned int MAX_ITERS = 200;
+constexpr static Real FPTOL             = 1.0e-10;
+constexpr static Real RELTOL            = 1.0e-14;
+constexpr static Real ZBARTOL           = 1.0e-15;
+constexpr static Real ZBARTOLINV        = 1.0e15;
 
 } // namespace root_finders
 

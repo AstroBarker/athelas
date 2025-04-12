@@ -1,12 +1,16 @@
 /**
- * File     :  state.cpp
+ * @file state.hpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Class for holding the state data.
+ * @author Brandon L. Barker
+ * @brief Class for holding state data
  *
- * TODO: separate pOrder_fluid and pOrder_rad
- **/
+ * @details Contains:
+ *          - uCF
+ *          - uPF
+ *          - uAF
+ *          - uCR
+ */
 
 #include "state.hpp"
 #include "constants.hpp"

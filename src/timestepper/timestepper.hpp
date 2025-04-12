@@ -1,17 +1,21 @@
 #ifndef TIMESTEPPER_HPP_
 #define TIMESTEPPER_HPP_
-
 /**
- * File     :  timestepper.hpp
+ * @file timestepper.hpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Class for SSPRK timestepping
- **/
+ * @author Brandon L. Barker
+ * @brief Primary time marching routine.
+ *
+ * @details Timestppers for hydro and rad hydro.
+ *          Uses explicity for transport terms and implicit for coupling.
+ */
 
 #include "abstractions.hpp"
 #include "bound_enforcing_limiter.hpp"
 #include "eos.hpp"
+#include "opacity/opac.hpp"
+#include "opacity/opac_variant.hpp"
 #include "polynomial_basis.hpp"
 #include "problem_in.hpp"
 #include "slope_limiter.hpp"
@@ -263,12 +267,13 @@ class TimeStepper {
                        H compute_increment_rad_implicit, const Real dt,
                        State *state, GridStructure &Grid,
                        const ModalBasis *Basis, const EOS *eos,
-                       SlopeLimiter *S_Limiter, const Options opts ) {
+                       const Opacity *opac, SlopeLimiter *S_Limiter,
+                       const Options opts ) {
 
     UpdateRadHydro_IMEX(
         compute_increment_hydro_explicit, compute_increment_rad_explicit,
         compute_increment_hydro_implicit, compute_increment_rad_implicit, dt,
-        state, Grid, Basis, eos, S_Limiter, opts );
+        state, Grid, Basis, eos, opac, S_Limiter, opts );
   }
 
   /**
@@ -281,7 +286,8 @@ class TimeStepper {
                             H compute_increment_rad_implicit, const Real dt,
                             State *state, GridStructure &Grid,
                             const ModalBasis *Basis, const EOS *eos,
-                            SlopeLimiter *S_Limiter, const Options opts ) {
+                            const Opacity *opac, SlopeLimiter *S_Limiter,
+                            const Options opts ) {
 
     const auto &order = Basis->Get_Order( );
     const auto &ihi   = Grid.Get_ihi( );
@@ -351,17 +357,21 @@ class TimeStepper {
               auto u_r =
                   Kokkos::subview( U_s_r, j, Kokkos::ALL, iX, Kokkos::ALL );
               SumVar_U( 1, iX, k ) +=
-                  dt_a_im * compute_increment_hydro_implicit(
-                                u_h, k, 1, u_r, Grid_s[iS], Basis, eos, iX );
+                  dt_a_im * compute_increment_hydro_implicit( u_h, k, 1, u_r,
+                                                              Grid_s[iS], Basis,
+                                                              eos, opac, iX );
               SumVar_U( 2, iX, k ) +=
-                  dt_a_im * compute_increment_hydro_implicit(
-                                u_h, k, 2, u_r, Grid_s[iS], Basis, eos, iX );
+                  dt_a_im * compute_increment_hydro_implicit( u_h, k, 2, u_r,
+                                                              Grid_s[iS], Basis,
+                                                              eos, opac, iX );
               SumVar_U_r( 0, iX, k ) +=
-                  dt_a_im * compute_increment_rad_implicit(
-                                u_r, k, 0, u_h, Grid_s[iS], Basis, eos, iX );
+                  dt_a_im * compute_increment_rad_implicit( u_r, k, 0, u_h,
+                                                            Grid_s[iS], Basis,
+                                                            eos, opac, iX );
               SumVar_U_r( 1, iX, k ) +=
-                  dt_a_im * compute_increment_rad_implicit(
-                                u_r, k, 1, u_h, Grid_s[iS], Basis, eos, iX );
+                  dt_a_im * compute_increment_rad_implicit( u_r, k, 1, u_h,
+                                                            Grid_s[iS], Basis,
+                                                            eos, opac, iX );
             } );
 
         Kokkos::parallel_for(
@@ -391,20 +401,21 @@ class TimeStepper {
       auto implicit_rad = [&]( View2D<Real> scratch, const int k, const int iC,
                                const View2D<Real> u_h, GridStructure &Grid,
                                const ModalBasis *Basis, const EOS *eos,
-                               const int iX ) {
+                               const Opacity *opac, const int iX ) {
         return SumVar_U_r( iC, iX, k ) +
                dt * implicit_tableau_.a_ij( iS, iS ) *
-                   compute_increment_rad_implicit( scratch, k, iC, u_h,
-                                                   Grid_s[iS], Basis, eos, iX );
+                   compute_increment_rad_implicit(
+                       scratch, k, iC, u_h, Grid_s[iS], Basis, eos, opac, iX );
       };
       auto implicit_hydro = [&]( View2D<Real> scratch, const int k,
                                  const int iC, const View2D<Real> u_r,
                                  GridStructure &Grid, const ModalBasis *Basis,
-                                 const EOS *eos, const int iX ) {
+                                 const EOS *eos, const Opacity *opac,
+                                 const int iX ) {
         return SumVar_U( iC, iX, k ) +
                dt * implicit_tableau_.a_ij( iS, iS ) *
                    compute_increment_hydro_implicit(
-                       scratch, k, iC, u_r, Grid_s[iS], Basis, eos, iX );
+                       scratch, k, iC, u_r, Grid_s[iS], Basis, eos, opac, iX );
       };
 
       // implicit update
@@ -418,11 +429,13 @@ class TimeStepper {
                 Kokkos::subview( U_s_r, iS, Kokkos::ALL, iX, Kokkos::ALL );
 
             const Real temp2 = root_finders::fixed_point_aa(
-                implicit_rad, k, u_r, iC - 1, u_h, Grid_s[iS], Basis, eos, iX );
+                implicit_rad, k, u_r, iC - 1, u_h, Grid_s[iS], Basis, eos, opac,
+                iX );
             U_s_r( iS, iC - 1, iX, k ) = temp2;
 
             const Real temp1 = root_finders::fixed_point_aa(
-                implicit_hydro, k, u_h, iC, u_r, Grid_s[iS], Basis, eos, iX );
+                implicit_hydro, k, u_h, iC, u_r, Grid_s[iS], Basis, eos, opac,
+                iX );
 
             U_s( iS, iC, iX, k ) = temp1;
           } );
@@ -469,22 +482,22 @@ class TimeStepper {
             uCF( 1, iX, k ) += dt_b * dUs_i_h( 1, iX, k );
             uCF( 2, iX, k ) += dt_b * dUs_i_h( 2, iX, k );
 
-            uCF( 1, iX, k ) +=
-                dt_b_im * compute_increment_hydro_implicit(
-                              u_h, k, 1, u_r, Grid_s[iS], Basis, eos, iX );
-            uCF( 2, iX, k ) +=
-                dt_b_im * compute_increment_hydro_implicit(
-                              u_h, k, 2, u_r, Grid_s[iS], Basis, eos, iX );
+            uCF( 1, iX, k ) += dt_b_im * compute_increment_hydro_implicit(
+                                             u_h, k, 1, u_r, Grid_s[iS], Basis,
+                                             eos, opac, iX );
+            uCF( 2, iX, k ) += dt_b_im * compute_increment_hydro_implicit(
+                                             u_h, k, 2, u_r, Grid_s[iS], Basis,
+                                             eos, opac, iX );
 
             uCR( 0, iX, k ) += dt_b * dUs_i_r( 0, iX, k );
             uCR( 1, iX, k ) += dt_b * dUs_i_r( 1, iX, k );
 
-            uCR( 0, iX, k ) +=
-                dt_b_im * compute_increment_rad_implicit(
-                              u_r, k, 0, u_h, Grid_s[iS], Basis, eos, iX );
-            uCR( 1, iX, k ) +=
-                dt_b_im * compute_increment_rad_implicit(
-                              u_r, k, 1, u_h, Grid_s[iS], Basis, eos, iX );
+            uCR( 0, iX, k ) += dt_b_im * compute_increment_rad_implicit(
+                                             u_r, k, 0, u_h, Grid_s[iS], Basis,
+                                             eos, opac, iX );
+            uCR( 1, iX, k ) += dt_b_im * compute_increment_rad_implicit(
+                                             u_r, k, 1, u_h, Grid_s[iS], Basis,
+                                             eos, opac, iX );
           } );
 
       Kokkos::parallel_for(

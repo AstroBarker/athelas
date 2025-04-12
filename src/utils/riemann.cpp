@@ -1,10 +1,10 @@
 /**
- * File    :  riemann.cpp
+ * @file riemann.cpp
  * --------------
  *
- * Author  : Brandon L. Barker
- * Purpose : Low level Riemann solver functions
- **/
+ * @author Brandon L. Barker
+ * @brief Riemann solvers
+ */
 
 #include "abstractions.hpp"
 

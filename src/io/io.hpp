@@ -1,5 +1,14 @@
 #ifndef IO_HPP_
 #define IO_HPP_
+/**
+ * @file io.cpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief HDF5 and std out IO routines
+ *
+ * @details Collection of functions for IO
+ */
 
 #include "Kokkos_Core.hpp"
 

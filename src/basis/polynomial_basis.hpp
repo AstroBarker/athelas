@@ -1,15 +1,16 @@
 #ifndef POLYNOMIAL_BASIS_HPP_
 #define POLYNOMIAL_BASIS_HPP_
-
 /**
- * File     :  polynomial_basis.hpp
+ * @file polynomial_basis.hpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Functions for polynomial basis
- * Contains : Class for Taylor basis.
- * Also  Lagrange, Legendre polynomials, arbitrary degree.
- **/
+ * @author Brandon L. Barker
+ * @brief Core polynomial basis functions
+ *
+ * @details Provides means to construct and evaluate bases
+ *            - Legendre
+ *            - Taylor
+ */
 
 #include <algorithm> // std::copy
 #include <vector>

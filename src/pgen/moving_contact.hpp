@@ -1,5 +1,12 @@
 #ifndef MOVING_CONTACT_HPP_
 #define MOVING_CONTACT_HPP_
+/**
+ * @file moving_contact.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Moving contact wave test
+ */
 
 #include <iostream>
 #include <math.h> /* sin */
@@ -11,7 +18,7 @@
 #include "grid.hpp"
 
 /**
- * Initialize moving contact discontinuity test
+ * @brief Initialize moving contact discontinuity test
  **/
 void moving_contact_init( State *state, GridStructure *Grid,
                           const ProblemIn *pin ) {

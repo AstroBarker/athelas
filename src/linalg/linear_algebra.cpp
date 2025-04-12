@@ -1,11 +1,14 @@
 /**
- * File     :  linear_algebra.cpp
+ * @file linear_algebra.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Linear algebra routines needed for quadrature,
- *  Calls LAPACK routine dstev
- **/
+ * @author Brandon L. Barker
+ * @brief Basic linear algebra functions.
+ *
+ * @details Linear algebra routines for quadrature and limiters.
+ *          - Tri_Sym_Diag
+ *          - InvertMatrix
+ */
 
 #include <iostream>
 #include <vector>
@@ -17,15 +20,23 @@
 #include "linear_algebra.hpp"
 
 /**
- * Use LAPACKE to diagonalize symmetric tridiagonal matrix with DSTEV
+ * @brief Diagonalizes a symmetric tridiagonal matrix using LAPACKE's DSTEV
+ * routine
  *
- * Parameters:
+ * @details This function solves the symmetric tridiagonal eigenvalue problem
+ *          using LAPACKE's DSTEV routine. It computes both eigenvalues and
+ *          eigenvectors, then performs a matrix multiplication with the input
+ *          array.
  *
- *   n: matrix dimension
- *   d: diagonal array of matrix
- *   r: subdiagonal array (length n)
- *   array: product (Q*)z (in/output)
- **/
+ * @param n The dimension of the matrix
+ * @param d Array containing the diagonal elements of the matrix
+ * @param e Array containing the subdiagonal elements (length n)
+ * @param array Input/output array for the matrix multiplication (Q*)z
+ *
+ * @throws std::runtime_error if LAPACKE_dstev fails
+ *
+ * @note This function is used in quadrature initialization.
+ */
 void Tri_Sym_Diag( int n, Real *d, Real *e, Real *array ) {
 
   // Parameters for LaPack
@@ -61,7 +72,7 @@ void Tri_Sym_Diag( int n, Real *d, Real *e, Real *array ) {
 }
 
 /**
- * Use LAPACKE to invert a matrix M using LU factorization.
+ * @brief Use LAPACKE to invert a matrix M using LU factorization.
  **/
 void InvertMatrix( Real *M, int n ) {
   lapack_int info1, info2;

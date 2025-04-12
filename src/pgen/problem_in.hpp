@@ -1,14 +1,15 @@
 #ifndef PROBLEM_IN_HPP_
 #define PROBLEM_IN_HPP_
-
 /**
- * File     :  problem_in.hpp
+ * @file problem_in.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Class for holding the problem intialization
+ * @author Brandon L. Barker
+ * @brief Class for loading input deck
  *
- **/
+ * @details Loads input deck in TOML format.
+ *          See: https://github.com/marzer/tomlplusplus
+ */
 
 #include <iostream>
 #include <vector>
@@ -78,6 +79,9 @@ class ProblemIn {
   Real m_tvb;
   std::string limiter_type;
   bool do_limiter;
+
+  // opac
+  std::string opac_type;
 
   toml::table in_table;
 };

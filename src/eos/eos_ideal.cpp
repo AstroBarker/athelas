@@ -1,10 +1,13 @@
 /**
- * File     :  eos_ideal.cpp
+ * @file eos_ideal.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : ideal equation of state routines
- **/
+ * @author Brandon L. Barker
+ * @brief Ideal gas equation of state
+ *
+ * @details A standard ideal gas EOS
+ *            P = (\gamma - 1) u
+ */
 
 #include <math.h> /* sqrt */
 

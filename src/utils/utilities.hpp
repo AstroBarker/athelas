@@ -1,3 +1,16 @@
+/**
+ * @file utilities.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Useful utilities
+ *
+ * @details Provides
+ *          - sgn
+ *          - ComputeInternalEnergy
+ *          - to_lower
+ */
+
 #ifndef UTILITIES_HPP_
 #define UTILITIES_HPP_
 

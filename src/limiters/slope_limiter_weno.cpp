@@ -1,14 +1,16 @@
-#ifndef SLOPE_LIMITER_WENO_HPP_
-#define SLOPE_LIMITER_WENO_HPP_
-
 /**
- * File     :  slope_limiter_weno.hpp
+ * @file slope_limiter_weno.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Classes for slope limters
- * Contains : SlopeLimiter
- **/
+ * @author Brandon L. Barker
+ * @brief Implementation of the WENO-Z slope limiter for discontinuous Galerkin
+ *        methods
+ *
+ * @details This file implements the WENO-Z slope limiter based on H. Zhu 2020,
+ *          "Simple, high-order compact WENO RKDG slope limiter". The limiter
+ *          uses a compact stencil approach to maintain high-order accuracy
+ * while preventing oscillations.
+ */
 
 #include <algorithm> /* std::min, std::max */
 #include <cstdlib> /* abs */
@@ -169,4 +171,3 @@ void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure *Grid,
 
 // LimitedCell accessor
 int WENO::Get_Limited( const int iX ) const { return LimitedCell( iX ); }
-#endif // SLOPE_LIMITER_WENO_HPP_

@@ -1,15 +1,10 @@
 /**
- * File     :  slope_limiter_utilities.cpp
+ * @file slope_limiter_utilities.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Hold utility functions for the slope limiter class
- *  to keep the class minimal.
- *
- * Contains:
- * ---------
- * BarthJespersen
- **/
+ * @author Brandon L. Barker
+ * @brief Utility functions for slope limiters.
+ */
 
 #include <algorithm> // std::min, std::max
 #include <cstdlib> /* abs */

@@ -1,14 +1,15 @@
-#ifndef SLOPE_LIMITER_TVDMINMOD_HPP_
-#define SLOPE_LIMITER_TVDMINMOD_HPP_
-
 /**
- * File     :  slope_limiter_tvdminmod.hpp
+ * @file slope_limiter_tvdminmod.cpp
  * --------------
  *
- * Author   : Brandon L. Barker
- * Purpose  : Classes for slope limters
- * Contains : SlopeLimiter
- **/
+ * @author Brandon L. Barker
+ * @brief TVB Minmod slope limiter for discontinuous Galerkin methods
+ *
+ * @details This file implements the Total Variation Diminishing (TVD) Minmod
+ *          slope limiter based on the work of Cockburn & Shu. The limiter
+ *          provides a robust, first-order accurate approach to preventing
+ *          oscillations in discontinuous solutions.
+ */
 
 #include <algorithm> /* std::min, std::max */
 #include <cstdlib> /* abs */
@@ -159,4 +160,3 @@ void TVDMinmod::ApplySlopeLimiter( View3D<Real> U, const GridStructure *Grid,
 
 // LimitedCell accessor
 int TVDMinmod::Get_Limited( const int iX ) const { return LimitedCell( iX ); }
-#endif // SLOPE_LIMITER_TVDMINMOD_HPP_

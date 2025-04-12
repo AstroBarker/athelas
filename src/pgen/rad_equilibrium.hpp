@@ -1,5 +1,12 @@
 #ifndef RAD_EQUILIBRIUM_HPP_
 #define RAD_EQUILIBRIUM_HPP_
+/**
+ * @file rad_equilibrium.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Radiation fluid equilibriation test
+ */
 
 #include <iostream>
 #include <math.h> /* sin */

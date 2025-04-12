@@ -1,13 +1,12 @@
-/**
- * File    :  error.hpp
- * --------------
- *
- * Author  : Brandon L. Barker
- * Purpose : Error throwing class, state checking
- **/
-
 #ifndef ERROR_HPP_
 #define ERROR_HPP_
+/**
+ * @file error.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Error handling
+ */
 
 #include <csignal> // For signal constants
 #include <cstdio>

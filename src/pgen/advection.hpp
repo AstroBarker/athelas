@@ -1,5 +1,12 @@
 #ifndef ADVECTION_HPP_
 #define ADVECTION_HPP_
+/**
+ * @file advection.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Fluid advection test
+ */
 
 #include <iostream>
 #include <math.h> /* sin */

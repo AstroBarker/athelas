@@ -1,10 +1,11 @@
 /**
- * File    :  driver.cpp
+ * @file driver.cpp
  * --------------
  *
- * Author  : Brandon L. Barker
- * Purpose : Main driver routine
- **/
+ * @author Brandon L. Barker
+ * @brief main driver routine
+ *
+ */
 
 #include <algorithm> // std::min
 #include <iostream>
@@ -24,6 +25,9 @@
 #include "grid.hpp"
 #include "initialization.hpp"
 #include "io.hpp"
+#include "opacity/opac.hpp"
+#include "opacity/opac_base.hpp"
+#include "opacity/opac_variant.hpp"
 #include "problem_in.hpp"
 #include "rad_discretization.hpp"
 #include "rad_utilities.hpp"
@@ -84,6 +88,9 @@ int main( int argc, char *argv[] ) {
     State state( nCF, nCR, nPF, nAF, nX, nGuard, nNodes, order );
 
     IdealGas eos( pin.ideal_gamma );
+
+    // opac
+    Opacity opac = InitializeOpacity( &pin );
 
     if ( not Restart ) {
       // --- Initialize fields ---
@@ -163,7 +170,7 @@ int main( int argc, char *argv[] ) {
           SSPRK.UpdateRadHydro(
               Compute_Increment_Explicit, Compute_Increment_Explicit_Rad,
               ComputeIncrement_Fluid_Rad, ComputeIncrement_Rad_Source, dt,
-              &state, Grid, &Basis, &eos, &S_Limiter, opts );
+              &state, Grid, &Basis, &eos, &opac, &S_Limiter, opts );
         } catch ( const AthelasError &e ) {
           std::cerr << e.what( ) << std::endl;
           return AthelasExitCodes::FAILURE;
@@ -196,6 +203,7 @@ int main( int argc, char *argv[] ) {
         i_out += 1;
       }
 
+      // timer
       if ( iStep % i_print == 0 ) {
         zc_ws = static_cast<Real>( i_print ) * nX / time_cycle;
         std::printf( " ~ %d %.5e %.5e %.5e \n", iStep, t, dt, zc_ws );

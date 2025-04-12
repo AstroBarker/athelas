@@ -1,5 +1,27 @@
 #ifndef BOUND_ENFORCING_LIMITER_HPP_
 #define BOUND_ENFORCING_LIMITER_HPP_
+/**
+ * @file bound_enforcing_limiter.hpp
+ * --------------
+ *
+ * @author Brandon L. Barker
+ * @brief Implementation of bound enforcing limiters for enforcing physicality.
+ *
+ * @details This file implements a suite of bound enforcing limiters based on
+ *          K. Schaal et al 2015 (ADS: 10.1093/mnras/stv1859). These limiters
+ *          ensure physicality of the solution by preventing negative values of
+ *          key physical quantities:
+ *
+ *          - LimitDensity: Prevents negative density by scaling slope
+ *            coefficients
+ *          - LimitInternalEnergy: Maintains positive internal energy using
+ *            root-finding algorithms
+ *          - LimitRadMomentum: Ensures physical radiation momentum values
+ *
+ *          Multiple root finders for the internal energy solve are implemented
+ *          and an Anderson accelerated fixed point iteration is the default.
+ *          point iteration being the default choice.
+ */
 
 #include "abstractions.hpp"
 #include "eos.hpp"
@@ -64,9 +86,7 @@ Real Bisection( const View3D<Real> U, F target, const ModalBasis *Basis,
   std::printf( "Max Iters Reach In Bisection\n" );
   return c - delta;
 }
-// Real Backtrace( const View3D<Real> U, const ModalBasis *Basis, const EOS
-// *eos,
-//                 const int iX, const int iN );
+
 template <typename F>
 Real Backtrace( const View3D<Real> U, F target, const ModalBasis *Basis,
                 const EOS *eos, const int iX, const int iN ) {
