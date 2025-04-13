@@ -17,7 +17,6 @@
 #include "Kokkos_Core.hpp"
 
 #include "abstractions.hpp"
-#include "error.hpp"
 
 class State {
  public:

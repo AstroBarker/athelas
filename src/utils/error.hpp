@@ -8,11 +8,16 @@
  * @brief Error handling
  */
 
+#include <array>
 #include <csignal> // For signal constants
 #include <cstdio>
 #include <exception>
 #include <execinfo.h>
+#include <iostream>
+#include <mutex>
+#include <print>
 #include <sstream>
+#include <stacktrace>
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
@@ -21,25 +26,6 @@
 #include "constants.hpp"
 #include "state.hpp"
 
-inline void print_backtrace( ) {
-  void* callstack[128];
-  int const frames = backtrace( callstack, 128 );
-  char** symbols   = backtrace_symbols( callstack, frames );
-
-  fprintf( stderr, "Backtrace:\n" );
-  for ( int i = 0; i < frames; ++i ) {
-    fprintf( stderr, "%s\n", symbols[i] );
-  }
-
-  free( symbols );
-}
-
-inline void segfault_handler( int sig ) {
-  fprintf( stderr, "Received signal %d\n", sig );
-  print_backtrace( );
-  exit( 1 );
-}
-
 enum AthelasExitCodes {
   SUCCESS                       = 0,
   FAILURE                       = 1,
@@ -47,6 +33,17 @@ enum AthelasExitCodes {
   MEMORY_ERROR                  = 3,
   UNKNOWN_ERROR                 = 255
 };
+
+
+inline void print_backtrace( ) {
+  std::cout << std::stacktrace::current() << std::endl;
+}
+
+[[noreturn]] inline void segfault_handler( int sig ) {
+  std::println( stderr, "Received signal {}", sig );
+  print_backtrace( );
+  std::quick_exit( AthelasExitCodes::FAILURE );
+}
 
 class AthelasError : public std::exception {
  private:
@@ -81,8 +78,6 @@ class AthelasError : public std::exception {
     return full_message.c_str( );
   }
 
-  // Destructor
-  ~AthelasError( ) noexcept override = default;
 };
 
 template <typename... Args>
