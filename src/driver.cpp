@@ -8,8 +8,9 @@
  */
 
 #include <algorithm> // std::min
-#include <iostream>
+#include <cmath>
 #include <limits>
+#include <print>
 #include <string>
 #include <vector>
 
@@ -37,23 +38,66 @@
 #include "slope_limiter_utilities.hpp"
 #include "state.hpp"
 #include "timestepper.hpp"
-#include <math.h>
 
-using namespace fluid;
-using namespace radiation;
-using namespace bc;
+namespace {
 
-auto main( int argc, char* argv[] ) -> int {
+/**
+ * Compute the CFL timestep restriction.
+ **/
+auto ComputeCFL( const Real CFL, const int order, const int nStages,
+                 const int tOrder ) -> Real {
+  Real c = 1.0;
+
+  if ( nStages == tOrder ) {
+    c = 1.0;
+  }
+  if ( nStages != tOrder ) {
+    if ( tOrder == 2 ) {
+      c = 1.0;
+    }
+    if ( tOrder == 3 ) {
+      c = 1.0;
+    }
+    if ( tOrder == 4 ) {
+      c = 0.76;
+    }
+  }
+
+  const Real max_cfl = 0.95;
+  return std::min( c * CFL / ( ( 2.0 * (order)-1.0 ) ), max_cfl );
+}
+
+/**
+ * Compute timestep
+ **/
+auto compute_timestep( const View3D<Real> U, const GridStructure* Grid,
+                              EOS* eos, const Real CFL, const Options* opts )
+    -> Real {
+  Real dt = NAN;
+  if ( !opts->do_rad ) {
+    dt = fluid::ComputeTimestep_Fluid( U, Grid, eos, CFL );
+  } else {
+    dt = radiation::ComputeTimestep_Rad( Grid, CFL );
+  }
+  return dt;
+}
+
+} // namespace
+
+auto main( int argc, char** argv ) -> int {
   // Check cmd line args
   if ( argc < 2 ) {
     THROW_ATHELAS_ERROR( "No input file passed! Do: ./main IN_FILE" );
   }
 
-  signal( SIGSEGV, segfault_handler );
-  signal( SIGABRT, segfault_handler );
+  auto sig1 = signal( SIGSEGV, segfault_handler );
+  auto sig2 = signal( SIGABRT, segfault_handler );
+
+  // create span of args
+  auto args = std::span(argv, static_cast<size_t>(argc));
 
   // load input deck
-  ProblemIn pin( argv[1] );
+  ProblemIn pin( args[1]);
 
   /* --- Problem Parameters --- */
   const std::string& problem_name = pin.problem_name;
@@ -77,8 +121,8 @@ auto main( int argc, char* argv[] ) -> int {
   const Real CFL = ComputeCFL( pin.CFL, order, nStages, tOrder );
 
   /* opts struct TODO: add grav when ready */
-  Options opts = { pin.do_rad, false,        pin.Restart,
-                   BC,         pin.Geometry, pin.Basis };
+  Options opts = { .do_rad=pin.do_rad, .do_grav=false,  .restart=pin.Restart,
+                   .BC=BC,         .geom=pin.Geometry, .basis=pin.Basis };
 
   Kokkos::initialize( argc, argv );
   {
@@ -102,9 +146,9 @@ auto main( int argc, char* argv[] ) -> int {
       // --- Initialize fields ---
       InitializeFields( &state, &Grid, &eos, &pin );
 
-      ApplyBC( state.Get_uCF( ), &Grid, order, BC );
+      bc::ApplyBC( state.Get_uCF( ), &Grid, order, BC );
       if ( opts.do_rad ) {
-        ApplyBC( state.Get_uCR( ), &Grid, order, BC );
+        bc::ApplyBC( state.Get_uCR( ), &Grid, order, BC );
       }
     }
 
@@ -159,7 +203,7 @@ auto main( int argc, char* argv[] ) -> int {
       }
 
       if ( !opts.do_rad ) {
-        SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, &state, Grid, &Basis,
+        SSPRK.UpdateFluid( fluid::Compute_Increment_Explicit, dt, &state, Grid, &Basis,
                            &eos, &S_Limiter, &opts );
       } else {
         // TODO(astrobarker): compile time swap operator splitting
@@ -175,8 +219,8 @@ auto main( int argc, char* argv[] ) -> int {
 
         try {
           SSPRK.UpdateRadHydro(
-              Compute_Increment_Explicit, Compute_Increment_Explicit_Rad,
-              ComputeIncrement_Fluid_Rad, ComputeIncrement_Rad_Source, dt,
+              fluid::Compute_Increment_Explicit, radiation::Compute_Increment_Explicit_Rad,
+              fluid::ComputeIncrement_Fluid_Rad, radiation::ComputeIncrement_Rad_Source, dt,
               &state, Grid, &Basis, &eos, &opac, &S_Limiter, &opts );
         } catch ( const AthelasError& e ) {
           std::cerr << e.what( ) << std::endl;
@@ -192,7 +236,7 @@ auto main( int argc, char* argv[] ) -> int {
         check_state( &state, Grid.Get_ihi( ), pin.do_rad );
       } catch ( const AthelasError& e ) {
         std::cerr << e.what( ) << std::endl;
-        std::printf( "!!! Bad State found, writing _final_ output file ...\n" );
+        std::println( "!!! Bad State found, writing _final_ output file ..." );
         WriteState( &state, Grid, &S_Limiter, problem_name, t, order, -1,
                     opts.do_rad );
         return AthelasExitCodes::FAILURE;
@@ -213,8 +257,7 @@ auto main( int argc, char* argv[] ) -> int {
       // timer
       if ( iStep % i_print == 0 ) {
         zc_ws = static_cast<Real>( i_print ) * nX / time_cycle;
-        std::printf( " ~ %d %.5e %.5e %.5e \n", iStep, t, dt, zc_ws );
-        time_cycle = 0.0;
+        std::println( " ~ {} {:.5e} {:.5e} {:.5e} ", iStep, t, dt, zc_ws );
       }
 
       iStep++;
@@ -222,8 +265,8 @@ auto main( int argc, char* argv[] ) -> int {
 
     // --- Finalize timer ---
     Real const time = timer_total.seconds( );
-    std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
-    ApplyBC( state.Get_uCF( ), &Grid, order, BC );
+    std::println( " ~ Done! Elapsed time: {} seconds.", time );
+    bc::ApplyBC( state.Get_uCF( ), &Grid, order, BC );
     WriteState( &state, Grid, &S_Limiter, problem_name, t, order, -1,
                 opts.do_rad );
   }
@@ -232,43 +275,3 @@ auto main( int argc, char* argv[] ) -> int {
   return AthelasExitCodes::SUCCESS;
 }
 
-/**
- * Compute the CFL timestep restriction.
- **/
-auto ComputeCFL( const Real CFL, const int order, const int nStages,
-                 const int tOrder ) -> Real {
-  Real c = 1.0;
-
-  if ( nStages == tOrder ) {
-    c = 1.0;
-  }
-  if ( nStages != tOrder ) {
-    if ( tOrder == 2 ) {
-      c = 1.0;
-    }
-    if ( tOrder == 3 ) {
-      c = 1.0;
-    }
-    if ( tOrder == 4 ) {
-      c = 0.76;
-    }
-  }
-
-  const Real max_cfl = 0.95;
-  return std::min( c * CFL / ( ( 2.0 * (order)-1.0 ) ), max_cfl );
-}
-
-/**
- * Compute timestep
- **/
-static auto compute_timestep( const View3D<Real> U, const GridStructure* Grid,
-                              EOS* eos, const Real CFL, const Options* opts )
-    -> Real {
-  Real dt = NAN;
-  if ( !opts->do_rad ) {
-    dt = fluid::ComputeTimestep_Fluid( U, Grid, eos, CFL );
-  } else {
-    dt = radiation::ComputeTimestep_Rad( Grid, CFL );
-  }
-  return dt;
-}

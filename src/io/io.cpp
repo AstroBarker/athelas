@@ -5,11 +5,13 @@
  * @author Brandon L. Barker
  * @brief HDF5 and std out IO routines
  *
- * @details Collection of functions for IO
+ * @details Collection of functions for IO using H5Cpp for HDF5 operations
  */
 
+#include <array>
 #include <cstddef>
 #include <iostream>
+#include <memory>
 #include <print>
 #include <string>
 #include <vector>
@@ -83,14 +85,14 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn* pin,
 void WriteState( State* state, GridStructure Grid, SlopeLimiter* SL,
                  const std::string& problem_name, Real time, int order,
                  int i_write, bool do_rad ) {
-
   View3D<Real> uCF = state->Get_uCF( );
   View3D<Real> uCR = state->Get_uCR( );
   View3D<Real> uPF = state->Get_uPF( );
 
+  // Construct filename
   std::string fn = "athelas_";
-  auto i_str     = std::to_string( i_write );
-  int n_pad      = 0;
+  auto i_str = std::to_string( i_write );
+  int n_pad = 0;
   if ( i_write < 10 ) {
     n_pad = 4;
   } else if ( i_write >= 10 && i_write < 100 ) {
@@ -99,8 +101,6 @@ void WriteState( State* state, GridStructure Grid, SlopeLimiter* SL,
     n_pad = 2;
   } else if ( i_write >= 1000 && i_write < 10000 ) {
     n_pad = 1;
-  } else {
-    n_pad = 0;
   }
   std::string suffix = std::string( n_pad, '0' ).append( i_str );
   fn.append( problem_name );
@@ -112,15 +112,14 @@ void WriteState( State* state, GridStructure Grid, SlopeLimiter* SL,
   }
   fn.append( ".h5" );
 
-  // conversion to make HDF5 happy
   const char* fn2 = fn.c_str( );
 
-  const int nX  = Grid.Get_nElements( );
+  const int nX = Grid.Get_nElements( );
   const int ilo = Grid.Get_ilo( );
   const int ihi = Grid.Get_ihi( );
+  const int size = ( nX * order );
 
-  const int size = ( nX * order ); // dataset dimensions
-
+  // Create data vectors
   std::vector<DataType> tau( size );
   std::vector<DataType> vel( size );
   std::vector<DataType> eint( size );
@@ -130,6 +129,7 @@ void WriteState( State* state, GridStructure Grid, SlopeLimiter* SL,
   std::vector<DataType> dr( nX );
   std::vector<DataType> limiter( nX );
 
+  // Fill data vectors
   for ( int k = 0; k < order; k++ ) {
     for ( int iX = ilo; iX <= ihi; iX++ ) {
       grid[( iX - ilo )].x = Grid.Get_Centers( iX );
@@ -145,55 +145,38 @@ void WriteState( State* state, GridStructure Grid, SlopeLimiter* SL,
     }
   }
 
-  // preparation of a dataset and a file.
-  hsize_t dim[1];
-  dim[0]         = tau.size( ); // using vector::size()
-  const int rank = sizeof( dim ) / sizeof( hsize_t );
-  H5::DataSpace const space( rank, dim );
-
-  hsize_t dim_grid[1];
-  dim_grid[0]         = grid.size( ); // using vector::size()
-  const int rank_grid = sizeof( dim_grid ) / sizeof( hsize_t );
-  H5::DataSpace const space_grid( rank_grid, dim_grid );
-
-  hsize_t const len = 1;
-  hsize_t dim_md[1] = { len };
-  const int rank_md = 1;
-  H5::DataSpace const md_space( rank_md, dim_md );
-
+  // Create HDF5 file and datasets
   H5::H5File const file( fn2, H5F_ACC_TRUNC );
-  // Groups
+
+  // Create groups
   H5::Group const group_md   = file.createGroup( "/metadata" );
   H5::Group const group_grid = file.createGroup( "/grid" );
   H5::Group const group_CF   = file.createGroup( "/conserved" );
   H5::Group const group_DF   = file.createGroup( "/diagnostic" );
 
-  // DataSets
-  H5::DataSet const dataset_nx( file.createDataSet(
-      "/metadata/nx", H5::PredType::NATIVE_INT, md_space ) );
-  H5::DataSet const dataset_order( file.createDataSet(
-      "/metadata/order", H5::PredType::NATIVE_INT, md_space ) );
-  H5::DataSet const dataset_time( file.createDataSet(
-      "/metadata/time", H5::PredType::NATIVE_DOUBLE, md_space ) );
-  H5::DataSet dataset_grid( file.createDataSet(
-      "/grid/x", H5::PredType::NATIVE_DOUBLE, space_grid ) );
-  H5::DataSet dataset_width( file.createDataSet(
-      "/grid/dx", H5::PredType::NATIVE_DOUBLE, space_grid ) );
-  H5::DataSet dataset_tau( file.createDataSet(
-      "/conserved/tau", H5::PredType::NATIVE_DOUBLE, space ) );
-  H5::DataSet dataset_vel( file.createDataSet(
-      "/conserved/velocity", H5::PredType::NATIVE_DOUBLE, space ) );
-  H5::DataSet dataset_eint( file.createDataSet(
-      "/conserved/energy", H5::PredType::NATIVE_DOUBLE, space ) );
+  // Create datasets with proper dimensions
+  std::array<hsize_t, 1> dim = { static_cast<hsize_t>( tau.size( ) ) };
+  H5::DataSpace space( 1, dim.data( ) );
 
-  H5::DataSet dataset_limiter( file.createDataSet(
-      "/diagnostic/limiter", H5::PredType::NATIVE_DOUBLE, space_grid ) );
-  H5::DataSet dataset_erad( file.createDataSet(
-      "/conserved/rad_energy", H5::PredType::NATIVE_DOUBLE, space ) );
-  H5::DataSet dataset_frad( file.createDataSet(
-      "/conserved/rad_momentum", H5::PredType::NATIVE_DOUBLE, space ) );
+  std::array<hsize_t, 1> dim_grid = { static_cast<hsize_t>( grid.size( ) ) };
+  H5::DataSpace space_grid( 1, dim_grid.data( ) );
 
-  // --- Write data ---
+  std::array<hsize_t, 1> dim_md = { 1 };
+  H5::DataSpace md_space( 1, dim_md.data( ) );
+
+  // Create and write datasets
+  H5::DataSet const dataset_nx = file.createDataSet( "/metadata/nx", H5::PredType::NATIVE_INT, md_space );
+  H5::DataSet const dataset_order = file.createDataSet( "/metadata/order", H5::PredType::NATIVE_INT, md_space );
+  H5::DataSet const dataset_time = file.createDataSet( "/metadata/time", H5::PredType::NATIVE_DOUBLE, md_space );
+  H5::DataSet dataset_grid = file.createDataSet( "/grid/x", H5::PredType::NATIVE_DOUBLE, space_grid );
+  H5::DataSet dataset_width = file.createDataSet( "/grid/dx", H5::PredType::NATIVE_DOUBLE, space_grid );
+  H5::DataSet dataset_tau = file.createDataSet( "/conserved/tau", H5::PredType::NATIVE_DOUBLE, space );
+  H5::DataSet dataset_vel = file.createDataSet( "/conserved/velocity", H5::PredType::NATIVE_DOUBLE, space );
+  H5::DataSet dataset_eint = file.createDataSet( "/conserved/energy", H5::PredType::NATIVE_DOUBLE, space );
+
+  H5::DataSet dataset_limiter = file.createDataSet( "/diagnostic/limiter", H5::PredType::NATIVE_DOUBLE, space_grid );
+
+  // Write data
   dataset_nx.write( &nX, H5::PredType::NATIVE_INT );
   dataset_order.write( &order, H5::PredType::NATIVE_INT );
   dataset_time.write( &time, H5::PredType::NATIVE_DOUBLE );
@@ -206,6 +189,8 @@ void WriteState( State* state, GridStructure Grid, SlopeLimiter* SL,
   dataset_eint.write( eint.data( ), H5::PredType::NATIVE_DOUBLE );
 
   if ( do_rad ) {
+    H5::DataSet dataset_erad = file.createDataSet( "/conserved/rad_energy", H5::PredType::NATIVE_DOUBLE, space );
+    H5::DataSet dataset_frad = file.createDataSet( "/conserved/rad_momentum", H5::PredType::NATIVE_DOUBLE, space );
     dataset_erad.write( erad.data( ), H5::PredType::NATIVE_DOUBLE );
     dataset_frad.write( frad.data( ), H5::PredType::NATIVE_DOUBLE );
   }
@@ -223,25 +208,32 @@ void WriteBasis( ModalBasis* Basis, unsigned int ilo, unsigned int ihi,
 
   const char* fn2 = fn.c_str( );
 
-  Real* data =
-      new Real[static_cast<unsigned long>( ihi * ( nNodes + 2 ) * order )];
+  // Calculate total size needed
+  const size_t total_size = static_cast<size_t>( ihi ) * ( nNodes + 2 ) * order;
+  
+  // Use std::vector instead of raw pointer for automatic memory management
+  std::vector<Real> data( total_size );
+  
+  // Fill data using vector indexing instead of pointer arithmetic
   for ( unsigned int iX = ilo; iX <= ihi; iX++ ) {
     for ( unsigned int iN = 0; iN < nNodes + 2; iN++ ) {
       for ( unsigned int k = 0; k < order; k++ ) {
-        data[( ( ( iX - ilo ) * ( nNodes + 2 ) + iN ) * order ) + k] =
-            Basis->Get_Phi( iX, iN, k );
+        const size_t idx = (( ( iX - ilo ) * ( nNodes + 2 ) + iN ) * order) + k;
+        data[idx] = Basis->Get_Phi( static_cast<int>( iX ), 
+                                    static_cast<int>( iN ), 
+                                    static_cast<int>( k ) );
       }
     }
   }
 
   // Create HDF5 file and dataset
   H5::H5File const file( fn2, H5F_ACC_TRUNC );
-  hsize_t dimsf[3] = { ihi, nNodes + 2, order };
-  H5::DataSpace const dataspace( 3, dimsf );
-  H5::DataSet const BasisDataset(
-      file.createDataSet( "Basis", H5::PredType::NATIVE_DOUBLE, dataspace ) );
+  std::array<hsize_t, 3> dimsf = { static_cast<hsize_t>( ihi ), 
+                                   static_cast<hsize_t>( nNodes + 2 ), 
+                                   static_cast<hsize_t>( order ) };
+  H5::DataSpace dataspace( 3, dimsf.data( ) );
+  H5::DataSet BasisDataset = file.createDataSet( "Basis", H5::PredType::NATIVE_DOUBLE, dataspace );
+  
   // Write to File
-  BasisDataset.write( data, H5::PredType::NATIVE_DOUBLE );
-
-  delete[] data;
+  BasisDataset.write( data.data( ), H5::PredType::NATIVE_DOUBLE );
 }
