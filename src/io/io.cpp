@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <iostream>
+#include <print>
 #include <string>
 #include <vector>
 
@@ -28,51 +29,52 @@ void PrintSimulationParameters( GridStructure Grid, ProblemIn* pin,
                                 const Real CFL ) {
   const int nX     = Grid.Get_nElements( );
   const int nNodes = Grid.Get_nNodes( );
+  const int basis_int = ( pin->Basis == PolyBasis::Legendre ) ? 0 : 1;
 
-  std::printf( " ~ --- Physics Parameters --- \n" );
-  std::printf( " ~ Radiation      : %d\n", static_cast<int>( pin->do_rad ) );
-  std::printf( "\n" );
+  std::println( " ~ --- Physics Parameters --- " );
+  std::println( " ~ Radiation      : {}", static_cast<int>( pin->do_rad ) );
+  std::println( "" );
 
-  std::printf( " ~ --- Order Parameters --- \n" );
-  std::printf( " ~ Basis          : %d ( 0 : Legendre, 1: Taylor )\n",
-               pin->Basis );
-  std::printf( " ~ Spatial Order  : %d\n", pin->pOrder );
-  std::printf( " ~ Temporal Order : %d\n", pin->tOrder );
-  std::printf( " ~ RK Stages      : %d\n", pin->nStages );
-  std::printf( "\n" );
+  std::println( " ~ --- Order Parameters --- " );
+  std::println( " ~ Basis          : {} ( 0 : Legendre, 1: Taylor )",
+               basis_int );
+  std::println( " ~ Spatial Order  : {}", pin->pOrder );
+  std::println( " ~ Temporal Order : {}", pin->tOrder );
+  std::println( " ~ RK Stages      : {}", pin->nStages );
+  std::println( "" );
 
-  std::printf( " ~ --- Grid Parameters --- \n" );
-  std::printf( " ~ Mesh Elements  : %d\n", nX );
-  std::printf( " ~ Number Nodes   : %d\n", nNodes );
-  std::printf( " ~ Lower Boundary : %f\n", Grid.Get_xL( ) );
-  std::printf( " ~ Upper Boundary : %f\n", Grid.Get_xR( ) );
-  std::printf( "\n" );
+  std::println( " ~ --- Grid Parameters --- " );
+  std::println( " ~ Mesh Elements  : {}", nX );
+  std::println( " ~ Number Nodes   : {}", nNodes );
+  std::println( " ~ Lower Boundary : {}", Grid.Get_xL( ) );
+  std::println( " ~ Upper Boundary : {}", Grid.Get_xR( ) );
+  std::println( "" );
 
-  std::printf( " ~ --- Limiter Parameters --- \n" );
+  std::println( " ~ --- Limiter Parameters --- " );
   if ( pin->pOrder == 1 ) {
-    printf( " ~ Spatial Order 1: Slope limiter not applied.\n" );
+    std::println( " ~ Spatial Order 1: Slope limiter not applied." );
   } else {
-    std::printf( " ~ gamma_l          : %f\n", pin->gamma_l );
-    std::printf( " ~ gamma_i          : %f\n", pin->gamma_i );
-    std::printf( " ~ gamma_r          : %f\n", pin->gamma_r );
-    std::printf( " ~ weno_r           : %f\n", pin->weno_r );
+    std::println( " ~ gamma_l          : {}", pin->gamma_l );
+    std::println( " ~ gamma_i          : {}", pin->gamma_i );
+    std::println( " ~ gamma_r          : {}", pin->gamma_r );
+    std::println( " ~ weno_r           : {}", pin->weno_r );
   }
   if ( pin->TCI_Option ) {
-    std::printf( " ~ TCI Value      : %f\n", pin->TCI_Threshold );
+    std::println( " ~ TCI Value      : {}", pin->TCI_Threshold );
   } else {
-    std::printf( " ~ TCI Not Used.\n" );
+    std::println( " ~ TCI Not Used." );
   }
   if ( pin->Characteristic ) {
-    std::printf( " ~ Limiting       : Characteristic \n" );
+    std::println( " ~ Limiting       : Characteristic" );
   } else {
-    std::printf( " ~ Limiting       : Componentwise\n" );
+    std::println( " ~ Limiting       : Componentwise" );
   }
-  std::printf( "\n" );
+  std::println( "" );
 
-  std::printf( " ~ --- Other --- \n" );
+  std::println( " ~ --- Other --- " );
   std::cout << " ~ problem_name    : " << pin->problem_name << std::endl;
-  std::printf( " ~ CFL            : %f\n", CFL );
-  std::printf( "\n" );
+  std::println( " ~ CFL            : {}", CFL );
+  std::println( "" );
 }
 
 /**
@@ -117,8 +119,6 @@ void WriteState( State* state, GridStructure Grid, SlopeLimiter* SL,
   const int ilo = Grid.Get_ilo( );
   const int ihi = Grid.Get_ihi( );
 
-  const H5std_string FILE_NAME( fn );
-  const H5std_string DATASET_NAME( "grid" );
   const int size = ( nX * order ); // dataset dimensions
 
   std::vector<DataType> tau( size );
@@ -134,7 +134,6 @@ void WriteState( State* state, GridStructure Grid, SlopeLimiter* SL,
     for ( int iX = ilo; iX <= ihi; iX++ ) {
       grid[( iX - ilo )].x = Grid.Get_Centers( iX );
       dr[( iX - ilo )].x   = Grid.Get_Widths( iX );
-      // std::printf("dr %f\n", Grid.Get_Widths(iX));
       limiter[( iX - ilo )].x           = Get_Limited( SL, iX );
       tau[( iX - ilo ) + ( k * nX )].x  = uCF( 0, iX, k );
       vel[( iX - ilo ) + ( k * nX )].x  = uCF( 1, iX, k );
@@ -223,9 +222,6 @@ void WriteBasis( ModalBasis* Basis, unsigned int ilo, unsigned int ihi,
   fn.append( ".h5" );
 
   const char* fn2 = fn.c_str( );
-
-  const H5std_string FILE_NAME( fn );
-  const H5std_string DATASET_NAME( "Basis" );
 
   Real* data =
       new Real[static_cast<unsigned long>( ihi * ( nNodes + 2 ) * order )];
