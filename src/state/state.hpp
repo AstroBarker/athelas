@@ -21,19 +21,19 @@
 
 class State {
  public:
-  State( const int nCF_, const int nCR_, const int nPF_, const int nAF_,
-         const int nX_, const int nG_, const int nNodes_, const int pOrder_ );
+  State( int nCF_, int nCR_, int nPF_, int nAF_, int nX_, int nG_, int nNodes_,
+         int pOrder_ );
 
-  int Get_nCF( ) const;
-  int Get_nCR( ) const;
-  int Get_nPF( ) const;
-  int Get_nAF( ) const;
-  int Get_pOrder( ) const;
+  [[nodiscard]] auto Get_nCF( ) const -> int;
+  [[nodiscard]] auto Get_nCR( ) const -> int;
+  [[nodiscard]] auto Get_nPF( ) const -> int;
+  [[nodiscard]] auto Get_nAF( ) const -> int;
+  [[nodiscard]] auto Get_pOrder( ) const -> int;
 
-  View3D<Real> Get_uCF( ) const;
-  View3D<Real> Get_uPF( ) const;
-  View3D<Real> Get_uAF( ) const;
-  View3D<Real> Get_uCR( ) const;
+  [[nodiscard]] View3D<Real> Get_uCF( ) const;
+  [[nodiscard]] View3D<Real> Get_uPF( ) const;
+  [[nodiscard]] View3D<Real> Get_uAF( ) const;
+  [[nodiscard]] View3D<Real> Get_uCR( ) const;
 
  private:
   int nCF;
@@ -42,10 +42,10 @@ class State {
   int nAF;
   int pOrder;
 
-  View3D<Real> uCF; // Conserved fluid
-  View3D<Real> uPF; // primitive fluid
-  View3D<Real> uAF; // auxiliary fluid
-  View3D<Real> uCR; // conserved radiation
+  View3D<Real> uCF{ }; // Conserved fluid
+  View3D<Real> uPF{ }; // primitive fluid
+  View3D<Real> uAF{ }; // auxiliary fluid
+  View3D<Real> uCR{ }; // conserved radiation
 };
 
 #endif // STATE_HPP_

@@ -8,8 +8,8 @@
  * @details Computes Gauss-Legendre nodes and weights
  */
 
+#include <cmath>
 #include <iostream>
-#include <math.h>
 
 #include "constants.hpp"
 #include "linear_algebra.hpp"
@@ -28,12 +28,12 @@ namespace quadrature {
  * @param bj Output array for matrix subdiagonal elements
  * @return Real The zero-th moment (zemu) needed for weight computation
  */
-Real Jacobi_Matrix( int m, Real *aj, Real *bj ) {
+auto Jacobi_Matrix( int m, Real* aj, Real* bj ) -> Real {
 
-  Real ab;
-  Real zemu;
-  Real abi;
-  Real abj;
+  Real ab   = NAN;
+  Real zemu = NAN;
+  Real abi  = NAN;
+  Real abj  = NAN;
 
   ab   = 0.0;
   zemu = 2.0 / ( ab + 1.0 );
@@ -65,11 +65,11 @@ Real Jacobi_Matrix( int m, Real *aj, Real *bj ) {
  * @param nodes Output array for quadrature nodes (abscissas)
  * @param weights Output array for quadrature weights
  */
-void LG_Quadrature( int m, Real *nodes, Real *weights ) {
-  Real *aj = new Real[m];
-  Real *bj = new Real[m];
+void LG_Quadrature( int m, Real* nodes, Real* weights ) {
+  Real* aj = new Real[m];
+  Real* bj = new Real[m];
 
-  Real zemu;
+  Real zemu = NAN;
 
   //  Get the Jacobi matrix and zero-th moment.
   zemu = Jacobi_Matrix( m, aj, bj );

@@ -20,7 +20,7 @@
 /**
  * @brief Initialize sedov blast wave
  **/
-void sedov_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
+void sedov_init( State* state, GridStructure* Grid, const ProblemIn* pin ) {
 
   View3D<Real> uCF = state->Get_uCF( );
   View3D<Real> uPF = state->Get_uPF( );
@@ -42,13 +42,13 @@ void sedov_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
 
   const int origin = 1;
 
-  // TODO: geometry aware volume for energy
+  // TODO(astrobarker): geometry aware volume for energy
   const Real volume = ( 4.0 * M_PI / 3.0 ) *
                       std::pow( Grid->Get_LeftInterface( origin + 1 ), 3.0 );
   const Real P0 = ( 5.0 / 3.0 - 1.0 ) * E0 / volume;
 
-  for ( int iX = ilo; iX <= ihi; iX++ )
-    for ( int k = 0; k < pOrder; k++ )
+  for ( int iX = ilo; iX <= ihi; iX++ ) {
+    for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
 
         if ( k != 0 ) {
@@ -70,11 +70,14 @@ void sedov_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
         }
         uPF( iPF_D, iX, iNodeX ) = D0;
       }
+    }
+  }
   // Fill density in guard cells
-  for ( int iX = 0; iX < ilo; iX++ )
+  for ( int iX = 0; iX < ilo; iX++ ) {
     for ( int iN = 0; iN < nNodes; iN++ ) {
       uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
       uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
     }
+  }
 }
 #endif // SEDOV_HPP_

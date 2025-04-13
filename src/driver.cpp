@@ -18,13 +18,14 @@
 #include "abstractions.hpp"
 #include "boundary_conditions.hpp"
 #include "driver.hpp"
+
 #include "eos.hpp"
 #include "error.hpp"
 #include "fluid_discretization.hpp"
 #include "fluid_utilities.hpp"
 #include "grid.hpp"
 #include "initialization.hpp"
-#include "io.hpp"
+#include "io/io.hpp"
 #include "opacity/opac.hpp"
 #include "opacity/opac_base.hpp"
 #include "opacity/opac_variant.hpp"
@@ -36,8 +37,13 @@
 #include "slope_limiter_utilities.hpp"
 #include "state.hpp"
 #include "timestepper.hpp"
+#include <math.h>
 
-int main( int argc, char *argv[] ) {
+using namespace fluid;
+using namespace radiation;
+using namespace bc;
+
+auto main( int argc, char* argv[] ) -> int {
   // Check cmd line args
   if ( argc < 2 ) {
     THROW_ATHELAS_ERROR( "No input file passed! Do: ./main IN_FILE" );
@@ -50,15 +56,15 @@ int main( int argc, char *argv[] ) {
   ProblemIn pin( argv[1] );
 
   /* --- Problem Parameters --- */
-  const std::string problem_name = pin.problem_name;
+  const std::string& problem_name = pin.problem_name;
 
-  const int &nX      = pin.nElements;
-  const int &order   = pin.pOrder;
-  const int &nNodes  = pin.nNodes;
-  const int &nStages = pin.nStages;
-  const int &tOrder  = pin.tOrder;
+  const int& nX      = pin.nElements;
+  const int& order   = pin.pOrder;
+  const int& nNodes  = pin.nNodes;
+  const int& nStages = pin.nStages;
+  const int& tOrder  = pin.tOrder;
 
-  const int &nGuard = pin.nGhost;
+  const int& nGuard = pin.nGhost;
 
   Real t           = 0.0;
   Real dt          = 0.0;
@@ -111,7 +117,8 @@ int main( int argc, char *argv[] ) {
     // --- Initialize timestepper ---
     TimeStepper SSPRK( &pin, Grid );
 
-    SlopeLimiter S_Limiter = InitializeSlopeLimiter( &Grid, &pin, 3 );
+    SlopeLimiter S_Limiter =
+        limiter_utilities::InitializeSlopeLimiter( &Grid, &pin, 3 );
     // --- Limit the initial conditions ---
     ApplySlopeLimiter( &S_Limiter, state.Get_uCF( ), &Grid, &Basis );
 
@@ -121,13 +128,13 @@ int main( int argc, char *argv[] ) {
                 opts.do_rad );
 
     // --- Timer ---
-    Kokkos::Timer timer_total;
+    Kokkos::Timer const timer_total;
     Kokkos::Timer timer_zone_cycles;
     Real zc_ws      = 0.0; // zone cycles / wall second
     Real time_cycle = 0.0;
 
-    Real dt_init = 1.0e-16;
-    dt           = dt_init;
+    Real const dt_init = 1.0e-16;
+    dt                 = dt_init;
 
     const Real dt_init_frac = pin.dt_init_frac;
 
@@ -135,8 +142,8 @@ int main( int argc, char *argv[] ) {
     const double nlim   = ( pin.nlim == -1 )
                               ? std::numeric_limits<double>::infinity( )
                               : pin.nlim;
-    const int &i_print  = pin.ncycle_out; // std out
-    const Real &dt_hdf5 = pin.dt_hdf5; // h5 out
+    const int& i_print  = pin.ncycle_out; // std out
+    const Real& dt_hdf5 = pin.dt_hdf5; // h5 out
     int iStep           = 0;
     int i_out           = 1; // output label, start 1
     std::cout << " ~ Step    t       dt       zone_cycles / wall_second\n"
@@ -153,9 +160,9 @@ int main( int argc, char *argv[] ) {
 
       if ( !opts.do_rad ) {
         SSPRK.UpdateFluid( Compute_Increment_Explicit, dt, &state, Grid, &Basis,
-                           &eos, &S_Limiter, opts );
+                           &eos, &S_Limiter, &opts );
       } else {
-        // TODO: compile time swap operator splitting
+        // TODO(astrobarker): compile time swap operator splitting
         // SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state,
         // Grid,
         //                    &Basis, &eos, &S_Limiter, opts );
@@ -170,11 +177,11 @@ int main( int argc, char *argv[] ) {
           SSPRK.UpdateRadHydro(
               Compute_Increment_Explicit, Compute_Increment_Explicit_Rad,
               ComputeIncrement_Fluid_Rad, ComputeIncrement_Rad_Source, dt,
-              &state, Grid, &Basis, &eos, &opac, &S_Limiter, opts );
-        } catch ( const AthelasError &e ) {
+              &state, Grid, &Basis, &eos, &opac, &S_Limiter, &opts );
+        } catch ( const AthelasError& e ) {
           std::cerr << e.what( ) << std::endl;
           return AthelasExitCodes::FAILURE;
-        } catch ( const std::exception &e ) {
+        } catch ( const std::exception& e ) {
           std::cerr << "Library Error: " << e.what( ) << std::endl;
           return AthelasExitCodes::FAILURE;
         }
@@ -183,7 +190,7 @@ int main( int argc, char *argv[] ) {
 #ifdef ATHELAS_DEBUG
       try {
         check_state( &state, Grid.Get_ihi( ), pin.do_rad );
-      } catch ( const AthelasError &e ) {
+      } catch ( const AthelasError& e ) {
         std::cerr << e.what( ) << std::endl;
         std::printf( "!!! Bad State found, writing _final_ output file ...\n" );
         WriteState( &state, Grid, &S_Limiter, problem_name, t, order, -1,
@@ -214,7 +221,7 @@ int main( int argc, char *argv[] ) {
     }
 
     // --- Finalize timer ---
-    Real time = timer_total.seconds( );
+    Real const time = timer_total.seconds( );
     std::printf( " ~ Done! Elapsed time: %f seconds.\n", time );
     ApplyBC( state.Get_uCF( ), &Grid, order, BC );
     WriteState( &state, Grid, &S_Limiter, problem_name, t, order, -1,
@@ -226,30 +233,25 @@ int main( int argc, char *argv[] ) {
 }
 
 /**
- * Pick number of quadrature points in order to evaluate polynomial of
- * at least order^2.
- * ! Broken for nNodes > order !
- **/
-int NumNodes( const int order ) {
-  if ( order <= 4 ) {
-    return order;
-  } else {
-    return order + 1;
-  }
-}
-
-/**
  * Compute the CFL timestep restriction.
  **/
-Real ComputeCFL( const Real CFL, const int order, const int nStages,
-                 const int tOrder ) {
+auto ComputeCFL( const Real CFL, const int order, const int nStages,
+                 const int tOrder ) -> Real {
   Real c = 1.0;
 
-  if ( nStages == tOrder ) c = 1.0;
+  if ( nStages == tOrder ) {
+    c = 1.0;
+  }
   if ( nStages != tOrder ) {
-    if ( tOrder == 2 ) c = 1.0;
-    if ( tOrder == 3 ) c = 1.0;
-    if ( tOrder == 4 ) c = 0.76;
+    if ( tOrder == 2 ) {
+      c = 1.0;
+    }
+    if ( tOrder == 3 ) {
+      c = 1.0;
+    }
+    if ( tOrder == 4 ) {
+      c = 0.76;
+    }
   }
 
   const Real max_cfl = 0.95;
@@ -259,13 +261,14 @@ Real ComputeCFL( const Real CFL, const int order, const int nStages,
 /**
  * Compute timestep
  **/
-Real compute_timestep( const View3D<Real> U, const GridStructure *Grid,
-                       EOS *eos, const Real CFL, const Options *opts ) {
-  Real dt;
+static auto compute_timestep( const View3D<Real> U, const GridStructure* Grid,
+                              EOS* eos, const Real CFL, const Options* opts )
+    -> Real {
+  Real dt = NAN;
   if ( !opts->do_rad ) {
-    dt = ComputeTimestep_Fluid( U, Grid, eos, CFL );
+    dt = fluid::ComputeTimestep_Fluid( U, Grid, eos, CFL );
   } else {
-    dt = ComputeTimestep_Rad( Grid, CFL );
+    dt = radiation::ComputeTimestep_Rad( Grid, CFL );
   }
   return dt;
 }

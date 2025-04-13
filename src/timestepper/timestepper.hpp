@@ -11,6 +11,8 @@
  *          Uses explicity for transport terms and implicit for coupling.
  */
 
+#include <math.h>
+
 #include "abstractions.hpp"
 #include "bound_enforcing_limiter.hpp"
 #include "eos.hpp"
@@ -27,8 +29,8 @@
 class TimeStepper {
 
  public:
-  // TODO: Is it possible to initialize Grid_s from Grid directly?
-  TimeStepper( ProblemIn *pin, GridStructure &Grid );
+  // TODO(astrobarker): Is it possible to initialize Grid_s from Grid directly?
+  TimeStepper( ProblemIn* pin, GridStructure& Grid );
 
   void InitializeTimestepper( );
 
@@ -36,10 +38,10 @@ class TimeStepper {
    * Update fluid solution with SSPRK methods
    **/
   template <typename T>
-  void UpdateFluid( T ComputeIncrement, const Real dt, State *state,
-                    GridStructure &Grid, const ModalBasis *Basis,
-                    const EOS *eos, SlopeLimiter *S_Limiter,
-                    const Options opts ) {
+  void UpdateFluid( T ComputeIncrement, const Real dt, State* state,
+                    GridStructure& Grid, const ModalBasis* Basis,
+                    const EOS* eos, SlopeLimiter* S_Limiter,
+                    const Options* opts ) {
 
     // hydro explicity update
     UpdateFluid_Explicit( ComputeIncrement, dt, state, Grid, Basis, eos,
@@ -50,13 +52,13 @@ class TimeStepper {
    * Explicit fluid update with SSPRK methods
    **/
   template <typename T>
-  void UpdateFluid_Explicit( T ComputeIncrement, const Real dt, State *state,
-                             GridStructure &Grid, const ModalBasis *Basis,
-                             const EOS *eos, SlopeLimiter *S_Limiter,
-                             const Options opts ) {
+  void UpdateFluid_Explicit( T ComputeIncrement, const Real dt, State* state,
+                             GridStructure& Grid, const ModalBasis* Basis,
+                             const EOS* eos, SlopeLimiter* S_Limiter,
+                             const Options* opts ) {
 
-    const auto &order = Basis->Get_Order( );
-    const auto &ihi   = Grid.Get_ihi( );
+    const auto& order = Basis->Get_Order( );
+    const auto& ihi   = Grid.Get_ihi( );
 
     auto U   = state->Get_uCF( );
     auto uCR = state->Get_uCR( );
@@ -121,7 +123,7 @@ class TimeStepper {
           Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       // S_Limiter->ApplySlopeLimiter( Us_j, &Grid_s[iS], Basis );
       ApplySlopeLimiter( S_Limiter, Us_j, &Grid_s[iS], Basis );
-      ApplyBoundEnforcingLimiter( Us_j, Basis, eos );
+      bel::ApplyBoundEnforcingLimiter( Us_j, Basis, eos );
     } // end outer loop
 
     for ( unsigned short int iS = 0; iS < nStages; iS++ ) {
@@ -154,16 +156,16 @@ class TimeStepper {
 
     Grid = Grid_s[nStages - 1];
     ApplySlopeLimiter( S_Limiter, U, &Grid, Basis );
-    ApplyBoundEnforcingLimiter( U, Basis, eos );
+    bel::ApplyBoundEnforcingLimiter( U, Basis, eos );
   }
 
   /**
    * Update radiation solution with SSPRK methods
    **/
   template <typename T>
-  void UpdateRadiation( T ComputeIncrementRad, const Real dt, State *state,
-                        GridStructure &Grid, const ModalBasis *Basis,
-                        const EOS *eos, SlopeLimiter *S_Limiter,
+  void UpdateRadiation( T ComputeIncrementRad, const Real dt, State* state,
+                        GridStructure& Grid, const ModalBasis* Basis,
+                        const EOS* eos, SlopeLimiter* S_Limiter,
                         const Options opts ) {
     UpdateRadiation_IMEX( ComputeIncrementRad, dt, state, Grid, Basis, eos,
                           S_Limiter, opts );
@@ -172,13 +174,13 @@ class TimeStepper {
    * Update radiation solution with SSPRK methods
    **/
   template <typename T>
-  void UpdateRadiation_IMEX( T ComputeIncrementRad, const Real dt, State *state,
-                             GridStructure &Grid, const ModalBasis *Basis,
-                             const EOS *eos, SlopeLimiter *S_Limiter,
-                             const Options opts ) {
+  void UpdateRadiation_IMEX( T ComputeIncrementRad, const Real dt, State* state,
+                             GridStructure& Grid, const ModalBasis* Basis,
+                             const EOS* eos, SlopeLimiter* /*S_Limiter*/,
+                             const Options& opts ) {
 
-    const auto &order = Basis->Get_Order( );
-    const auto &ihi   = Grid.Get_ihi( );
+    const auto& order = Basis->Get_Order( );
+    const auto& ihi   = Grid.Get_ihi( );
 
     auto uCF = state->Get_uCF( );
     auto uCR = state->Get_uCR( );
@@ -265,10 +267,10 @@ class TimeStepper {
                        F compute_increment_rad_explicit,
                        G compute_increment_hydro_implicit,
                        H compute_increment_rad_implicit, const Real dt,
-                       State *state, GridStructure &Grid,
-                       const ModalBasis *Basis, const EOS *eos,
-                       const Opacity *opac, SlopeLimiter *S_Limiter,
-                       const Options opts ) {
+                       State* state, GridStructure& Grid,
+                       const ModalBasis* Basis, const EOS* eos,
+                       const Opacity* opac, SlopeLimiter* S_Limiter,
+                       const Options* opts ) {
 
     UpdateRadHydro_IMEX(
         compute_increment_hydro_explicit, compute_increment_rad_explicit,
@@ -284,13 +286,13 @@ class TimeStepper {
                             F compute_increment_rad_explicit,
                             G compute_increment_hydro_implicit,
                             H compute_increment_rad_implicit, const Real dt,
-                            State *state, GridStructure &Grid,
-                            const ModalBasis *Basis, const EOS *eos,
-                            const Opacity *opac, SlopeLimiter *S_Limiter,
-                            const Options opts ) {
+                            State* state, GridStructure& Grid,
+                            const ModalBasis* Basis, const EOS* eos,
+                            const Opacity* opac, SlopeLimiter* S_Limiter,
+                            const Options* opts ) {
 
-    const auto &order = Basis->Get_Order( );
-    const auto &ihi   = Grid.Get_ihi( );
+    const auto& order = Basis->Get_Order( );
+    const auto& ihi   = Grid.Get_ihi( );
 
     auto uCF = state->Get_uCF( );
     auto uCR = state->Get_uCR( );
@@ -399,9 +401,9 @@ class TimeStepper {
 
       // capturing sumvar_u_r bad?
       auto implicit_rad = [&]( View2D<Real> scratch, const int k, const int iC,
-                               const View2D<Real> u_h, GridStructure &Grid,
-                               const ModalBasis *Basis, const EOS *eos,
-                               const Opacity *opac, const int iX ) {
+                               const View2D<Real> u_h, GridStructure& Grid,
+                               const ModalBasis* Basis, const EOS* eos,
+                               const Opacity* opac, const int iX ) {
         return SumVar_U_r( iC, iX, k ) +
                dt * implicit_tableau_.a_ij( iS, iS ) *
                    compute_increment_rad_implicit(
@@ -409,8 +411,8 @@ class TimeStepper {
       };
       auto implicit_hydro = [&]( View2D<Real> scratch, const int k,
                                  const int iC, const View2D<Real> u_r,
-                                 GridStructure &Grid, const ModalBasis *Basis,
-                                 const EOS *eos, const Opacity *opac,
+                                 GridStructure& Grid, const ModalBasis* Basis,
+                                 const EOS* eos, const Opacity* opac,
                                  const int iX ) {
         return SumVar_U( iC, iX, k ) +
                dt * implicit_tableau_.a_ij( iS, iS ) *
@@ -440,15 +442,15 @@ class TimeStepper {
             U_s( iS, iC, iX, k ) = temp1;
           } );
 
-      // TODO: slope limit rad
+      // TODO(astrobarker): slope limit rad
       auto Us_j_h =
           Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       ApplySlopeLimiter( S_Limiter, Us_j_h, &Grid_s[iS], Basis );
       auto Us_j_r =
           Kokkos::subview( U_s_r, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       ApplySlopeLimiter( S_Limiter, Us_j_r, &Grid_s[iS], Basis );
-      ApplyBoundEnforcingLimiter( Us_j_h, Basis, eos );
-      ApplyBoundEnforcingLimiterRad( Us_j_r, Basis, eos );
+      bel::ApplyBoundEnforcingLimiter( Us_j_h, Basis, eos );
+      bel::ApplyBoundEnforcingLimiterRad( Us_j_r, Basis, eos );
     } // end outer loop
 
     for ( unsigned short int iS = 0; iS < nStages; iS++ ) {
@@ -509,12 +511,12 @@ class TimeStepper {
       Grid_s[iS].UpdateGrid( StageDataj );
     }
 
-    // TODO: slope limit rad
+    // TODO(astrobarker): slope limit rad
     Grid = Grid_s[nStages - 1];
     ApplySlopeLimiter( S_Limiter, uCF, &Grid, Basis );
     ApplySlopeLimiter( S_Limiter, uCR, &Grid, Basis );
-    ApplyBoundEnforcingLimiter( uCF, Basis, eos );
-    ApplyBoundEnforcingLimiterRad( uCR, Basis, eos );
+    bel::ApplyBoundEnforcingLimiter( uCF, Basis, eos );
+    bel::ApplyBoundEnforcingLimiterRad( uCR, Basis, eos );
   }
 
  private:
@@ -524,7 +526,7 @@ class TimeStepper {
   const std::string BC;
 
   // tableaus
-  // TODO: always have both tableaus?
+  // TODO(astrobarker): always have both tableaus?
   // Maybe create an IMEX class... (or new implicit and explicit classes)
   // View2D<Real> a_ij;
   // View2D<Real> b_ij;
@@ -532,25 +534,25 @@ class TimeStepper {
   ButcherTableau explicit_tableau_;
 
   // Hold stage data
-  View4D<Real> U_s;
-  View4D<Real> dU_s;
-  View4D<Real> U_s_r;
-  View4D<Real> dU_s_r;
-  View3D<Real> SumVar_U;
-  View3D<Real> SumVar_U_r;
-  std::vector<GridStructure> Grid_s;
+  View4D<Real> U_s{ };
+  View4D<Real> dU_s{ };
+  View4D<Real> U_s_r{ };
+  View4D<Real> dU_s_r{ };
+  View3D<Real> SumVar_U{ };
+  View3D<Real> SumVar_U_r{ };
+  std::vector<GridStructure> Grid_s{ };
 
   // StageData Holds cell left interface positions
-  View2D<Real> StageData;
+  View2D<Real> StageData{ };
 
   // Variables to pass to update step
-  View3D<Real> Flux_q;
+  View3D<Real> Flux_q{ };
 
-  View2D<Real> dFlux_num;
-  View2D<Real> uCF_F_L;
-  View2D<Real> uCF_F_R;
-  View2D<Real> Flux_U;
-  View1D<Real> Flux_P;
+  View2D<Real> dFlux_num{ };
+  View2D<Real> uCF_F_L{ };
+  View2D<Real> uCF_F_R{ };
+  View2D<Real> Flux_U{ };
+  View1D<Real> Flux_P{ };
 };
 
 #endif // TIMESTEPPER_HPP_

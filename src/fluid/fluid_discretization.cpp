@@ -23,16 +23,17 @@
 #include "polynomial_basis.hpp"
 #include "rad_utilities.hpp"
 
+namespace fluid {
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Fluid_Divergence(
-    const View3D<Real> U, GridStructure &Grid, const ModalBasis *Basis,
-    const EOS *eos, View3D<Real> dU, View3D<Real> Flux_q,
+    const View3D<Real> U, GridStructure& Grid, const ModalBasis* Basis,
+    const EOS* eos, View3D<Real> dU, View3D<Real> Flux_q,
     View2D<Real> dFlux_num, View2D<Real> uCF_F_L, View2D<Real> uCF_F_R,
-    View1D<Real> Flux_U, View1D<Real> Flux_P, const Options opts ) {
-  const auto &nNodes = Grid.Get_nNodes( );
-  const auto &order  = Basis->Get_Order( );
-  const auto &ilo    = Grid.Get_ilo( );
-  const auto &ihi    = Grid.Get_ihi( );
+    View1D<Real> Flux_U, View1D<Real> Flux_P ) {
+  const auto& nNodes = Grid.Get_nNodes( );
+  const auto& order  = Basis->Get_Order( );
+  const auto& ilo    = Grid.Get_ilo( );
+  const auto& ihi    = Grid.Get_ihi( );
   const int nvars    = U.extent( 0 );
 
   // --- Interpolate Conserved Variable to Interfaces ---
@@ -87,7 +88,7 @@ void ComputeIncrement_Fluid_Divergence(
         // NumericalFlux_HLLC( uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, Cs_L, Cs_R,
         //  rho_L, rho_R, Flux_U( iX ), Flux_P( iX ) );
 
-        // TODO: Clean This Up
+        // TODO(astrobarker): Clean This Up
         dFlux_num( 0, iX ) = -Flux_U( iX );
         dFlux_num( 1, iX ) = +Flux_P( iX );
         dFlux_num( 2, iX ) = +Flux_U( iX ) * Flux_P( iX );
@@ -102,12 +103,12 @@ void ComputeIncrement_Fluid_Divergence(
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                               { nvars, ihi + 1, order } ),
       KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
-        const auto &Poly_L   = Basis->Get_Phi( iX, 0, k );
-        const auto &Poly_R   = Basis->Get_Phi( iX, nNodes + 1, k );
-        const auto &X_L      = Grid.Get_LeftInterface( iX );
-        const auto &X_R      = Grid.Get_LeftInterface( iX + 1 );
-        const auto &SqrtGm_L = Grid.Get_SqrtGm( X_L );
-        const auto &SqrtGm_R = Grid.Get_SqrtGm( X_R );
+        const auto& Poly_L   = Basis->Get_Phi( iX, 0, k );
+        const auto& Poly_R   = Basis->Get_Phi( iX, nNodes + 1, k );
+        const auto& X_L      = Grid.Get_LeftInterface( iX );
+        const auto& X_R      = Grid.Get_LeftInterface( iX + 1 );
+        const auto& SqrtGm_L = Grid.Get_SqrtGm( X_L );
+        const auto& SqrtGm_R = Grid.Get_SqrtGm( X_R );
 
         dU( iCF, iX, k ) -= ( +dFlux_num( iCF, iX + 1 ) * Poly_R * SqrtGm_R -
                               dFlux_num( iCF, iX + 0 ) * Poly_L * SqrtGm_L );
@@ -130,7 +131,7 @@ void ComputeIncrement_Fluid_Divergence(
         } );
 
     // --- Volume Term ---
-    // TODO: Make Flux_q a function?
+    // TODO(astrobarker): Make Flux_q a function?
     Kokkos::parallel_for(
         "Fluid :: Volume Term",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
@@ -153,8 +154,8 @@ void ComputeIncrement_Fluid_Divergence(
  * Compute fluid increment from geometry in spherical symmetry
  * TODO: ? missing sqrt(det gamma) ?
  **/
-void ComputeIncrement_Fluid_Geometry( const View3D<Real> U, GridStructure &Grid,
-                                      const ModalBasis *Basis, const EOS *eos,
+void ComputeIncrement_Fluid_Geometry( const View3D<Real> U, GridStructure& Grid,
+                                      const ModalBasis* Basis, const EOS* eos,
                                       View3D<Real> dU ) {
   const int nNodes = Grid.Get_nNodes( );
   const int order  = Basis->Get_Order( );
@@ -188,10 +189,10 @@ void ComputeIncrement_Fluid_Geometry( const View3D<Real> U, GridStructure &Grid,
  * Compute fluid increment from radiation sources
  * TODO: Modify inputs?
  **/
-Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
-                                 const View2D<Real> uCR, GridStructure &Grid,
-                                 const ModalBasis *Basis, const EOS *eos,
-                                 const Opacity *opac, const int iX ) {
+auto ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
+                                 const View2D<Real> uCR, GridStructure& Grid,
+                                 const ModalBasis* Basis, const EOS* eos,
+                                 const Opacity* opac, const int iX ) -> Real {
   const int nNodes = Grid.Get_nNodes( );
 
   Real local_sum = 0.0;
@@ -202,13 +203,13 @@ Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
 
     const Real Er = Basis->basis_eval( uCR, iX, 0, iN + 1 ) * D;
     const Real Fr = Basis->basis_eval( uCR, iX, 1, iN + 1 ) * D;
-    const Real Pr = ComputeClosure( Er, Fr );
+    const Real Pr = radiation::ComputeClosure( Er, Fr );
 
     auto lambda  = nullptr;
     const Real P = eos->PressureFromConserved( 1.0 / D, Vel, EmT, lambda );
     const Real T = eos->TemperatureFromTauPressure( 1.0 / D, P, lambda );
 
-    // TODO: composition
+    // TODO(astrobarker): composition
     const Real X = 1.0;
     const Real Y = 1.0;
     const Real Z = 1.0;
@@ -240,26 +241,26 @@ Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
  * BC               : (string) boundary condition type
  **/
 void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
-                                 GridStructure &Grid, const ModalBasis *Basis,
-                                 const EOS *eos, View3D<Real> dU,
+                                 GridStructure& Grid, const ModalBasis* Basis,
+                                 const EOS* eos, View3D<Real> dU,
                                  View3D<Real> Flux_q, View2D<Real> dFlux_num,
                                  View2D<Real> uCF_F_L, View2D<Real> uCF_F_R,
                                  View1D<Real> Flux_U, View1D<Real> Flux_P,
-                                 const Options opts ) {
+                                 const Options* opts ) {
 
-  const auto &order = Basis->Get_Order( );
-  const auto &ilo   = Grid.Get_ilo( );
-  const auto &ihi   = Grid.Get_ihi( );
+  const auto& order = Basis->Get_Order( );
+  const auto& ilo   = Grid.Get_ilo( );
+  const auto& ihi   = Grid.Get_ihi( );
   const int nvars   = U.extent( 0 );
 
   // --- Apply BC ---
-  ApplyBC( U, &Grid, order, opts.BC );
-  if ( opts.do_rad ) {
-    ApplyBC( uCR, &Grid, order, opts.BC );
+  bc::ApplyBC( U, &Grid, order, opts->BC );
+  if ( opts->do_rad ) {
+    bc::ApplyBC( uCR, &Grid, order, opts->BC );
   }
 
   // --- Detect Shocks ---
-  // TODO: Code up a shock detector...
+  // TODO(astrobarker): Code up a shock detector...
 
   // --- Compute Increment for new solution ---
 
@@ -277,7 +278,7 @@ void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
 
   // --- Fluid Increment : Divergence ---
   ComputeIncrement_Fluid_Divergence( U, Grid, Basis, eos, dU, Flux_q, dFlux_num,
-                                     uCF_F_L, uCF_F_R, Flux_U, Flux_P, opts );
+                                     uCF_F_L, uCF_F_R, Flux_U, Flux_P );
 
   // --- Divide update by mass mastrix ---
   Kokkos::parallel_for(
@@ -295,3 +296,5 @@ void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
 
   /* --- Increment Additional Explicit Sources --- */
 }
+
+} // namespace fluid

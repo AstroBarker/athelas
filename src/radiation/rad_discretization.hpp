@@ -19,21 +19,26 @@
 #include "opacity/opac.hpp"
 #include "opacity/opac_variant.hpp"
 
+namespace radiation {
+
 void ComputeIncrement_Rad_Divergence(
-    const View3D<Real> uCR, const View3D<Real> uCF, GridStructure &rid,
-    const ModalBasis *Basis, const EOS *eos, View3D<Real> dU,
+    View3D<Real> uCR, View3D<Real> uCF, GridStructure& rid,
+    const ModalBasis* Basis, const EOS* eos, View3D<Real> dU,
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
     View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P );
 
-void Compute_Increment_Explicit_Rad(
-    const View3D<Real> uCR, const View3D<Real> uCF, GridStructure &Grid,
-    const ModalBasis *Basis, const EOS *eos, View3D<Real> dU,
-    View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCR_F_L,
-    View2D<Real> uCR_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
-    const Options opts );
+void Compute_Increment_Explicit_Rad( View3D<Real> uCR, View3D<Real> uCF,
+                                     GridStructure& Grid,
+                                     const ModalBasis* Basis, const EOS* eos,
+                                     View3D<Real> dU, View3D<Real> Flux_q,
+                                     View2D<Real> dFlux_num,
+                                     View2D<Real> uCR_F_L, View2D<Real> uCR_F_R,
+                                     View1D<Real> Flux_U, View1D<Real> Flux_P,
+                                     const Options* opts );
 
-Real ComputeIncrement_Rad_Source( View2D<Real> uCR, const int k, const int iCR,
-                                  const View2D<Real> uCF, GridStructure &Grid,
-                                  const ModalBasis *Basis, const EOS *eos,
-                                  const Opacity *opac, const int iX );
+auto ComputeIncrement_Rad_Source( View2D<Real> uCR, int k, int iCR,
+                                  View2D<Real> uCF, GridStructure& Grid,
+                                  const ModalBasis* Basis, const EOS* eos,
+                                  const Opacity* opac, int iX ) -> Real;
+} // namespace radiation
 #endif // RAD_DISCRETIZATION_HPP_

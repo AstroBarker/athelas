@@ -25,11 +25,11 @@ State::State( const int nCF_, const int nCR_, const int nPF_, const int nAF_,
       uCR( "uCR", nCR_, nX_ + 2 * nG_, pOrder_ ) {}
 
 // num var accessors
-int State::Get_nCF( ) const { return this->nCF; }
-int State::Get_nPF( ) const { return this->nPF; }
-int State::Get_nAF( ) const { return this->nAF; }
-int State::Get_nCR( ) const { return this->nCR; }
-int State::Get_pOrder( ) const { return this->pOrder; }
+auto State::Get_nCF( ) const -> int { return this->nCF; }
+auto State::Get_nPF( ) const -> int { return this->nPF; }
+auto State::Get_nAF( ) const -> int { return this->nAF; }
+auto State::Get_nCR( ) const -> int { return this->nCR; }
+auto State::Get_pOrder( ) const -> int { return this->pOrder; }
 
 // view accessors
 View3D<Real> State::Get_uCF( ) const { return this->uCF; }

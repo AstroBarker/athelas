@@ -12,6 +12,8 @@
  * while preventing oscillations.
  */
 
+#include <math.h>
+
 #include <algorithm> /* std::min, std::max */
 #include <cstdlib> /* abs */
 #include <iostream>
@@ -28,20 +30,22 @@
 #include "slope_limiter_base.hpp"
 #include "slope_limiter_utilities.hpp"
 
+using namespace limiter_utilities;
+
 /**
  * Apply the slope limiter. We use a compact stencil WENO-Z limiter
  * H. Zhu 2020, simple, high-order compact WENO RKDG slope limiter
  **/
-void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure *Grid,
-                              const ModalBasis *Basis ) {
+void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure* Grid,
+                              const ModalBasis* Basis ) {
 
   // Do not apply for first order method or if we don't want to.
   if ( order == 1 || !do_limiter ) {
     return;
   }
 
-  const int &ilo  = Grid->Get_ilo( );
-  const int &ihi  = Grid->Get_ihi( );
+  const int& ilo  = Grid->Get_ilo( );
+  const int& ihi  = Grid->Get_ihi( );
   const int nvars = U.extent( 0 );
 
   /* map to characteristic vars */
@@ -170,4 +174,6 @@ void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure *Grid,
 } // end apply slope limiter
 
 // LimitedCell accessor
-int WENO::Get_Limited( const int iX ) const { return LimitedCell( iX ); }
+auto WENO::Get_Limited( const int iX ) const -> int {
+  return LimitedCell( iX );
+}

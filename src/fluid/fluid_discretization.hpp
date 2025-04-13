@@ -19,27 +19,30 @@
 #include "eos.hpp"
 #include "opacity/opac_variant.hpp"
 
-void ComputeIncrement_Fluid_Divergence(
-    const View3D<Real> U, GridStructure &Grid, const ModalBasis *Basis,
-    const EOS *eos, View3D<Real> dU, View3D<Real> Flux_q,
-    View2D<Real> dFlux_num, View2D<Real> uCF_F_L, View2D<Real> uCF_F_R,
-    View1D<Real> Flux_U, View1D<Real> Flux_P, const Options opts );
+namespace fluid {
 
-void ComputeIncrement_Fluid_Geometry( const View3D<Real> U, GridStructure &Grid,
-                                      ModalBasis *Basis, EOS *eos,
+void ComputeIncrement_Fluid_Divergence(
+    View3D<Real> U, GridStructure& Grid, const ModalBasis* Basis,
+    const EOS* eos, View3D<Real> dU, View3D<Real> Flux_q,
+    View2D<Real> dFlux_num, View2D<Real> uCF_F_L, View2D<Real> uCF_F_R,
+    View1D<Real> Flux_U, View1D<Real> Flux_P );
+
+void ComputeIncrement_Fluid_Geometry( View3D<Real> U, GridStructure& Grid,
+                                      ModalBasis* Basis, EOS* eos,
                                       View3D<Real> dU );
 
-Real ComputeIncrement_Fluid_Rad( View2D<Real> uCF, const int k, const int iCF,
-                                 const View2D<Real> uCR, GridStructure &Grid,
-                                 const ModalBasis *Basis, const EOS *eos,
-                                 const Opacity *opac, const int iX );
+auto ComputeIncrement_Fluid_Rad( View2D<Real> uCF, int k, int iCF,
+                                 View2D<Real> uCR, GridStructure& Grid,
+                                 const ModalBasis* Basis, const EOS* eos,
+                                 const Opacity* opac, int iX ) -> Real;
 
-void Compute_Increment_Explicit( const View3D<Real> U, const View3D<Real> uCR,
-                                 GridStructure &Grid, const ModalBasis *Basis,
-                                 const EOS *eos, View3D<Real> dU,
+void Compute_Increment_Explicit( View3D<Real> U, View3D<Real> uCR,
+                                 GridStructure& Grid, const ModalBasis* Basis,
+                                 const EOS* eos, View3D<Real> dU,
                                  View3D<Real> Flux_q, View2D<Real> dFlux_num,
                                  View2D<Real> uCF_F_L, View2D<Real> uCF_F_R,
                                  View1D<Real> Flux_U, View1D<Real> Flux_P,
-                                 const Options opts );
+                                 const Options* opts );
 
+} // namespace fluid
 #endif // FLUID_DISCRETIZATION_HPP_

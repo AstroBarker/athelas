@@ -28,28 +28,27 @@
 #include "polynomial_basis.hpp"
 #include "utils/utilities.hpp"
 
-void LimitDensity( View3D<Real> U, const ModalBasis *Basis );
-void LimitInternalEnergy( View3D<Real> U, const ModalBasis *Basis,
-                          const EOS *eos );
-void LimitRadMomentum( View3D<Real> U, const ModalBasis *Basis,
-                       const EOS *eos );
-void ApplyBoundEnforcingLimiter( View3D<Real> U, const ModalBasis *Basis,
-                                 const EOS *eos );
-void ApplyBoundEnforcingLimiterRad( View3D<Real> U, const ModalBasis *Basis,
-                                    const EOS *eos );
-Real ComputeThetaState( const View3D<Real> U, const ModalBasis *Basis,
-                        const EOS *eos, const Real theta, const int iCF,
-                        const int iX, const int iN );
-Real TargetFunc( const Real theta, const View3D<Real> U,
-                 const ModalBasis *Basis, const EOS *eos, const int iX,
-                 const int iN );
-Real TargetFuncRad( const Real theta, const View3D<Real> U,
-                    const ModalBasis *Basis, const EOS *eos, const int iX,
-                    const int iN );
+namespace bel {
+
+void LimitDensity( View3D<Real> U, const ModalBasis* Basis );
+void LimitInternalEnergy( View3D<Real> U, const ModalBasis* Basis,
+                          const EOS* eos );
+void LimitRadMomentum( View3D<Real> U, const ModalBasis* Basis,
+                       const EOS* eos );
+void ApplyBoundEnforcingLimiter( View3D<Real> U, const ModalBasis* Basis,
+                                 const EOS* eos );
+void ApplyBoundEnforcingLimiterRad( View3D<Real> U, const ModalBasis* Basis,
+                                    const EOS* eos );
+auto ComputeThetaState( View3D<Real> U, const ModalBasis* Basis, const EOS* eos,
+                        Real theta, int iCF, int iX, int iN ) -> Real;
+auto TargetFunc( Real theta, View3D<Real> U, const ModalBasis* Basis,
+                 const EOS* eos, int iX, int iN ) -> Real;
+auto TargetFuncRad( Real theta, View3D<Real> U, const ModalBasis* Basis,
+                    const EOS* eos, int iX, int iN ) -> Real;
 
 template <typename F>
-Real Bisection( const View3D<Real> U, F target, const ModalBasis *Basis,
-                const EOS *eos, const int iX, const int iN ) {
+auto Bisection( const View3D<Real> U, F target, const ModalBasis* Basis,
+                const EOS* eos, const int iX, const int iN ) -> Real {
   const Real TOL      = 1e-10;
   const int MAX_ITERS = 100;
   const Real delta    = 1.0e-3; // reduce root by delta
@@ -88,8 +87,8 @@ Real Bisection( const View3D<Real> U, F target, const ModalBasis *Basis,
 }
 
 template <typename F>
-Real Backtrace( const View3D<Real> U, F target, const ModalBasis *Basis,
-                const EOS *eos, const int iX, const int iN ) {
+auto Backtrace( const View3D<Real> U, F target, const ModalBasis* Basis,
+                const EOS* eos, const int iX, const int iN ) -> Real {
   constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
   Real theta                    = 1.0;
   Real nodal                    = -1.0;
@@ -102,4 +101,6 @@ Real Backtrace( const View3D<Real> U, F target, const ModalBasis *Basis,
 
   return theta;
 }
+
+} // namespace bel
 #endif // BOUND_ENFORCING_LIMITER_HPP_

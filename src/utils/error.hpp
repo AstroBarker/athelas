@@ -16,14 +16,15 @@
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
+#include <utility>
 
 #include "constants.hpp"
 #include "state.hpp"
 
 inline void print_backtrace( ) {
-  void *callstack[128];
-  int frames     = backtrace( callstack, 128 );
-  char **symbols = backtrace_symbols( callstack, frames );
+  void* callstack[128];
+  int const frames = backtrace( callstack, 128 );
+  char** symbols   = backtrace_symbols( callstack, frames );
 
   fprintf( stderr, "Backtrace:\n" );
   for ( int i = 0; i < frames; ++i ) {
@@ -56,13 +57,13 @@ class AthelasError : public std::exception {
 
  public:
   // Constructor with detailed error information
-  AthelasError( const std::string &message, const std::string &function = "",
-                const std::string &file = "", int line = 0 )
-      : m_message( message ), m_function( function ), m_file( file ),
-        m_line( line ) {}
+  explicit AthelasError( std::string message, const std::string& function = "",
+                         const std::string& file = "", int line = 0 )
+      : m_message( std::move( message ) ), m_function( function ),
+        m_file( file ), m_line( line ) {}
 
   // Override what() to provide error details
-  const char *what( ) const noexcept override {
+  [[nodiscard]] auto what( ) const noexcept -> const char* override {
     static thread_local std::string full_message;
     std::ostringstream oss;
 
@@ -81,13 +82,13 @@ class AthelasError : public std::exception {
   }
 
   // Destructor
-  ~AthelasError( ) noexcept override {}
+  ~AthelasError( ) noexcept override = default;
 };
 
 template <typename... Args>
 [[noreturn]] constexpr void THROW_ATHELAS_ERROR(
-    const char *message, const char *function = __builtin_FUNCTION( ),
-    const char *file = __builtin_FILE( ), int line = __builtin_LINE( ) ) {
+    const char* message, const char* function = __builtin_FUNCTION( ),
+    const char* file = __builtin_FILE( ), int line = __builtin_LINE( ) ) {
   throw AthelasError( message, function, file, line );
 }
 

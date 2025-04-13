@@ -30,7 +30,7 @@ namespace root_finders {
 // }
 
 template <typename T, typename F, typename... Args>
-Real Residual( F g, T x0, const int k, const int iC, Args... args ) {
+auto Residual( F g, T x0, const int k, const int iC, Args... args ) -> Real {
   return g( x0, k, iC, args... ) - x0( iC, k );
 }
 
@@ -39,22 +39,26 @@ Real Residual( F g, T x0, const int k, const int iC, Args... args ) {
  * Assumes target is in f(x) = x form
  **/
 template <typename T, typename F, typename... Args>
-T fixed_point_aa( F target, T x0, Args... args ) {
+auto fixed_point_aa( F target, T x0, Args... args ) -> T {
 
   unsigned int n = 0;
   T error        = 1.0;
-  T xkm1, xk, xkp1;
+  T xkm1;
+  T xk;
+  T xkp1;
   xk   = target( x0, args... ); // one fixed point step
   xkm1 = x0;
-  if ( std::abs( xk - x0 ) <= root_finders::FPTOL ) return xk;
+  if ( std::abs( xk - x0 ) <= root_finders::FPTOL ) {
+    return xk;
+  }
   while ( n <= root_finders::MAX_ITERS && error >= root_finders::FPTOL ) {
     /* Anderson acceleration step */
     T alpha =
         -Residual( target, xk, args... ) /
         ( Residual( target, xkm1, args... ) - Residual( target, xk, args... ) );
 
-    T xkp1 = alpha * target( xkm1, args... ) +
-             ( 1.0 - alpha ) * target( xk, args... );
+    T xkp1 = ( alpha * target( xkm1, args... ) ) +
+             ( ( 1.0 - alpha ) * target( xk, args... ) );
     error = std::abs( xk - xkp1 );
 
     xkm1 = xk;
@@ -74,7 +78,7 @@ T fixed_point_aa( F target, T x0, Args... args ) {
  * Assumes target is in f(x) = 0 form and transforms
  **/
 template <typename T, typename F, typename... Args>
-T fixed_point_aa_root( F target, T x0, Args... args ) {
+auto fixed_point_aa_root( F target, T x0, Args... args ) -> T {
 
   // puts f(x) = 0 into fixed point form
   auto f = [&]( const Real x, Args... args ) {
@@ -85,16 +89,21 @@ T fixed_point_aa_root( F target, T x0, Args... args ) {
 
   unsigned int n = 0;
   T error        = 1.0;
-  T xkm1, xk, xkp1;
+  T xkm1;
+  T xk;
+  T xkp1;
   xk   = f( x0, args... ); // one fixed point step
   xkm1 = x0;
-  if ( std::abs( xk - x0 ) <= root_finders::FPTOL ) return xk;
+  if ( std::abs( xk - x0 ) <= root_finders::FPTOL ) {
+    return xk;
+  }
   while ( n <= root_finders::MAX_ITERS && error >= root_finders::FPTOL ) {
     /* Anderson acceleration step */
     T alpha = -g( xk, args... ) / ( g( xkm1, args... ) - g( xk, args... ) );
 
-    T xkp1 = alpha * f( xkm1, args... ) + ( 1.0 - alpha ) * f( xk, args... );
-    error  = std::abs( xk - xkp1 );
+    T xkp1 =
+        ( alpha * f( xkm1, args... ) ) + ( ( 1.0 - alpha ) * f( xk, args... ) );
+    error = std::abs( xk - xkp1 );
 
     xkm1 = xk;
     xk   = xkp1;
@@ -114,8 +123,8 @@ T fixed_point_aa_root( F target, T x0, Args... args ) {
  * Note that this is only used for the rad-hydro implicit update
  **/
 template <typename F, typename T, typename... Args>
-Real fixed_point_aa( F target, const int k, T scratch, const int iC,
-                     Args... args ) {
+auto fixed_point_aa( F target, const int k, T scratch, const int iC,
+                     Args... args ) -> Real {
 
   View2D<Real> scratch_km1( "scratch_km1", scratch.extent( 0 ),
                             scratch.extent( 1 ) );
@@ -123,7 +132,9 @@ Real fixed_point_aa( F target, const int k, T scratch, const int iC,
 
   unsigned int n = 0;
   Real error     = 1.0;
-  Real xkm1, xk, xkp1;
+  Real xkm1;
+  Real xk;
+  Real xkp1;
   xk   = scratch( iC, k );
   xk   = target( scratch, k, iC, args... ); // one fixed point step
   xkm1 = scratch( iC, k );
@@ -135,7 +146,9 @@ Real fixed_point_aa( F target, const int k, T scratch, const int iC,
   scratch( iC, k )     = xk;
   scratch_km1( iC, k ) = xkm1;
 
-  if ( error <= root_finders::RELTOL ) return xk;
+  if ( error <= root_finders::RELTOL ) {
+    return xk;
+  }
   while ( n <= root_finders::MAX_ITERS && error >= root_finders::RELTOL ) {
     /* Anderson acceleration step */
     Real alpha = -Residual( target, scratch, k, iC, args... ) /
@@ -157,7 +170,7 @@ Real fixed_point_aa( F target, const int k, T scratch, const int iC,
     //     std::printf( " %d %e %e \n", n, xk, error );
     // #endif
 
-    // TODO: handle convergence failures?
+    // TODO(astrobarker): handle convergence failures?
     // if ( n == root_finders::MAX_ITERS ) {
     //  std::printf("FPAA convergence failure! Error: %e\n", error);
     //}
@@ -168,13 +181,15 @@ Real fixed_point_aa( F target, const int k, T scratch, const int iC,
 
 // unused generic fixed point iteration for implicit update
 template <typename F, typename T, typename... Args>
-Real fixed_point_implicit( F target, const int k, T scratch, const int iC,
-                           Args... args ) {
+auto fixed_point_implicit( F target, const int k, T scratch, const int iC,
+                           Args... args ) -> Real {
 
   // auto x0 = scratch[0];
   unsigned int n = 0;
   Real error     = 1.0;
-  Real xkm1, xk, xkp1;
+  Real xkm1;
+  Real xk;
+  Real xkp1;
   xk   = scratch( iC, k );
   xk   = target( scratch, k, iC, args... ); // one fixed point step
   xkm1 = scratch( iC, k );
@@ -183,7 +198,9 @@ Real fixed_point_implicit( F target, const int k, T scratch, const int iC,
   // update scratch
   scratch( iC, k ) = xk;
 
-  if ( std::abs( xk - xkm1 ) <= root_finders::RELTOL ) return xk;
+  if ( std::abs( xk - xkm1 ) <= root_finders::RELTOL ) {
+    return xk;
+  }
   while ( n <= root_finders::MAX_ITERS && error >= root_finders::RELTOL ) {
     /* Anderson acceleration step */
     // UPDATED TODO:
@@ -214,7 +231,7 @@ Real fixed_point_implicit( F target, const int k, T scratch, const int iC,
 
 /* Fixed point solver templated on type, function, and args for func */
 template <typename T, typename F, typename... Args>
-T fixed_point( F target, T x0, Args... args ) {
+auto fixed_point( F target, T x0, Args... args ) -> T {
 
   unsigned int n = 0;
   T error        = 1.0;
@@ -237,7 +254,7 @@ T fixed_point( F target, T x0, Args... args ) {
 }
 
 template <typename T, typename F>
-T fixed_point( F target, T x0 ) {
+auto fixed_point( F target, T x0 ) -> T {
 
   unsigned int n = 0;
   T error        = 1.0;
@@ -261,7 +278,7 @@ T fixed_point( F target, T x0 ) {
 
 /* Newton iteration templated on type, function, args */
 template <typename T, typename F, typename... Args>
-T newton( F target, F dTarget, T x0, Args... args ) {
+auto newton( F target, F dTarget, T x0, Args... args ) -> T {
 
   unsigned int n = 0;
   T h            = target( x0, args... ) / dTarget( x0, args... );
@@ -285,16 +302,20 @@ T newton( F target, F dTarget, T x0, Args... args ) {
 
 /* Anderson Accelerated newton iteration templated on type, function */
 template <typename T, typename F, typename... Args>
-T newton_aa( F target, F dTarget, T x0, Args... args ) {
+auto newton_aa( F target, F dTarget, T x0, Args... args ) -> T {
 
   unsigned int n = 0;
   T h            = target( x0, args... ) / dTarget( x0, args... );
   T error        = 1.0;
-  T xkm1, xk, xkp1;
+  T xkm1;
+  T xk;
+  T xkp1;
   xk   = std::min( x0 - h, root_finders::FPTOL ); // keep positive definite
   xkm1 = x0;
   T ans;
-  if ( std::abs( xk - x0 ) <= root_finders::FPTOL ) return xk;
+  if ( std::abs( xk - x0 ) <= root_finders::FPTOL ) {
+    return xk;
+  }
   while ( n <= root_finders::MAX_ITERS && error >= root_finders::FPTOL ) {
     T hp1 = target( xk, args... ) / dTarget( xk, args... );
     T h   = target( xkm1, args... ) / dTarget( xkm1, args... );

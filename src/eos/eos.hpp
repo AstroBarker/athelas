@@ -1,5 +1,5 @@
-#ifndef _EOS_HPP_
-#define _EOS_HPP_
+#ifndef EOS_HPP_
+#define EOS_HPP_
 /**
  * @file eos.hpp
  * --------------
@@ -29,22 +29,24 @@
 class IdealGas : public EosBase<IdealGas> {
  public:
   IdealGas( ) = default;
-  IdealGas( double gm ) : gamma( gm ) {
-    if ( gamma <= 0.0 ) THROW_ATHELAS_ERROR( " ! Adiabatic gamma <= 0.0!" );
+  explicit IdealGas( double gm ) : gamma( gm ) {
+    if ( gamma <= 0.0 ) {
+      THROW_ATHELAS_ERROR( " ! Adiabatic gamma <= 0.0!" );
+    }
   }
 
-  Real PressureFromConserved( const Real Tau, const Real V, const Real EmT,
-                              Real *lambda ) const;
-  Real SoundSpeedFromConserved( const Real Tau, const Real V, const Real EmT,
-                                Real *lambda ) const;
-  Real TemperatureFromTauPressureAbar( const Real Tau, const Real P,
-                                       const Real Abar, Real *lambda ) const;
-  Real TemperatureFromTauPressure( const Real Tau, const Real P,
-                                   Real *lambda ) const;
-  Real RadiationPressure( const Real T, Real *lambda ) const;
+  auto PressureFromConserved( Real Tau, Real V, Real EmT, Real* lambda ) const
+      -> Real;
+  auto SoundSpeedFromConserved( Real Tau, Real V, Real EmT, Real* lambda ) const
+      -> Real;
+  static auto TemperatureFromTauPressureAbar( Real Tau, Real P, Real Abar,
+                                              Real* lambda ) -> Real;
+  auto TemperatureFromTauPressure( Real Tau, Real P, Real* lambda ) const
+      -> Real;
+  static auto RadiationPressure( Real T, Real* lambda ) -> Real;
 
  private:
-  Real gamma;
+  Real gamma{ };
 };
 
 /* placeholder */
@@ -52,21 +54,21 @@ class Stellar : public EosBase<Stellar> {
  public:
   Stellar( ) = default;
 
-  Real PressureFromConserved( const Real Tau, const Real V, const Real EmT,
-                              Real *lambda ) const;
-  Real SoundSpeedFromConserved( const Real Tau, const Real V, const Real EmT,
-                                Real *lambda ) const;
-  Real TemperatureFromTauPressureAbar( const Real Tau, const Real P,
-                                       const Real Abar, Real *lambda ) const;
-  Real TemperatureFromTauPressure( const Real Tau, const Real P,
-                                   Real *lambda ) const;
-  Real RadiationPressure( const Real T, Real *lambda ) const;
+  auto PressureFromConserved( Real Tau, Real V, Real EmT, Real* lambda ) const
+      -> Real;
+  auto SoundSpeedFromConserved( Real Tau, Real V, Real EmT, Real* lambda ) const
+      -> Real;
+  auto TemperatureFromTauPressureAbar( Real Tau, Real P, Real Abar,
+                                       Real* lambda ) const -> Real;
+  auto TemperatureFromTauPressure( Real Tau, Real P, Real* lambda ) const
+      -> Real;
+  auto RadiationPressure( Real T, Real* lambda ) const -> Real;
 
  private:
-  Real gamma;
+  Real gamma{ };
 };
 
-// TODO: adjust when we support more than one EOS
+// TODO(astrobarker): adjust when we support more than one EOS
 using EOS = IdealGas;
 
-#endif // _EOS_HPP_
+#endif // EOS_HPP_

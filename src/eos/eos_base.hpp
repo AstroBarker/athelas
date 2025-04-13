@@ -34,28 +34,29 @@
 template <class EOS>
 class EosBase {
  public:
-  Real PressureFromConserved( const Real Tau, const Real V, const Real EmT,
-                              Real *lambda ) const {
-    return static_cast<EOS const *>( this )->PressureFromConserved( Tau, V, EmT,
-                                                                    lambda );
+  auto PressureFromConserved( const Real Tau, const Real V, const Real EmT,
+                              Real* lambda ) const -> Real {
+    return static_cast<EOS const*>( this )->PressureFromConserved( Tau, V, EmT,
+                                                                   lambda );
   }
-  Real SoundSpeedFromConserved( const Real Tau, const Real V, const Real EmT,
-                                Real *lambda ) const {
-    return static_cast<EOS const *>( this )->SoundSpeedFromConserved(
+  auto SoundSpeedFromConserved( const Real Tau, const Real V, const Real EmT,
+                                Real* lambda ) const -> Real {
+    return static_cast<EOS const*>( this )->SoundSpeedFromConserved(
         Tau, V, EmT, lambda );
   }
-  Real TemperatureFromTauPressureAbar( const Real Tau, const Real P,
-                                       const Real Abar, Real *lambda ) const {
-    return static_cast<EOS const *>( this )->TemperatureFromTauPressureAbar(
+  auto TemperatureFromTauPressureAbar( const Real Tau, const Real P,
+                                       const Real Abar, Real* lambda ) const
+      -> Real {
+    return static_cast<EOS const*>( this )->TemperatureFromTauPressureAbar(
         Tau, P, Abar, lambda );
   }
-  Real TemperatureFromTauPressure( const Real Tau, const Real P,
-                                   Real *lambda ) const {
-    return static_cast<EOS const *>( this )->TemperatureFromTauPressure(
+  auto TemperatureFromTauPressure( const Real Tau, const Real P,
+                                   Real* lambda ) const -> Real {
+    return static_cast<EOS const*>( this )->TemperatureFromTauPressure(
         Tau, P, lambda );
   }
-  Real RadiationPressure( const Real T, Real *lambda ) const {
-    return static_cast<EOS const *>( this )->RadiationPressure( T, lambda );
+  auto RadiationPressure( const Real T, Real* lambda ) const -> Real {
+    return static_cast<EOS const*>( this )->RadiationPressure( T, lambda );
   }
 };
 

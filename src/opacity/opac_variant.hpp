@@ -21,23 +21,23 @@
 
 using Opacity = std::variant<Constant, PowerlawRho>;
 
-KOKKOS_INLINE_FUNCTION Real PlanckMean( const Opacity *opac, const Real rho,
+KOKKOS_INLINE_FUNCTION Real PlanckMean( const Opacity* opac, const Real rho,
                                         const Real T, const Real X,
                                         const Real Y, const Real Z,
-                                        Real *lambda ) {
+                                        Real* lambda ) {
   return std::visit(
-      [&rho, &T, &X, &Y, &Z, &lambda]( auto &opac ) {
+      [&rho, &T, &X, &Y, &Z, &lambda]( auto& opac ) {
         return opac.PlanckMean( rho, T, X, Y, Z, lambda );
       },
       *opac );
 }
 
-KOKKOS_INLINE_FUNCTION Real RosselandMean( const Opacity *opac, const Real rho,
+KOKKOS_INLINE_FUNCTION Real RosselandMean( const Opacity* opac, const Real rho,
                                            const Real T, const Real X,
                                            const Real Y, const Real Z,
-                                           Real *lambda ) {
+                                           Real* lambda ) {
   return std::visit(
-      [&rho, &T, &X, &Y, &Z, &lambda]( auto &opac ) {
+      [&rho, &T, &X, &Y, &Z, &lambda]( auto& opac ) {
         return opac.RosselandMean( rho, T, X, Y, Z, lambda );
       },
       *opac );
@@ -45,7 +45,7 @@ KOKKOS_INLINE_FUNCTION Real RosselandMean( const Opacity *opac, const Real rho,
 
 // put init function here..
 
-KOKKOS_INLINE_FUNCTION Opacity InitializeOpacity( const ProblemIn *pin ) {
+KOKKOS_INLINE_FUNCTION Opacity InitializeOpacity( const ProblemIn* pin ) {
   Opacity opac;
   if ( pin->opac_type == "constant" ) {
     std::printf( "const\n" );

@@ -11,25 +11,23 @@
 
 #include "Kokkos_Core.hpp"
 
-#include "Kokkos_Core.hpp"
-
 using Real = double;
 
 template <typename T>
-using View4D = Kokkos::View<T ****>;
+using View4D = Kokkos::View<T****>;
 
 template <typename T>
-using View3D = Kokkos::View<T ***>;
+using View3D = Kokkos::View<T***>;
 
 template <typename T>
-using View2D = Kokkos::View<T **>;
+using View2D = Kokkos::View<T**>;
 
 template <typename T>
-using View1D = Kokkos::View<T *>;
+using View1D = Kokkos::View<T*>;
 
 /* Where to put this? */
 namespace PolyBasis {
 enum PolyBasis { Legendre, Taylor };
-}
+} // namespace PolyBasis
 
 #endif // ABSTRACTIONS_HPP_

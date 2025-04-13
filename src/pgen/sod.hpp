@@ -20,7 +20,7 @@
 /**
  * @brief Initialize Sod shock tube
  **/
-void sod_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
+void sod_init( State* state, GridStructure* Grid, const ProblemIn* pin ) {
 
   View3D<Real> uCF = state->Get_uCF( );
   View3D<Real> uPF = state->Get_uPF( );
@@ -43,8 +43,8 @@ void sod_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
   const Real P_R = pin->in_table["problem"]["params"]["pR"].value_or( 0.1 );
 
   Real X1 = 0.0;
-  for ( int iX = ilo; iX <= ihi; iX++ )
-    for ( int k = 0; k < pOrder; k++ )
+  for ( int iX = ilo; iX <= ihi; iX++ ) {
+    for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
         X1                    = Grid->Get_Centers( iX );
         uCF( iCF_Tau, iX, k ) = 0.0;
@@ -69,11 +69,14 @@ void sod_init( State *state, GridStructure *Grid, const ProblemIn *pin ) {
           uPF( iPF_D, iX, iNodeX ) = D_R;
         }
       }
+    }
+  }
   // Fill density in guard cells
-  for ( int iX = 0; iX < ilo; iX++ )
+  for ( int iX = 0; iX < ilo; iX++ ) {
     for ( int iN = 0; iN < nNodes; iN++ ) {
       uPF( 0, ilo - 1 - iX, iN ) = uPF( 0, ilo + iX, nNodes - iN - 1 );
       uPF( 0, ihi + 1 + iX, iN ) = uPF( 0, ihi - iX, nNodes - iN - 1 );
     }
+  }
 }
 #endif // SOD_HPP_

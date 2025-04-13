@@ -14,5 +14,5 @@
 
 namespace geometry {
 enum Geometry { Planar, Spherical };
-}
+} // namespace geometry
 #endif // GEOMETRY_HPP_

@@ -20,45 +20,43 @@
 #include "abstractions.hpp"
 #include "grid.hpp"
 
-typedef Real BasisFuncType( int, Real, Real );
+using BasisFuncType = Real( int, Real, Real );
 
 class ModalBasis {
  public:
-  ModalBasis( PolyBasis::PolyBasis basis, const View3D<Real> uCF,
-              GridStructure *Grid, const int pOrder, const int nN,
-              const int nElements, const int nGuard );
-  static Real Taylor( const int order, const Real eta, const Real eta_c );
-  static Real dTaylor( const int order, const Real eta, const Real eta_c );
-  Real Ortho( const int order, const int iX, const int i_eta, const Real eta,
-              const Real eta_c, const View3D<Real> uCF, GridStructure *Grid,
-              const bool derivative_option );
-  Real InnerProduct( const int m, const int n, const int iX, const Real eta_c,
-                     const View3D<Real> uPF, GridStructure *Grid );
-  Real InnerProduct( const int n, const int iX, const Real eta_c,
-                     const View3D<Real> uPF, GridStructure *Grid );
-  void InitializeTaylorBasis( const View3D<Real> U, GridStructure *Grid );
-  void InitializeBasis( const PolyBasis::PolyBasis basis,
-                        const View3D<Real> uCF, GridStructure *Grid );
-  void CheckOrthogonality( const View3D<Real> uCF, GridStructure *Grid );
-  Real basis_eval( View3D<Real> U, const int iX, const int iCF,
-                   const int i_eta ) const;
-  Real basis_eval( View2D<Real> U, const int iX, const int iCF,
-                   const int i_eta ) const;
-  Real basis_eval( View1D<Real> U, const int iX, const int i_eta ) const;
-  void ComputeMassMatrix( const View3D<Real> uCF, GridStructure *Grid );
+  ModalBasis( PolyBasis::PolyBasis basis, View3D<Real> uCF, GridStructure* Grid,
+              int pOrder, int nN, int nElements, int nGuard );
+  static auto Taylor( int order, Real eta, Real eta_c ) -> Real;
+  static auto dTaylor( int order, Real eta, Real eta_c ) -> Real;
+  auto Ortho( int order, int iX, int i_eta, Real eta, Real eta_c,
+              View3D<Real> uCF, GridStructure* Grid, bool derivative_option )
+      -> Real;
+  auto InnerProduct( int m, int n, int iX, Real eta_c, View3D<Real> uPF,
+                     GridStructure* Grid ) -> Real const;
+  auto InnerProduct( int n, int iX, Real eta_c, View3D<Real> uPF,
+                     GridStructure* Grid ) -> Real const;
+  void InitializeTaylorBasis( View3D<Real> U, GridStructure* Grid );
+  void InitializeBasis( View3D<Real> uCF, GridStructure* Grid );
+  void CheckOrthogonality( View3D<Real> uCF, GridStructure* Grid ) const;
+  [[nodiscard]] auto basis_eval( View3D<Real> U, int iX, int iCF,
+                                 int i_eta ) const -> Real;
+  [[nodiscard]] auto basis_eval( View2D<Real> U, int iX, int iCF,
+                                 int i_eta ) const -> Real;
+  [[nodiscard]] auto basis_eval( View1D<Real> U, int iX, int i_eta ) const
+      -> Real;
+  void ComputeMassMatrix( View3D<Real> uCF, GridStructure* Grid );
 
-  Real Get_Phi( const int iX, const int i_eta, const int k ) const;
-  Real Get_dPhi( const int iX, const int i_eta, const int k ) const;
-  Real Get_MassMatrix( const int iX, const int k ) const;
+  [[nodiscard]] auto Get_Phi( int iX, int i_eta, int k ) const -> Real;
+  [[nodiscard]] auto Get_dPhi( int iX, int i_eta, int k ) const -> Real;
+  [[nodiscard]] auto Get_MassMatrix( int iX, int k ) const -> Real;
 
-  int Get_Order( ) const;
+  [[nodiscard]] auto Get_Order( ) const noexcept -> int;
 
-  static Real Legendre( const int order, const Real x );
-  static Real dLegendre( const int order, const Real x );
-  static Real Legendre( const int order, const Real x, const Real x_c );
-  static Real dLegendre( const int order, const Real x, const Real x_c );
-  static Real dLegendreN( const int poly_order, const int deriv_order,
-                          const Real x );
+  static auto Legendre( int n, Real x ) -> Real;
+  static auto dLegendre( int order, Real x ) -> Real;
+  static auto Legendre( int n, Real x, Real x_c ) -> Real;
+  static auto dLegendre( int n, Real x, Real x_c ) -> Real;
+  static auto dLegendreN( int poly_order, int deriv_order, Real x ) -> Real;
 
  private:
   int nX;
@@ -66,10 +64,10 @@ class ModalBasis {
   int nNodes;
   int mSize;
 
-  View2D<Real> MassMatrix;
+  View2D<Real> MassMatrix{ };
 
-  View3D<Real> Phi;
-  View3D<Real> dPhi;
+  View3D<Real> Phi{ };
+  View3D<Real> dPhi{ };
 
   Real ( *func )( const int n, const Real x, const Real x_c );
   Real ( *dfunc )( const int n, const Real x, Real const x_c );

@@ -37,8 +37,8 @@
  * TODO: To be good Kokkos, either make all relevant loops par_for,
  * or a a device-host copy
  **/
-void InitializeFields( State *state, GridStructure *Grid, const EOS *eos,
-                       const ProblemIn *pin ) {
+void InitializeFields( State* state, GridStructure* Grid, const EOS* /*eos*/,
+                       const ProblemIn* pin ) {
 
   const std::string problem_name = pin->problem_name;
 

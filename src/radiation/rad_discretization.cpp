@@ -24,16 +24,18 @@
 #include "rad_discretization.hpp"
 #include "rad_utilities.hpp"
 
+namespace radiation {
+
 // Compute the divergence of the flux term for the update
 void ComputeIncrement_Rad_Divergence(
-    const View3D<Real> uCR, const View3D<Real> uCF, GridStructure &Grid,
-    const ModalBasis *Basis, const EOS *eos, View3D<Real> dU,
+    const View3D<Real> uCR, const View3D<Real> uCF, GridStructure& Grid,
+    const ModalBasis* Basis, const EOS* /*eos*/, View3D<Real> dU,
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCR_F_L,
     View2D<Real> uCR_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P ) {
-  const auto &nNodes = Grid.Get_nNodes( );
-  const auto &order  = Basis->Get_Order( );
-  const auto &ilo    = Grid.Get_ilo( );
-  const auto &ihi    = Grid.Get_ihi( );
+  const auto& nNodes = Grid.Get_nNodes( );
+  const auto& order  = Basis->Get_Order( );
+  const auto& ilo    = Grid.Get_ilo( );
+  const auto& ihi    = Grid.Get_ihi( );
   const int nvars    = 2;
 
   // --- Interpolate Conserved Variable to Interfaces ---
@@ -82,8 +84,6 @@ void ComputeIncrement_Rad_Divergence(
         // --- Numerical Fluxes ---
 
         // Riemann Problem
-        Real flux_e = 0.0;
-        Real flux_f = 0.0;
 
         // Real Fp = Flux_Rad( Em_R, Fm_R, vR, P_R, 0 );
         // Real Fm = Flux_Rad( Em_L, Fm_L, vL, P_L, 0 );
@@ -93,8 +93,8 @@ void ComputeIncrement_Rad_Divergence(
         // Fm = Flux_Rad( Em_L, Fm_L, P_L, vL, 1 ); // WEIRD
         // llf_flux( Fp, Fm, Fm_R, Fm_L, c_cgs, flux_f );
 
-        numerical_flux_hll_rad( Em_L, Em_R, Fm_L, Fm_R, P_L, P_R, flux_e,
-                                flux_f );
+        auto [flux_e, flux_f] =
+            numerical_flux_hll_rad( Em_L, Em_R, Fm_L, Fm_R, P_L, P_R );
 
         // upwind advective fluxes
         const Real vstar = Flux_U( iX );
@@ -116,12 +116,12 @@ void ComputeIncrement_Rad_Divergence(
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                               { nvars, ihi + 1, order } ),
       KOKKOS_LAMBDA( const int iCR, const int iX, const int k ) {
-        const auto &Poly_L   = Basis->Get_Phi( iX, 0, k );
-        const auto &Poly_R   = Basis->Get_Phi( iX, nNodes + 1, k );
-        const auto &X_L      = Grid.Get_LeftInterface( iX );
-        const auto &X_R      = Grid.Get_LeftInterface( iX + 1 );
-        const auto &SqrtGm_L = Grid.Get_SqrtGm( X_L );
-        const auto &SqrtGm_R = Grid.Get_SqrtGm( X_R );
+        const auto& Poly_L   = Basis->Get_Phi( iX, 0, k );
+        const auto& Poly_R   = Basis->Get_Phi( iX, nNodes + 1, k );
+        const auto& X_L      = Grid.Get_LeftInterface( iX );
+        const auto& X_R      = Grid.Get_LeftInterface( iX + 1 );
+        const auto& SqrtGm_L = Grid.Get_SqrtGm( X_L );
+        const auto& SqrtGm_R = Grid.Get_SqrtGm( X_R );
 
         dU( iCR, iX, k ) -= ( +dFlux_num( iCR, iX + 1 ) * Poly_R * SqrtGm_R -
                               dFlux_num( iCR, iX + 0 ) * Poly_L * SqrtGm_L );
@@ -145,7 +145,7 @@ void ComputeIncrement_Rad_Divergence(
         } );
 
     // --- Volume Term ---
-    // TODO: Make Flux_q a function?
+    // TODO(astrobarker): Make Flux_q a function?
     Kokkos::parallel_for(
         "Radiation :: Volume Term",
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
@@ -167,10 +167,10 @@ void ComputeIncrement_Rad_Divergence(
 /**
  * Compute rad increment from source terms
  **/
-Real ComputeIncrement_Rad_Source( View2D<Real> uCR, const int k, const int iCR,
-                                  const View2D<Real> uCF, GridStructure &Grid,
-                                  const ModalBasis *Basis, const EOS *eos,
-                                  const Opacity *opac, const int iX ) {
+auto ComputeIncrement_Rad_Source( View2D<Real> uCR, const int k, const int iCR,
+                                  const View2D<Real> uCF, GridStructure& Grid,
+                                  const ModalBasis* Basis, const EOS* eos,
+                                  const Opacity* opac, const int iX ) -> Real {
   const int nNodes = Grid.Get_nNodes( );
 
   Real local_sum = 0.0;
@@ -179,12 +179,12 @@ Real ComputeIncrement_Rad_Source( View2D<Real> uCR, const int k, const int iCR,
     const Real V    = Basis->basis_eval( uCF, iX, 1, iN + 1 );
     const Real Em_T = Basis->basis_eval( uCF, iX, 2, iN + 1 );
 
-    const Real Abar = 0.6; // TODO: update abar
+    const Real Abar = 0.6; // TODO(astrobarker): update abar
     Real lambda[2]  = { Abar, 0.0 };
     const Real P    = eos->PressureFromConserved( 1.0 / D, V, Em_T, lambda );
     const Real T    = eos->TemperatureFromTauPressure( 1.0 / D, P, lambda );
 
-    // TODO: composition
+    // TODO(astrobarker): composition
     const Real X = 1.0;
     const Real Y = 1.0;
     const Real Z = 1.0;
@@ -222,20 +222,20 @@ Real ComputeIncrement_Rad_Source( View2D<Real> uCR, const int k, const int iCR,
  * BC               : (string) boundary condition type
  **/
 void Compute_Increment_Explicit_Rad(
-    const View3D<Real> uCR, const View3D<Real> uCF, GridStructure &Grid,
-    const ModalBasis *Basis, const EOS *eos, View3D<Real> dU,
+    const View3D<Real> uCR, const View3D<Real> uCF, GridStructure& Grid,
+    const ModalBasis* Basis, const EOS* eos, View3D<Real> dU,
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCR_F_L,
     View2D<Real> uCR_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
-    const Options opts ) {
+    const Options* opts ) {
 
-  const auto &order = Basis->Get_Order( );
-  const auto &ilo   = Grid.Get_ilo( );
-  const auto &ihi   = Grid.Get_ihi( );
+  const auto& order = Basis->Get_Order( );
+  const auto& ilo   = Grid.Get_ilo( );
+  const auto& ihi   = Grid.Get_ihi( );
   const int nvars   = 2;
 
   // --- Apply BC ---
-  ApplyBC( uCR, &Grid, order, opts.BC );
-  ApplyBC( uCF, &Grid, order, opts.BC );
+  bc::ApplyBC( uCR, &Grid, order, opts->BC );
+  bc::ApplyBC( uCF, &Grid, order, opts->BC );
 
   // --- Compute Increment for new solution ---
 
@@ -264,3 +264,5 @@ void Compute_Increment_Explicit_Rad(
 
   /* --- Increment Source Terms --- */
 }
+
+} // namespace radiation

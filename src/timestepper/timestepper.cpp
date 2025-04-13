@@ -23,7 +23,7 @@
  * Lots of structures used in discretizations live here.
  **/
 TimeStepper::TimeStepper( ProblemIn *pin, GridStructure &Grid )
-    : mSize( Grid.Get_nElements( ) + 2 * Grid.Get_Guard( ) ),
+    : mSize( Grid.Get_nElements( ) + (2 * Grid.Get_Guard( )) ),
       nStages( pin->nStages ), tOrder( pin->tOrder ), BC( pin->BC ),
       implicit_tableau_(
           ButcherTableau( nStages, tOrder, TableauType::Implicit ) ),

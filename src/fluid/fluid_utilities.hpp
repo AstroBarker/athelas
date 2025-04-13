@@ -20,18 +20,17 @@
 #include "abstractions.hpp"
 #include "eos.hpp"
 
-void ComputePrimitiveFromConserved( View3D<Real> uCF, View3D<Real> uPF,
-                                    ModalBasis *Basis, GridStructure *Grid );
-Real Flux_Fluid( const Real V, const Real P, const int iCF );
-Real Source_Fluid_Rad( const Real D, const Real V, const Real T,
-                       const Real kappa_r, const Real kappa_p, const Real E,
-                       const Real F, const Real Pr, const int iCF );
-void NumericalFlux_Gudonov( const Real vL, const Real vR, const Real pL,
-                            const Real pR, const Real zL, const Real zR,
-                            Real &Flux_U, Real &Flux_P );
-void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
-                         Real rhoL, Real rhoR, Real &Flux_U, Real &Flux_P );
-Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
-                            EOS *eos, const Real CFL );
+namespace fluid {
 
+auto Flux_Fluid( Real V, Real P, int iCF ) -> Real;
+auto Source_Fluid_Rad( Real D, Real V, Real T, Real kappa_r, Real kappa_p,
+                       Real E, Real F, Real Pr, int iCF ) -> Real;
+void NumericalFlux_Gudonov( Real vL, Real vR, Real pL, Real pR, Real zL,
+                            Real zR, Real& Flux_U, Real& Flux_P );
+void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
+                         Real rhoL, Real rhoR, Real& Flux_U, Real& Flux_P );
+auto ComputeTimestep_Fluid( View3D<Real> U, const GridStructure* Grid, EOS* eos,
+                            Real CFL ) -> Real;
+
+} // namespace fluid
 #endif // FLUID_UTILITIES_HPP_

@@ -21,13 +21,13 @@
 template <class SlopeLimiter>
 class SlopeLimiterBase {
  public:
-  void ApplySlopeLimiter( View3D<Real> U, const GridStructure *grid,
-                          const ModalBasis *basis ) const {
-    return static_cast<SlopeLimiter const *>( this )->ApplySlopeLimiter(
-        U, grid, basis );
+  void ApplySlopeLimiter( View3D<Real> U, const GridStructure* grid,
+                          const ModalBasis* basis ) const {
+    return static_cast<SlopeLimiter const*>( this )->ApplySlopeLimiter( U, grid,
+                                                                        basis );
   }
-  int Get_Limited( const int iX ) const {
-    return static_cast<SlopeLimiter const *>( this )->Get_Limited( iX );
+  [[nodiscard]] auto Get_Limited( const int iX ) const -> int {
+    return static_cast<SlopeLimiter const*>( this )->Get_Limited( iX );
   }
 };
 

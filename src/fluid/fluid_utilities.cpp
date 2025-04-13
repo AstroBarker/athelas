@@ -21,47 +21,18 @@
 #include "polynomial_basis.hpp"
 #include "rad_utilities.hpp"
 
-/**
- * Compute the primitive quantities (density, momemtum, energy density)
- * from conserved quantities. Primitive quantities are stored at Gauss-Legendre
- * nodes.
- **/
-void ComputePrimitiveFromConserved( View3D<Real> uCF, View3D<Real> uPF,
-                                    ModalBasis *Basis, GridStructure *Grid ) {
-  const int nNodes = Grid->Get_nNodes( );
-  const int ilo    = Grid->Get_ilo( );
-  const int ihi    = Grid->Get_ihi( );
-
-  Real Tau = 0.0;
-  Real Vel = 0.0;
-  Real EmT = 0.0;
-
-  for ( int iX = ilo; iX <= ihi; iX++ )
-    for ( int iN = 0; iN < nNodes; iN++ ) {
-      // Density
-      Tau              = Basis->basis_eval( uCF, 0, iX, iN + 1 );
-      uPF( 0, iX, iN ) = 1.0 / Tau;
-
-      // Momentum
-      Vel              = Basis->basis_eval( uCF, 1, iX, iN + 1 );
-      uPF( 1, iX, iN ) = uPF( 0, iX, iN ) * Vel;
-
-      // Specific Total Energy
-      EmT              = Basis->basis_eval( uCF, 2, iX, iN + 1 );
-      uPF( 2, iX, iN ) = EmT / Tau;
-    }
-}
-
+namespace fluid {
 /**
  * Return a component iCF of the flux vector.
  * TODO: Flux_Fluid needs streamlining
  **/
-Real Flux_Fluid( const Real V, const Real P, const int iCF ) {
+auto Flux_Fluid( const Real V, const Real P, const int iCF ) -> Real {
   assert( iCF == 0 || iCF == 1 || iCF == 2 );
   assert( P > 0.0 && "Flux_Flux :: negative pressure" );
   if ( iCF == 0 ) {
     return -V;
-  } else if ( iCF == 1 ) {
+  }
+  if ( iCF == 1 ) {
     return +P;
   } else if ( iCF == 2 ) {
     return +P * V;
@@ -74,14 +45,15 @@ Real Flux_Fluid( const Real V, const Real P, const int iCF ) {
 /**
  * Fluid radiation sources. Kind of redundant with Rad_sources.
  **/
-Real Source_Fluid_Rad( const Real D, const Real V, const Real T,
+auto Source_Fluid_Rad( const Real D, const Real V, const Real T,
                        const Real kappa_r, const Real kappa_p, const Real E,
-                       const Real F, const Real Pr, const int iCF ) {
+                       const Real F, const Real Pr, const int iCF ) -> Real {
   assert( iCF == 1 || iCF == 2 );
 
   constexpr static Real c = constants::c_cgs;
 
-  auto [G0, G] = RadiationFourForce( D, V, T, kappa_r, kappa_p, E, F, Pr );
+  auto [G0, G] =
+      radiation::RadiationFourForce( D, V, T, kappa_r, kappa_p, E, F, Pr );
 
   return ( iCF == 1 ) ? G : c * G0;
 }
@@ -90,7 +62,7 @@ Real Source_Fluid_Rad( const Real D, const Real V, const Real T,
  **/
 void NumericalFlux_Gudonov( const Real vL, const Real vR, const Real pL,
                             const Real pR, const Real zL, const Real zR,
-                            Real &Flux_U, Real &Flux_P ) {
+                            Real& Flux_U, Real& Flux_P ) {
   assert( pL > 0.0 && pR > 0.0 &&
           "NumericalFlux_Gudonov :: negative pressure" );
   Flux_U = ( pL - pR + zR * vR + zL * vL ) / ( zR + zL );
@@ -101,10 +73,10 @@ void NumericalFlux_Gudonov( const Real vL, const Real vR, const Real pL,
  * Gudonov style numerical flux. Constucts v* and p* states.
  **/
 void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
-                         Real rhoL, Real rhoR, Real &Flux_U, Real &Flux_P ) {
-  Real aL = vL - cL; // left wave speed estimate
-  Real aR = vR + cR; // right wave speed estimate
-  Flux_U  = ( rhoR * vR * ( aR - vR ) - rhoL * vL * ( aL - vL ) + pL - pR ) /
+                         Real rhoL, Real rhoR, Real& Flux_U, Real& Flux_P ) {
+  Real const aL = vL - cL; // left wave speed estimate
+  Real const aR = vR + cR; // right wave speed estimate
+  Flux_U = ( rhoR * vR * ( aR - vR ) - rhoL * vL * ( aL - vL ) + pL - pR ) /
            ( rhoR * ( aR - vR ) - rhoL * ( aL - vL ) );
   Flux_P = rhoL * ( vL - aL ) * ( vL - Flux_U ) + pL;
 }
@@ -114,19 +86,19 @@ void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
 /**
  * Compute the fluid timestep.
  **/
-Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
-                            EOS *eos, const Real CFL ) {
+auto ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure* Grid,
+                            EOS* eos, const Real CFL ) -> Real {
 
   const Real MIN_DT = 1.0e-14;
   const Real MAX_DT = 100.0;
 
-  const int &ilo = Grid->Get_ilo( );
-  const int &ihi = Grid->Get_ihi( );
+  const int& ilo = Grid->Get_ilo( );
+  const int& ihi = Grid->Get_ihi( );
 
   Real dt = 0.0;
   Kokkos::parallel_reduce(
       "Compute Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
-      KOKKOS_LAMBDA( const int iX, Real &lmin ) {
+      KOKKOS_LAMBDA( const int iX, Real& lmin ) {
         // --- Compute Cell Averages ---
         Real tau_x  = U( 0, iX, 0 );
         Real vel_x  = U( 1, iX, 0 );
@@ -155,3 +127,4 @@ Real ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure *Grid,
 
   return dt;
 }
+} // namespace fluid

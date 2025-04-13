@@ -15,7 +15,7 @@
 
 namespace constants {
 
-constexpr Real PI( ) { return std::atan( 1 ) * 4; }
+constexpr auto PI( ) -> Real { return std::atan( 1 ) * 4; }
 constexpr Real G_GRAV   = 6.674299999999999e-8; // cgs
 constexpr Real L_sun    = 3.828e33; // cgs
 constexpr Real M_sun    = 1.98840987e+33; // cgs

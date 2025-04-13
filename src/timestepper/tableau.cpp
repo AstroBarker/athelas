@@ -19,7 +19,7 @@ ButcherTableau::ButcherTableau( const int nStages_, const int tOrder_,
   initialize_tableau( );
 }
 // Initialize arrays for timestepper
-// TODO: Separate nStages from a tOrder
+// TODO(astrobarker): Separate nStages from a tOrder
 void ButcherTableau::initialize_tableau( ) {
 
   if ( tOrder == 1 and nStages > 1 ) {
@@ -46,11 +46,12 @@ void ButcherTableau::initialize_tableau( ) {
   }
 
   // Init to zero
-  for ( int i = 0; i < nStages; i++ )
+  for ( int i = 0; i < nStages; i++ ) {
     for ( int j = 0; j < nStages; j++ ) {
       a_ij( i, j ) = 0.0;
       b_i( i )     = 0.0;
     }
+  }
 
   if ( type_ == TableauType::Explicit ) {
     // Forward Euler //
@@ -131,7 +132,7 @@ void ButcherTableau::initialize_tableau( ) {
       a_ij( 0, 0 ) = 1.0;
       b_i( 0 )     = 1.0;
     } else if ( nStages == 2 && tOrder == 2 ) {
-      const static Real gam = 1.0 - 1.0 / std::sqrt( 2 );
+      const static Real gam = 1.0 - ( 1.0 / std::sqrt( 2 ) );
       a_ij( 0, 0 )          = gam; // 0.71921758;
       a_ij( 1, 0 )          = 1.0 - gam; // 0.11776435;
       a_ij( 1, 1 )          = gam; // 0.16301806;
@@ -172,12 +173,12 @@ void ButcherTableau::initialize_tableau( ) {
                            "valid tableau! \n" );
     }
 
-    // TODO: more tableaus
+    // TODO(astrobarker): more tableaus
   }
 }
 
 ShuOsherTableau::ShuOsherTableau( const int nStages_, const int tOrder_,
-                                  const TableauType type )
+                                  const TableauType /*type*/ )
     : nStages( nStages_ ), tOrder( tOrder_ ),
       a_ij( "butcher a_ij", nStages_, nStages_ ),
       b_ij( "butcher b_i", nStages_, nStages_ ) {
@@ -185,7 +186,7 @@ ShuOsherTableau::ShuOsherTableau( const int nStages_, const int tOrder_,
 }
 
 // Initialize arrays for timestepper
-// TODO: Separate nStages from a tOrder
+// TODO(astrobarker): Separate nStages from a tOrder
 void ShuOsherTableau::initialize_tableau( ) {
 
   if ( tOrder == 1 and nStages > 1 ) {
@@ -217,11 +218,12 @@ void ShuOsherTableau::initialize_tableau( ) {
   }
 
   // Init to zero
-  for ( int i = 0; i < nStages; i++ )
+  for ( int i = 0; i < nStages; i++ ) {
     for ( int j = 0; j < nStages; j++ ) {
       a_ij( i, j ) = 0.0;
       b_ij( i, j ) = 0.0;
     }
+  }
 
   if ( type_ == TableauType::Implicit ) {
     THROW_ATHELAS_ERROR(

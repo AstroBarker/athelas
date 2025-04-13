@@ -28,11 +28,15 @@
 #include "Kokkos_Core.hpp"
 
 #include "bound_enforcing_limiter.hpp"
+
 #include "eos.hpp"
 #include "error.hpp"
 #include "polynomial_basis.hpp"
 #include "solvers/root_finders.hpp"
 #include "utilities.hpp"
+#include <math.h>
+
+namespace bel {
 
 /**
  * @brief Limits density to maintain physicality following K. Schaal et al 2015
@@ -45,11 +49,13 @@
  * @param U The solution array containing conserved variables
  * @param Basis The modal basis used for the solution representation
  */
-void LimitDensity( View3D<Real> U, const ModalBasis *Basis ) {
+void LimitDensity( View3D<Real> U, const ModalBasis* Basis ) {
   constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
   const int order               = Basis->Get_Order( );
 
-  if ( order == 1 ) return;
+  if ( order == 1 ) {
+    return;
+  }
 
   Kokkos::parallel_for(
       "BEF::Limit Density", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
@@ -101,11 +107,13 @@ void LimitDensity( View3D<Real> U, const ModalBasis *Basis ) {
  * @param Basis The modal basis used for the solution representation
  * @param eos The equation of state object used for thermodynamic calculations
  */
-void LimitInternalEnergy( View3D<Real> U, const ModalBasis *Basis,
-                          const EOS *eos ) {
+void LimitInternalEnergy( View3D<Real> U, const ModalBasis* Basis,
+                          const EOS* eos ) {
   const int order = Basis->Get_Order( );
 
-  if ( order == 1 ) return;
+  if ( order == 1 ) {
+    return;
+  }
 
   Kokkos::parallel_for(
       "BEF::Limit Internal Energy",
@@ -139,22 +147,24 @@ void LimitInternalEnergy( View3D<Real> U, const ModalBasis *Basis,
       } );
 }
 
-void ApplyBoundEnforcingLimiter( View3D<Real> U, const ModalBasis *Basis,
-                                 const EOS *eos )
+void ApplyBoundEnforcingLimiter( View3D<Real> U, const ModalBasis* Basis,
+                                 const EOS* eos )
 
 {
   LimitDensity( U, Basis );
   LimitInternalEnergy( U, Basis, eos );
 }
 
-// TODO: much more here.
-void ApplyBoundEnforcingLimiterRad( View3D<Real> U, const ModalBasis *Basis,
-                                    const EOS *eos ) {
-  if ( Basis->Get_Order( ) == 1 ) return;
+// TODO(astrobarker): much more here.
+void ApplyBoundEnforcingLimiterRad( View3D<Real> U, const ModalBasis* Basis,
+                                    const EOS* eos ) {
+  if ( Basis->Get_Order( ) == 1 ) {
+    return;
+  }
   LimitRadMomentum( U, Basis, eos );
 }
-void LimitRadMomentum( View3D<Real> U, const ModalBasis *Basis,
-                       const EOS *eos ) {
+void LimitRadMomentum( View3D<Real> U, const ModalBasis* Basis,
+                       const EOS* eos ) {
   const int order = Basis->Get_Order( );
 
   Kokkos::parallel_for(
@@ -170,7 +180,7 @@ void LimitRadMomentum( View3D<Real> U, const ModalBasis *Basis,
           if ( nodal >= 0.0 && nodal <= U( 0, iX, 0 ) ) {
             temp = 1.0;
           } else {
-            // TODO: Backtracing may be working okay...
+            // TODO(astrobarker): Backtracing may be working okay...
             // const Real theta_guess = 0.9;
             // temp = Backtrace( TargetFuncRad, theta_guess, U, Basis, eos, iX,
             // iN );
@@ -188,9 +198,9 @@ void LimitRadMomentum( View3D<Real> U, const ModalBasis *Basis,
 /* --- Utility Functions --- */
 
 // ( 1 - theta ) U_bar + theta U_q
-Real ComputeThetaState( const View3D<Real> U, const ModalBasis *Basis,
+auto ComputeThetaState( const View3D<Real> U, const ModalBasis* Basis,
                         const Real theta, const int iCF, const int iX,
-                        const int iN ) {
+                        const int iN ) -> Real {
   Real result = Basis->basis_eval( U, iX, iCF, iN );
   result -= U( iCF, iX, 0 );
   result *= theta;
@@ -198,21 +208,21 @@ Real ComputeThetaState( const View3D<Real> U, const ModalBasis *Basis,
   return result;
 }
 
-Real TargetFunc( const Real theta, const View3D<Real> U,
-                 const ModalBasis *Basis, const EOS *eos, const int iX,
-                 const int iN ) {
+auto TargetFunc( const Real theta, const View3D<Real> U,
+                 const ModalBasis* Basis, const EOS* /*eos*/, const int iX,
+                 const int iN ) -> Real {
   const Real w = std::min( 1.0e-10, utilities::ComputeInternalEnergy( U, iX ) );
   const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
   const Real s2 = ComputeThetaState( U, Basis, theta, 2, iX, iN );
 
-  Real e = s2 - 0.5 * s1 * s1;
+  Real const e = s2 - ( 0.5 * s1 * s1 );
 
   return e - w;
 }
 
-Real TargetFuncRad( const Real theta, const View3D<Real> U,
-                    const ModalBasis *Basis, const EOS *eos, const int iX,
-                    const int iN ) {
+auto TargetFuncRad( const Real theta, const View3D<Real> U,
+                    const ModalBasis* Basis, const EOS* /*eos*/, const int iX,
+                    const int iN ) -> Real {
   const Real w  = std::min( 1.0e-13, U( 1, iX, 0 ) );
   const Real s1 = ComputeThetaState( U, Basis, theta, 1, iX, iN );
 
@@ -220,3 +230,5 @@ Real TargetFuncRad( const Real theta, const View3D<Real> U,
 
   return e - w;
 }
+
+} // namespace bel

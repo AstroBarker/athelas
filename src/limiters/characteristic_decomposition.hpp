@@ -30,7 +30,7 @@ void ComputeCharacteristicDecomposition( T1 U, T2 R, T2 R_inv ) {
   // const Real P  = ComputePressureFromConserved_IDEAL( Tau, V, Em_T );
   // const Real Cs = ComputeSoundSpeedFromConserved_IDEAL( Tau, V, Em_T );
 
-  const Real Em = Em_T - 0.5 * V * V;
+  const Real Em = Em_T - ( 0.5 * V * V );
 
   const float GAMMA = 1.4;
 
@@ -49,8 +49,9 @@ void ComputeCharacteristicDecomposition( T1 U, T2 R, T2 R_inv ) {
 
   /*  --- Compute Matrix Elements --- */
 
-  for ( int i = 0; i < 3; i++ )
+  for ( int i = 0; i < 3; i++ ) {
     R( 0, i ) = 1.0;
+  }
 
   R( 1, 0 ) = +sqrt_e * k * InvTau;
   R( 1, 1 ) = +0.0;
@@ -72,10 +73,11 @@ void ComputeCharacteristicDecomposition( T1 U, T2 R, T2 R_inv ) {
   R_inv( 2, 1 ) = Tau * ( k * V - sqrt_e * GAMMA ) / ( 2.0 * Em * k );
   R_inv( 2, 2 ) = -Tau / ( 2.0 * Em );
 
-  for ( int i = 0; i < 3; i++ )
+  for ( int i = 0; i < 3; i++ ) {
     for ( int j = 0; j < 3; j++ ) {
       R_inv( i, j ) /= GAMMA;
     }
+  }
 }
 
 #endif // CHARACTERISTIC_DECOMPOSITION_HPP_
