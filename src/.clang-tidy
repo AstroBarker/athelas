@@ -41,7 +41,7 @@ CheckOptions:
     value: camelBack
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
-  - key: readability-identifier-naming.ClassMemberPrefix
+  - key: readability-identifier-naming.MemberSuffix
     value: '_'
   - key: readability-identifier-naming.StructCase
     value: CamelCase
