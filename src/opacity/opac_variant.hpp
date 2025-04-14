@@ -48,10 +48,8 @@ KOKKOS_INLINE_FUNCTION Real RosselandMean( const Opacity* opac, const Real rho,
 KOKKOS_INLINE_FUNCTION Opacity InitializeOpacity( const ProblemIn* pin ) {
   Opacity opac;
   if ( pin->opac_type == "constant" ) {
-    std::printf( "const\n" );
     opac = Constant( pin->in_table["opacity"]["k"].value_or( 1.0 ) );
   } else { // powerlaw rho
-    std::printf( "powerlaw\n" );
     opac = PowerlawRho(
         pin->in_table["opacity"]["k"].value_or( 4.0 * std::pow( 10.0, -8.0 ) ),
         pin->in_table["opacity"]["exp"].value_or( 1.0 ) );

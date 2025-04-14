@@ -32,9 +32,9 @@ class ModalBasis {
               View3D<Real> uCF, GridStructure* Grid, bool derivative_option )
       -> Real;
   auto InnerProduct( int m, int n, int iX, Real eta_c, View3D<Real> uPF,
-                     GridStructure* Grid ) -> Real const;
+                     GridStructure* Grid ) const -> Real;
   auto InnerProduct( int n, int iX, Real eta_c, View3D<Real> uPF,
-                     GridStructure* Grid ) -> Real const;
+                     GridStructure* Grid ) const -> Real;
   void InitializeTaylorBasis( View3D<Real> U, GridStructure* Grid );
   void InitializeBasis( View3D<Real> uCF, GridStructure* Grid );
   void CheckOrthogonality( View3D<Real> uCF, GridStructure* Grid ) const;

@@ -14,6 +14,7 @@
 #include <cmath> /* pow */
 #include <cstdlib> /* abs */
 #include <iostream>
+#include <print>
 
 #include "abstractions.hpp"
 #include "error.hpp"
@@ -67,7 +68,7 @@ auto ModalBasis::Taylor( const int order, const Real eta, const Real eta_c )
 
   if ( order < 0 ) {
     THROW_ATHELAS_ERROR(
-        "! polynomial basis :: Please enter a valid polynomial order.\n" );
+        "! polynomial basis :: Please enter a valid polynomial order." );
   }
 
   // Handle constant and linear terms separately -- no need to exponentiate.
@@ -76,9 +77,11 @@ auto ModalBasis::Taylor( const int order, const Real eta, const Real eta_c )
   }
   if ( order == 1 ) {
     return eta - eta_c;
-  } else {
+  }
+  if ( order > 1 ) {
     return std::pow( eta - eta_c, order );
   }
+  return 0.0; // should not be reached.
 }
 
 /**
@@ -94,7 +97,7 @@ auto ModalBasis::dTaylor( const int order, const Real eta, const Real eta_c )
 
   if ( order < 0 ) {
     THROW_ATHELAS_ERROR(
-        " ! polynomial basis :: Please enter a valid polynomial order.\n" );
+        " ! polynomial basis :: Please enter a valid polynomial order." );
   }
 
   // Handle first few terms separately -- no need to call std::pow
@@ -103,11 +106,14 @@ auto ModalBasis::dTaylor( const int order, const Real eta, const Real eta_c )
   }
   if ( order == 1 ) {
     return 1.0;
-  } else if ( order == 2 ) {
+  } 
+  if ( order == 2 ) {
     return 2 * ( eta - eta_c );
-  } else {
+  } 
+  if (order > 2 ) {
     return (order)*std::pow( eta - eta_c, order - 1 );
   }
+  return 0.0; // should not be reached.
 }
 
 /* --- Legendre Methods --- */
@@ -133,10 +139,8 @@ auto ModalBasis::Legendre( const int n, const Real x ) -> Real {
 // Derivative of Legendre polynomials
 auto ModalBasis::dLegendre( const int order, const Real x ) -> Real {
 
-  Real dPn = NAN; // P_n
-  // Real dPnp1 = 0.0;
+  Real dPn = 0.0; // P_n
 
-  dPn = 0.0;
   for ( int i = 0; i < order; i++ ) {
     dPn = ( i + 1 ) * Legendre( i, x ) + x * dPn;
   }
@@ -170,14 +174,11 @@ auto ModalBasis::dLegendreN( const int poly_order, const int deriv_order,
  **/
 auto ModalBasis::InnerProduct( const int m, const int n, const int iX,
                                const Real eta_c, const View3D<Real> uPF,
-                               GridStructure* Grid ) -> Real const {
+                               GridStructure* Grid ) const -> Real {
   Real result = 0.0;
-  Real eta_q  = 0.0;
-  Real X      = 0.0;
-
   for ( int iN = 0; iN < nNodes; iN++ ) {
-    eta_q = Grid->Get_Nodes( iN );
-    X     = Grid->NodeCoordinate( iX, iN );
+    const Real eta_q = Grid->Get_Nodes( iN );
+    const Real X     = Grid->NodeCoordinate( iX, iN );
     result += func( n, eta_q, eta_c ) * Phi( iX, iN + 1, m ) *
               Grid->Get_Weights( iN ) * uPF( 0, iX, iN ) *
               Grid->Get_Widths( iX ) * Grid->Get_SqrtGm( X );
@@ -193,13 +194,11 @@ auto ModalBasis::InnerProduct( const int m, const int n, const int iX,
  * <f,g> = \sum_q \rho_q f_q g_q j^0 w_q
  **/
 auto ModalBasis::InnerProduct( const int n, const int iX, const Real /*eta_c*/,
-                               const View3D<Real> uPF, GridStructure* Grid )
-    -> Real const {
+                               const View3D<Real> uPF, GridStructure* Grid ) const
+    -> Real {
   Real result = 0.0;
-  Real X      = 0.0;
-
   for ( int iN = 0; iN < nNodes; iN++ ) {
-    X = Grid->NodeCoordinate( iX, iN );
+    const Real X = Grid->NodeCoordinate( iX, iN );
     result += Phi( iX, iN + 1, n ) * Phi( iX, iN + 1, n ) *
               Grid->Get_Weights( iN ) * uPF( 0, iX, iN ) *
               Grid->Get_Widths( iX ) * Grid->Get_SqrtGm( X );
@@ -214,10 +213,7 @@ auto ModalBasis::Ortho( const int order, const int iX, const int i_eta,
                         const View3D<Real> uPF, GridStructure* Grid,
                         bool const derivative_option ) -> Real {
 
-  Real result      = 0.0;
-  Real phi_n       = 0.0;
-  Real numerator   = 0.0;
-  Real denominator = 0.0;
+  Real result = 0.0;
 
   // TODO(astrobarker): Can this be cleaned up?
   if ( not derivative_option ) {
@@ -228,13 +224,15 @@ auto ModalBasis::Ortho( const int order, const int iX, const int i_eta,
 
   // if ( order == 0 ) return result;
 
+  Real phi_n = 0.0;
   for ( int k = 0; k < order; k++ ) {
-    numerator   = InnerProduct( order - k - 1, order, iX, eta_c, uPF, Grid );
-    denominator = InnerProduct( order - k - 1, iX, eta_c, uPF, Grid );
+    const Real numerator   = InnerProduct( order - k - 1, order, iX, eta_c, uPF, Grid );
+    const Real denominator = InnerProduct( order - k - 1, iX, eta_c, uPF, Grid );
     // ? Can this be cleaned up?
-    if ( not derivative_option ) {
+    if ( !derivative_option ) {
       phi_n = Phi( iX, i_eta, order - k - 1 );
-    } else {
+    } 
+    if (derivative_option) {
       phi_n = dPhi( iX, i_eta, order - k - 1 );
     }
     result -= ( numerator / denominator ) * phi_n;
@@ -315,16 +313,14 @@ void ModalBasis::CheckOrthogonality( const Kokkos::View<Real***> uPF,
 
   const int ilo = Grid->Get_ilo( );
   const int ihi = Grid->Get_ihi( );
-  Real X        = 0.0;
 
-  Real result = 0.0;
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k1 = 0; k1 < order; k1++ ) {
       for ( int k2 = 0; k2 < order; k2++ ) {
-        result = 0.0;
+        Real result = 0.0;
         for ( int i_eta = 1; i_eta <= nNodes; i_eta++ ) // loop over quadratures
         {
-          X = Grid->NodeCoordinate( iX, i_eta - 1 );
+          const Real X = Grid->NodeCoordinate( iX, i_eta - 1 );
           // Not using an InnerProduct function because their API is odd..
           result += Phi( iX, i_eta, k1 ) * Phi( iX, i_eta, k2 ) *
                     uPF( 0, iX, i_eta - 1 ) * Grid->Get_Weights( i_eta - 1 ) *
@@ -336,7 +332,7 @@ void ModalBasis::CheckOrthogonality( const Kokkos::View<Real***> uPF,
               " ! Basis not orthogonal: Diagonal term equal to zero.\n" );
         }
         if ( k1 != k2 && std::abs( result ) > 1e-10 ) {
-          std::printf( "%d %d %.3e \n", k1, k2, result );
+          std::println( "{} {} {:.3e}", k1, k2, result );
           THROW_ATHELAS_ERROR(
               " ! Basis not orthogonal: Off diagonal term non-zero.\n" );
         }
@@ -358,14 +354,11 @@ void ModalBasis::ComputeMassMatrix( const View3D<Real> uPF,
   const int ihi    = Grid->Get_ihi( );
   const int nNodes = Grid->Get_nNodes( );
 
-  Real result = 0.0;
-  Real X      = 0.0;
-
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < order; k++ ) {
-      result = 0.0;
+      Real result = 0.0;
       for ( int iN = 0; iN < nNodes; iN++ ) {
-        X = Grid->NodeCoordinate( iX, iN );
+        const Real X = Grid->NodeCoordinate( iX, iN );
         result += Phi( iX, iN + 1, k ) * Phi( iX, iN + 1, k ) *
                   Grid->Get_Weights( iN ) * Grid->Get_Widths( iX ) *
                   Grid->Get_SqrtGm( X ) * uPF( 0, iX, iN );
