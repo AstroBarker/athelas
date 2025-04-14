@@ -6,8 +6,8 @@
  * @brief Useful utilities
  *
  * @details Provides
- *          - sgn
- *          - ComputeInternalEnergy
+ *          - SGN
+ *          - compute_internal_energy
  *          - to_lower
  */
 
@@ -24,17 +24,17 @@
 
 namespace utilities {
 
-// Implements a typesafe sgn function
-// https://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
+// Implements a typesafe SGN function
+// https://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-SGN-in-c-c
 template <typename T>
-constexpr auto sgn( T val ) -> int {
+constexpr auto SGN( T val ) -> int {
   return ( T( 0 ) < val ) - ( val < T( 0 ) );
 }
 
 // nodal specific internal energy
 template <class T>
-auto ComputeInternalEnergy( T U, const ModalBasis* Basis, const int iX,
-                            const int iN ) -> Real {
+auto compute_internal_energy( T U, const ModalBasis* Basis, const int iX,
+                              const int iN ) -> Real {
   const Real Vel = Basis->basis_eval( U, iX, 1, iN );
   const Real EmT = Basis->basis_eval( U, iX, 2, iN );
 
@@ -43,7 +43,7 @@ auto ComputeInternalEnergy( T U, const ModalBasis* Basis, const int iX,
 
 // cell average specific internal energy
 template <class T>
-auto ComputeInternalEnergy( T U, const int iX ) -> Real {
+auto compute_internal_energy( T U, const int iX ) -> Real {
   return U( 2, iX, 0 ) - ( 0.5 * U( 1, iX, 0 ) * U( 1, iX, 0 ) );
 }
 

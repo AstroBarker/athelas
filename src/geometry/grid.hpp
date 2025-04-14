@@ -32,31 +32,31 @@
 class GridStructure {
  public:
   explicit GridStructure( const ProblemIn* pin );
-  [[nodiscard]] auto NodeCoordinate( int iC, int iN ) const -> Real;
-  [[nodiscard]] auto Get_Centers( int iC ) const -> Real;
-  [[nodiscard]] auto Get_Widths( int iC ) const -> Real;
-  [[nodiscard]] auto Get_Nodes( int nN ) const -> Real;
-  [[nodiscard]] auto Get_Weights( int nN ) const -> Real;
-  [[nodiscard]] auto Get_Mass( int iX ) const -> Real;
-  [[nodiscard]] auto Get_CenterOfMass( int iX ) const -> Real;
-  [[nodiscard]] auto Get_xL( ) const -> Real;
-  [[nodiscard]] auto Get_xR( ) const -> Real;
-  [[nodiscard]] auto Get_SqrtGm( Real X ) const -> Real;
-  [[nodiscard]] auto Get_LeftInterface( int iX ) const -> Real;
+  [[nodiscard]] auto node_coordinate( int iC, int iN ) const -> Real;
+  [[nodiscard]] auto get_centers( int iC ) const -> Real;
+  [[nodiscard]] auto get_widths( int iC ) const -> Real;
+  [[nodiscard]] auto get_nodes( int nN ) const -> Real;
+  [[nodiscard]] auto get_weights( int nN ) const -> Real;
+  [[nodiscard]] auto get_mass( int iX ) const -> Real;
+  [[nodiscard]] auto get_center_of_mass( int iX ) const -> Real;
+  [[nodiscard]] auto get_x_l( ) const -> Real;
+  [[nodiscard]] auto get_x_r( ) const -> Real;
+  [[nodiscard]] auto get_sqrt_gm( Real X ) const -> Real;
+  [[nodiscard]] auto get_left_interface( int iX ) const -> Real;
 
-  [[nodiscard]] auto DoGeometry( ) const noexcept -> bool;
+  [[nodiscard]] auto do_geometry( ) const noexcept -> bool;
 
-  [[nodiscard]] auto Get_Guard( ) const noexcept -> int;
-  [[nodiscard]] auto Get_ilo( ) const noexcept -> int;
-  [[nodiscard]] auto Get_ihi( ) const noexcept -> int;
-  [[nodiscard]] auto Get_nNodes( ) const noexcept -> int;
-  [[nodiscard]] auto Get_nElements( ) const noexcept -> int;
+  [[nodiscard]] auto get_guard( ) const noexcept -> int;
+  [[nodiscard]] auto get_ilo( ) const noexcept -> int;
+  [[nodiscard]] auto get_ihi( ) const noexcept -> int;
+  [[nodiscard]] auto get_n_nodes( ) const noexcept -> int;
+  [[nodiscard]] auto get_n_elements( ) const noexcept -> int;
 
-  void CreateGrid( ) const;
-  void UpdateGrid( View1D<Real> SData );
-  void ComputeMass( View3D<Real> uPF );
-  void ComputeCenterOfMass( View3D<Real> uPF );
-  void ComputeCenterOfMass_Radius( View3D<Real> uPF );
+  void create_grid( ) const;
+  void update_grid( View1D<Real> SData );
+  void compute_mass( View3D<Real> uPF );
+  void compute_center_of_mass( View3D<Real> uPF );
+  void compute_center_of_mass_radius( View3D<Real> uPF );
 
   auto operator( )( int i, int j ) -> Real&;
   auto operator( )( int i, int j ) const -> Real;

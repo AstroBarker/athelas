@@ -24,9 +24,9 @@
 namespace fluid {
 /**
  * Return a component iCF of the flux vector.
- * TODO: Flux_Fluid needs streamlining
+ * TODO: flux_fluid needs streamlining
  **/
-auto Flux_Fluid( const Real V, const Real P, const int iCF ) -> Real {
+auto flux_fluid( const Real V, const Real P, const int iCF ) -> Real {
   assert( iCF == 0 || iCF == 1 || iCF == 2 );
   assert( P > 0.0 && "Flux_Flux :: negative pressure" );
   if ( iCF == 0 ) {
@@ -45,7 +45,7 @@ auto Flux_Fluid( const Real V, const Real P, const int iCF ) -> Real {
 /**
  * Fluid radiation sources. Kind of redundant with Rad_sources.
  **/
-auto Source_Fluid_Rad( const Real D, const Real V, const Real T,
+auto source_fluid_rad( const Real D, const Real V, const Real T,
                        const Real kappa_r, const Real kappa_p, const Real E,
                        const Real F, const Real Pr, const int iCF ) -> Real {
   assert( iCF == 1 || iCF == 2 );
@@ -53,18 +53,18 @@ auto Source_Fluid_Rad( const Real D, const Real V, const Real T,
   constexpr static Real c = constants::c_cgs;
 
   auto [G0, G] =
-      radiation::RadiationFourForce( D, V, T, kappa_r, kappa_p, E, F, Pr );
+      radiation::radiation_four_force( D, V, T, kappa_r, kappa_p, E, F, Pr );
 
   return ( iCF == 1 ) ? G : c * G0;
 }
 /**
  * Gudonov style numerical flux. Constucts v* and p* states.
  **/
-void NumericalFlux_Gudonov( const Real vL, const Real vR, const Real pL,
-                            const Real pR, const Real zL, const Real zR,
-                            Real& Flux_U, Real& Flux_P ) {
+void numerical_flux_gudonov( const Real vL, const Real vR, const Real pL,
+                             const Real pR, const Real zL, const Real zR,
+                             Real& Flux_U, Real& Flux_P ) {
   assert( pL > 0.0 && pR > 0.0 &&
-          "NumericalFlux_Gudonov :: negative pressure" );
+          "numerical_flux_gudonov :: negative pressure" );
   Flux_U = ( pL - pR + zR * vR + zL * vL ) / ( zR + zL );
   Flux_P = ( zR * pL + zL * pR + zL * zR * ( vL - vR ) ) / ( zR + zL );
 }
@@ -72,8 +72,8 @@ void NumericalFlux_Gudonov( const Real vL, const Real vR, const Real pL,
 /**
  * Gudonov style numerical flux. Constucts v* and p* states.
  **/
-void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
-                         Real rhoL, Real rhoR, Real& Flux_U, Real& Flux_P ) {
+void numerical_flux_hllc( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
+                          Real rhoL, Real rhoR, Real& Flux_U, Real& Flux_P ) {
   Real const aL = vL - cL; // left wave speed estimate
   Real const aR = vR + cR; // right wave speed estimate
   Flux_U = ( rhoR * vR * ( aR - vR ) - rhoL * vL * ( aL - vL ) + pL - pR ) /
@@ -86,14 +86,14 @@ void NumericalFlux_HLLC( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
 /**
  * Compute the fluid timestep.
  **/
-auto ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure* Grid,
-                            EOS* eos, const Real CFL ) -> Real {
+auto compute_timestep_fluid( const View3D<Real> U, const GridStructure* Grid,
+                             EOS* eos, const Real CFL ) -> Real {
 
   const Real MIN_DT = 1.0e-14;
   const Real MAX_DT = 100.0;
 
-  const int& ilo = Grid->Get_ilo( );
-  const int& ihi = Grid->Get_ihi( );
+  const int& ilo = Grid->get_ilo( );
+  const int& ihi = Grid->get_ihi( );
 
   Real dt = 0.0;
   Kokkos::parallel_reduce(
@@ -107,11 +107,11 @@ auto ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure* Grid,
         assert( tau_x > 0.0 && "Compute Timestep :: bad specific volume" );
         assert( eint_x > 0.0 && "Compute Timestep :: bad specific energy" );
 
-        Real dr = Grid->Get_Widths( iX );
+        Real dr = Grid->get_widths( iX );
 
         auto lambda = nullptr;
         const Real Cs =
-            eos->SoundSpeedFromConserved( tau_x, vel_x, eint_x, lambda );
+            eos->sound_speed_from_conserved( tau_x, vel_x, eint_x, lambda );
         Real eigval = Cs + std::abs( vel_x );
 
         Real dt_old = std::abs( dr ) / std::abs( eigval );
@@ -123,7 +123,7 @@ auto ComputeTimestep_Fluid( const View3D<Real> U, const GridStructure* Grid,
   dt = std::max( CFL * dt, MIN_DT );
   dt = std::min( dt, MAX_DT );
 
-  assert( !std::isnan( dt ) && "NaN encounted in ComputeTimestep_Fluid.\n" );
+  assert( !std::isnan( dt ) && "NaN encounted in compute_timestep_fluid.\n" );
 
   return dt;
 }

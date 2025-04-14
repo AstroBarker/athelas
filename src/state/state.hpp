@@ -23,16 +23,16 @@ class State {
   State( int nCF_, int nCR_, int nPF_, int nAF_, int nX_, int nG_, int nNodes_,
          int pOrder_ );
 
-  [[nodiscard]] auto Get_nCF( ) const -> int;
-  [[nodiscard]] auto Get_nCR( ) const -> int;
-  [[nodiscard]] auto Get_nPF( ) const -> int;
-  [[nodiscard]] auto Get_nAF( ) const -> int;
-  [[nodiscard]] auto Get_pOrder( ) const -> int;
+  [[nodiscard]] auto get_n_cf( ) const -> int;
+  [[nodiscard]] auto get_n_cr( ) const -> int;
+  [[nodiscard]] auto get_n_pf( ) const -> int;
+  [[nodiscard]] auto get_n_af( ) const -> int;
+  [[nodiscard]] auto get_p_order( ) const -> int;
 
-  [[nodiscard]] View3D<Real> Get_uCF( ) const;
-  [[nodiscard]] View3D<Real> Get_uPF( ) const;
-  [[nodiscard]] View3D<Real> Get_uAF( ) const;
-  [[nodiscard]] View3D<Real> Get_uCR( ) const;
+  [[nodiscard]] View3D<Real> get_u_cf( ) const;
+  [[nodiscard]] View3D<Real> get_u_pf( ) const;
+  [[nodiscard]] View3D<Real> get_u_af( ) const;
+  [[nodiscard]] View3D<Real> get_u_cr( ) const;
 
  private:
   int nCF;

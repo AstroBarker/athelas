@@ -25,14 +25,14 @@ State::State( const int nCF_, const int nCR_, const int nPF_, const int nAF_,
       uCR( "uCR", nCR_, nX_ + 2 * nG_, pOrder_ ) {}
 
 // num var accessors
-auto State::Get_nCF( ) const -> int { return this->nCF; }
-auto State::Get_nPF( ) const -> int { return this->nPF; }
-auto State::Get_nAF( ) const -> int { return this->nAF; }
-auto State::Get_nCR( ) const -> int { return this->nCR; }
-auto State::Get_pOrder( ) const -> int { return this->pOrder; }
+auto State::get_n_cf( ) const -> int { return this->nCF; }
+auto State::get_n_pf( ) const -> int { return this->nPF; }
+auto State::get_n_af( ) const -> int { return this->nAF; }
+auto State::get_n_cr( ) const -> int { return this->nCR; }
+auto State::get_p_order( ) const -> int { return this->pOrder; }
 
 // view accessors
-View3D<Real> State::Get_uCF( ) const { return this->uCF; }
-View3D<Real> State::Get_uPF( ) const { return this->uPF; }
-View3D<Real> State::Get_uAF( ) const { return this->uAF; }
-View3D<Real> State::Get_uCR( ) const { return this->uCR; }
+View3D<Real> State::get_u_cf( ) const { return this->uCF; }
+View3D<Real> State::get_u_pf( ) const { return this->uPF; }
+View3D<Real> State::get_u_af( ) const { return this->uAF; }
+View3D<Real> State::get_u_cr( ) const { return this->uCR; }

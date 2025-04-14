@@ -35,19 +35,19 @@ class WENO : public SlopeLimiterBase<WENO> {
         gamma_r( pin->gamma_r ), weno_r( pin->weno_r ),
         characteristic( pin->Characteristic ), tci_opt( pin->TCI_Option ),
         tci_val( pin->TCI_Threshold ),
-        modified_polynomial( "modified_polynomial", grid->Get_nElements( ) + 2,
+        modified_polynomial( "modified_polynomial", grid->get_n_elements( ) + 2,
                              3, pin->pOrder ),
-        R( "R Matrix", 3, 3, grid->Get_nElements( ) + 2 ),
-        R_inv( "invR Matrix", 3, 3, grid->Get_nElements( ) + 2 ),
-        U_c_T( "U_c_T", 3, grid->Get_nElements( ) + 2 ),
-        w_c_T( "w_c_T", 3, grid->Get_nElements( ) + 2 ),
-        Mult( "Mult", 3, grid->Get_nElements( ) + 2 ),
-        D( "TCI", 3, grid->Get_nElements( ) + 2 ),
-        LimitedCell( "LimitedCell", grid->Get_nElements( ) + 2 ) {}
+        R( "R Matrix", 3, 3, grid->get_n_elements( ) + 2 ),
+        R_inv( "invR Matrix", 3, 3, grid->get_n_elements( ) + 2 ),
+        U_c_T( "U_c_T", 3, grid->get_n_elements( ) + 2 ),
+        w_c_T( "w_c_T", 3, grid->get_n_elements( ) + 2 ),
+        Mult( "Mult", 3, grid->get_n_elements( ) + 2 ),
+        D( "TCI", 3, grid->get_n_elements( ) + 2 ),
+        LimitedCell( "LimitedCell", grid->get_n_elements( ) + 2 ) {}
 
-  void ApplySlopeLimiter( View3D<Real> U, const GridStructure* grid,
-                          const ModalBasis* basis );
-  [[nodiscard]] auto Get_Limited( int iX ) const -> int;
+  void apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
+                            const ModalBasis* basis );
+  [[nodiscard]] auto get_limited( int iX ) const -> int;
 
  private:
   bool do_limiter{ };
@@ -88,18 +88,18 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
         b_tvd( pin->b_tvd ), m_tvb( pin->m_tvb ),
         characteristic( pin->Characteristic ), tci_opt( pin->TCI_Option ),
         tci_val( pin->TCI_Threshold ),
-        R( "R Matrix", 3, 3, grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ),
+        R( "R Matrix", 3, 3, grid->get_n_elements( ) + 2 * grid->get_guard( ) ),
         R_inv( "invR Matrix", 3, 3,
-               grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ),
-        U_c_T( "U_c_T", 3, grid->Get_nElements( ) + 2 ),
-        w_c_T( "w_c_T", 3, grid->Get_nElements( ) + 2 ),
-        Mult( "Mult", 3, grid->Get_nElements( ) + 2 ),
-        D( "TCI", 3, grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ),
+               grid->get_n_elements( ) + 2 * grid->get_guard( ) ),
+        U_c_T( "U_c_T", 3, grid->get_n_elements( ) + 2 ),
+        w_c_T( "w_c_T", 3, grid->get_n_elements( ) + 2 ),
+        Mult( "Mult", 3, grid->get_n_elements( ) + 2 ),
+        D( "TCI", 3, grid->get_n_elements( ) + 2 * grid->get_guard( ) ),
         LimitedCell( "LimitedCell",
-                     grid->Get_nElements( ) + 2 * grid->Get_Guard( ) ) {}
-  void ApplySlopeLimiter( View3D<Real> U, const GridStructure* grid,
-                          const ModalBasis* basis );
-  [[nodiscard]] auto Get_Limited( int iX ) const -> int;
+                     grid->get_n_elements( ) + 2 * grid->get_guard( ) ) {}
+  void apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
+                            const ModalBasis* basis );
+  [[nodiscard]] auto get_limited( int iX ) const -> int;
 
  private:
   bool do_limiter{ };
@@ -133,19 +133,19 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
 using SlopeLimiter = std::variant<WENO, TVDMinmod>;
 
 // std::visit functions
-KOKKOS_INLINE_FUNCTION void ApplySlopeLimiter( SlopeLimiter* limiter,
-                                               View3D<Real> U,
-                                               const GridStructure* grid,
-                                               const ModalBasis* basis ) {
+KOKKOS_INLINE_FUNCTION void apply_slope_limiter( SlopeLimiter* limiter,
+                                                 View3D<Real> U,
+                                                 const GridStructure* grid,
+                                                 const ModalBasis* basis ) {
   std::visit(
       [&U, &grid, &basis]( auto& limiter ) {
-        limiter.ApplySlopeLimiter( U, grid, basis );
+        limiter.apply_slope_limiter( U, grid, basis );
       },
       *limiter );
 }
-KOKKOS_INLINE_FUNCTION int Get_Limited( SlopeLimiter* limiter, const int iX ) {
+KOKKOS_INLINE_FUNCTION int get_limited( SlopeLimiter* limiter, const int iX ) {
   return std::visit(
-      [&iX]( auto& limiter ) { return limiter.Get_Limited( iX ); }, *limiter );
+      [&iX]( auto& limiter ) { return limiter.get_limited( iX ); }, *limiter );
 }
 
 #endif // SLOPE_LIMITER_HPP_

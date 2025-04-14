@@ -13,16 +13,16 @@
 #include "opac.hpp"
 #include "opac_base.hpp"
 
-auto PowerlawRho::PlanckMean( const Real rho, const Real /*T*/,
-                              const Real /*X*/, const Real /*Y*/,
-                              const Real /*Z*/, Real* /*lambda*/ ) const
+auto PowerlawRho::planck_mean( const Real rho, const Real /*T*/,
+                               const Real /*X*/, const Real /*Y*/,
+                               const Real /*Z*/, Real* /*lambda*/ ) const
     -> Real {
   return k * std::pow( rho, exp );
 }
 
-auto PowerlawRho::RosselandMean( const Real rho, const Real /*T*/,
-                                 const Real /*X*/, const Real /*Y*/,
-                                 const Real /*Z*/, Real* /*lambda*/ ) const
+auto PowerlawRho::rosseland_mean( const Real rho, const Real /*T*/,
+                                  const Real /*X*/, const Real /*Y*/,
+                                  const Real /*Z*/, Real* /*lambda*/ ) const
     -> Real {
   return k * std::pow( rho, exp );
 }

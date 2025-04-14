@@ -44,8 +44,8 @@ namespace {
 /**
  * Compute the CFL timestep restriction.
  **/
-auto ComputeCFL( const Real CFL, const int order, const int nStages,
-                 const int tOrder ) -> Real {
+auto compute_cfl( const Real CFL, const int order, const int nStages,
+                  const int tOrder ) -> Real {
   Real c = 1.0;
 
   if ( nStages == tOrder ) {
@@ -71,13 +71,12 @@ auto ComputeCFL( const Real CFL, const int order, const int nStages,
  * Compute timestep
  **/
 auto compute_timestep( const View3D<Real> U, const GridStructure* Grid,
-                              EOS* eos, const Real CFL, const Options* opts )
-    -> Real {
+                       EOS* eos, const Real CFL, const Options* opts ) -> Real {
   Real dt = NAN;
   if ( !opts->do_rad ) {
-    dt = fluid::ComputeTimestep_Fluid( U, Grid, eos, CFL );
+    dt = fluid::compute_timestep_fluid( U, Grid, eos, CFL );
   } else {
-    dt = radiation::ComputeTimestep_Rad( Grid, CFL );
+    dt = radiation::compute_timestep_rad( Grid, CFL );
   }
   return dt;
 }
@@ -94,10 +93,10 @@ auto main( int argc, char** argv ) -> int {
   auto sig2 = signal( SIGABRT, segfault_handler );
 
   // create span of args
-  auto args = std::span(argv, static_cast<size_t>(argc));
+  auto args = std::span( argv, static_cast<size_t>( argc ) );
 
   // load input deck
-  ProblemIn pin( args[1]);
+  ProblemIn pin( args[1] );
 
   /* --- Problem Parameters --- */
   const std::string& problem_name = pin.problem_name;
@@ -118,11 +117,15 @@ auto main( int argc, char** argv ) -> int {
 
   const std::string BC = pin.BC;
 
-  const Real CFL = ComputeCFL( pin.CFL, order, nStages, tOrder );
+  const Real CFL = compute_cfl( pin.CFL, order, nStages, tOrder );
 
   /* opts struct TODO: add grav when ready */
-  Options opts = { .do_rad=pin.do_rad, .do_grav=false,  .restart=pin.Restart,
-                   .BC=BC,         .geom=pin.Geometry, .basis=pin.Basis };
+  Options opts = { .do_rad  = pin.do_rad,
+                   .do_grav = false,
+                   .restart = pin.Restart,
+                   .BC      = BC,
+                   .geom    = pin.Geometry,
+                   .basis   = pin.Basis };
 
   Kokkos::initialize( argc, argv );
   {
@@ -140,36 +143,36 @@ auto main( int argc, char** argv ) -> int {
     IdealGas eos( pin.ideal_gamma );
 
     // opac
-    Opacity opac = InitializeOpacity( &pin );
+    Opacity opac = initialize_opacity( &pin );
 
     if ( not Restart ) {
       // --- Initialize fields ---
-      InitializeFields( &state, &Grid, &eos, &pin );
+      initialize_fields( &state, &Grid, &eos, &pin );
 
-      bc::ApplyBC( state.Get_uCF( ), &Grid, order, BC );
+      bc::apply_bc( state.get_u_cf( ), &Grid, order, BC );
       if ( opts.do_rad ) {
-        bc::ApplyBC( state.Get_uCR( ), &Grid, order, BC );
+        bc::apply_bc( state.get_u_cr( ), &Grid, order, BC );
       }
     }
 
     // --- Datastructure for modal basis ---
-    ModalBasis Basis( pin.Basis, state.Get_uPF( ), &Grid, order, nNodes, nX,
+    ModalBasis Basis( pin.Basis, state.get_u_pf( ), &Grid, order, nNodes, nX,
                       nGuard );
 
-    WriteBasis( &Basis, nGuard, Grid.Get_ihi( ), nNodes, order, problem_name );
+    write_basis( &Basis, nGuard, Grid.get_ihi( ), nNodes, order, problem_name );
 
     // --- Initialize timestepper ---
     TimeStepper SSPRK( &pin, Grid );
 
     SlopeLimiter S_Limiter =
-        limiter_utilities::InitializeSlopeLimiter( &Grid, &pin, 3 );
+        limiter_utilities::initialize_slope_limiter( &Grid, &pin, 3 );
     // --- Limit the initial conditions ---
-    ApplySlopeLimiter( &S_Limiter, state.Get_uCF( ), &Grid, &Basis );
+    apply_slope_limiter( &S_Limiter, state.get_u_cf( ), &Grid, &Basis );
 
     // -- print run parameters  and initial condition ---
-    PrintSimulationParameters( Grid, &pin, CFL );
-    WriteState( &state, Grid, &S_Limiter, problem_name, t, order, 0,
-                opts.do_rad );
+    print_simulation_parameters( Grid, &pin, CFL );
+    write_state( &state, Grid, &S_Limiter, problem_name, t, order, 0,
+                 opts.do_rad );
 
     // --- Timer ---
     Kokkos::Timer const timer_total;
@@ -196,32 +199,34 @@ auto main( int argc, char** argv ) -> int {
       timer_zone_cycles.reset( );
 
       dt = std::min(
-          compute_timestep( state.Get_uCF( ), &Grid, &eos, CFL, &opts ),
+          compute_timestep( state.get_u_cf( ), &Grid, &eos, CFL, &opts ),
           dt * dt_init_frac );
       if ( t + dt > t_end ) {
         dt = t_end - t;
       }
 
       if ( !opts.do_rad ) {
-        SSPRK.UpdateFluid( fluid::Compute_Increment_Explicit, dt, &state, Grid, &Basis,
-                           &eos, &S_Limiter, &opts );
+        SSPRK.update_fluid( fluid::compute_increment_explicit, dt, &state, Grid,
+                            &Basis, &eos, &S_Limiter, &opts );
       } else {
         // TODO(astrobarker): compile time swap operator splitting
-        // SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state,
+        // SSPRK.update_fluid( compute_increment_explicit, 0.5 * dt, &state,
         // Grid,
         //                    &Basis, &eos, &S_Limiter, opts );
-        // SSPRK.UpdateRadiation( Compute_Increment_Explicit_Rad, dt, &state,
+        // SSPRK.update_radiation( compute_increment_explicit_rad, dt, &state,
         // Grid,
         //                        &Basis, &eos, &S_Limiter, opts );
-        // SSPRK.UpdateFluid( Compute_Increment_Explicit, 0.5 * dt, &state,
+        // SSPRK.update_fluid( compute_increment_explicit, 0.5 * dt, &state,
         // Grid,
         //                    &Basis, &eos, &S_Limiter, opts );
 
         try {
-          SSPRK.UpdateRadHydro(
-              fluid::Compute_Increment_Explicit, radiation::Compute_Increment_Explicit_Rad,
-              fluid::ComputeIncrement_Fluid_Rad, radiation::ComputeIncrement_Rad_Source, dt,
-              &state, Grid, &Basis, &eos, &opac, &S_Limiter, &opts );
+          SSPRK.update_rad_hydro( fluid::compute_increment_explicit,
+                                  radiation::compute_increment_explicit_rad,
+                                  fluid::compute_increment_fluid_rad,
+                                  radiation::compute_increment_rad_source, dt,
+                                  &state, Grid, &Basis, &eos, &opac, &S_Limiter,
+                                  &opts );
         } catch ( const AthelasError& e ) {
           std::cerr << e.what( ) << std::endl;
           return AthelasExitCodes::FAILURE;
@@ -233,12 +238,12 @@ auto main( int argc, char** argv ) -> int {
 
 #ifdef ATHELAS_DEBUG
       try {
-        check_state( &state, Grid.Get_ihi( ), pin.do_rad );
+        check_state( &state, Grid.get_ihi( ), pin.do_rad );
       } catch ( const AthelasError& e ) {
         std::cerr << e.what( ) << std::endl;
         std::println( "!!! Bad State found, writing _final_ output file ..." );
-        WriteState( &state, Grid, &S_Limiter, problem_name, t, order, -1,
-                    opts.do_rad );
+        write_state( &state, Grid, &S_Limiter, problem_name, t, order, -1,
+                     opts.do_rad );
         return AthelasExitCodes::FAILURE;
       }
 #endif
@@ -249,8 +254,8 @@ auto main( int argc, char** argv ) -> int {
 
       // Write state
       if ( t >= i_out * dt_hdf5 ) {
-        WriteState( &state, Grid, &S_Limiter, problem_name, t, order, i_out,
-                    opts.do_rad );
+        write_state( &state, Grid, &S_Limiter, problem_name, t, order, i_out,
+                     opts.do_rad );
         i_out += 1;
       }
 
@@ -266,12 +271,11 @@ auto main( int argc, char** argv ) -> int {
     // --- Finalize timer ---
     Real const time = timer_total.seconds( );
     std::println( " ~ Done! Elapsed time: {} seconds.", time );
-    bc::ApplyBC( state.Get_uCF( ), &Grid, order, BC );
-    WriteState( &state, Grid, &S_Limiter, problem_name, t, order, -1,
-                opts.do_rad );
+    bc::apply_bc( state.get_u_cf( ), &Grid, order, BC );
+    write_state( &state, Grid, &S_Limiter, problem_name, t, order, -1,
+                 opts.do_rad );
   }
   Kokkos::finalize( );
 
   return AthelasExitCodes::SUCCESS;
 }
-

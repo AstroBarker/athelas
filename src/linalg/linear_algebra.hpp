@@ -8,8 +8,8 @@
  * @brief Basic linear algebra functions.
  *
  * @details Linear algebra routines for quadrature and limiters.
- *          - Tri_Sym_Diag
- *          - InvertMatrix
+ *          - tri_sym_diag
+ *          - invert_matrix
  */
 
 #include "Kokkos_Core.hpp"
@@ -18,7 +18,7 @@
 
 // Fill identity matrix
 template <class T>
-constexpr void IdentityMatrix( T Mat, int n ) {
+constexpr void IDENTITY_MATRIX( T Mat, int n ) {
   for ( int i = 0; i < n; i++ ) {
     for ( int j = 0; j < n; j++ ) {
       if ( i == j ) {
@@ -34,7 +34,7 @@ constexpr void IdentityMatrix( T Mat, int n ) {
  * @brief Matrix vector multiplication
  **/
 template <class M, class V>
-constexpr void MatMul( Real /*alpha*/, M A, V x, Real /*beta*/, V y ) {
+constexpr void MAT_MUL( Real /*alpha*/, M A, V x, Real /*beta*/, V y ) {
   // Calculate A*x=y
   for ( int i = 0; i < 3; i++ ) {
     for ( int j = 0; j < 3; j++ ) {
@@ -42,7 +42,7 @@ constexpr void MatMul( Real /*alpha*/, M A, V x, Real /*beta*/, V y ) {
     }
   }
 }
-void Tri_Sym_Diag( int n, Real* d, Real* e, Real* array );
-void InvertMatrix( Real* M, int n );
+void tri_sym_diag( int n, Real* d, Real* e, Real* array );
+void invert_matrix( Real* M, int n );
 
 #endif // _LINEAR_ALGEBRA_HPP_

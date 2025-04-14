@@ -36,23 +36,24 @@ using namespace limiter_utilities;
  * Apply the slope limiter. We use a compact stencil WENO-Z limiter
  * H. Zhu 2020, simple, high-order compact WENO RKDG slope limiter
  **/
-void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure* Grid,
-                              const ModalBasis* Basis ) {
+void WENO::apply_slope_limiter( View3D<Real> U, const GridStructure* Grid,
+                                const ModalBasis* Basis ) {
 
   // Do not apply for first order method or if we don't want to.
   if ( order == 1 || !do_limiter ) {
     return;
   }
 
-  const int& ilo  = Grid->Get_ilo( );
-  const int& ihi  = Grid->Get_ihi( );
+  const int& ilo  = Grid->get_ilo( );
+  const int& ihi  = Grid->get_ihi( );
   const int nvars = U.extent( 0 );
 
   /* map to characteristic vars */
   if ( characteristic ) {
     Kokkos::parallel_for(
         "SlopeLimiter :: WENO :: ToCharacteristic",
-        Kokkos::RangePolicy<>( ilo, ihi + 1 ), KOKKOS_LAMBDA( const int iX ) {
+        Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+        KOKKOS_CLASS_LAMBDA( const int iX ) {
           // --- Characteristic Limiting Matrices ---
           // Note: using cell averages
           for ( int iC = 0; iC < nvars; iC++ ) {
@@ -64,14 +65,14 @@ void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure* Grid,
           auto U_c_T_i = Kokkos::subview( U_c_T, Kokkos::ALL, iX );
           auto w_c_T_i = Kokkos::subview( w_c_T, Kokkos::ALL, iX );
           auto Mult_i  = Kokkos::subview( Mult, Kokkos::ALL, iX );
-          ComputeCharacteristicDecomposition( Mult_i, R_i, R_inv_i );
+          compute_characteristic_decomposition( Mult_i, R_i, R_inv_i );
           for ( int k = 0; k < order; k++ ) {
             // store w_.. = invR @ U_..
             for ( int iC = 0; iC < nvars; iC++ ) {
               U_c_T_i( iC ) = U( iC, iX, k );
               w_c_T_i( iC ) = 0.0;
             }
-            MatMul( 1.0, R_inv_i, U_c_T_i, 1.0, w_c_T_i );
+            MAT_MUL( 1.0, R_inv_i, U_c_T_i, 1.0, w_c_T_i );
 
             for ( int iC = 0; iC < nvars; iC++ ) {
               U( iC, iX, k ) = w_c_T_i( iC );
@@ -84,12 +85,12 @@ void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure* Grid,
   // NOTE: applying TCI on characteristic vars
   // Could probably reduce some work by checking this first
   // and skipping as appropriate
-  if ( tci_opt ) DetectTroubledCells( U, D, Grid, Basis );
+  if ( tci_opt ) detect_troubled_cells( U, D, Grid, Basis );
 
   for ( int iC = 0; iC < nvars; iC++ ) {
     Kokkos::parallel_for(
         "SlopeLimiter :: WENO", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
-        KOKKOS_LAMBDA( const int iX ) {
+        KOKKOS_CLASS_LAMBDA( const int iX ) {
           this->LimitedCell( iX ) = 0;
 
           // Check if TCI val is less than TCI_Threshold
@@ -105,22 +106,22 @@ void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure* Grid,
                 modified_polynomial, iX, Kokkos::ALL, Kokkos::ALL );
 
             // modify polynomials
-            ModifyPolynomial( U, modified_polynomial_i, gamma_i, gamma_l,
-                              gamma_r, iX, iC );
+            modify_polynomial( U, modified_polynomial_i, gamma_i, gamma_l,
+                               gamma_r, iX, iC );
 
-            const Real beta_l = SmoothnessIndicator(
+            const Real beta_l = smoothness_indicator(
                 U, modified_polynomial_i, Grid, iX, 0, iC ); // iX - 1
-            const Real beta_i = SmoothnessIndicator( U, modified_polynomial_i,
-                                                     Grid, iX, 1, iC ); // iX
-            const Real beta_r = SmoothnessIndicator(
+            const Real beta_i = smoothness_indicator( U, modified_polynomial_i,
+                                                      Grid, iX, 1, iC ); // iX
+            const Real beta_r = smoothness_indicator(
                 U, modified_polynomial_i, Grid, iX, 2, iC ); // iX + 1
-            const Real tau = Tau( beta_l, beta_i, beta_r, weno_r );
+            const Real tau = weno_tau( beta_l, beta_i, beta_r, weno_r );
 
             // nonlinear weights w
-            const Real dx_i = 0.1 * Grid->Get_Widths( iX );
-            Real w_l = NonLinearWeight( this->gamma_l, beta_l, tau, dx_i );
-            Real w_i = NonLinearWeight( this->gamma_i, beta_i, tau, dx_i );
-            Real w_r = NonLinearWeight( this->gamma_r, beta_r, tau, dx_i );
+            const Real dx_i = 0.1 * Grid->get_widths( iX );
+            Real w_l = non_linear_weight( this->gamma_l, beta_l, tau, dx_i );
+            Real w_i = non_linear_weight( this->gamma_i, beta_i, tau, dx_i );
+            Real w_r = non_linear_weight( this->gamma_r, beta_r, tau, dx_i );
 
             const Real sum_w = w_l + w_i + w_r;
             w_l /= sum_w;
@@ -145,7 +146,8 @@ void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure* Grid,
   if ( characteristic ) {
     Kokkos::parallel_for(
         "SlopeLimiter :: WENO :: FromCharacteristic",
-        Kokkos::RangePolicy<>( ilo, ihi + 1 ), KOKKOS_LAMBDA( const int iX ) {
+        Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+        KOKKOS_CLASS_LAMBDA( const int iX ) {
           // --- Characteristic Limiting Matrices ---
           // Note: using cell averages
           for ( int iC = 0; iC < nvars; iC++ ) {
@@ -163,7 +165,7 @@ void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure* Grid,
               U_c_T_i( iC ) = U( iC, iX, k );
               w_c_T_i( iC ) = 0.0;
             }
-            MatMul( 1.0, R_i, U_c_T_i, 1.0, w_c_T_i );
+            MAT_MUL( 1.0, R_i, U_c_T_i, 1.0, w_c_T_i );
 
             for ( int iC = 0; iC < nvars; iC++ ) {
               U( iC, iX, k ) = w_c_T_i( iC );
@@ -174,6 +176,6 @@ void WENO::ApplySlopeLimiter( View3D<Real> U, const GridStructure* Grid,
 } // end apply slope limiter
 
 // LimitedCell accessor
-auto WENO::Get_Limited( const int iX ) const -> int {
+auto WENO::get_limited( const int iX ) const -> int {
   return LimitedCell( iX );
 }

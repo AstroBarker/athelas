@@ -10,8 +10,8 @@
  * @details Defines the OpacBase template class.
  *
  *          The class provides two interface methods:
- *          - PlanckMean
- *          - RosselandMean
+ *          - planck_mean
+ *          - rosseland_mean
  *
  *          The interface methods take density, temperature, and composition
  *          parameters to compute the appropriate mean opacity values.
@@ -25,16 +25,16 @@
 template <class OPAC>
 class OpacBase {
  public:
-  auto PlanckMean( const Real rho, const Real T, const Real X, const Real Y,
-                   const Real Z, Real* lambda ) const -> Real {
-    return static_cast<OPAC const*>( this )->PlanckMean( rho, T, X, Y, Z,
-                                                         lambda );
+  auto planck_mean( const Real rho, const Real T, const Real X, const Real Y,
+                    const Real Z, Real* lambda ) const -> Real {
+    return static_cast<OPAC const*>( this )->planck_mean( rho, T, X, Y, Z,
+                                                          lambda );
   }
 
-  auto RosselandMean( const Real rho, const Real T, const Real X, const Real Y,
-                      const Real Z, Real* lambda ) const -> Real {
-    return static_cast<OPAC const*>( this )->RosselandMean( rho, T, X, Y, Z,
-                                                            lambda );
+  auto rosseland_mean( const Real rho, const Real T, const Real X, const Real Y,
+                       const Real Z, Real* lambda ) const -> Real {
+    return static_cast<OPAC const*>( this )->rosseland_mean( rho, T, X, Y, Z,
+                                                             lambda );
   }
 };
 

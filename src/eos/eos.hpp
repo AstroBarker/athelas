@@ -35,15 +35,15 @@ class IdealGas : public EosBase<IdealGas> {
     }
   }
 
-  auto PressureFromConserved( Real Tau, Real V, Real EmT, Real* lambda ) const
+  auto pressure_from_conserved( Real tau, Real V, Real EmT, Real* lambda ) const
       -> Real;
-  auto SoundSpeedFromConserved( Real Tau, Real V, Real EmT, Real* lambda ) const
+  auto sound_speed_from_conserved( Real tau, Real V, Real EmT,
+                                   Real* lambda ) const -> Real;
+  static auto temperature_from_tau_pressure_abar( Real tau, Real P, Real Abar,
+                                                  Real* lambda ) -> Real;
+  auto temperature_from_tau_pressure( Real tau, Real P, Real* lambda ) const
       -> Real;
-  static auto TemperatureFromTauPressureAbar( Real Tau, Real P, Real Abar,
-                                              Real* lambda ) -> Real;
-  auto TemperatureFromTauPressure( Real Tau, Real P, Real* lambda ) const
-      -> Real;
-  static auto RadiationPressure( Real T, Real* lambda ) -> Real;
+  static auto radiation_pressure( Real T, Real* lambda ) -> Real;
 
  private:
   Real gamma{ };
@@ -54,15 +54,15 @@ class Stellar : public EosBase<Stellar> {
  public:
   Stellar( ) = default;
 
-  auto PressureFromConserved( Real Tau, Real V, Real EmT, Real* lambda ) const
+  auto pressure_from_conserved( Real tau, Real V, Real EmT, Real* lambda ) const
       -> Real;
-  auto SoundSpeedFromConserved( Real Tau, Real V, Real EmT, Real* lambda ) const
+  auto sound_speed_from_conserved( Real tau, Real V, Real EmT,
+                                   Real* lambda ) const -> Real;
+  auto temperature_from_tau_pressure_abar( Real tau, Real P, Real Abar,
+                                           Real* lambda ) const -> Real;
+  auto temperature_from_tau_pressure( Real tau, Real P, Real* lambda ) const
       -> Real;
-  auto TemperatureFromTauPressureAbar( Real Tau, Real P, Real Abar,
-                                       Real* lambda ) const -> Real;
-  auto TemperatureFromTauPressure( Real Tau, Real P, Real* lambda ) const
-      -> Real;
-  auto RadiationPressure( Real T, Real* lambda ) const -> Real;
+  auto radiation_pressure( Real T, Real* lambda ) const -> Real;
 
  private:
   Real gamma{ };

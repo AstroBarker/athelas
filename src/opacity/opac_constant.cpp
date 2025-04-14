@@ -14,15 +14,15 @@
 #include "opac_base.hpp"
 #include "opac_variant.hpp"
 
-auto Constant::PlanckMean( const Real /*rho*/, const Real /*T*/,
-                           const Real /*X*/, const Real /*Y*/, const Real /*Z*/,
-                           Real* /*lambda*/ ) const -> Real {
+auto Constant::planck_mean( const Real /*rho*/, const Real /*T*/,
+                            const Real /*X*/, const Real /*Y*/,
+                            const Real /*Z*/, Real* /*lambda*/ ) const -> Real {
   return k;
 }
 
-auto Constant::RosselandMean( const Real /*rho*/, const Real /*T*/,
-                              const Real /*X*/, const Real /*Y*/,
-                              const Real /*Z*/, Real* /*lambda*/ ) const
+auto Constant::rosseland_mean( const Real /*rho*/, const Real /*T*/,
+                               const Real /*X*/, const Real /*Y*/,
+                               const Real /*Z*/, Real* /*lambda*/ ) const
     -> Real {
   return k;
 }

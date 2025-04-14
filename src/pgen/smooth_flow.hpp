@@ -23,13 +23,13 @@
 void smooth_flow_init( State* state, GridStructure* Grid,
                        const ProblemIn* pin ) {
 
-  View3D<Real> uCF = state->Get_uCF( );
-  View3D<Real> uPF = state->Get_uPF( );
-  const int pOrder = state->Get_pOrder( );
+  View3D<Real> uCF = state->get_u_cf( );
+  View3D<Real> uPF = state->get_u_pf( );
+  const int pOrder = state->get_p_order( );
 
-  const int ilo    = Grid->Get_ilo( );
-  const int ihi    = Grid->Get_ihi( );
-  const int nNodes = Grid->Get_nNodes( );
+  const int ilo    = Grid->get_ilo( );
+  const int ihi    = Grid->get_ihi( );
+  const int nNodes = Grid->get_n_nodes( );
 
   constexpr static int iCF_Tau = 0;
   constexpr static int iCF_V   = 1;
@@ -44,7 +44,7 @@ void smooth_flow_init( State* state, GridStructure* Grid,
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-        X1                    = Grid->Get_Centers( iX );
+        X1                    = Grid->get_centers( iX );
         uCF( iCF_Tau, iX, k ) = 0.0;
         uCF( iCF_V, iX, k )   = 0.0;
         uCF( iCF_E, iX, k )   = 0.0;
@@ -59,28 +59,28 @@ void smooth_flow_init( State* state, GridStructure* Grid,
           Real const dD =
               ( amp * constants::PI( ) * cos( constants::PI( ) * X1 ) );
           uCF( iCF_Tau, iX, k ) =
-              ( -1 / ( D * D ) ) * dD * Grid->Get_Widths( iX );
+              ( -1 / ( D * D ) ) * dD * Grid->get_widths( iX );
           uCF( iCF_V, iX, k ) = 0.0;
           uCF( iCF_E, iX, k ) =
-              ( ( 2.0 / 2.0 ) * D ) * dD * Grid->Get_Widths( iX );
+              ( ( 2.0 / 2.0 ) * D ) * dD * Grid->get_widths( iX );
         } else if ( k == 2 ) {
           Real const D   = ( 1.0 + ( amp * sin( constants::PI( ) * X1 ) ) );
           Real const ddD = -( amp * constants::PI( ) * constants::PI( ) ) *
                            sin( constants::PI( ) * X1 );
           uCF( iCF_Tau, iX, k ) = ( 2.0 / ( D * D * D ) ) * ddD *
-                                  Grid->Get_Widths( iX ) *
-                                  Grid->Get_Widths( iX );
+                                  Grid->get_widths( iX ) *
+                                  Grid->get_widths( iX );
           uCF( iCF_V, iX, k ) = 0.0;
-          uCF( iCF_E, iX, k ) = ( 2.0 / 2.0 ) * ddD * Grid->Get_Widths( iX ) *
-                                Grid->Get_Widths( iX );
+          uCF( iCF_E, iX, k ) = ( 2.0 / 2.0 ) * ddD * Grid->get_widths( iX ) *
+                                Grid->get_widths( iX );
         } else if ( k == 3 ) {
           Real const D    = ( 1.0 + ( amp * sin( constants::PI( ) * X1 ) ) );
           Real const dddD = -( amp * constants::PI( ) * constants::PI( ) *
                                constants::PI( ) ) *
                             cos( constants::PI( ) * X1 );
           uCF( iCF_Tau, iX, k ) =
-              ( -6.0 / ( D * D * D * D ) ) * dddD * Grid->Get_Widths( iX ) *
-              Grid->Get_Widths( iX ) * Grid->Get_Widths( iX );
+              ( -6.0 / ( D * D * D * D ) ) * dddD * Grid->get_widths( iX ) *
+              Grid->get_widths( iX ) * Grid->get_widths( iX );
           uCF( iCF_V, iX, k ) = 0.0;
           uCF( iCF_E, iX, k ) = 0.0;
         } else {

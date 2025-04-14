@@ -23,7 +23,7 @@
  * Lots of structures used in discretizations live here.
  **/
 TimeStepper::TimeStepper( ProblemIn *pin, GridStructure &Grid )
-    : mSize( Grid.Get_nElements( ) + (2 * Grid.Get_Guard( )) ),
+    : mSize( Grid.get_n_elements( ) + (2 * Grid.get_guard( )) ),
       nStages( pin->nStages ), tOrder( pin->tOrder ), BC( pin->BC ),
       implicit_tableau_(
           ButcherTableau( nStages, tOrder, TableauType::Implicit ) ),
@@ -37,7 +37,7 @@ TimeStepper::TimeStepper( ProblemIn *pin, GridStructure &Grid )
       SumVar_U_r( "SumVar_U_r", 2, mSize + 1, pin->pOrder ),
       Grid_s( nStages + 1, GridStructure( pin ) ),
       StageData( "StageData", nStages + 1, mSize + 1 ),
-      Flux_q( "Flux_q", 3, mSize + 1, Grid.Get_nNodes( ) ),
+      Flux_q( "Flux_q", 3, mSize + 1, Grid.get_n_nodes( ) ),
       dFlux_num( "Numerical Flux", 3, mSize + 1 ),
       uCF_F_L( "Face L", 3, mSize ), uCF_F_R( "Face R", 3, mSize ),
       Flux_U( "Flux_U", nStages + 1, mSize + 1 ),

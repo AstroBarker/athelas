@@ -8,8 +8,8 @@
  * @brief Core polynomial basis functions
  *
  * @details Provides means to construct and evaluate bases
- *            - Legendre
- *            - Taylor
+ *            - legendre
+ *            - taylor
  */
 
 #include <algorithm> // std::copy
@@ -24,39 +24,40 @@ using BasisFuncType = Real( int, Real, Real );
 
 class ModalBasis {
  public:
-  ModalBasis( PolyBasis::PolyBasis basis, View3D<Real> uCF, GridStructure* Grid,
-              int pOrder, int nN, int nElements, int nGuard );
-  static auto Taylor( int order, Real eta, Real eta_c ) -> Real;
-  static auto dTaylor( int order, Real eta, Real eta_c ) -> Real;
-  auto Ortho( int order, int iX, int i_eta, Real eta, Real eta_c,
+  ModalBasis( poly_basis::poly_basis basis, View3D<Real> uCF,
+              GridStructure* Grid, int pOrder, int nN, int nElements,
+              int nGuard );
+  static auto taylor( int order, Real eta, Real eta_c ) -> Real;
+  static auto d_taylor( int order, Real eta, Real eta_c ) -> Real;
+  auto ortho( int order, int iX, int i_eta, Real eta, Real eta_c,
               View3D<Real> uCF, GridStructure* Grid, bool derivative_option )
       -> Real;
-  auto InnerProduct( int m, int n, int iX, Real eta_c, View3D<Real> uPF,
-                     GridStructure* Grid ) const -> Real;
-  auto InnerProduct( int n, int iX, Real eta_c, View3D<Real> uPF,
-                     GridStructure* Grid ) const -> Real;
-  void InitializeTaylorBasis( View3D<Real> U, GridStructure* Grid );
-  void InitializeBasis( View3D<Real> uCF, GridStructure* Grid );
-  void CheckOrthogonality( View3D<Real> uCF, GridStructure* Grid ) const;
+  auto inner_product( int m, int n, int iX, Real eta_c, View3D<Real> uPF,
+                      GridStructure* Grid ) const -> Real;
+  auto inner_product( int n, int iX, Real eta_c, View3D<Real> uPF,
+                      GridStructure* Grid ) const -> Real;
+  void initialize_taylor_basis( View3D<Real> U, GridStructure* Grid );
+  void initialize_basis( View3D<Real> uCF, GridStructure* Grid );
+  void check_orthogonality( View3D<Real> uCF, GridStructure* Grid ) const;
   [[nodiscard]] auto basis_eval( View3D<Real> U, int iX, int iCF,
                                  int i_eta ) const -> Real;
   [[nodiscard]] auto basis_eval( View2D<Real> U, int iX, int iCF,
                                  int i_eta ) const -> Real;
   [[nodiscard]] auto basis_eval( View1D<Real> U, int iX, int i_eta ) const
       -> Real;
-  void ComputeMassMatrix( View3D<Real> uCF, GridStructure* Grid );
+  void compute_mass_matrix( View3D<Real> uCF, GridStructure* Grid );
 
-  [[nodiscard]] auto Get_Phi( int iX, int i_eta, int k ) const -> Real;
-  [[nodiscard]] auto Get_dPhi( int iX, int i_eta, int k ) const -> Real;
-  [[nodiscard]] auto Get_MassMatrix( int iX, int k ) const -> Real;
+  [[nodiscard]] auto get_phi( int iX, int i_eta, int k ) const -> Real;
+  [[nodiscard]] auto get_d_phi( int iX, int i_eta, int k ) const -> Real;
+  [[nodiscard]] auto get_mass_matrix( int iX, int k ) const -> Real;
 
-  [[nodiscard]] auto Get_Order( ) const noexcept -> int;
+  [[nodiscard]] auto get_order( ) const noexcept -> int;
 
-  static auto Legendre( int n, Real x ) -> Real;
-  static auto dLegendre( int order, Real x ) -> Real;
-  static auto Legendre( int n, Real x, Real x_c ) -> Real;
-  static auto dLegendre( int n, Real x, Real x_c ) -> Real;
-  static auto dLegendreN( int poly_order, int deriv_order, Real x ) -> Real;
+  static auto legendre( int n, Real x ) -> Real;
+  static auto d_legendre( int order, Real x ) -> Real;
+  static auto legendre( int n, Real x, Real x_c ) -> Real;
+  static auto d_legendre( int n, Real x, Real x_c ) -> Real;
+  static auto d_legendre_n( int poly_order, int deriv_order, Real x ) -> Real;
 
  private:
   int nX;

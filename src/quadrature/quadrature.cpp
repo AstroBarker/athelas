@@ -5,7 +5,7 @@
  * @author Brandon L. Barker
  * @brief Quadrature rules
  *
- * @details Computes Gauss-Legendre nodes and weights
+ * @details Computes Gauss-legendre nodes and weights
  */
 
 #include <cmath>
@@ -18,17 +18,17 @@
 namespace quadrature {
 
 /**
- * @brief Computes the Jacobi matrix for Legendre-Gauss quadrature rule
+ * @brief Computes the Jacobi matrix for legendre-Gauss quadrature rule
  *
  * @details Constructs the symmetric tridiagonal Jacobi matrix
- *          needed for Legendre-Gauss quadrature.
+ *          needed for legendre-Gauss quadrature.
  *
  * @param m Number of quadrature nodes (matrix dimension)
  * @param aj Output array for matrix diagonal elements
  * @param bj Output array for matrix subdiagonal elements
  * @return Real The zero-th moment (zemu) needed for weight computation
  */
-auto Jacobi_Matrix( int m, Real* aj, Real* bj ) -> Real {
+auto jacobi_matrix( int m, Real* aj, Real* bj ) -> Real {
 
   Real ab   = NAN;
   Real zemu = NAN;
@@ -51,10 +51,10 @@ auto Jacobi_Matrix( int m, Real* aj, Real* bj ) -> Real {
 }
 
 /**
- * @brief Generates a Legendre-Gauss quadrature rule with specified number of
+ * @brief Generates a legendre-Gauss quadrature rule with specified number of
  *        points
  *
- * @details This function computes a complete Legendre-Gauss quadrature rule
+ * @details This function computes a complete legendre-Gauss quadrature rule
  *          with m points. It generates both the quadrature nodes (abscissas)
  *          and weights for accurate integration of polynomial functions.
  *
@@ -65,14 +65,14 @@ auto Jacobi_Matrix( int m, Real* aj, Real* bj ) -> Real {
  * @param nodes Output array for quadrature nodes (abscissas)
  * @param weights Output array for quadrature weights
  */
-void LG_Quadrature( int m, Real* nodes, Real* weights ) {
+void lg_quadrature( int m, Real* nodes, Real* weights ) {
   Real* aj = new Real[m];
   Real* bj = new Real[m];
 
   Real zemu = NAN;
 
   //  Get the Jacobi matrix and zero-th moment.
-  zemu = Jacobi_Matrix( m, aj, bj );
+  zemu = jacobi_matrix( m, aj, bj );
 
   // Nodes and Weights
   for ( int i = 0; i < m; i++ ) {
@@ -85,7 +85,7 @@ void LG_Quadrature( int m, Real* nodes, Real* weights ) {
   }
 
   // --- Diagonalize the Jacobi matrix. ---
-  Tri_Sym_Diag( m, nodes, bj, weights ); // imtqlx
+  tri_sym_diag( m, nodes, bj, weights ); // imtqlx
 
   for ( int i = 0; i < m; i++ ) {
     weights[i] = weights[i] * weights[i];

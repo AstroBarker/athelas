@@ -32,36 +32,36 @@ class TimeStepper {
   // TODO(astrobarker): Is it possible to initialize Grid_s from Grid directly?
   TimeStepper( ProblemIn* pin, GridStructure& Grid );
 
-  void InitializeTimestepper( );
+  void initialize_timestepper( );
 
   /**
    * Update fluid solution with SSPRK methods
    **/
   template <typename T>
-  void UpdateFluid( T ComputeIncrement, const Real dt, State* state,
-                    GridStructure& Grid, const ModalBasis* Basis,
-                    const EOS* eos, SlopeLimiter* S_Limiter,
-                    const Options* opts ) {
+  void update_fluid( T ComputeIncrement, const Real dt, State* state,
+                     GridStructure& Grid, const ModalBasis* Basis,
+                     const EOS* eos, SlopeLimiter* S_Limiter,
+                     const Options* opts ) {
 
     // hydro explicity update
-    UpdateFluid_Explicit( ComputeIncrement, dt, state, Grid, Basis, eos,
-                          S_Limiter, opts );
+    update_fluid_explicit( ComputeIncrement, dt, state, Grid, Basis, eos,
+                           S_Limiter, opts );
   }
 
   /**
    * Explicit fluid update with SSPRK methods
    **/
   template <typename T>
-  void UpdateFluid_Explicit( T ComputeIncrement, const Real dt, State* state,
-                             GridStructure& Grid, const ModalBasis* Basis,
-                             const EOS* eos, SlopeLimiter* S_Limiter,
-                             const Options* opts ) {
+  void update_fluid_explicit( T ComputeIncrement, const Real dt, State* state,
+                              GridStructure& Grid, const ModalBasis* Basis,
+                              const EOS* eos, SlopeLimiter* S_Limiter,
+                              const Options* opts ) {
 
-    const auto& order = Basis->Get_Order( );
-    const auto& ihi   = Grid.Get_ihi( );
+    const auto& order = Basis->get_order( );
+    const auto& ihi   = Grid.get_ihi( );
 
-    auto U   = state->Get_uCF( );
-    auto uCR = state->Get_uCR( );
+    auto U   = state->get_u_cf( );
+    auto uCR = state->get_u_cr( );
 
     const int nvars = U.extent( 0 );
 
@@ -73,10 +73,10 @@ class TimeStepper {
           "Timestepper 3",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                                   { nvars, ihi + 2, order } ),
-          KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+          KOKKOS_CLASS_LAMBDA( const int iCF, const int iX, const int k ) {
             SumVar_U( iCF, iX, k ) = U( iCF, iX, k );
-            StageData( iS, iX )    = Grid.Get_LeftInterface( iX );
-            // StageData( iS, iX )    = Grid_s[iS].Get_LeftInterface( iX );
+            StageData( iS, iX )    = Grid.get_left_interface( iX );
+            // StageData( iS, iX )    = Grid_s[iS].get_left_interface( iX );
           } );
 
       // --- Inner update loop ---
@@ -95,13 +95,14 @@ class TimeStepper {
             "Timestepper 4",
             Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                                     { nvars, ihi + 2, order } ),
-            KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+            KOKKOS_CLASS_LAMBDA( const int iCF, const int iX, const int k ) {
               SumVar_U( iCF, iX, k ) +=
                   dt * explicit_tableau_.a_ij( iS, j ) * dUs_j( iCF, iX, k );
             } );
 
         Kokkos::parallel_for(
-            "Timestepper::StageData", ihi + 2, KOKKOS_LAMBDA( const int iX ) {
+            "Timestepper::StageData", ihi + 2,
+            KOKKOS_CLASS_LAMBDA( const int iX ) {
               StageData( iS, iX ) +=
                   dt * explicit_tableau_.a_ij( iS, j ) * Flux_Uj( iX );
             } );
@@ -112,18 +113,18 @@ class TimeStepper {
           "Timestepper 5",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                                   { nvars, ihi + 2, order } ),
-          KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+          KOKKOS_CLASS_LAMBDA( const int iCF, const int iX, const int k ) {
             U_s( iS, iCF, iX, k ) = SumVar_U( iCF, iX, k );
           } );
 
       auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
-      Grid_s[iS].UpdateGrid( StageDataj );
+      Grid_s[iS].update_grid( StageDataj );
 
       auto Us_j =
           Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-      // S_Limiter->ApplySlopeLimiter( Us_j, &Grid_s[iS], Basis );
-      ApplySlopeLimiter( S_Limiter, Us_j, &Grid_s[iS], Basis );
-      bel::ApplyBoundEnforcingLimiter( Us_j, Basis, eos );
+      // S_Limiter->apply_slope_limiter( Us_j, &Grid_s[iS], Basis );
+      apply_slope_limiter( S_Limiter, Us_j, &Grid_s[iS], Basis );
+      bel::apply_bound_enforcing_limiter( Us_j, Basis, eos );
     } // end outer loop
 
     for ( unsigned short int iS = 0; iS < nStages; iS++ ) {
@@ -139,51 +140,52 @@ class TimeStepper {
           "Timestepper :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                                   { nvars, ihi + 2, order } ),
-          KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
+          KOKKOS_CLASS_LAMBDA( const int iCF, const int iX, const int k ) {
             U( iCF, iX, k ) +=
                 dt * explicit_tableau_.b_i( iS ) * dUs_j( iCF, iX, k );
           } );
 
       Kokkos::parallel_for(
           "Timestepper::StageData::final", ihi + 2,
-          KOKKOS_LAMBDA( const int iX ) {
+          KOKKOS_CLASS_LAMBDA( const int iX ) {
             StageData( 0, iX ) +=
                 dt * Flux_Uj( iX ) * explicit_tableau_.b_i( iS );
           } );
       auto StageDataj = Kokkos::subview( StageData, 0, Kokkos::ALL );
-      Grid_s[iS].UpdateGrid( StageDataj );
+      Grid_s[iS].update_grid( StageDataj );
     }
 
     Grid = Grid_s[nStages - 1];
-    ApplySlopeLimiter( S_Limiter, U, &Grid, Basis );
-    bel::ApplyBoundEnforcingLimiter( U, Basis, eos );
+    apply_slope_limiter( S_Limiter, U, &Grid, Basis );
+    bel::apply_bound_enforcing_limiter( U, Basis, eos );
   }
 
   /**
    * Update radiation solution with SSPRK methods
    **/
   template <typename T>
-  void UpdateRadiation( T ComputeIncrementRad, const Real dt, State* state,
-                        GridStructure& Grid, const ModalBasis* Basis,
-                        const EOS* eos, SlopeLimiter* S_Limiter,
-                        const Options opts ) {
-    UpdateRadiation_IMEX( ComputeIncrementRad, dt, state, Grid, Basis, eos,
-                          S_Limiter, opts );
+  void update_radiation( T ComputeIncrementRad, const Real dt, State* state,
+                         GridStructure& Grid, const ModalBasis* Basis,
+                         const EOS* eos, SlopeLimiter* S_Limiter,
+                         const Options opts ) {
+    update_radiation_imex( ComputeIncrementRad, dt, state, Grid, Basis, eos,
+                           S_Limiter, opts );
   }
   /**
    * Update radiation solution with SSPRK methods
    **/
   template <typename T>
-  void UpdateRadiation_IMEX( T ComputeIncrementRad, const Real dt, State* state,
-                             GridStructure& Grid, const ModalBasis* Basis,
-                             const EOS* eos, SlopeLimiter* /*S_Limiter*/,
-                             const Options& opts ) {
+  void update_radiation_imex( T ComputeIncrementRad, const Real dt,
+                              State* state, GridStructure& Grid,
+                              const ModalBasis* Basis, const EOS* eos,
+                              SlopeLimiter* /*S_Limiter*/,
+                              const Options& opts ) {
 
-    const auto& order = Basis->Get_Order( );
-    const auto& ihi   = Grid.Get_ihi( );
+    const auto& order = Basis->get_order( );
+    const auto& ihi   = Grid.get_ihi( );
 
-    auto uCF = state->Get_uCF( );
-    auto uCR = state->Get_uCR( );
+    auto uCF = state->get_u_cf( );
+    auto uCR = state->get_u_cr( );
 
     const int nvars = uCR.extent( 0 );
 
@@ -193,7 +195,7 @@ class TimeStepper {
           "Timestepper :: Rad :: 1",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                                   { nvars, ihi + 2, order } ),
-          KOKKOS_LAMBDA( const int iCR, const int iX, const int k ) {
+          KOKKOS_CLASS_LAMBDA( const int iCR, const int iX, const int k ) {
             SumVar_U( iCR, iX, k ) = uCR( iCR, iX, k );
           } );
 
@@ -214,7 +216,7 @@ class TimeStepper {
             "Timestepper :: Rad :: 2",
             Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                                     { nvars, ihi + 2, order } ),
-            KOKKOS_LAMBDA( const int iCR, const int iX, const int k ) {
+            KOKKOS_CLASS_LAMBDA( const int iCR, const int iX, const int k ) {
               SumVar_U( iCR, iX, k ) +=
                   dt * explicit_tableau_.a_ij( iS, j ) * dUs_j( iCR, iX, k );
             } );
@@ -225,14 +227,14 @@ class TimeStepper {
           "Timestepper :: Rad :: 3",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                                   { nvars, ihi + 2, order } ),
-          KOKKOS_LAMBDA( const int iCR, const int iX, const int k ) {
+          KOKKOS_CLASS_LAMBDA( const int iCR, const int iX, const int k ) {
             U_s_r( iS, iCR, iX, k ) = SumVar_U( iCR, iX, k );
           } );
 
       auto Us_j =
           Kokkos::subview( U_s_r, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-      // S_Limiter->ApplySlopeLimiter( Us_j, &Grid, Basis );
-      // ApplyBoundEnforcingLimiter( Us_j, Basis, eos );
+      // S_Limiter->apply_slope_limiter( Us_j, &Grid, Basis );
+      // apply_bound_enforcing_limiter( Us_j, Basis, eos );
     } // end outer loop
 
     for ( unsigned short int iS = 0; iS < nStages; iS++ ) {
@@ -248,14 +250,14 @@ class TimeStepper {
           "Timestepper :: Rad :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
                                                   { nvars, ihi + 2, order } ),
-          KOKKOS_LAMBDA( const int iCR, const int iX, const int k ) {
+          KOKKOS_CLASS_LAMBDA( const int iCR, const int iX, const int k ) {
             const Real dt_b = dt * explicit_tableau_.b_i( iS );
             uCR( iCR, iX, k ) += dt_b * dUs_j( iCR, iX, k );
           } );
     }
 
-    // S_Limiter->ApplySlopeLimiter( uCR, &Grid, Basis );
-    // ApplyBoundEnforcingLimiter( uCR, Basis, eos );
+    // S_Limiter->apply_slope_limiter( uCR, &Grid, Basis );
+    // apply_bound_enforcing_limiter( uCR, Basis, eos );
   }
 
   /**
@@ -263,16 +265,16 @@ class TimeStepper {
    * TODO: register increment funcs with class?
    **/
   template <typename T, typename F, typename G, typename H>
-  void UpdateRadHydro( T compute_increment_hydro_explicit,
-                       F compute_increment_rad_explicit,
-                       G compute_increment_hydro_implicit,
-                       H compute_increment_rad_implicit, const Real dt,
-                       State* state, GridStructure& Grid,
-                       const ModalBasis* Basis, const EOS* eos,
-                       const Opacity* opac, SlopeLimiter* S_Limiter,
-                       const Options* opts ) {
+  void update_rad_hydro( T compute_increment_hydro_explicit,
+                         F compute_increment_rad_explicit,
+                         G compute_increment_hydro_implicit,
+                         H compute_increment_rad_implicit, const Real dt,
+                         State* state, GridStructure& Grid,
+                         const ModalBasis* Basis, const EOS* eos,
+                         const Opacity* opac, SlopeLimiter* S_Limiter,
+                         const Options* opts ) {
 
-    UpdateRadHydro_IMEX(
+    update_rad_hydro_imex(
         compute_increment_hydro_explicit, compute_increment_rad_explicit,
         compute_increment_hydro_implicit, compute_increment_rad_implicit, dt,
         state, Grid, Basis, eos, opac, S_Limiter, opts );
@@ -282,20 +284,20 @@ class TimeStepper {
    * Fully coupled IMEX rad hydro update with SSPRK methods
    **/
   template <typename T, typename F, typename G, typename H>
-  void UpdateRadHydro_IMEX( T compute_increment_hydro_explicit,
-                            F compute_increment_rad_explicit,
-                            G compute_increment_hydro_implicit,
-                            H compute_increment_rad_implicit, const Real dt,
-                            State* state, GridStructure& Grid,
-                            const ModalBasis* Basis, const EOS* eos,
-                            const Opacity* opac, SlopeLimiter* S_Limiter,
-                            const Options* opts ) {
+  void update_rad_hydro_imex( T compute_increment_hydro_explicit,
+                              F compute_increment_rad_explicit,
+                              G compute_increment_hydro_implicit,
+                              H compute_increment_rad_implicit, const Real dt,
+                              State* state, GridStructure& Grid,
+                              const ModalBasis* Basis, const EOS* eos,
+                              const Opacity* opac, SlopeLimiter* S_Limiter,
+                              const Options* opts ) {
 
-    const auto& order = Basis->Get_Order( );
-    const auto& ihi   = Grid.Get_ihi( );
+    const auto& order = Basis->get_order( );
+    const auto& ihi   = Grid.get_ihi( );
 
-    auto uCF = state->Get_uCF( );
-    auto uCR = state->Get_uCR( );
+    auto uCF = state->get_u_cf( );
+    auto uCR = state->get_u_cr( );
 
     Grid_s[0] = Grid;
 
@@ -305,13 +307,13 @@ class TimeStepper {
           "Timestepper 3",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
                                                   { ihi + 2, order } ),
-          KOKKOS_LAMBDA( const int iX, const int k ) {
+          KOKKOS_CLASS_LAMBDA( const int iX, const int k ) {
             SumVar_U( 0, iX, k )   = uCF( 0, iX, k );
             SumVar_U( 1, iX, k )   = uCF( 1, iX, k );
             SumVar_U( 2, iX, k )   = uCF( 2, iX, k );
             SumVar_U_r( 0, iX, k ) = uCR( 0, iX, k );
             SumVar_U_r( 1, iX, k ) = uCR( 1, iX, k );
-            StageData( iS, iX )    = Grid_s[iS].Get_LeftInterface( iX );
+            StageData( iS, iX )    = Grid_s[iS].get_left_interface( iX );
           } );
 
       // --- Inner update loop ---
@@ -341,7 +343,7 @@ class TimeStepper {
             "Timestepper 4",
             Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
                                                     { ihi + 2, order } ),
-            KOKKOS_LAMBDA( const int iX, const int k ) {
+            KOKKOS_CLASS_LAMBDA( const int iX, const int k ) {
               SumVar_U( 0, iX, k ) += dt_a * dUs_j_h( 0, iX, k );
               SumVar_U( 1, iX, k ) += dt_a * dUs_j_h( 1, iX, k );
               SumVar_U( 2, iX, k ) += dt_a * dUs_j_h( 2, iX, k );
@@ -353,7 +355,7 @@ class TimeStepper {
             "Timestepper :: implicit piece in inner loop",
             Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 1 },
                                                     { ihi + 1, order } ),
-            KOKKOS_LAMBDA( const int iX, const int k ) {
+            KOKKOS_CLASS_LAMBDA( const int iX, const int k ) {
               auto u_h =
                   Kokkos::subview( U_s, j, Kokkos::ALL, iX, Kokkos::ALL );
               auto u_r =
@@ -377,21 +379,22 @@ class TimeStepper {
             } );
 
         Kokkos::parallel_for(
-            "Timestepper::StageData", ihi + 2, KOKKOS_LAMBDA( const int iX ) {
+            "Timestepper::StageData", ihi + 2,
+            KOKKOS_CLASS_LAMBDA( const int iX ) {
               StageData( j, iX ) +=
                   dt * explicit_tableau_.a_ij( iS, j ) * Flux_Uj( iX );
             } );
       } // End inner loop
 
       auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
-      Grid_s[iS].UpdateGrid( StageDataj );
+      Grid_s[iS].update_grid( StageDataj );
 
       // set U_s
       Kokkos::parallel_for(
           "Timestepper 5",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
                                                   { ihi + 2, order } ),
-          KOKKOS_LAMBDA( const int iX, const int k ) {
+          KOKKOS_CLASS_LAMBDA( const int iX, const int k ) {
             U_s( iS, 0, iX, k )   = SumVar_U( 0, iX, k );
             U_s( iS, 1, iX, k )   = SumVar_U( 1, iX, k );
             U_s( iS, 2, iX, k )   = SumVar_U( 2, iX, k );
@@ -425,7 +428,7 @@ class TimeStepper {
           "Timestepper implicit",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 1, 1, 0 },
                                                   { 3, ihi + 1, order } ),
-          KOKKOS_LAMBDA( const int iC, const int iX, const int k ) {
+          KOKKOS_CLASS_LAMBDA( const int iC, const int iX, const int k ) {
             auto u_h = Kokkos::subview( U_s, iS, Kokkos::ALL, iX, Kokkos::ALL );
             auto u_r =
                 Kokkos::subview( U_s_r, iS, Kokkos::ALL, iX, Kokkos::ALL );
@@ -445,12 +448,12 @@ class TimeStepper {
       // TODO(astrobarker): slope limit rad
       auto Us_j_h =
           Kokkos::subview( U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-      ApplySlopeLimiter( S_Limiter, Us_j_h, &Grid_s[iS], Basis );
+      apply_slope_limiter( S_Limiter, Us_j_h, &Grid_s[iS], Basis );
       auto Us_j_r =
           Kokkos::subview( U_s_r, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-      ApplySlopeLimiter( S_Limiter, Us_j_r, &Grid_s[iS], Basis );
-      bel::ApplyBoundEnforcingLimiter( Us_j_h, Basis, eos );
-      bel::ApplyBoundEnforcingLimiterRad( Us_j_r, Basis, eos );
+      apply_slope_limiter( S_Limiter, Us_j_r, &Grid_s[iS], Basis );
+      bel::apply_bound_enforcing_limiter( Us_j_h, Basis, eos );
+      bel::apply_bound_enforcing_limiter_rad( Us_j_r, Basis, eos );
     } // end outer loop
 
     for ( unsigned short int iS = 0; iS < nStages; iS++ ) {
@@ -476,7 +479,7 @@ class TimeStepper {
           "Timestepper :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
                                                   { ihi + 2, order } ),
-          KOKKOS_LAMBDA( const int iX, const int k ) {
+          KOKKOS_CLASS_LAMBDA( const int iX, const int k ) {
             auto u_h = Kokkos::subview( U_s, iS, Kokkos::ALL, iX, Kokkos::ALL );
             auto u_r =
                 Kokkos::subview( U_s_r, iS, Kokkos::ALL, iX, Kokkos::ALL );
@@ -504,19 +507,19 @@ class TimeStepper {
 
       Kokkos::parallel_for(
           "Timestepper::StageData::final", ihi + 2,
-          KOKKOS_LAMBDA( const int iX ) {
+          KOKKOS_CLASS_LAMBDA( const int iX ) {
             StageData( iS, iX ) += dt_b * Flux_Ui( iX );
           } );
       auto StageDataj = Kokkos::subview( StageData, iS, Kokkos::ALL );
-      Grid_s[iS].UpdateGrid( StageDataj );
+      Grid_s[iS].update_grid( StageDataj );
     }
 
     // TODO(astrobarker): slope limit rad
     Grid = Grid_s[nStages - 1];
-    ApplySlopeLimiter( S_Limiter, uCF, &Grid, Basis );
-    ApplySlopeLimiter( S_Limiter, uCR, &Grid, Basis );
-    bel::ApplyBoundEnforcingLimiter( uCF, Basis, eos );
-    bel::ApplyBoundEnforcingLimiterRad( uCR, Basis, eos );
+    apply_slope_limiter( S_Limiter, uCF, &Grid, Basis );
+    apply_slope_limiter( S_Limiter, uCR, &Grid, Basis );
+    bel::apply_bound_enforcing_limiter( uCF, Basis, eos );
+    bel::apply_bound_enforcing_limiter_rad( uCR, Basis, eos );
   }
 
  private:

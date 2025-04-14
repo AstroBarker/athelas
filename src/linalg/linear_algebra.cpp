@@ -6,8 +6,8 @@
  * @brief Basic linear algebra functions.
  *
  * @details Linear algebra routines for quadrature and limiters.
- *          - Tri_Sym_Diag
- *          - InvertMatrix
+ *          - tri_sym_diag
+ *          - invert_matrix
  */
 
 #include <cstddef>
@@ -38,7 +38,7 @@
  *
  * @note This function is used in quadrature initialization.
  */
-void Tri_Sym_Diag( int n, Real* d, Real* e, Real* array ) {
+void tri_sym_diag( int n, Real* d, Real* e, Real* array ) {
 
   // Parameters for LaPack
   lapack_int m = 0, ldz = 0, info = 0, work_dim = 0;
@@ -59,7 +59,7 @@ void Tri_Sym_Diag( int n, Real* d, Real* e, Real* array ) {
 
   if ( info != 0 ) {
     THROW_ATHELAS_ERROR(
-        " ! Issue occured in initializing quadrature in Tri_Sym_Diag." );
+        " ! Issue occured in initializing quadrature in tri_sym_diag." );
   }
 
   // Matrix multiply ev' * array. Only Array[0] is nonzero.
@@ -75,7 +75,7 @@ void Tri_Sym_Diag( int n, Real* d, Real* e, Real* array ) {
 /**
  * @brief Use LAPACKE to invert a matrix M using LU factorization.
  **/
-void InvertMatrix( Real* M, int n ) {
+void invert_matrix( Real* M, int n ) {
   lapack_int info1 = 0, info2 = 0;
 
   int* IPIV = new int[n];

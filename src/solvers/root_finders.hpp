@@ -25,12 +25,12 @@ namespace root_finders {
 
 /* templated residual function */
 // template <typename T, typename F, typename... Args>
-// Real Residual( F g, T x0, Args... args ) {
+// Real residual( F g, T x0, Args... args ) {
 //   return g( x0, args... ) - x0;
 // }
 
 template <typename T, typename F, typename... Args>
-auto Residual( F g, T x0, const int k, const int iC, Args... args ) -> Real {
+auto residual( F g, T x0, const int k, const int iC, Args... args ) -> Real {
   return g( x0, k, iC, args... ) - x0( iC, k );
 }
 
@@ -54,8 +54,8 @@ auto fixed_point_aa( F target, T x0, Args... args ) -> T {
   while ( n <= root_finders::MAX_ITERS && error >= root_finders::FPTOL ) {
     /* Anderson acceleration step */
     T alpha =
-        -Residual( target, xk, args... ) /
-        ( Residual( target, xkm1, args... ) - Residual( target, xk, args... ) );
+        -residual( target, xk, args... ) /
+        ( residual( target, xkm1, args... ) - residual( target, xk, args... ) );
 
     T xkp1 = ( alpha * target( xkm1, args... ) ) +
              ( ( 1.0 - alpha ) * target( xk, args... ) );
@@ -151,9 +151,9 @@ auto fixed_point_aa( F target, const int k, T scratch, const int iC,
   }
   while ( n <= root_finders::MAX_ITERS && error >= root_finders::RELTOL ) {
     /* Anderson acceleration step */
-    Real alpha = -Residual( target, scratch, k, iC, args... ) /
-                 ( Residual( target, scratch_km1, k, iC, args... ) -
-                   Residual( target, scratch, k, iC, args... ) );
+    Real alpha = -residual( target, scratch, k, iC, args... ) /
+                 ( residual( target, scratch_km1, k, iC, args... ) -
+                   residual( target, scratch, k, iC, args... ) );
 
     xkp1 = alpha * target( scratch_km1, k, iC, args... ) +
            ( 1.0 - alpha ) * target( scratch, k, iC, args... );
@@ -237,7 +237,7 @@ auto fixed_point( F target, T x0, Args... args ) -> T {
   T error        = 1.0;
   while ( n <= root_finders::MAX_ITERS && error >= root_finders::FPTOL ) {
     T x1  = target( x0, args... );
-    error = std::abs( Residual( target, x0, args... ) );
+    error = std::abs( residual( target, x0, args... ) );
 #ifdef ATHELAS_DEBUG
     std::printf( " %d %f %f \n", n, x1, error );
 #endif
@@ -260,7 +260,7 @@ auto fixed_point( F target, T x0 ) -> T {
   T error        = 1.0;
   while ( n <= root_finders::MAX_ITERS && error >= root_finders::FPTOL ) {
     T x1  = target( x0 );
-    error = std::abs( Residual( target, x0 ) );
+    error = std::abs( residual( target, x0 ) );
 #ifdef ATHELAS_DEBUG
     std::printf( " %d %f %f \n", n, x1, error );
 #endif

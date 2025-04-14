@@ -27,11 +27,11 @@ class Constant : public OpacBase<Constant> {
   Constant( ) = default;
   explicit Constant( double k_ ) : k( k_ ) {}
 
-  auto PlanckMean( Real rho, Real T, Real X, Real Y, Real Z,
-                   Real* lambda ) const -> Real;
+  auto planck_mean( Real rho, Real T, Real X, Real Y, Real Z,
+                    Real* lambda ) const -> Real;
 
-  auto RosselandMean( Real rho, Real T, Real X, Real Y, Real Z,
-                      Real* lambda ) const -> Real;
+  auto rosseland_mean( Real rho, Real T, Real X, Real Y, Real Z,
+                       Real* lambda ) const -> Real;
 
  private:
   Real k{ };
@@ -42,11 +42,11 @@ class PowerlawRho : public OpacBase<PowerlawRho> {
   PowerlawRho( ) = default;
   PowerlawRho( double k_, double exp_ ) : k( k_ ), exp( exp_ ) {}
 
-  auto PlanckMean( Real rho, Real T, Real X, Real Y, Real Z,
-                   Real* lambda ) const -> Real;
+  auto planck_mean( Real rho, Real T, Real X, Real Y, Real Z,
+                    Real* lambda ) const -> Real;
 
-  auto RosselandMean( Real rho, Real T, Real X, Real Y, Real Z,
-                      Real* lambda ) const -> Real;
+  auto rosseland_mean( Real rho, Real T, Real X, Real Y, Real Z,
+                       Real* lambda ) const -> Real;
 
  private:
   Real k{ };

@@ -31,15 +31,15 @@ namespace bc {
  *  shockless_noh
  *  homogenous (Default)
  **/
-void ApplyBC( View3D<Real> U, GridStructure* Grid, const int order,
-              const std::string& BC ) {
+void apply_bc( View3D<Real> U, const GridStructure* Grid, const int order,
+               const std::string& BC ) {
 
-  const int ilo   = Grid->Get_ilo( );
-  const int ihi   = Grid->Get_ihi( );
+  const int ilo   = Grid->get_ilo( );
+  const int ihi   = Grid->get_ihi( );
   const int nvars = U.extent( 0 );
 
-  const int nX = Grid->Get_nElements( );
-  const int nG = Grid->Get_Guard( );
+  const int nX = Grid->get_n_elements( );
+  const int nG = Grid->get_guard( );
 
   // ! ? How to correctly implement reflecting BC ? !
   if ( utilities::to_lower( BC ) == "reflecting" ) {

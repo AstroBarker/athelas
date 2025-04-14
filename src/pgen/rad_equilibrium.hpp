@@ -22,14 +22,14 @@
  **/
 void rad_equilibrium_init( State* state, GridStructure* Grid,
                            const ProblemIn* pin ) {
-  View3D<Real> uCF = state->Get_uCF( );
-  View3D<Real> uPF = state->Get_uPF( );
-  View3D<Real> uCR = state->Get_uCR( );
-  const int pOrder = state->Get_pOrder( );
+  View3D<Real> uCF = state->get_u_cf( );
+  View3D<Real> uPF = state->get_u_pf( );
+  View3D<Real> uCR = state->get_u_cr( );
+  const int pOrder = state->get_p_order( );
 
-  const int ilo    = Grid->Get_ilo( );
-  const int ihi    = Grid->Get_ihi( );
-  const int nNodes = Grid->Get_nNodes( );
+  const int ilo    = Grid->get_ilo( );
+  const int ihi    = Grid->get_ihi( );
+  const int nNodes = Grid->get_n_nodes( );
 
   const int iCF_Tau = 0;
   const int iCF_V   = 1;

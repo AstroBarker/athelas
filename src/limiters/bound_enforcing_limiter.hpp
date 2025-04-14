@@ -12,11 +12,11 @@
  *          ensure physicality of the solution by preventing negative values of
  *          key physical quantities:
  *
- *          - LimitDensity: Prevents negative density by scaling slope
+ *          - limit_density: Prevents negative density by scaling slope
  *            coefficients
- *          - LimitInternalEnergy: Maintains positive internal energy using
+ *          - limit_internal_energy: Maintains positive internal energy using
  *            root-finding algorithms
- *          - LimitRadMomentum: Ensures physical radiation momentum values
+ *          - limit_rad_momentum: Ensures physical radiation momentum values
  *
  *          Multiple root finders for the internal energy solve are implemented
  *          and an Anderson accelerated fixed point iteration is the default.
@@ -30,24 +30,25 @@
 
 namespace bel {
 
-void LimitDensity( View3D<Real> U, const ModalBasis* Basis );
-void LimitInternalEnergy( View3D<Real> U, const ModalBasis* Basis,
-                          const EOS* eos );
-void LimitRadMomentum( View3D<Real> U, const ModalBasis* Basis,
-                       const EOS* eos );
-void ApplyBoundEnforcingLimiter( View3D<Real> U, const ModalBasis* Basis,
-                                 const EOS* eos );
-void ApplyBoundEnforcingLimiterRad( View3D<Real> U, const ModalBasis* Basis,
+void limit_density( View3D<Real> U, const ModalBasis* Basis );
+void limit_internal_energy( View3D<Real> U, const ModalBasis* Basis,
+                            const EOS* eos );
+void limit_rad_momentum( View3D<Real> U, const ModalBasis* Basis,
+                         const EOS* eos );
+void apply_bound_enforcing_limiter( View3D<Real> U, const ModalBasis* Basis,
                                     const EOS* eos );
-auto ComputeThetaState( View3D<Real> U, const ModalBasis* Basis, const EOS* eos,
-                        Real theta, int iCF, int iX, int iN ) -> Real;
-auto TargetFunc( Real theta, View3D<Real> U, const ModalBasis* Basis,
-                 const EOS* eos, int iX, int iN ) -> Real;
-auto TargetFuncRad( Real theta, View3D<Real> U, const ModalBasis* Basis,
-                    const EOS* eos, int iX, int iN ) -> Real;
+void apply_bound_enforcing_limiter_rad( View3D<Real> U, const ModalBasis* Basis,
+                                        const EOS* eos );
+auto compute_theta_state( View3D<Real> U, const ModalBasis* Basis,
+                          const EOS* eos, Real theta, int iCF, int iX, int iN )
+    -> Real;
+auto target_func( Real theta, View3D<Real> U, const ModalBasis* Basis,
+                  const EOS* eos, int iX, int iN ) -> Real;
+auto target_func_rad( Real theta, View3D<Real> U, const ModalBasis* Basis,
+                      const EOS* eos, int iX, int iN ) -> Real;
 
 template <typename F>
-auto Bisection( const View3D<Real> U, F target, const ModalBasis* Basis,
+auto bisection( const View3D<Real> U, F target, const ModalBasis* Basis,
                 const EOS* eos, const int iX, const int iN ) -> Real {
   const Real TOL      = 1e-10;
   const int MAX_ITERS = 100;
@@ -73,7 +74,7 @@ auto Bisection( const View3D<Real> U, F target, const ModalBasis* Basis,
     }
 
     // new interval
-    if ( utilities::sgn( fc ) == utilities::sgn( fa ) ) {
+    if ( utilities::SGN( fc ) == utilities::SGN( fa ) ) {
       a = c;
     } else {
       b = c;
@@ -82,12 +83,12 @@ auto Bisection( const View3D<Real> U, F target, const ModalBasis* Basis,
     n++;
   }
 
-  std::printf( "Max Iters Reach In Bisection\n" );
+  std::printf( "Max Iters Reach In bisection\n" );
   return c - delta;
 }
 
 template <typename F>
-auto Backtrace( const View3D<Real> U, F target, const ModalBasis* Basis,
+auto backtrace( const View3D<Real> U, F target, const ModalBasis* Basis,
                 const EOS* eos, const int iX, const int iN ) -> Real {
   constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
   Real theta                    = 1.0;

@@ -29,8 +29,8 @@ struct Options {
 
   std::string BC = "Homogenous";
 
-  geometry::Geometry geom    = geometry::Planar;
-  PolyBasis::PolyBasis basis = PolyBasis::Legendre;
+  geometry::Geometry geom      = geometry::Planar;
+  poly_basis::poly_basis basis = poly_basis::legendre;
 };
 
 class ProblemIn {
@@ -63,7 +63,7 @@ class ProblemIn {
 
   Real t_end;
 
-  PolyBasis::PolyBasis Basis;
+  poly_basis::poly_basis Basis;
   geometry::Geometry Geometry;
   bool Restart;
   bool do_rad;

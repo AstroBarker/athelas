@@ -138,11 +138,11 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   }
   if ( basis ) {
     Basis = ( utilities::to_lower( basis.value( ) ) == "legendre" )
-                ? PolyBasis::Legendre
-                : PolyBasis::Taylor;
+                ? poly_basis::legendre
+                : poly_basis::taylor;
   } else {
-    Basis = PolyBasis::Legendre;
-    std::printf( "   - Defaulting to Legendre polynomial basis!\n" );
+    Basis = poly_basis::legendre;
+    std::printf( "   - Defaulting to legendre polynomial basis!\n" );
   }
 
   if ( x1 ) {

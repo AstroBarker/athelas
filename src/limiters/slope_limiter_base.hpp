@@ -11,8 +11,8 @@
  *          as the foundation for all slope limiters implemented.
  *
  *          The class provides two key interface methods:
- *          - ApplySlopeLimiter: Applies the limiter to the solution
- *          - Get_Limited: Returns whether a cell was limited
+ *          - apply_slope_limiter: Applies the limiter to the solution
+ *          - get_limited: Returns whether a cell was limited
  */
 
 #include "abstractions.hpp"
@@ -21,13 +21,13 @@
 template <class SlopeLimiter>
 class SlopeLimiterBase {
  public:
-  void ApplySlopeLimiter( View3D<Real> U, const GridStructure* grid,
-                          const ModalBasis* basis ) const {
-    return static_cast<SlopeLimiter const*>( this )->ApplySlopeLimiter( U, grid,
-                                                                        basis );
+  void apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
+                            const ModalBasis* basis ) const {
+    return static_cast<SlopeLimiter const*>( this )->apply_slope_limiter(
+        U, grid, basis );
   }
-  [[nodiscard]] auto Get_Limited( const int iX ) const -> int {
-    return static_cast<SlopeLimiter const*>( this )->Get_Limited( iX );
+  [[nodiscard]] auto get_limited( const int iX ) const -> int {
+    return static_cast<SlopeLimiter const*>( this )->get_limited( iX );
   }
 };
 

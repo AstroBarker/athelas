@@ -9,8 +9,8 @@
  *
  * @details We implement the core DG updates for the fluid here, including
  *            - ComputerIncrement_Fluid_Divergence (hyperbolic term)
- *            - ComputeIncrement_Fluid_Geometry (geometric source)
- *            - ComputeIncrement_Fluid_Rad (radiation source term)
+ *            - compute_increment_fluid_geometry (geometric source)
+ *            - compute_increment_fluid_rad (radiation source term)
  */
 
 #include "Kokkos_Core.hpp"
@@ -21,28 +21,29 @@
 
 namespace fluid {
 
-void ComputeIncrement_Fluid_Divergence(
-    View3D<Real> U, GridStructure& Grid, const ModalBasis* Basis,
+void compute_increment_fluid_divergence(
+    View3D<Real> U, const GridStructure& Grid, const ModalBasis* Basis,
     const EOS* eos, View3D<Real> dU, View3D<Real> Flux_q,
     View2D<Real> dFlux_num, View2D<Real> uCF_F_L, View2D<Real> uCF_F_R,
     View1D<Real> Flux_U, View1D<Real> Flux_P );
 
-void ComputeIncrement_Fluid_Geometry( View3D<Real> U, GridStructure& Grid,
-                                      ModalBasis* Basis, EOS* eos,
-                                      View3D<Real> dU );
+void compute_increment_fluid_geometry( View3D<Real> U,
+                                       const GridStructure& Grid,
+                                       ModalBasis* Basis, EOS* eos,
+                                       View3D<Real> dU );
 
-auto ComputeIncrement_Fluid_Rad( View2D<Real> uCF, int k, int iCF,
-                                 View2D<Real> uCR, GridStructure& Grid,
+auto compute_increment_fluid_rad( View2D<Real> uCF, int k, int iCF,
+                                  View2D<Real> uCR, const GridStructure& Grid,
+                                  const ModalBasis* Basis, const EOS* eos,
+                                  const Opacity* opac, int iX ) -> Real;
+
+void compute_increment_explicit( View3D<Real> U, View3D<Real> uCR,
+                                 const GridStructure& Grid,
                                  const ModalBasis* Basis, const EOS* eos,
-                                 const Opacity* opac, int iX ) -> Real;
-
-void Compute_Increment_Explicit( View3D<Real> U, View3D<Real> uCR,
-                                 GridStructure& Grid, const ModalBasis* Basis,
-                                 const EOS* eos, View3D<Real> dU,
-                                 View3D<Real> Flux_q, View2D<Real> dFlux_num,
-                                 View2D<Real> uCF_F_L, View2D<Real> uCF_F_R,
-                                 View1D<Real> Flux_U, View1D<Real> Flux_P,
-                                 const Options* opts );
+                                 View3D<Real> dU, View3D<Real> Flux_q,
+                                 View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
+                                 View2D<Real> uCF_F_R, View1D<Real> Flux_U,
+                                 View1D<Real> Flux_P, const Options* opts );
 
 } // namespace fluid
 #endif // FLUID_DISCRETIZATION_HPP_

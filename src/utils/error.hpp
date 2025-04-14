@@ -34,9 +34,8 @@ enum AthelasExitCodes {
   UNKNOWN_ERROR                 = 255
 };
 
-
 inline void print_backtrace( ) {
-  std::cout << std::stacktrace::current() << std::endl;
+  std::cout << std::stacktrace::current( ) << std::endl;
 }
 
 [[noreturn]] inline void segfault_handler( int sig ) {
@@ -77,7 +76,6 @@ class AthelasError : public std::exception {
     full_message = oss.str( );
     return full_message.c_str( );
   }
-
 };
 
 template <typename... Args>
@@ -89,8 +87,8 @@ template <typename... Args>
 
 template <typename T>
 void check_state( T state, const int ihi, const bool do_rad ) {
-  auto uCR     = state->Get_uCR( );
-  auto uCF     = state->Get_uCF( );
+  auto uCR     = state->get_u_cr( );
+  auto uCF     = state->get_u_cf( );
   const Real c = constants::c_cgs;
 
   // Create host mirrors of the views

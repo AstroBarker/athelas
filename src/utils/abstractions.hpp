@@ -26,8 +26,8 @@ template <typename T>
 using View1D = Kokkos::View<T*>;
 
 /* Where to put this? */
-namespace PolyBasis {
-enum PolyBasis { Legendre, Taylor };
-} // namespace PolyBasis
+namespace poly_basis {
+enum poly_basis { legendre, taylor };
+} // namespace poly_basis
 
 #endif // ABSTRACTIONS_HPP_
