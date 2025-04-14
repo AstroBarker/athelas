@@ -20,31 +20,31 @@
 
 class State {
  public:
-  State( int nCF_, int nCR_, int nPF_, int nAF_, int nX_, int nG_, int nNodes_,
-         int pOrder_ );
+  State( int nCF, int nCR, int nPF, int nAF, int nX_, int nG_, int nNodes_,
+         int pOrder );
 
-  [[nodiscard]] auto get_n_cf( ) const -> int;
-  [[nodiscard]] auto get_n_cr( ) const -> int;
-  [[nodiscard]] auto get_n_pf( ) const -> int;
-  [[nodiscard]] auto get_n_af( ) const -> int;
-  [[nodiscard]] auto get_p_order( ) const -> int;
+  [[nodiscard]] auto get_n_cf( ) const noexcept -> int;
+  [[nodiscard]] auto get_n_cr( ) const noexcept -> int;
+  [[nodiscard]] auto get_n_pf( ) const noexcept -> int;
+  [[nodiscard]] auto get_n_af( ) const noexcept -> int;
+  [[nodiscard]] auto get_p_order( ) const noexcept -> int;
 
-  [[nodiscard]] View3D<Real> get_u_cf( ) const;
-  [[nodiscard]] View3D<Real> get_u_pf( ) const;
-  [[nodiscard]] View3D<Real> get_u_af( ) const;
-  [[nodiscard]] View3D<Real> get_u_cr( ) const;
+  [[nodiscard]] auto get_u_cf( ) const noexcept -> View3D<Real>;
+  [[nodiscard]] auto get_u_pf( ) const noexcept -> View3D<Real>;
+  [[nodiscard]] auto get_u_af( ) const noexcept -> View3D<Real>;
+  [[nodiscard]] auto get_u_cr( ) const noexcept -> View3D<Real>;
 
  private:
-  int nCF;
-  int nCR;
-  int nPF;
-  int nAF;
-  int pOrder;
+  int nCF_;
+  int nCR_;
+  int nPF_;
+  int nAF_;
+  int pOrder_;
 
-  View3D<Real> uCF{ }; // Conserved fluid
-  View3D<Real> uPF{ }; // primitive fluid
-  View3D<Real> uAF{ }; // auxiliary fluid
-  View3D<Real> uCR{ }; // conserved radiation
+  View3D<Real> uCF_{ }; // Conserved fluid
+  View3D<Real> uPF_{ }; // primitive fluid
+  View3D<Real> uAF_{ }; // auxiliary fluid
+  View3D<Real> uCR_{ }; // conserved radiation
 };
 
 #endif // STATE_HPP_

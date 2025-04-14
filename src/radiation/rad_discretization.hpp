@@ -23,13 +23,13 @@ namespace radiation {
 
 void compute_increment_rad_divergence(
     View3D<Real> uCR, View3D<Real> uCF, const GridStructure& rid,
-    const ModalBasis* Basis, const EOS* eos, View3D<Real> dU,
+    const ModalBasis* basis, const EOS* eos, View3D<Real> dU,
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
     View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P );
 
 void compute_increment_explicit_rad( View3D<Real> uCR, View3D<Real> uCF,
-                                     const GridStructure& Grid,
-                                     const ModalBasis* Basis, const EOS* eos,
+                                     const GridStructure& grid,
+                                     const ModalBasis* basis, const EOS* eos,
                                      View3D<Real> dU, View3D<Real> Flux_q,
                                      View2D<Real> dFlux_num,
                                      View2D<Real> uCR_F_L, View2D<Real> uCR_F_R,
@@ -37,8 +37,8 @@ void compute_increment_explicit_rad( View3D<Real> uCR, View3D<Real> uCF,
                                      const Options* opts );
 
 auto compute_increment_rad_source( View2D<Real> uCR, int k, int iCR,
-                                   View2D<Real> uCF, const GridStructure& Grid,
-                                   const ModalBasis* Basis, const EOS* eos,
+                                   View2D<Real> uCF, const GridStructure& grid,
+                                   const ModalBasis* basis, const EOS* eos,
                                    const Opacity* opac, int iX ) -> Real;
 } // namespace radiation
 #endif // RAD_DISCRETIZATION_HPP_

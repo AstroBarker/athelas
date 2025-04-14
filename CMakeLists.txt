@@ -41,7 +41,7 @@ set(Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION ON CACHE BOOL
     "Kokkos aggressive vectorization" FORCE)
 
 ### c++11 standards
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS False)
 
@@ -145,6 +145,7 @@ if (OPENMP_FOUND)
     endif()
     set(ENABLE_OPENMP ON)
     set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "Allow Kokkos to use OpenMP as execution space.")
+    include_directories(${OpenMP_CXX_INCLUDE_DIRS})
 endif(OPENMP_FOUND)
 
 set(ENABLE_COMPILER_WARNINGS False)
@@ -220,12 +221,12 @@ set_target_properties(main
 # yeah it's a mess but it works
 
 target_link_libraries( libathelas Kokkos::kokkos )
-target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} )
+target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenMP_CXX_FLAGS} )
 
-target_compile_options( main PRIVATE -fPIC -O2 -Wall -std=c++17 -llapacke )
+target_compile_options( main PRIVATE -fPIC -O2 -Wall -llapacke )
 add_dependencies( main libathelas )
 
-target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos )
+target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos stdc++exp ${OpenMP_CXX_FLAGS} )
 
 if ( ATHELAS_ENABLE_UNIT_TESTS )
   message("\nConfiguring tests")

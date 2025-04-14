@@ -7,6 +7,9 @@ Checks: >
   -cppcoreguidelines-avoid-magic-numbers,
   -cppcoreguidelines-pro-type-const-cast,
   -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-init-variables, # false positives
+  -cppcoreguidelines-misleading-capture-default-by-value, # kokkos
+  -cppcoreguidelines-misleading-capture-default-by-value,
   hicpp-*,
   modernize-*,
   -modernize-avoid-c-arrays,
@@ -18,6 +21,8 @@ Checks: >
   -readability-identifier-length,
   -readability-magic-numbers,
   -readability-make-member-functions-const,
+  -readability-suspicious-call-argument,
+  -readability-function-cognitive-complexity,
   misc-unused-parameters,
   misc-unused-alias-decls,
   -misc-const-correctness
@@ -41,7 +46,7 @@ CheckOptions:
     value: camelBack
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
-  - key: readability-identifier-naming.MemberSuffix
+  - key: readability-identifier-naming.PrivateMemberSuffix
     value: '_'
   - key: readability-identifier-naming.StructCase
     value: CamelCase

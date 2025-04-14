@@ -27,29 +27,29 @@
  * Write to standard output some initialization info
  * for the current simulation.
  **/
-void print_simulation_parameters( GridStructure Grid, ProblemIn* pin,
+void print_simulation_parameters( GridStructure grid, ProblemIn* pin,
                                   const Real CFL ) {
-  const int nX        = Grid.get_n_elements( );
-  const int nNodes    = Grid.get_n_nodes( );
-  const int basis_int = ( pin->Basis == poly_basis::legendre ) ? 0 : 1;
+  const int nX        = grid.get_n_elements( );
+  const int nNodes    = grid.get_n_nodes( );
+  const int basis_int = ( pin->basis == poly_basis::legendre ) ? 0 : 1;
 
   std::println( " ~ --- Physics Parameters --- " );
   std::println( " ~ Radiation      : {}", static_cast<int>( pin->do_rad ) );
   std::println( "" );
 
   std::println( " ~ --- Order Parameters --- " );
-  std::println( " ~ Basis          : {} ( 0 : legendre, 1: taylor )",
+  std::println( " ~ basis          : {} ( 0 : legendre, 1: taylor )",
                 basis_int );
   std::println( " ~ Spatial Order  : {}", pin->pOrder );
   std::println( " ~ Temporal Order : {}", pin->tOrder );
   std::println( " ~ RK Stages      : {}", pin->nStages );
   std::println( "" );
 
-  std::println( " ~ --- Grid Parameters --- " );
+  std::println( " ~ --- grid Parameters --- " );
   std::println( " ~ Mesh Elements  : {}", nX );
   std::println( " ~ Number Nodes   : {}", nNodes );
-  std::println( " ~ Lower Boundary : {}", Grid.get_x_l( ) );
-  std::println( " ~ Upper Boundary : {}", Grid.get_x_r( ) );
+  std::println( " ~ Lower Boundary : {}", grid.get_x_l( ) );
+  std::println( " ~ Upper Boundary : {}", grid.get_x_r( ) );
   std::println( "" );
 
   std::println( " ~ --- Limiter Parameters --- " );
@@ -82,7 +82,7 @@ void print_simulation_parameters( GridStructure Grid, ProblemIn* pin,
 /**
  * Write simulation output to disk
  **/
-void write_state( State* state, GridStructure Grid, SlopeLimiter* SL,
+void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
                   const std::string& problem_name, Real time, int order,
                   int i_write, bool do_rad ) {
   View3D<Real> uCF = state->get_u_cf( );
@@ -114,9 +114,9 @@ void write_state( State* state, GridStructure Grid, SlopeLimiter* SL,
 
   const char* fn2 = fn.c_str( );
 
-  const int nX   = Grid.get_n_elements( );
-  const int ilo  = Grid.get_ilo( );
-  const int ihi  = Grid.get_ihi( );
+  const int nX   = grid.get_n_elements( );
+  const int ilo  = grid.get_ilo( );
+  const int ihi  = grid.get_ihi( );
   const int size = ( nX * order );
 
   // Create data vectors
@@ -125,15 +125,15 @@ void write_state( State* state, GridStructure Grid, SlopeLimiter* SL,
   std::vector<DataType> eint( size );
   std::vector<DataType> erad( size );
   std::vector<DataType> frad( size );
-  std::vector<DataType> grid( nX );
+  std::vector<DataType> gridout( nX );
   std::vector<DataType> dr( nX );
   std::vector<DataType> limiter( nX );
 
   // Fill data vectors
   for ( int k = 0; k < order; k++ ) {
     for ( int iX = ilo; iX <= ihi; iX++ ) {
-      grid[( iX - ilo )].x              = Grid.get_centers( iX );
-      dr[( iX - ilo )].x                = Grid.get_widths( iX );
+      gridout[( iX - ilo )].x           = grid.get_centers( iX );
+      dr[( iX - ilo )].x                = grid.get_widths( iX );
       limiter[( iX - ilo )].x           = get_limited( SL, iX );
       tau[( iX - ilo ) + ( k * nX )].x  = uCF( 0, iX, k );
       vel[( iX - ilo ) + ( k * nX )].x  = uCF( 1, iX, k );
@@ -158,7 +158,7 @@ void write_state( State* state, GridStructure Grid, SlopeLimiter* SL,
   std::array<hsize_t, 1> dim = { static_cast<hsize_t>( tau.size( ) ) };
   H5::DataSpace space( 1, dim.data( ) );
 
-  std::array<hsize_t, 1> dim_grid = { static_cast<hsize_t>( grid.size( ) ) };
+  std::array<hsize_t, 1> dim_grid = { static_cast<hsize_t>( gridout.size( ) ) };
   H5::DataSpace space_grid( 1, dim_grid.data( ) );
 
   std::array<hsize_t, 1> dim_md = { 1 };
@@ -190,7 +190,7 @@ void write_state( State* state, GridStructure Grid, SlopeLimiter* SL,
   dataset_order.write( &order, H5::PredType::NATIVE_INT );
   dataset_time.write( &time, H5::PredType::NATIVE_DOUBLE );
 
-  dataset_grid.write( grid.data( ), H5::PredType::NATIVE_DOUBLE );
+  dataset_grid.write( gridout.data( ), H5::PredType::NATIVE_DOUBLE );
   dataset_width.write( dr.data( ), H5::PredType::NATIVE_DOUBLE );
   dataset_limiter.write( limiter.data( ), H5::PredType::NATIVE_DOUBLE );
   dataset_tau.write( tau.data( ), H5::PredType::NATIVE_DOUBLE );
@@ -208,9 +208,9 @@ void write_state( State* state, GridStructure Grid, SlopeLimiter* SL,
 }
 
 /**
- * Write Modal Basis coefficients and mass matrix
+ * Write Modal basis coefficients and mass matrix
  **/
-void write_basis( ModalBasis* Basis, unsigned int ilo, unsigned int ihi,
+void write_basis( ModalBasis* basis, unsigned int ilo, unsigned int ihi,
                   unsigned int nNodes, unsigned int order,
                   const std::string& problem_name ) {
   std::string fn = "athelas_basis_";
@@ -232,7 +232,7 @@ void write_basis( ModalBasis* Basis, unsigned int ilo, unsigned int ihi,
         const size_t idx =
             ( ( ( iX - ilo ) * ( nNodes + 2 ) + iN ) * order ) + k;
         data[idx] =
-            Basis->get_phi( static_cast<int>( iX ), static_cast<int>( iN ),
+            basis->get_phi( static_cast<int>( iX ), static_cast<int>( iN ),
                             static_cast<int>( k ) );
       }
     }
@@ -244,9 +244,9 @@ void write_basis( ModalBasis* Basis, unsigned int ilo, unsigned int ihi,
                                    static_cast<hsize_t>( nNodes + 2 ),
                                    static_cast<hsize_t>( order ) };
   H5::DataSpace dataspace( 3, dimsf.data( ) );
-  H5::DataSet BasisDataset =
-      file.createDataSet( "Basis", H5::PredType::NATIVE_DOUBLE, dataspace );
+  H5::DataSet basisDataset =
+      file.createDataSet( "basis", H5::PredType::NATIVE_DOUBLE, dataspace );
 
   // Write to File
-  BasisDataset.write( data.data( ), H5::PredType::NATIVE_DOUBLE );
+  basisDataset.write( data.data( ), H5::PredType::NATIVE_DOUBLE );
 }

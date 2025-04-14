@@ -20,15 +20,15 @@
 /**
  * @brief Initialize Sod shock tube
  **/
-void sod_init( State* state, GridStructure* Grid, const ProblemIn* pin ) {
+void sod_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   View3D<Real> uCF = state->get_u_cf( );
   View3D<Real> uPF = state->get_u_pf( );
   const int pOrder = state->get_p_order( );
 
-  const int ilo    = Grid->get_ilo( );
-  const int ihi    = Grid->get_ihi( );
-  const int nNodes = Grid->get_n_nodes( );
+  const int ilo    = grid->get_ilo( );
+  const int ihi    = grid->get_ihi( );
+  const int nNodes = grid->get_n_nodes( );
 
   constexpr static int iCF_Tau = 0;
   constexpr static int iCF_V   = 1;
@@ -46,7 +46,7 @@ void sod_init( State* state, GridStructure* Grid, const ProblemIn* pin ) {
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-        X1                    = Grid->get_centers( iX );
+        X1                    = grid->get_centers( iX );
         uCF( iCF_Tau, iX, k ) = 0.0;
         uCF( iCF_V, iX, k )   = 0.0;
         uCF( iCF_E, iX, k )   = 0.0;

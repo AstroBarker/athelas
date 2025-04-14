@@ -63,7 +63,7 @@ class ProblemIn {
 
   Real t_end;
 
-  poly_basis::poly_basis Basis;
+  poly_basis::poly_basis basis;
   geometry::Geometry Geometry;
   bool Restart;
   bool do_rad;

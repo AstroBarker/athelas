@@ -46,31 +46,31 @@ inline void print_backtrace( ) {
 
 class AthelasError : public std::exception {
  private:
-  std::string m_message;
-  std::string m_function;
-  std::string m_file;
-  int m_line;
+  std::string m_message_;
+  std::string m_function_;
+  std::string m_file_;
+  int m_line_;
 
  public:
   // Constructor with detailed error information
   explicit AthelasError( std::string message, const std::string& function = "",
                          const std::string& file = "", int line = 0 )
-      : m_message( std::move( message ) ), m_function( function ),
-        m_file( file ), m_line( line ) {}
+      : m_message_( std::move( message ) ), m_function_( function ),
+        m_file_( file ), m_line_( line ) {}
 
   // Override what() to provide error details
   [[nodiscard]] auto what( ) const noexcept -> const char* override {
     static thread_local std::string full_message;
     std::ostringstream oss;
 
-    oss << "!!! Athelas Error: " << m_message << "\n";
+    oss << "!!! Athelas Error: " << m_message_ << "\n";
 
-    if ( !m_function.empty( ) ) {
-      oss << "In function: " << m_function << "\n";
+    if ( !m_function_.empty( ) ) {
+      oss << "In function: " << m_function_ << "\n";
     }
 
-    if ( !m_file.empty( ) && m_line > 0 ) {
-      oss << "Location: " << m_file << ":" << m_line << "\n";
+    if ( !m_file_.empty( ) && m_line_ > 0 ) {
+      oss << "Location: " << m_file_ << ":" << m_line_ << "\n";
     }
 
     full_message = oss.str( );

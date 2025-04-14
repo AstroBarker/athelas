@@ -176,10 +176,9 @@ auto lambda_hll( const Real f, const int sign ) -> Real {
  *
  * Note: pass in Eulerian varaibles ( _ / cm^3 )
  **/
-std::tuple<Real, Real> numerical_flux_hll_rad( const Real E_L, const Real E_R,
-                                               const Real F_L, const Real F_R,
-                                               const Real P_L,
-                                               const Real P_R ) {
+auto numerical_flux_hll_rad( const Real E_L, const Real E_R, const Real F_L,
+                             const Real F_R, const Real P_L, const Real P_R )
+    -> std::tuple<Real, Real> {
   // flux factors
   const Real f_L = flux_factor( E_L, F_L );
   const Real f_R = flux_factor( E_R, F_R );
@@ -198,19 +197,19 @@ std::tuple<Real, Real> numerical_flux_hll_rad( const Real E_L, const Real E_R,
 /**
  * Compute the rad timestep.
  **/
-auto compute_timestep_rad( const GridStructure* Grid, const Real CFL ) -> Real {
+auto compute_timestep_rad( const GridStructure* grid, const Real CFL ) -> Real {
 
   const Real MIN_DT = 1.0e-16;
   const Real MAX_DT = 100.0;
 
-  const int& ilo = Grid->get_ilo( );
-  const int& ihi = Grid->get_ihi( );
+  const int& ilo = grid->get_ilo( );
+  const int& ihi = grid->get_ihi( );
 
   Real dt = 0.0;
   Kokkos::parallel_reduce(
       "Compute Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
       KOKKOS_LAMBDA( const int iX, Real& lmin ) {
-        Real dr = Grid->get_widths( iX );
+        Real dr = grid->get_widths( iX );
 
         Real eigval = constants::c_cgs;
 

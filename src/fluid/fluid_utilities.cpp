@@ -86,14 +86,14 @@ void numerical_flux_hllc( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
 /**
  * Compute the fluid timestep.
  **/
-auto compute_timestep_fluid( const View3D<Real> U, const GridStructure* Grid,
+auto compute_timestep_fluid( const View3D<Real> U, const GridStructure* grid,
                              EOS* eos, const Real CFL ) -> Real {
 
   const Real MIN_DT = 1.0e-14;
   const Real MAX_DT = 100.0;
 
-  const int& ilo = Grid->get_ilo( );
-  const int& ihi = Grid->get_ihi( );
+  const int& ilo = grid->get_ilo( );
+  const int& ihi = grid->get_ihi( );
 
   Real dt = 0.0;
   Kokkos::parallel_reduce(
@@ -107,7 +107,7 @@ auto compute_timestep_fluid( const View3D<Real> U, const GridStructure* Grid,
         assert( tau_x > 0.0 && "Compute Timestep :: bad specific volume" );
         assert( eint_x > 0.0 && "Compute Timestep :: bad specific energy" );
 
-        Real dr = Grid->get_widths( iX );
+        Real dr = grid->get_widths( iX );
 
         auto lambda = nullptr;
         const Real Cs =

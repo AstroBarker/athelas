@@ -70,13 +70,13 @@ auto compute_cfl( const Real CFL, const int order, const int nStages,
 /**
  * Compute timestep
  **/
-auto compute_timestep( const View3D<Real> U, const GridStructure* Grid,
+auto compute_timestep( const View3D<Real> U, const GridStructure* grid,
                        EOS* eos, const Real CFL, const Options* opts ) -> Real {
   Real dt = NAN;
   if ( !opts->do_rad ) {
-    dt = fluid::compute_timestep_fluid( U, Grid, eos, CFL );
+    dt = fluid::compute_timestep_fluid( U, grid, eos, CFL );
   } else {
-    dt = radiation::compute_timestep_rad( Grid, CFL );
+    dt = radiation::compute_timestep_rad( grid, CFL );
   }
   return dt;
 }
@@ -125,13 +125,13 @@ auto main( int argc, char** argv ) -> int {
                    .restart = pin.Restart,
                    .BC      = BC,
                    .geom    = pin.Geometry,
-                   .basis   = pin.Basis };
+                   .basis   = pin.basis };
 
   Kokkos::initialize( argc, argv );
   {
 
-    // --- Create the Grid object ---
-    GridStructure Grid( &pin );
+    // --- Create the grid object ---
+    GridStructure grid( &pin );
 
     // --- Create the data structures ---
     const int nCF = 3;
@@ -147,31 +147,31 @@ auto main( int argc, char** argv ) -> int {
 
     if ( not Restart ) {
       // --- Initialize fields ---
-      initialize_fields( &state, &Grid, &eos, &pin );
+      initialize_fields( &state, &grid, &eos, &pin );
 
-      bc::apply_bc( state.get_u_cf( ), &Grid, order, BC );
+      bc::apply_bc( state.get_u_cf( ), &grid, order, BC );
       if ( opts.do_rad ) {
-        bc::apply_bc( state.get_u_cr( ), &Grid, order, BC );
+        bc::apply_bc( state.get_u_cr( ), &grid, order, BC );
       }
     }
 
     // --- Datastructure for modal basis ---
-    ModalBasis Basis( pin.Basis, state.get_u_pf( ), &Grid, order, nNodes, nX,
+    ModalBasis basis( pin.basis, state.get_u_pf( ), &grid, order, nNodes, nX,
                       nGuard );
 
-    write_basis( &Basis, nGuard, Grid.get_ihi( ), nNodes, order, problem_name );
+    write_basis( &basis, nGuard, grid.get_ihi( ), nNodes, order, problem_name );
 
     // --- Initialize timestepper ---
-    TimeStepper SSPRK( &pin, Grid );
+    TimeStepper SSPRK( &pin, grid );
 
     SlopeLimiter S_Limiter =
-        limiter_utilities::initialize_slope_limiter( &Grid, &pin, 3 );
+        limiter_utilities::initialize_slope_limiter( &grid, &pin, 3 );
     // --- Limit the initial conditions ---
-    apply_slope_limiter( &S_Limiter, state.get_u_cf( ), &Grid, &Basis );
+    apply_slope_limiter( &S_Limiter, state.get_u_cf( ), &grid, &basis );
 
     // -- print run parameters  and initial condition ---
-    print_simulation_parameters( Grid, &pin, CFL );
-    write_state( &state, Grid, &S_Limiter, problem_name, t, order, 0,
+    print_simulation_parameters( grid, &pin, CFL );
+    write_state( &state, grid, &S_Limiter, problem_name, t, order, 0,
                  opts.do_rad );
 
     // --- Timer ---
@@ -199,33 +199,33 @@ auto main( int argc, char** argv ) -> int {
       timer_zone_cycles.reset( );
 
       dt = std::min(
-          compute_timestep( state.get_u_cf( ), &Grid, &eos, CFL, &opts ),
+          compute_timestep( state.get_u_cf( ), &grid, &eos, CFL, &opts ),
           dt * dt_init_frac );
       if ( t + dt > t_end ) {
         dt = t_end - t;
       }
 
       if ( !opts.do_rad ) {
-        SSPRK.update_fluid( fluid::compute_increment_explicit, dt, &state, Grid,
-                            &Basis, &eos, &S_Limiter, &opts );
+        SSPRK.update_fluid( fluid::compute_increment_explicit, dt, &state, grid,
+                            &basis, &eos, &S_Limiter, &opts );
       } else {
         // TODO(astrobarker): compile time swap operator splitting
         // SSPRK.update_fluid( compute_increment_explicit, 0.5 * dt, &state,
-        // Grid,
-        //                    &Basis, &eos, &S_Limiter, opts );
+        // grid,
+        //                    &basis, &eos, &S_Limiter, opts );
         // SSPRK.update_radiation( compute_increment_explicit_rad, dt, &state,
-        // Grid,
-        //                        &Basis, &eos, &S_Limiter, opts );
+        // grid,
+        //                        &basis, &eos, &S_Limiter, opts );
         // SSPRK.update_fluid( compute_increment_explicit, 0.5 * dt, &state,
-        // Grid,
-        //                    &Basis, &eos, &S_Limiter, opts );
+        // grid,
+        //                    &basis, &eos, &S_Limiter, opts );
 
         try {
           SSPRK.update_rad_hydro( fluid::compute_increment_explicit,
                                   radiation::compute_increment_explicit_rad,
                                   fluid::compute_increment_fluid_rad,
                                   radiation::compute_increment_rad_source, dt,
-                                  &state, Grid, &Basis, &eos, &opac, &S_Limiter,
+                                  &state, grid, &basis, &eos, &opac, &S_Limiter,
                                   &opts );
         } catch ( const AthelasError& e ) {
           std::cerr << e.what( ) << std::endl;
@@ -238,11 +238,11 @@ auto main( int argc, char** argv ) -> int {
 
 #ifdef ATHELAS_DEBUG
       try {
-        check_state( &state, Grid.get_ihi( ), pin.do_rad );
+        check_state( &state, grid.get_ihi( ), pin.do_rad );
       } catch ( const AthelasError& e ) {
         std::cerr << e.what( ) << std::endl;
         std::println( "!!! Bad State found, writing _final_ output file ..." );
-        write_state( &state, Grid, &S_Limiter, problem_name, t, order, -1,
+        write_state( &state, grid, &S_Limiter, problem_name, t, order, -1,
                      opts.do_rad );
         return AthelasExitCodes::FAILURE;
       }
@@ -254,7 +254,7 @@ auto main( int argc, char** argv ) -> int {
 
       // Write state
       if ( t >= i_out * dt_hdf5 ) {
-        write_state( &state, Grid, &S_Limiter, problem_name, t, order, i_out,
+        write_state( &state, grid, &S_Limiter, problem_name, t, order, i_out,
                      opts.do_rad );
         i_out += 1;
       }
@@ -271,8 +271,8 @@ auto main( int argc, char** argv ) -> int {
     // --- Finalize timer ---
     Real const time = timer_total.seconds( );
     std::println( " ~ Done! Elapsed time: {} seconds.", time );
-    bc::apply_bc( state.get_u_cf( ), &Grid, order, BC );
-    write_state( &state, Grid, &S_Limiter, problem_name, t, order, -1,
+    bc::apply_bc( state.get_u_cf( ), &grid, order, BC );
+    write_state( &state, grid, &S_Limiter, problem_name, t, order, -1,
                  opts.do_rad );
   }
   Kokkos::finalize( );

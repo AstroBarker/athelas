@@ -21,14 +21,14 @@ auto IdealGas::pressure_from_conserved( const Real tau, const Real V,
     -> Real {
   const Real Em = EmT - ( 0.5 * V * V );
   const Real Ev = Em / tau;
-  return ( gamma - 1.0 ) * Ev;
+  return ( gamma_ - 1.0 ) * Ev;
 }
 
 auto IdealGas::sound_speed_from_conserved( const Real /*tau*/, const Real V,
                                            const Real EmT,
                                            Real* /*lambda*/ ) const -> Real {
   const Real Em = EmT - ( 0.5 * V * V );
-  return std::sqrt( gamma * ( gamma - 1.0 ) * Em );
+  return std::sqrt( gamma_ * ( gamma_ - 1.0 ) * Em );
 }
 
 Real IdealGas::temperature_from_tau_pressure_abar( const Real tau, const Real P,

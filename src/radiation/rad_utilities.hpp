@@ -35,9 +35,9 @@ auto source_rad( Real D, Real V, Real T, Real kappa_r, Real kappa_p, Real E,
 auto compute_closure( Real E, Real F ) -> Real;
 auto lambda_hll( Real f, int sign ) -> Real;
 void llf_flux( Real Fp, Real Fm, Real Up, Real Um, Real alpha, Real& out );
-std::tuple<Real, Real> numerical_flux_hll_rad( Real E_L, Real E_R, Real F_L,
-                                               Real F_R, Real P_L, Real P_R );
-auto compute_timestep_rad( const GridStructure* Grid, Real CFL ) -> Real;
+auto numerical_flux_hll_rad( Real E_L, Real E_R, Real F_L, Real F_R, Real P_L,
+                             Real P_R ) -> std::tuple<Real, Real>;
+auto compute_timestep_rad( const GridStructure* grid, Real CFL ) -> Real;
 
 } // namespace radiation
 #endif // RAD_UTILITIES_HPP_

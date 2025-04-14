@@ -53,7 +53,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   }
 
   // fluid
-  std::optional<std::string> basis =
+  std::optional<std::string> basis_ =
       in_table["fluid"]["basis"].value<std::string>( );
   std::optional<int> nN = in_table["fluid"]["nnodes"].value<int>( );
   std::optional<int> nX = in_table["fluid"]["nx"].value<int>( );
@@ -136,12 +136,12 @@ ProblemIn::ProblemIn( const std::string& fn ) {
     std::printf( "   - Defaulting to planar geometry!\n" );
     Geometry = geometry::Planar; // default
   }
-  if ( basis ) {
-    Basis = ( utilities::to_lower( basis.value( ) ) == "legendre" )
+  if ( basis_ ) {
+    basis = ( utilities::to_lower( basis_.value( ) ) == "legendre" )
                 ? poly_basis::legendre
                 : poly_basis::taylor;
   } else {
-    Basis = poly_basis::legendre;
+    basis = poly_basis::legendre;
     std::printf( "   - Defaulting to legendre polynomial basis!\n" );
   }
 

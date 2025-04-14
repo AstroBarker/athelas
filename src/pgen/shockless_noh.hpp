@@ -20,16 +20,16 @@
 /**
  * @brief Initialize shockless Noh problem
  **/
-void shockless_noh_init( State* state, GridStructure* Grid,
+void shockless_noh_init( State* state, GridStructure* grid,
                          const ProblemIn* pin ) {
 
   View3D<Real> uCF = state->get_u_cf( );
   View3D<Real> uPF = state->get_u_pf( );
   const int pOrder = state->get_p_order( );
 
-  const int ilo    = Grid->get_ilo( );
-  const int ihi    = Grid->get_ihi( );
-  const int nNodes = Grid->get_n_nodes( );
+  const int ilo    = grid->get_ilo( );
+  const int ihi    = grid->get_ihi( );
+  const int nNodes = grid->get_n_nodes( );
 
   constexpr static int iCF_Tau = 0;
   constexpr static int iCF_V   = 1;
@@ -45,7 +45,7 @@ void shockless_noh_init( State* state, GridStructure* Grid,
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-        X1                    = Grid->get_centers( iX );
+        X1                    = grid->get_centers( iX );
         uCF( iCF_Tau, iX, k ) = 0.0;
         uCF( iCF_V, iX, k )   = 0.0;
         uCF( iCF_E, iX, k )   = 0.0;
@@ -57,8 +57,8 @@ void shockless_noh_init( State* state, GridStructure* Grid,
               E_M + 0.5 * uCF( iCF_V, iX, 0 ) * uCF( iCF_V, iX, 0 );
         } else if ( k == 1 ) {
           uCF( iCF_Tau, iX, k ) = 0.0;
-          uCF( iCF_V, iX, k )   = -Grid->get_widths( iX );
-          uCF( iCF_E, iX, k )   = ( -X1 ) * ( -Grid->get_widths( iX ) );
+          uCF( iCF_V, iX, k )   = -grid->get_widths( iX );
+          uCF( iCF_E, iX, k )   = ( -X1 ) * ( -grid->get_widths( iX ) );
         } else if ( k == 2 ) {
           uCF( iCF_Tau, iX, k ) = 0.0;
           uCF( iCF_V, iX, k )   = 0.0;

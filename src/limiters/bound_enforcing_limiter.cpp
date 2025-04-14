@@ -22,6 +22,7 @@
  */
 
 #include <algorithm> // std::min, std::max
+#include <cmath>
 #include <cstdlib> /* abs */
 #include <iostream>
 
@@ -34,7 +35,6 @@
 #include "polynomial_basis.hpp"
 #include "solvers/root_finders.hpp"
 #include "utilities.hpp"
-#include <math.h>
 
 namespace bel {
 
@@ -47,11 +47,11 @@ namespace bel {
  * eps)/(rho_nodal - rho_avg), 1)
  *
  * @param U The solution array containing conserved variables
- * @param Basis The modal basis used for the solution representation
+ * @param basis The modal basis used for the solution representation
  */
-void limit_density( View3D<Real> U, const ModalBasis* Basis ) {
+void limit_density( View3D<Real> U, const ModalBasis* basis ) {
   constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
-  const int order               = Basis->get_order( );
+  const int order               = basis->get_order( );
 
   if ( order == 1 ) {
     return;
@@ -66,7 +66,7 @@ void limit_density( View3D<Real> U, const ModalBasis* Basis ) {
         Real avg    = U( 0, iX, 0 );
 
         for ( int iN = 0; iN <= order; iN++ ) {
-          nodal = Basis->basis_eval( U, iX, 0, iN );
+          nodal = basis->basis_eval( U, iX, 0, iN );
           if ( std::isnan( nodal ) ) {
             theta1 = 0.0;
             break;
@@ -104,12 +104,12 @@ void limit_density( View3D<Real> U, const ModalBasis* Basis ) {
  *          necessary.
  *
  * @param U The solution array containing conserved variables
- * @param Basis The modal basis used for the solution representation
+ * @param basis The modal basis used for the solution representation
  * @param eos The equation of state object used for thermodynamic calculations
  */
-void limit_internal_energy( View3D<Real> U, const ModalBasis* Basis,
+void limit_internal_energy( View3D<Real> U, const ModalBasis* basis,
                             const EOS* eos ) {
-  const int order = Basis->get_order( );
+  const int order = basis->get_order( );
 
   if ( order == 1 ) {
     return;
@@ -125,16 +125,16 @@ void limit_internal_energy( View3D<Real> U, const ModalBasis* Basis,
         Real temp                     = 0.0;
 
         for ( int iN = 0; iN <= order + 1; iN++ ) {
-          nodal = utilities::compute_internal_energy( U, Basis, iX, iN );
+          nodal = utilities::compute_internal_energy( U, basis, iX, iN );
 
           if ( nodal > EPSILON ) {
             temp = 1.0;
           } else {
-            // temp = backtrace( U, target_func, Basis, eos, iX, iN );
+            // temp = backtrace( U, target_func, basis, eos, iX, iN );
             // const Real theta_guess = 0.9; // needed for fixed point
             // temp = root_finders::fixed_point_aa_root(target_func,
-            // theta_guess, U, Basis, eos, iX, iN) - 1.0e-3;
-            temp = bisection( U, target_func, Basis, eos, iX, iN );
+            // theta_guess, U, basis, eos, iX, iN) - 1.0e-3;
+            temp = bisection( U, target_func, basis, eos, iX, iN );
           }
           theta2 = std::min( theta2, temp );
         }
@@ -147,25 +147,25 @@ void limit_internal_energy( View3D<Real> U, const ModalBasis* Basis,
       } );
 }
 
-void apply_bound_enforcing_limiter( View3D<Real> U, const ModalBasis* Basis,
+void apply_bound_enforcing_limiter( View3D<Real> U, const ModalBasis* basis,
                                     const EOS* eos )
 
 {
-  limit_density( U, Basis );
-  limit_internal_energy( U, Basis, eos );
+  limit_density( U, basis );
+  limit_internal_energy( U, basis, eos );
 }
 
 // TODO(astrobarker): much more here.
-void apply_bound_enforcing_limiter_rad( View3D<Real> U, const ModalBasis* Basis,
+void apply_bound_enforcing_limiter_rad( View3D<Real> U, const ModalBasis* basis,
                                         const EOS* eos ) {
-  if ( Basis->get_order( ) == 1 ) {
+  if ( basis->get_order( ) == 1 ) {
     return;
   }
-  limit_rad_momentum( U, Basis, eos );
+  limit_rad_momentum( U, basis, eos );
 }
-void limit_rad_momentum( View3D<Real> U, const ModalBasis* Basis,
+void limit_rad_momentum( View3D<Real> U, const ModalBasis* basis,
                          const EOS* eos ) {
-  const int order = Basis->get_order( );
+  const int order = basis->get_order( );
 
   Kokkos::parallel_for(
       "BEF::Limit Rad Momentum", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
@@ -175,16 +175,16 @@ void limit_rad_momentum( View3D<Real> U, const ModalBasis* Basis,
         Real temp   = 0.0;
 
         for ( int iN = 0; iN <= order + 1; iN++ ) {
-          nodal = Basis->basis_eval( U, iX, 1, iN );
+          nodal = basis->basis_eval( U, iX, 1, iN );
 
           if ( nodal >= 0.0 && nodal <= U( 0, iX, 0 ) ) {
             temp = 1.0;
           } else {
             // TODO(astrobarker): Backtracing may be working okay...
             // const Real theta_guess = 0.9;
-            // temp = backtrace( target_func_rad, theta_guess, U, Basis, eos,
+            // temp = backtrace( target_func_rad, theta_guess, U, basis, eos,
             // iX, iN );
-            temp = bisection( U, target_func_rad, Basis, eos, iX, iN );
+            temp = bisection( U, target_func_rad, basis, eos, iX, iN );
           }
           theta2 = std::min( theta2, temp );
         }
@@ -198,10 +198,10 @@ void limit_rad_momentum( View3D<Real> U, const ModalBasis* Basis,
 /* --- Utility Functions --- */
 
 // ( 1 - theta ) U_bar + theta U_q
-auto compute_theta_state( const View3D<Real> U, const ModalBasis* Basis,
+auto compute_theta_state( const View3D<Real> U, const ModalBasis* basis,
                           const Real theta, const int iCF, const int iX,
                           const int iN ) -> Real {
-  Real result = Basis->basis_eval( U, iX, iCF, iN );
+  Real result = basis->basis_eval( U, iX, iCF, iN );
   result -= U( iCF, iX, 0 );
   result *= theta;
   result += U( iCF, iX, 0 );
@@ -209,12 +209,12 @@ auto compute_theta_state( const View3D<Real> U, const ModalBasis* Basis,
 }
 
 auto target_func( const Real theta, const View3D<Real> U,
-                  const ModalBasis* Basis, const EOS* /*eos*/, const int iX,
+                  const ModalBasis* basis, const EOS* /*eos*/, const int iX,
                   const int iN ) -> Real {
   const Real w =
       std::min( 1.0e-10, utilities::compute_internal_energy( U, iX ) );
-  const Real s1 = compute_theta_state( U, Basis, theta, 1, iX, iN );
-  const Real s2 = compute_theta_state( U, Basis, theta, 2, iX, iN );
+  const Real s1 = compute_theta_state( U, basis, theta, 1, iX, iN );
+  const Real s2 = compute_theta_state( U, basis, theta, 2, iX, iN );
 
   Real const e = s2 - ( 0.5 * s1 * s1 );
 
@@ -222,10 +222,10 @@ auto target_func( const Real theta, const View3D<Real> U,
 }
 
 auto target_func_rad( const Real theta, const View3D<Real> U,
-                      const ModalBasis* Basis, const EOS* /*eos*/, const int iX,
+                      const ModalBasis* basis, const EOS* /*eos*/, const int iX,
                       const int iN ) -> Real {
   const Real w  = std::min( 1.0e-13, U( 1, iX, 0 ) );
-  const Real s1 = compute_theta_state( U, Basis, theta, 1, iX, iN );
+  const Real s1 = compute_theta_state( U, basis, theta, 1, iX, iN );
 
   const Real e = s1;
 

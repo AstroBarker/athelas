@@ -7,6 +7,7 @@
  */
 
 #include <algorithm> // std::min, std::max
+#include <cmath>
 #include <cstdlib> /* abs */
 #include <iostream>
 #include <limits>
@@ -14,8 +15,6 @@
 #include "slope_limiter.hpp"
 #include "slope_limiter_utilities.hpp"
 #include "utilities.hpp"
-
-#include <math.h>
 
 namespace limiter_utilities {
 
@@ -85,11 +84,11 @@ auto barth_jespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T,
  * to flag cells for limiting
  **/
 void detect_troubled_cells( View3D<Real> U, View2D<Real> D,
-                            const GridStructure* Grid,
-                            const ModalBasis* Basis ) {
+                            const GridStructure* grid,
+                            const ModalBasis* basis ) {
   const int nvars = U.extent( 0 );
-  const int ilo   = Grid->get_ilo( );
-  const int ihi   = Grid->get_ihi( );
+  const int ilo   = grid->get_ilo( );
+  const int ihi   = grid->get_ihi( );
 
   // Cell averages by extrapolating L and R neighbors into current cell
 
@@ -107,9 +106,9 @@ void detect_troubled_cells( View3D<Real> U, View2D<Real> D,
           // Extrapolate neighboring poly representations into current cell
           // and compute the new cell averages
           Real cell_avg_L_T =
-              cell_average( U, Grid, Basis, iC, iX + 1, -1 ); // from right
+              cell_average( U, grid, basis, iC, iX + 1, -1 ); // from right
           Real cell_avg_R_T =
-              cell_average( U, Grid, Basis, iC, iX - 1, +1 ); // from left
+              cell_average( U, grid, basis, iC, iX - 1, +1 ); // from left
           Real cell_avg_L = U( iC, iX - 1, 0 ); // native left
           Real cell_avg_R = U( iC, iX + 1, 0 ); // native right
 
@@ -133,10 +132,10 @@ void detect_troubled_cells( View3D<Real> U, View2D<Real> D,
  * -1 : Extrapolate left, e.g.,  polynomial from iX+1 into iX
  * +1 : Extrapolate right, e.g.,  polynomial from iX-1 into iX
  **/
-auto cell_average( View3D<Real> U, const GridStructure* Grid,
-                   const ModalBasis* Basis, const int iCF, const int iX,
+auto cell_average( View3D<Real> U, const GridStructure* grid,
+                   const ModalBasis* basis, const int iCF, const int iX,
                    const int extrapolate ) -> Real {
-  const int nNodes = Grid->get_n_nodes( );
+  const int nNodes = grid->get_n_nodes( );
 
   Real avg  = 0.0;
   Real mass = 0.0;
@@ -165,12 +164,12 @@ auto cell_average( View3D<Real> U, const GridStructure* Grid,
   end = start + nNodes - 1;
 
   for ( int iN = start; iN < end; iN++ ) {
-    X = Grid->node_coordinate( iX + extrapolate, iN - start );
-    mass += Grid->get_weights( iN - start ) * Grid->get_sqrt_gm( X ) *
-            Grid->get_widths( iX + extrapolate );
-    avg += Grid->get_weights( iN - start ) *
-           Basis->basis_eval( U, iX + extrapolate, iCF, iN + 1 ) *
-           Grid->get_sqrt_gm( X ) * Grid->get_widths( iX + extrapolate );
+    X = grid->node_coordinate( iX + extrapolate, iN - start );
+    mass += grid->get_weights( iN - start ) * grid->get_sqrt_gm( X ) *
+            grid->get_widths( iX + extrapolate ); // TODO(astrobarker) rho
+    avg += grid->get_weights( iN - start ) *
+           basis->basis_eval( U, iX + extrapolate, iCF, iN + 1 ) *
+           grid->get_sqrt_gm( X ) * grid->get_widths( iX + extrapolate );
   }
 
   return avg / mass;
@@ -208,7 +207,7 @@ void modify_polynomial( const View3D<Real> U, View2D<Real> modified_polynomial,
 // WENO smoothness indicator beta
 auto smoothness_indicator( const View3D<Real> U,
                            const View2D<Real> modified_polynomial,
-                           const GridStructure* Grid, const int iX, const int i,
+                           const GridStructure* grid, const int iX, const int i,
                            const int /*iCQ*/ ) -> Real {
   const int k = U.extent( 2 );
 
@@ -217,12 +216,12 @@ auto smoothness_indicator( const View3D<Real> U,
     // integrate mode on cell
     Real local_sum = 0.0;
     for ( int iN = 0; iN < k; iN++ ) {
-      auto X = Grid->node_coordinate( iX, iN );
-      local_sum += Grid->get_weights( iN ) *
+      auto X = grid->node_coordinate( iX, iN );
+      local_sum += grid->get_weights( iN ) *
                    std::pow( modified_polynomial( i, s ) *
                                  ModalBasis::d_legendre_n( k, s, X ),
                              2.0 ) *
-                   std::pow( Grid->get_widths( iX ), 2.0 * s );
+                   std::pow( grid->get_widths( iX ), 2.0 * s );
     }
     beta += local_sum;
   }

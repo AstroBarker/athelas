@@ -29,7 +29,7 @@ void numerical_flux_gudonov( Real vL, Real vR, Real pL, Real pR, Real zL,
                              Real zR, Real& Flux_U, Real& Flux_P );
 void numerical_flux_hllc( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
                           Real rhoL, Real rhoR, Real& Flux_U, Real& Flux_P );
-auto compute_timestep_fluid( View3D<Real> U, const GridStructure* Grid,
+auto compute_timestep_fluid( View3D<Real> U, const GridStructure* grid,
                              EOS* eos, Real CFL ) -> Real;
 
 } // namespace fluid

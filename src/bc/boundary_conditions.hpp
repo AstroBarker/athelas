@@ -19,7 +19,7 @@
 #include "grid.hpp"
 
 namespace bc {
-void apply_bc( View3D<Real> uCF, const GridStructure* Grid, int order,
+void apply_bc( View3D<Real> uCF, const GridStructure* grid, int order,
                const std::string& BC );
 } // namespace bc
 #endif // BOUNDARY_CONDITIONS_HPP_

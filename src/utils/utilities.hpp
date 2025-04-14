@@ -33,10 +33,10 @@ constexpr auto SGN( T val ) -> int {
 
 // nodal specific internal energy
 template <class T>
-auto compute_internal_energy( T U, const ModalBasis* Basis, const int iX,
+auto compute_internal_energy( T U, const ModalBasis* basis, const int iX,
                               const int iN ) -> Real {
-  const Real Vel = Basis->basis_eval( U, iX, 1, iN );
-  const Real EmT = Basis->basis_eval( U, iX, 2, iN );
+  const Real Vel = basis->basis_eval( U, iX, 1, iN );
+  const Real EmT = basis->basis_eval( U, iX, 2, iN );
 
   return EmT - ( 0.5 * Vel * Vel );
 }

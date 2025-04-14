@@ -22,16 +22,16 @@
  * @brief Initialize radiation advection test
  * @note EXPERIMENTAL
  **/
-void rad_advection_init( State* state, GridStructure* Grid,
+void rad_advection_init( State* state, GridStructure* grid,
                          const ProblemIn* pin ) {
   View3D<Real> uCF = state->get_u_cf( );
   View3D<Real> uPF = state->get_u_pf( );
   View3D<Real> uCR = state->get_u_cr( );
   const int pOrder = state->get_p_order( );
 
-  const int ilo    = Grid->get_ilo( );
-  const int ihi    = Grid->get_ihi( );
-  const int nNodes = Grid->get_n_nodes( );
+  const int ilo    = grid->get_ilo( );
+  const int ihi    = grid->get_ihi( );
+  const int nNodes = grid->get_n_nodes( );
 
   const int iCF_Tau = 0;
   const int iCF_V   = 1;
@@ -50,7 +50,7 @@ void rad_advection_init( State* state, GridStructure* Grid,
   for ( int iX = 0; iX <= ihi + 1; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-        Real const X1         = Grid->get_centers( iX );
+        Real const X1         = grid->get_centers( iX );
         uCF( iCF_Tau, iX, k ) = 0.0;
         uCF( iCF_V, iX, k )   = 0.0;
         uCF( iCF_E, iX, k )   = 0.0;

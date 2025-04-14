@@ -9,9 +9,9 @@
  *Template Pattern (CRTP)
  *
  * @details This header defines the EosBase template class that serves as the
- *foundation for all equation of state implementations in the codebase. It uses
- *the CRTP to provide a common interface while allowing derived classes to
- *implement specific EOS behaviors.
+ * foundation for all equation of state implementations in the codebase. It uses
+ * the CRTP to provide a common interface while allowing derived classes to
+ * implement specific EOS behaviors.
  *
  *          The class provides the following:
  *          - pressure_from_conserved

@@ -21,4 +21,4 @@ ContinuationIndentWidth: 4
 
 
 BreakBeforeBraces: Attach
-PointerAlignment: Right
+PointerAlignment: Left

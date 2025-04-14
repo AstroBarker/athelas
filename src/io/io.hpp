@@ -27,14 +27,14 @@ struct DataType {
   Real x{ };
 };
 
-void write_state( State* state, GridStructure Grid, SlopeLimiter* SL,
+void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
                   const std::string& problem_name, Real time, int order,
                   int i_write, bool do_rad );
 
-void print_simulation_parameters( GridStructure Grid, ProblemIn* pin,
+void print_simulation_parameters( GridStructure grid, ProblemIn* pin,
                                   Real CFL );
 
-void write_basis( ModalBasis* Basis, unsigned int ilo, unsigned int ihi,
+void write_basis( ModalBasis* basis, unsigned int ilo, unsigned int ihi,
                   unsigned int nNodes, unsigned int order,
                   const std::string& problem_name );
 

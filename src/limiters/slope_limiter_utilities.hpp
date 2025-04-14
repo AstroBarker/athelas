@@ -44,11 +44,11 @@ auto barth_jespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T,
                       Real U_c_R, Real alpha ) -> Real;
 
 void detect_troubled_cells( View3D<Real> U, View2D<Real> D,
-                            const GridStructure* Grid,
-                            const ModalBasis* Basis );
+                            const GridStructure* grid,
+                            const ModalBasis* basis );
 
-auto cell_average( View3D<Real> U, const GridStructure* Grid,
-                   const ModalBasis* Basis, int iCF, int iX, int extrapolate )
+auto cell_average( View3D<Real> U, const GridStructure* grid,
+                   const ModalBasis* basis, int iCF, int iX, int extrapolate )
     -> Real;
 
 void modify_polynomial( View3D<Real> U, View2D<Real> modified_polynomial,
@@ -56,7 +56,7 @@ void modify_polynomial( View3D<Real> U, View2D<Real> modified_polynomial,
                         int iCQ );
 
 auto smoothness_indicator( View3D<Real> U, View2D<Real> modified_polynomial,
-                           const GridStructure* Grid, int iX, int i, int iCQ )
+                           const GridStructure* grid, int iX, int i, int iCQ )
     -> Real;
 
 auto non_linear_weight( Real gamma, Real beta, Real tau, Real eps ) -> Real;

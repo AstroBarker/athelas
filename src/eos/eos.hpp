@@ -29,8 +29,8 @@
 class IdealGas : public EosBase<IdealGas> {
  public:
   IdealGas( ) = default;
-  explicit IdealGas( double gm ) : gamma( gm ) {
-    if ( gamma <= 0.0 ) {
+  explicit IdealGas( double gm ) : gamma_( gm ) {
+    if ( gamma_ <= 0.0 ) {
       THROW_ATHELAS_ERROR( " ! Adiabatic gamma <= 0.0!" );
     }
   }
@@ -46,7 +46,7 @@ class IdealGas : public EosBase<IdealGas> {
   static auto radiation_pressure( Real T, Real* lambda ) -> Real;
 
  private:
-  Real gamma{ };
+  Real gamma_{ };
 };
 
 /* placeholder */
@@ -65,7 +65,7 @@ class Stellar : public EosBase<Stellar> {
   auto radiation_pressure( Real T, Real* lambda ) const -> Real;
 
  private:
-  Real gamma{ };
+  Real gamma_{ };
 };
 
 // TODO(astrobarker): adjust when we support more than one EOS
