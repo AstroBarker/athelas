@@ -32,7 +32,7 @@ class AthelasRegressionTest(unittest.TestCase):
     varlist=["grid/x"],
     run_dir="./run",
     build_type="Release",
-    num_procs=1,
+    num_procs=4,
     goldfile=None,
     upgold=False,
     tolerance=1.0e-5,
@@ -170,7 +170,7 @@ class AthelasRegressionTest(unittest.TestCase):
         )
       else:
         subprocess.run(
-          run_cmd + self.executable + f" {self.infile}",
+          run_cmd + self.executable + f"-i {self.infile}",
           shell=True,
           check=True,
           stdout=outfile,
