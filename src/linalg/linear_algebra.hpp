@@ -1,4 +1,4 @@
-#ifndef _LINEAR_ALGEBRA_HPP_
+#ifndef LINEAR_ALGEBRA_HPP_
 #define LINEAR_ALGEBRA_HPP_
 /**
  * @file linear_algebra.hpp
@@ -47,4 +47,4 @@ void tri_sym_diag( int n, std::vector<Real>& d, std::vector<Real>& e,
                    std::vector<Real>& array );
 void invert_matrix( std::vector<Real>& M, int n );
 
-#endif // _LINEAR_ALGEBRA_HPP_
+#endif // LINEAR_ALGEBRA_HPP_
