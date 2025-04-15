@@ -27,7 +27,7 @@ class AthelasRegressionTest(unittest.TestCase):
     test_name="test_sod",
     src_dir="",
     build_dir="./build",
-    executable="./main",
+    executable="./athelas",
     infile="test_inputs/sod.toml",
     varlist=["grid/x"],
     run_dir="./run",

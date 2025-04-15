@@ -31,7 +31,7 @@ class NohShockTubeTest(AthelasRegressionTest):
       build_required = False
     else:
       # For built executable, use relative path
-      executable = "main"
+      executable = "athelas"
       build_required = True
 
     # vars to test
