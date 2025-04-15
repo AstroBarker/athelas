@@ -13,14 +13,14 @@
 #include "error.hpp"
 #include "utilities.hpp"
 
-ProblemIn::ProblemIn( const std::string fn ) {
+ProblemIn::ProblemIn( const std::string& fn ) {
   // toml++ wants a string_view
-  std::string_view fn_in{ fn };
+  std::string_view const fn_in{ fn };
 
   // Load ini
   try {
     in_table = toml::parse_file( fn_in );
-  } catch ( const toml::parse_error &err ) {
+  } catch ( const toml::parse_error& err ) {
     std::cerr << err << "\n";
     THROW_ATHELAS_ERROR( " ! Issue reading input deck!" );
   }
@@ -53,7 +53,7 @@ ProblemIn::ProblemIn( const std::string fn ) {
   }
 
   // fluid
-  std::optional<std::string> basis =
+  std::optional<std::string> basis_ =
       in_table["fluid"]["basis"].value<std::string>( );
   std::optional<int> nN = in_table["fluid"]["nnodes"].value<int>( );
   std::optional<int> nX = in_table["fluid"]["nx"].value<int>( );
@@ -136,13 +136,13 @@ ProblemIn::ProblemIn( const std::string fn ) {
     std::printf( "   - Defaulting to planar geometry!\n" );
     Geometry = geometry::Planar; // default
   }
-  if ( basis ) {
-    Basis = ( utilities::to_lower( basis.value( ) ) == "legendre" )
-                ? PolyBasis::Legendre
-                : PolyBasis::Taylor;
+  if ( basis_ ) {
+    basis = ( utilities::to_lower( basis_.value( ) ) == "legendre" )
+                ? poly_basis::legendre
+                : poly_basis::taylor;
   } else {
-    Basis = PolyBasis::Legendre;
-    std::printf( "   - Defaulting to Legendre polynomial basis!\n" );
+    basis = poly_basis::legendre;
+    std::printf( "   - Defaulting to legendre polynomial basis!\n" );
   }
 
   if ( x1 ) {
@@ -157,7 +157,9 @@ ProblemIn::ProblemIn( const std::string fn ) {
     THROW_ATHELAS_ERROR(
         " ! Initialization Error: xR not supplied in input deck." );
   }
-  if ( x1 >= x2 ) THROW_ATHELAS_ERROR( " ! Initialization Error: x1 >= xz2" );
+  if ( x1 >= x2 ) {
+    THROW_ATHELAS_ERROR( " ! Initialization Error: x1 >= xz2" );
+  }
 
   if ( tf ) {
     t_end = tf.value( );
@@ -165,7 +167,9 @@ ProblemIn::ProblemIn( const std::string fn ) {
     THROW_ATHELAS_ERROR(
         " ! Initialization Error: t_end not supplied in input deck." );
   }
-  if ( tf <= 0.0 ) THROW_ATHELAS_ERROR( " ! Initialization Error: tf <= 0.0" );
+  if ( tf <= 0.0 ) {
+    THROW_ATHELAS_ERROR( " ! Initialization Error: tf <= 0.0" );
+  }
 
   if ( nX ) {
     nElements = nX.value( );
@@ -193,15 +197,27 @@ ProblemIn::ProblemIn( const std::string fn ) {
   gamma_r        = gamma3.value_or( 0.005 );
 
   // varous checks
-  if ( CFL <= 0.0 ) THROW_ATHELAS_ERROR( " ! Initialization : CFL <= 0.0!" );
-  if ( nGhost <= 0 ) THROW_ATHELAS_ERROR( " ! Initialization : nGhost <= 0!" );
-  if ( pOrder <= 0 ) THROW_ATHELAS_ERROR( " ! Initialization : pOrder <= 0!" );
-  if ( nNodes <= 0 ) THROW_ATHELAS_ERROR( " ! Initialization : nNodes <= 0!" );
-  if ( tOrder <= 0 ) THROW_ATHELAS_ERROR( " ! Initialization : tOrder <= 0!" );
-  if ( nStages <= 0 )
+  if ( CFL <= 0.0 ) {
+    THROW_ATHELAS_ERROR( " ! Initialization : CFL <= 0.0!" );
+  }
+  if ( nGhost <= 0 ) {
+    THROW_ATHELAS_ERROR( " ! Initialization : nGhost <= 0!" );
+  }
+  if ( pOrder <= 0 ) {
+    THROW_ATHELAS_ERROR( " ! Initialization : pOrder <= 0!" );
+  }
+  if ( nNodes <= 0 ) {
+    THROW_ATHELAS_ERROR( " ! Initialization : nNodes <= 0!" );
+  }
+  if ( tOrder <= 0 ) {
+    THROW_ATHELAS_ERROR( " ! Initialization : tOrder <= 0!" );
+  }
+  if ( nStages <= 0 ) {
     THROW_ATHELAS_ERROR( " ! Initialization : nStages <= 0!" );
-  if ( TCI_Threshold <= 0.0 )
+  }
+  if ( TCI_Threshold <= 0.0 ) {
     THROW_ATHELAS_ERROR( " ! Initialization : TCI_Threshold <= 0.0!" );
+  }
 
   if ( ( gamma2 && !gamma1 ) || ( gamma2 && !gamma3 ) ) {
     gamma_i = gamma2.value( );

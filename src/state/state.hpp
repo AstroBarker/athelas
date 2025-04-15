@@ -17,35 +17,34 @@
 #include "Kokkos_Core.hpp"
 
 #include "abstractions.hpp"
-#include "error.hpp"
 
 class State {
  public:
-  State( const int nCF_, const int nCR_, const int nPF_, const int nAF_,
-         const int nX_, const int nG_, const int nNodes_, const int pOrder_ );
+  State( int nCF, int nCR, int nPF, int nAF, int nX_, int nG_, int nNodes_,
+         int pOrder );
 
-  int Get_nCF( ) const;
-  int Get_nCR( ) const;
-  int Get_nPF( ) const;
-  int Get_nAF( ) const;
-  int Get_pOrder( ) const;
+  [[nodiscard]] auto get_n_cf( ) const noexcept -> int;
+  [[nodiscard]] auto get_n_cr( ) const noexcept -> int;
+  [[nodiscard]] auto get_n_pf( ) const noexcept -> int;
+  [[nodiscard]] auto get_n_af( ) const noexcept -> int;
+  [[nodiscard]] auto get_p_order( ) const noexcept -> int;
 
-  View3D<Real> Get_uCF( ) const;
-  View3D<Real> Get_uPF( ) const;
-  View3D<Real> Get_uAF( ) const;
-  View3D<Real> Get_uCR( ) const;
+  [[nodiscard]] auto get_u_cf( ) const noexcept -> View3D<Real>;
+  [[nodiscard]] auto get_u_pf( ) const noexcept -> View3D<Real>;
+  [[nodiscard]] auto get_u_af( ) const noexcept -> View3D<Real>;
+  [[nodiscard]] auto get_u_cr( ) const noexcept -> View3D<Real>;
 
  private:
-  int nCF;
-  int nCR;
-  int nPF;
-  int nAF;
-  int pOrder;
+  int nCF_;
+  int nCR_;
+  int nPF_;
+  int nAF_;
+  int pOrder_;
 
-  View3D<Real> uCF; // Conserved fluid
-  View3D<Real> uPF; // primitive fluid
-  View3D<Real> uAF; // auxiliary fluid
-  View3D<Real> uCR; // conserved radiation
+  View3D<Real> uCF_{ }; // Conserved fluid
+  View3D<Real> uPF_{ }; // primitive fluid
+  View3D<Real> uAF_{ }; // auxiliary fluid
+  View3D<Real> uCR_{ }; // conserved radiation
 };
 
 #endif // STATE_HPP_

@@ -11,153 +11,165 @@
  *          - weights
  *
  *          For a loop over real zones, loop from ilo to ihi (inclusive).
- *          ilo = nGhost
- *          ihi = nElements - nGhost + 1
+ *          ilo = nGhost_
+ *          ihi = nElements_ - nGhost_ + 1
  */
 
-#include <math.h> /* atan */
+#include <cmath> /* atan */
+#include <vector>
 
 #include "constants.hpp"
 #include "grid.hpp"
 
-GridStructure::GridStructure( ProblemIn *pin )
-    : nElements( pin->nElements ), nNodes( pin->nNodes ), nGhost( pin->nGhost ),
-      mSize( nElements + 2 * nGhost ), xL( pin->xL ), xR( pin->xR ),
-      Geometry( pin->Geometry ), Nodes( "Nodes", pin->nNodes ),
-      Weights( "Weights", pin->nNodes ), Centers( "Cetners", mSize ),
-      Widths( "Widths", mSize ), X_L( "Left Interface", mSize + 1 ),
-      Mass( "Cell Mass", mSize ), CenterOfMass( "Center of Mass", mSize ),
-      Grid( "Grid", mSize, nNodes ) {
-  // TODO: Allow LG_Quadrature to take in vectors.
-  Real *tmp_nodes   = new Real[nNodes];
-  Real *tmp_weights = new Real[nNodes];
+GridStructure::GridStructure( const ProblemIn* pin )
+    : nElements_( pin->nElements ), nNodes_( pin->nNodes ),
+      nGhost_( pin->nGhost ), mSize_( nElements_ + ( 2 * nGhost_ ) ),
+      xL_( pin->xL ), xR_( pin->xR ), geometry_( pin->Geometry ),
+      nodes_( "Nodes", pin->nNodes ), weights_( "weights_", pin->nNodes ),
+      centers_( "Cetners", mSize_ ), widths_( "widths_", mSize_ ),
+      x_l_( "Left Interface", mSize_ + 1 ), mass_( "Cell mass_", mSize_ ),
+      center_of_mass_( "Center of mass_", mSize_ ),
+      grid_( "Grid", mSize_, nNodes_ ) {
+  std::vector<Real> tmp_nodes( nNodes_ );
+  std::vector<Real> tmp_weights( nNodes_ );
 
-  for ( int iN = 0; iN < nNodes; iN++ ) {
+  for ( int iN = 0; iN < nNodes_; iN++ ) {
     tmp_nodes[iN]   = 0.0;
     tmp_weights[iN] = 0.0;
   }
 
-  quadrature::LG_Quadrature( nNodes, tmp_nodes, tmp_weights );
+  quadrature::lg_quadrature( nNodes_, tmp_nodes, tmp_weights );
 
-  for ( int iN = 0; iN < nNodes; iN++ ) {
-    Nodes( iN )   = tmp_nodes[iN];
-    Weights( iN ) = tmp_weights[iN];
+  for ( int iN = 0; iN < nNodes_; iN++ ) {
+    nodes_( iN )   = tmp_nodes[iN];
+    weights_( iN ) = tmp_weights[iN];
   }
 
-  CreateGrid( );
-
-  delete[] tmp_nodes;
-  delete[] tmp_weights;
+  create_grid( );
 }
 
 // linear shape function on the reference element
 KOKKOS_INLINE_FUNCTION
-const Real ShapeFunction( const int interface, const Real eta ) {
+const Real shape_function( const int interface, const Real eta ) {
   Real mult = 1.0;
 
-  if ( interface == 0 ) mult = -1.0;
-  if ( interface == 1 ) mult = +1.0;
-  if ( interface != 0 && interface != 1 )
+  if ( interface == 0 ) {
+    mult = -1.0;
+  }
+  if ( interface == 1 ) {
+    mult = +1.0;
+  }
+  if ( interface != 0 && interface != 1 ) {
     THROW_ATHELAS_ERROR( " ! Invalid shape func params" );
+  }
 
-  return 0.5 + mult * eta;
+  return 0.5 + ( mult * eta );
 }
 
 // Give physical grid coordinate from a node.
-Real GridStructure::NodeCoordinate( int iC, int iN ) const {
-  return X_L( iC ) * ShapeFunction( 0, Nodes( iN ) ) +
-         X_L( iC + 1 ) * ShapeFunction( 1, Nodes( iN ) );
+auto GridStructure::node_coordinate( int iC, int iN ) const -> Real {
+  return x_l_( iC ) * shape_function( 0, nodes_( iN ) ) +
+         x_l_( iC + 1 ) * shape_function( 1, nodes_( iN ) );
 }
 
 // Return cell center
-Real GridStructure::Get_Centers( int iC ) const { return Centers( iC ); }
+auto GridStructure::get_centers( int iC ) const -> Real {
+  return centers_( iC );
+}
 
 // Return cell width
-Real GridStructure::Get_Widths( int iC ) const { return Widths( iC ); }
+auto GridStructure::get_widths( int iC ) const -> Real { return widths_( iC ); }
 
 // Return cell mass
-Real GridStructure::Get_Mass( int iX ) const { return Mass( iX ); }
+auto GridStructure::get_mass( int iX ) const -> Real { return mass_( iX ); }
 
-// Return cell reference Center of Mass
-Real GridStructure::Get_CenterOfMass( int iX ) const {
-  return CenterOfMass( iX );
+// Return cell reference Center of mass_
+auto GridStructure::get_center_of_mass( int iX ) const -> Real {
+  return center_of_mass_( iX );
 }
 
 // Return given quadrature node
-Real GridStructure::Get_Nodes( int nN ) const { return Nodes( nN ); }
+auto GridStructure::get_nodes( int nN ) const -> Real { return nodes_( nN ); }
 
 // Return given quadrature weight
-Real GridStructure::Get_Weights( int nN ) const { return Weights( nN ); }
-
-// Acessor for xL
-Real GridStructure::Get_xL( ) const { return xL; }
-
-// Acessor for xR
-Real GridStructure::Get_xR( ) const { return xR; }
-
-// Acessor for SqrtGm
-Real GridStructure::Get_SqrtGm( Real X ) const {
-  if ( Geometry == geometry::Spherical ) {
-    return X * X;
-  } else {
-    return 1.0;
-  }
+auto GridStructure::get_weights( int nN ) const -> Real {
+  return weights_( nN );
 }
 
-// Accessor for X_L
-Real GridStructure::Get_LeftInterface( int iX ) const { return X_L( iX ); }
+// Acessor for xL
+auto GridStructure::get_x_l( ) const noexcept -> Real { return xL_; }
 
-// Return nNodes
-int GridStructure::Get_nNodes( ) const { return nNodes; }
+// Acessor for xR
+auto GridStructure::get_x_r( ) const noexcept -> Real { return xR_; }
 
-// Return nElements
-int GridStructure::Get_nElements( ) const { return nElements; }
+// Acessor for SqrtGm
+auto GridStructure::get_sqrt_gm( Real X ) const -> Real {
+  if ( geometry_ == geometry::Spherical ) {
+    return X * X;
+  }
+  return 1.0;
+}
+
+// Accessor for x_l_
+auto GridStructure::get_left_interface( int iX ) const -> Real {
+  return x_l_( iX );
+}
+
+// Return nNodes_
+auto GridStructure::get_n_nodes( ) const noexcept -> int { return nNodes_; }
+
+// Return nElements_
+auto GridStructure::get_n_elements( ) const noexcept -> int {
+  return nElements_;
+}
 
 // Return number of guard zones
-int GridStructure::Get_Guard( ) const { return nGhost; }
+auto GridStructure::get_guard( ) const noexcept -> int { return nGhost_; }
 
 // Return first physical zone
-int GridStructure::Get_ilo( ) const { return nGhost; }
+auto GridStructure::get_ilo( ) const noexcept -> int { return nGhost_; }
 
 // Return last physical zone
-int GridStructure::Get_ihi( ) const { return nElements + nGhost - 1; }
+auto GridStructure::get_ihi( ) const noexcept -> int {
+  return nElements_ + nGhost_ - 1;
+}
 
 // Return true if in spherical symmetry
-bool GridStructure::DoGeometry( ) const {
-  return Geometry == geometry::Spherical ? true : false;
+auto GridStructure::do_geometry( ) const noexcept -> bool {
+  return geometry_ == geometry::Spherical;
 }
 
 // Equidistant mesh
-// TODO: We will need to replace Centers here, right?
-void GridStructure::CreateGrid( ) {
+// TODO(astrobarker): We will need to replace centers_ here, right?
+void GridStructure::create_grid( ) {
 
-  const int ilo = nGhost; // first real zone
-  const int ihi = nElements + nGhost - 1; // last real zone
+  const int ilo = nGhost_; // first real zone
+  const int ihi = nElements_ + nGhost_ - 1; // last real zone
 
-  for ( int i = 0; i < nElements + 2 * nGhost; i++ ) {
-    Widths( i ) = ( xR - xL ) / nElements;
+  for ( int i = 0; i < nElements_ + 2 * nGhost_; i++ ) {
+    widths_( i ) = ( xR_ - xL_ ) / nElements_;
   }
 
-  X_L( nGhost ) = xL;
-  for ( int iX = 2; iX < nElements + 2 * nGhost; iX++ ) {
-    X_L( iX ) = X_L( iX - 1 ) + Widths( iX - 1 );
+  x_l_( nGhost_ ) = xL_;
+  for ( int iX = 2; iX < nElements_ + 2 * nGhost_; iX++ ) {
+    x_l_( iX ) = x_l_( iX - 1 ) + widths_( iX - 1 );
   }
 
-  Centers( ilo ) = xL + 0.5 * Widths( ilo );
+  centers_( ilo ) = xL_ + 0.5 * widths_( ilo );
   for ( int i = ilo + 1; i <= ihi; i++ ) {
-    Centers( i ) = Centers( i - 1 ) + Widths( i - 1 );
+    centers_( i ) = centers_( i - 1 ) + widths_( i - 1 );
   }
 
   for ( int i = ilo - 1; i >= 0; i-- ) {
-    Centers( i ) = Centers( i + 1 ) - Widths( i + 1 );
+    centers_( i ) = centers_( i + 1 ) - widths_( i + 1 );
   }
-  for ( int i = ihi + 1; i < nElements + nGhost + 1; i++ ) {
-    Centers( i ) = Centers( i - 1 ) + Widths( i - 1 );
+  for ( int i = ihi + 1; i < nElements_ + nGhost_ + 1; i++ ) {
+    centers_( i ) = centers_( i - 1 ) + widths_( i - 1 );
   }
 
   for ( int iC = ilo; iC <= ihi; iC++ ) {
-    for ( int iN = 0; iN < nNodes; iN++ ) {
-      Grid( iC, iN ) = NodeCoordinate( iC, iN );
+    for ( int iN = 0; iN < nNodes_; iN++ ) {
+      grid_( iC, iN ) = node_coordinate( iC, iN );
     }
   }
 }
@@ -165,85 +177,90 @@ void GridStructure::CreateGrid( ) {
 /**
  * Compute cell masses
  **/
-void GridStructure::ComputeMass( View3D<Real> uPF ) {
-  const int nNodes = Get_nNodes( );
-  const int ilo    = Get_ilo( );
-  const int ihi    = Get_ihi( );
+void GridStructure::compute_mass( View3D<Real> uPF ) {
+  const int nNodes_ = get_n_nodes( );
+  const int ilo     = get_ilo( );
+  const int ihi     = get_ihi( );
 
-  Real mass;
-  Real X;
+  Real mass = NAN;
+  Real X    = NAN;
 
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     mass = 0.0;
-    for ( int iN = 0; iN < nNodes; iN++ ) {
-      X = NodeCoordinate( iX, iN );
-      mass += Weights( iN ) * Get_SqrtGm( X ) * uPF( 0, iX, iN );
+    for ( int iN = 0; iN < nNodes_; iN++ ) {
+      X = node_coordinate( iX, iN );
+      mass += weights_( iN ) * get_sqrt_gm( X ) * uPF( 0, iX, iN );
     }
-    mass *= Widths( iX );
-    Mass( iX ) = mass;
+    mass *= widths_( iX );
+    mass_( iX ) = mass;
   }
 
   // Guard cells
   for ( int iX = 0; iX < ilo; iX++ ) {
-    Mass( ilo - 1 - iX ) = Mass( ilo + iX );
-    Mass( ihi + 1 + iX ) = Mass( ihi - iX );
+    mass_( ilo - 1 - iX ) = mass_( ilo + iX );
+    mass_( ihi + 1 + iX ) = mass_( ihi - iX );
   }
 }
 
 /**
  * Compute cell centers of masses reference coordinates
  **/
-void GridStructure::ComputeCenterOfMass( View3D<Real> uPF ) {
-  const int nNodes = Get_nNodes( );
-  const int ilo    = Get_ilo( );
-  const int ihi    = Get_ihi( );
+void GridStructure::compute_center_of_mass( View3D<Real> uPF ) {
+  const int nNodes_ = get_n_nodes( );
+  const int ilo     = get_ilo( );
+  const int ihi     = get_ihi( );
 
-  Real com;
-  Real X;
+  Real com = 0.0;
+  Real X   = 0.0;
 
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     com = 0.0;
-    for ( int iN = 0; iN < nNodes; iN++ ) {
-      X = NodeCoordinate( iX, iN );
-      com += Nodes( iN ) * Weights( iN ) * Get_SqrtGm( X ) * uPF( 0, iX, iN );
+    for ( int iN = 0; iN < nNodes_; iN++ ) {
+      X = node_coordinate( iX, iN );
+      com +=
+          nodes_( iN ) * weights_( iN ) * get_sqrt_gm( X ) * uPF( 0, iX, iN );
     }
-    com *= Widths( iX );
-    CenterOfMass( iX ) = com / Mass( iX );
+    com *= widths_( iX );
+    center_of_mass_( iX ) = com / mass_( iX );
   }
 
   // Guard cells
   for ( int iX = 0; iX < ilo; iX++ ) {
-    CenterOfMass( ilo - 1 - iX ) = CenterOfMass( ilo + iX );
-    CenterOfMass( ihi + 1 + iX ) = CenterOfMass( ihi - iX );
+    center_of_mass_( ilo - 1 - iX ) = center_of_mass_( ilo + iX );
+    center_of_mass_( ihi + 1 + iX ) = center_of_mass_( ihi - iX );
   }
 }
 
 /**
  * Update grid coordinates using interface velocities.
  **/
-void GridStructure::UpdateGrid( View1D<Real> SData ) {
+void GridStructure::update_grid( View1D<Real> SData ) {
 
-  const int ilo = Get_ilo( );
-  const int ihi = Get_ihi( );
+  const int ilo = get_ilo( );
+  const int ihi = get_ihi( );
 
   Kokkos::parallel_for(
       "Grid Update 1", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
-      KOKKOS_LAMBDA( int iX ) {
-        X_L( iX )     = SData( iX );
-        Widths( iX )  = SData( iX + 1 ) - SData( iX );
-        Centers( iX ) = 0.5 * ( SData( iX + 1 ) + SData( iX ) );
+      KOKKOS_CLASS_LAMBDA( int iX ) {
+        x_l_( iX )     = SData( iX );
+        widths_( iX )  = SData( iX + 1 ) - SData( iX );
+        centers_( iX ) = 0.5 * ( SData( iX + 1 ) + SData( iX ) );
       } );
 
   Kokkos::parallel_for(
       "Grid Update 2", Kokkos::RangePolicy<>( ilo, ihi + 2 ),
-      KOKKOS_LAMBDA( int iX ) {
-        for ( int iN = 0; iN < nNodes; iN++ ) {
-          Grid( iX, iN ) = NodeCoordinate( iX, iN );
+      KOKKOS_CLASS_LAMBDA( int iX ) {
+        for ( int iN = 0; iN < nNodes_; iN++ ) {
+          grid_( iX, iN ) = node_coordinate( iX, iN );
         }
       } );
 }
 
 // Access by (element, node)
-Real &GridStructure::operator( )( int i, int j ) { return Grid( i, j ); }
+auto GridStructure::operator( )( int i, int j ) -> Real& {
+  return grid_( i, j );
+}
 
-Real GridStructure::operator( )( int i, int j ) const { return Grid( i, j ); }
+auto GridStructure::operator( )( int i, int j ) const -> Real {
+  return grid_( i, j );
+}

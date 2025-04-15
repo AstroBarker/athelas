@@ -16,52 +16,51 @@
 
 using namespace utilities;
 
-SlopeLimiter InitializeSlopeLimiter( const GridStructure *grid,
-                                     const ProblemIn *pin, const int nvars );
+namespace limiter_utilities {
 
-// Standard minmod function
+auto initialize_slope_limiter( const GridStructure* grid, const ProblemIn* pin,
+                               int nvars ) -> SlopeLimiter;
+
+// Standard MINMOD function
 template <typename T>
-constexpr Real minmod( T a, T b, T c ) {
-  if ( sgn( a ) == sgn( b ) && sgn( b ) == sgn( c ) ) {
-    return sgn( a ) *
+constexpr auto MINMOD( T a, T b, T c ) -> Real {
+  if ( SGN( a ) == SGN( b ) && SGN( b ) == SGN( c ) ) {
+    return SGN( a ) *
            std::min( std::min( std::abs( a ), std::abs( b ) ), std::abs( c ) );
-  } else {
-    return 0.0;
   }
+  return 0.0;
 }
 
-// TVB minmod function
+// TVB MINMOD function
 template <typename T>
-constexpr Real minmodB( T a, T b, T c, T dx, T M ) {
+constexpr auto MINMOD_B( T a, T b, T c, T dx, T M ) -> Real {
   if ( std::abs( a ) < M * dx * dx ) {
     return a;
-  } else {
-    return minmod( a, b, c );
   }
+  return MINMOD( a, b, c );
 }
 
-Real BarthJespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T, Real U_c_R,
-                     Real alpha );
+auto barth_jespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T,
+                      Real U_c_R, Real alpha ) -> Real;
 
-void DetectTroubledCells( View3D<Real> U, View2D<Real> D,
-                          const GridStructure *Grid, const ModalBasis *Basis );
+void detect_troubled_cells( View3D<Real> U, View2D<Real> D,
+                            const GridStructure* grid,
+                            const ModalBasis* basis );
 
-Real CellAverage( View3D<Real> U, const GridStructure *Grid,
-                  const ModalBasis *Basis, const int iCF, const int iX,
-                  const int extrapolate );
+auto cell_average( View3D<Real> U, const GridStructure* grid,
+                   const ModalBasis* basis, int iCF, int iX, int extrapolate )
+    -> Real;
 
-void ModifyPolynomial( const View3D<Real> U, View2D<Real> modified_polynomial,
-                       const Real gamma_i, const Real gamma_l,
-                       const Real gamma_r, const int iX, const int iCQ );
+void modify_polynomial( View3D<Real> U, View2D<Real> modified_polynomial,
+                        Real gamma_i, Real gamma_l, Real gamma_r, int iX,
+                        int iCQ );
 
-Real SmoothnessIndicator( const View3D<Real> U,
-                          const View2D<Real> modified_polynomial,
-                          const GridStructure *Grid, const int iX, const int i,
-                          const int iCQ );
+auto smoothness_indicator( View3D<Real> U, View2D<Real> modified_polynomial,
+                           const GridStructure* grid, int iX, int i, int iCQ )
+    -> Real;
 
-Real NonLinearWeight( const Real gamma, const Real beta, const Real tau,
-                      const Real eps );
+auto non_linear_weight( Real gamma, Real beta, Real tau, Real eps ) -> Real;
 
-Real Tau( const Real beta_l, const Real beta_i, const Real beta_r,
-          const Real weno_r );
+auto weno_tau( Real beta_l, Real beta_i, Real beta_r, Real weno_r ) -> Real;
+} // namespace limiter_utilities
 #endif // SLOPE_LIMITER_UTILITIES_HPP_

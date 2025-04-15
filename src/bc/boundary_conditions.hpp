@@ -18,7 +18,8 @@
 #include "abstractions.hpp"
 #include "grid.hpp"
 
-void ApplyBC( View3D<Real> uCF, GridStructure *Grid, const int order,
-              const std::string BC );
-
+namespace bc {
+void apply_bc( View3D<Real> uCF, const GridStructure* grid, int order,
+               const std::string& BC );
+} // namespace bc
 #endif // BOUNDARY_CONDITIONS_HPP_

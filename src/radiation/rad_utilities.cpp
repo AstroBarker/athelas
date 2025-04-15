@@ -6,12 +6,12 @@
  * @brief Functions for radiation evolution.
  *
  * @details Key functions for radiation udates:
- *          - FluxFactor
- *          - Flux_Rad
- *          - RadiationFourForce
- *          - Source_Rad
+ *          - flux_factor
+ *          - flux_rad
+ *          - radiation_four_force
+ *          - source_rad
  *          - Compute_Closure
- *          - Lambda_HLL
+ *          - lambda_hll
  *          - numerical_flux_hll_rad
  *          - computeTimestep_Rad
  */
@@ -31,12 +31,16 @@
 #include "riemann.hpp"
 #include "utilities.hpp"
 
+using namespace riemann;
+
+namespace radiation {
+
 /**
  * radiation flux factor
  **/
-Real FluxFactor( const Real E, const Real F ) {
+auto flux_factor( const Real E, const Real F ) -> Real {
   assert( E > 0.0 &&
-          "Radiation :: FluxFactor :: non positive definite energy density." );
+          "Radiation :: flux_factor :: non positive definite energy density." );
   constexpr static Real c = constants::c_cgs;
   return ( F ) / ( c * E );
 }
@@ -45,13 +49,13 @@ Real FluxFactor( const Real E, const Real F ) {
  * The radiation fluxes
  * Here E and F are per unit volume
  **/
-Real Flux_Rad( Real E, Real F, Real P, Real V, int iCR ) {
-  assert( ( iCR == 0 || iCR == 1 ) && "Radiation :: FluxFactor :: bad iCR." );
+auto flux_rad( Real E, Real F, Real P, Real V, int iCR ) -> Real {
+  assert( ( iCR == 0 || iCR == 1 ) && "Radiation :: flux_factor :: bad iCR." );
   assert( E > 0.0 &&
-          "Radiation :: FluxFactor :: non positive definite energy density." );
+          "Radiation :: flux_factor :: non positive definite energy density." );
 
   constexpr static Real c = constants::c_cgs;
-  return ( iCR == 0 ) ? 1.0 * F - E * V : c * c * P - F * V;
+  return ( iCR == 0 ) ? ( 1.0 * F ) - ( E * V ) : ( c * c * P ) - ( F * V );
 }
 
 /**
@@ -66,10 +70,10 @@ Real Flux_Rad( Real E, Real F, Real P, Real V, int iCR ) {
  * F : radiation momentum density
  * Pr : radiation momentum closure
  **/
-std::tuple<Real, Real> RadiationFourForce( const Real D, const Real V,
-                                           const Real T, const Real kappa_r,
-                                           const Real kappa_p, const Real E,
-                                           const Real F, const Real Pr ) {
+auto radiation_four_force( const Real D, const Real V, const Real T,
+                           const Real kappa_r, const Real kappa_p, const Real E,
+                           const Real F, const Real Pr )
+    -> std::tuple<Real, Real> {
   assert(
       D >= 0.0 &&
       "Radiation :: RadiationFourFource :: Non positive definite density." );
@@ -82,7 +86,7 @@ std::tuple<Real, Real> RadiationFourForce( const Real D, const Real V,
   constexpr static Real c = constants::c_cgs;
 
   const Real b     = V / c;
-  const Real term1 = E - a * T * T * T * T;
+  const Real term1 = E - ( a * T * T * T * T );
   const Real Fc    = F / c;
 
   // O(b^2) ala Fuksman
@@ -112,9 +116,9 @@ std::tuple<Real, Real> RadiationFourForce( const Real D, const Real V,
  * source terms for radiation
  * TODO: total opacity X
  **/
-Real Source_Rad( const Real D, const Real V, const Real T, const Real kappa_r,
+auto source_rad( const Real D, const Real V, const Real T, const Real kappa_r,
                  const Real kappa_p, const Real E, const Real F, const Real Pr,
-                 const int iCR ) {
+                 const int iCR ) -> Real {
   assert( ( iCR == 0 || iCR == 1 ) && "Radiation :: source_rad :: bad iCR." );
   assert( D >= 0.0 &&
           "Radiation :: source_rad :: Non positive definite density." );
@@ -124,27 +128,27 @@ Real Source_Rad( const Real D, const Real V, const Real T, const Real kappa_r,
 
   const Real c = constants::c_cgs;
 
-  auto [G0, G] = RadiationFourForce( D, V, T, kappa_r, kappa_p, E, F, Pr );
+  auto [G0, G] = radiation_four_force( D, V, T, kappa_r, kappa_p, E, F, Pr );
 
   return ( iCR == 0 ) ? -c * G0 : -c * c * G;
 }
 
 /* pressure tensor closure */
-// TODO: check Closure
-Real ComputeClosure( const Real E, const Real F ) {
-  assert( E > 0.0 && "Radiation :: ComputeClosure :: Non positive definite "
+// TODO(astrobarker): check Closure
+auto compute_closure( const Real E, const Real F ) -> Real {
+  assert( E > 0.0 && "Radiation :: compute_closure :: Non positive definite "
                      "radiation energy density." );
-  const Real f = FluxFactor( E, F );
-  const Real chi =
-      ( 3.0 + 4.0 * f * f ) / ( 5.0 + 2.0 * std::sqrt( 4.0 - 3.0 * f * f ) );
-  const Real T = ( 1.0 - chi ) / 2.0 + ( 3.0 * chi - 1.0 ) *
-                                           1.0 / // utilities::sgn(F)
-                                           2.0; // TODO: Is this right?
+  const Real f   = flux_factor( E, F );
+  const Real chi = ( 3.0 + 4.0 * f * f ) /
+                   ( 5.0 + 2.0 * std::sqrt( 4.0 - ( 3.0 * f * f ) ) );
+  const Real T = ( ( 1.0 - chi ) / 2.0 ) +
+                 ( ( 3.0 * chi - 1.0 ) * 1.0 / // utilities::SGN(F)
+                   2.0 ); // TODO(astrobarker): Is this right?
   return E * T;
 }
 
 void llf_flux( const Real Fp, const Real Fm, const Real Up, const Real Um,
-               const Real alpha, Real &out ) {
+               const Real alpha, Real& out ) {
   out = 0.5 * ( Fp - alpha * Up + Fm + alpha * Um );
 }
 
@@ -153,15 +157,15 @@ void llf_flux( const Real Fp, const Real Fm, const Real Up, const Real Um,
  * see 2013ApJS..206...21S (Skinner & Ostriker 2013) Eq 41a,b
  * and references therein
  **/
-Real Lambda_HLL( const Real f, const int sign ) {
+auto lambda_hll( const Real f, const int sign ) -> Real {
   constexpr Real c        = constants::c_cgs;
   constexpr Real twothird = 2.0 / 3.0;
 
   const Real f2       = f * f;
-  const Real sqrtterm = std::sqrt( 4.0 - 3.0 * f2 );
+  const Real sqrtterm = std::sqrt( 4.0 - ( 3.0 * f2 ) );
   return c *
-         ( f + sign * std::sqrt( twothird * ( 4.0 - 3.0 * f2 - sqrtterm ) +
-                                 2.0 * ( 2.0 - f2 - sqrtterm ) ) ) /
+         ( f + sign * std::sqrt( ( twothird * ( 4.0 - 3.0 * f2 - sqrtterm ) ) +
+                                 ( 2.0 * ( 2.0 - f2 - sqrtterm ) ) ) ) /
          sqrtterm;
 }
 
@@ -172,39 +176,40 @@ Real Lambda_HLL( const Real f, const int sign ) {
  *
  * Note: pass in Eulerian varaibles ( _ / cm^3 )
  **/
-void numerical_flux_hll_rad( const Real E_L, const Real E_R, const Real F_L,
-                             const Real F_R, const Real P_L, const Real P_R,
-                             Real &Flux_E, Real &Flux_F ) {
+auto numerical_flux_hll_rad( const Real E_L, const Real E_R, const Real F_L,
+                             const Real F_R, const Real P_L, const Real P_R )
+    -> std::tuple<Real, Real> {
   // flux factors
-  const Real f_L = FluxFactor( E_L, F_L );
-  const Real f_R = FluxFactor( E_R, F_R );
+  const Real f_L = flux_factor( E_L, F_L );
+  const Real f_R = flux_factor( E_R, F_R );
 
   // eigenvalues
   const Real s_r_p = std::max(
-      std::max( Lambda_HLL( f_L, 1.0 ), Lambda_HLL( f_R, 1.0 ) ), 0.0 );
+      std::max( lambda_hll( f_L, 1.0 ), lambda_hll( f_R, 1.0 ) ), 0.0 );
   const Real s_l_m = std::min(
-      std::min( Lambda_HLL( f_L, -1.0 ), Lambda_HLL( f_R, -1.0 ) ), 0.0 );
+      std::min( lambda_hll( f_L, -1.0 ), lambda_hll( f_R, -1.0 ) ), 0.0 );
 
-  Flux_E = hll( E_L, E_R, F_L, F_R, s_l_m, s_r_p );
-  Flux_F = hll( F_L, F_R, P_L, P_R, s_l_m, s_r_p );
+  const Real Flux_E = hll( E_L, E_R, F_L, F_R, s_l_m, s_r_p );
+  const Real Flux_F = hll( F_L, F_R, P_L, P_R, s_l_m, s_r_p );
+  return { Flux_E, Flux_F };
 }
 
 /**
  * Compute the rad timestep.
  **/
-Real ComputeTimestep_Rad( const GridStructure *Grid, const Real CFL ) {
+auto compute_timestep_rad( const GridStructure* grid, const Real CFL ) -> Real {
 
   const Real MIN_DT = 1.0e-16;
   const Real MAX_DT = 100.0;
 
-  const int &ilo = Grid->Get_ilo( );
-  const int &ihi = Grid->Get_ihi( );
+  const int& ilo = grid->get_ilo( );
+  const int& ihi = grid->get_ihi( );
 
   Real dt = 0.0;
   Kokkos::parallel_reduce(
       "Compute Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
-      KOKKOS_LAMBDA( const int iX, Real &lmin ) {
-        Real dr = Grid->Get_Widths( iX );
+      KOKKOS_LAMBDA( const int iX, Real& lmin ) {
+        Real dr = grid->get_widths( iX );
 
         Real eigval = constants::c_cgs;
 
@@ -217,7 +222,9 @@ Real ComputeTimestep_Rad( const GridStructure *Grid, const Real CFL ) {
   dt = std::max( CFL * dt, MIN_DT );
   dt = std::min( dt, MAX_DT );
 
-  assert( !std::isnan( dt ) && "NaN encounted in ComputeTimestep_Rad.\n" );
+  assert( !std::isnan( dt ) && "NaN encounted in compute_timestep_rad.\n" );
 
   return dt;
 }
+
+} // namespace radiation

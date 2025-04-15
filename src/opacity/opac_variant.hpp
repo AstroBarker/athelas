@@ -21,37 +21,36 @@
 
 using Opacity = std::variant<Constant, PowerlawRho>;
 
-KOKKOS_INLINE_FUNCTION Real PlanckMean( const Opacity *opac, const Real rho,
-                                        const Real T, const Real X,
-                                        const Real Y, const Real Z,
-                                        Real *lambda ) {
+KOKKOS_INLINE_FUNCTION auto planck_mean( const Opacity* opac, const Real rho,
+                                         const Real T, const Real X,
+                                         const Real Y, const Real Z,
+                                         Real* lambda ) -> Real {
   return std::visit(
-      [&rho, &T, &X, &Y, &Z, &lambda]( auto &opac ) {
-        return opac.PlanckMean( rho, T, X, Y, Z, lambda );
+      [&rho, &T, &X, &Y, &Z, &lambda]( auto& opac ) {
+        return opac.planck_mean( rho, T, X, Y, Z, lambda );
       },
       *opac );
 }
 
-KOKKOS_INLINE_FUNCTION Real RosselandMean( const Opacity *opac, const Real rho,
-                                           const Real T, const Real X,
-                                           const Real Y, const Real Z,
-                                           Real *lambda ) {
+KOKKOS_INLINE_FUNCTION auto rosseland_mean( const Opacity* opac, const Real rho,
+                                            const Real T, const Real X,
+                                            const Real Y, const Real Z,
+                                            Real* lambda ) -> Real {
   return std::visit(
-      [&rho, &T, &X, &Y, &Z, &lambda]( auto &opac ) {
-        return opac.RosselandMean( rho, T, X, Y, Z, lambda );
+      [&rho, &T, &X, &Y, &Z, &lambda]( auto& opac ) {
+        return opac.rosseland_mean( rho, T, X, Y, Z, lambda );
       },
       *opac );
 }
 
 // put init function here..
 
-KOKKOS_INLINE_FUNCTION Opacity InitializeOpacity( const ProblemIn *pin ) {
+KOKKOS_INLINE_FUNCTION auto initialize_opacity( const ProblemIn* pin )
+    -> Opacity {
   Opacity opac;
   if ( pin->opac_type == "constant" ) {
-    std::printf( "const\n" );
     opac = Constant( pin->in_table["opacity"]["k"].value_or( 1.0 ) );
   } else { // powerlaw rho
-    std::printf( "powerlaw\n" );
     opac = PowerlawRho(
         pin->in_table["opacity"]["k"].value_or( 4.0 * std::pow( 10.0, -8.0 ) ),
         pin->in_table["opacity"]["exp"].value_or( 1.0 ) );

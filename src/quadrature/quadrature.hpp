@@ -7,14 +7,17 @@
  * @author Brandon L. Barker
  * @brief Quadrature rules
  *
- * @details Computes Gauss-Legendre nodes and weights
+ * @details Computes Gauss-legendre nodes and weights
  */
 
 #include "abstractions.hpp"
+#include <vector>
 
 namespace quadrature {
-Real Jacobi_Matrix( int m, Real *aj, Real *bj );
-void LG_Quadrature( int m, Real *nodes, Real *weights );
+auto jacobi_matrix( int m, std::vector<Real>& aj, std::vector<Real>& bj )
+    -> Real;
+void lg_quadrature( int m, std::vector<Real>& nodes,
+                    std::vector<Real>& weights );
 } // namespace quadrature
 
 #endif // QUADRATURE_HPP_

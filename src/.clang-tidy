@@ -1,0 +1,64 @@
+Checks: >
+  -*,
+  clang-analyzer-*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-type-const-cast,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-init-variables, # false positives
+  -cppcoreguidelines-misleading-capture-default-by-value, # kokkos
+  -cppcoreguidelines-misleading-capture-default-by-value,
+  hicpp-*,
+  modernize-*,
+  -modernize-avoid-c-arrays,
+  modernize-use-trailing-return-type,
+  performance-*,
+  -performance-enum-size,
+  portability-*,
+  readability-*,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-make-member-functions-const,
+  -readability-suspicious-call-argument,
+  -readability-function-cognitive-complexity,
+  misc-unused-parameters,
+  misc-unused-alias-decls,
+  -misc-const-correctness
+
+CheckOptions:
+  - key: readability-identifier-naming.VariableCase
+    value: 'None'
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.NamespaceFunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.ConstexprFunctionCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.GlobalFunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.PrivateFunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.StaticFunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.MemberFunctionCase
+    value: camelBack
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.PrivateMemberSuffix
+    value: '_'
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key: performance-unnecessary-value-param.AllowedTypes
+    value: 'Kokkos::View'
+  - key: cppcoreguidelines-non-private-member-variables-in-classes.IgnorePublicMemberVariables
+    value: true
+
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'
+FormatStyle: file
+User: astrobarker
+

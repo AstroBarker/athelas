@@ -8,36 +8,23 @@
  * @brief Error handling
  */
 
+#include <array>
 #include <csignal> // For signal constants
 #include <cstdio>
 #include <exception>
 #include <execinfo.h>
+#include <iostream>
+#include <mutex>
+#include <print>
 #include <sstream>
+#include <stacktrace>
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
+#include <utility>
 
 #include "constants.hpp"
 #include "state.hpp"
-
-inline void print_backtrace( ) {
-  void *callstack[128];
-  int frames     = backtrace( callstack, 128 );
-  char **symbols = backtrace_symbols( callstack, frames );
-
-  fprintf( stderr, "Backtrace:\n" );
-  for ( int i = 0; i < frames; ++i ) {
-    fprintf( stderr, "%s\n", symbols[i] );
-  }
-
-  free( symbols );
-}
-
-inline void segfault_handler( int sig ) {
-  fprintf( stderr, "Received signal %d\n", sig );
-  print_backtrace( );
-  exit( 1 );
-}
 
 enum AthelasExitCodes {
   SUCCESS                       = 0,
@@ -47,51 +34,61 @@ enum AthelasExitCodes {
   UNKNOWN_ERROR                 = 255
 };
 
+inline void print_backtrace( ) {
+  std::cout << std::stacktrace::current( ) << std::endl;
+}
+
+[[noreturn]] inline void segfault_handler( int sig ) {
+  std::println( stderr, "Received signal {}", sig );
+  print_backtrace( );
+  std::quick_exit( AthelasExitCodes::FAILURE );
+}
+
 class AthelasError : public std::exception {
  private:
-  std::string m_message;
-  std::string m_function;
-  std::string m_file;
-  int m_line;
+  std::string m_message_;
+  std::string m_function_;
+  std::string m_file_;
+  int m_line_;
 
  public:
   // Constructor with detailed error information
-  AthelasError( const std::string &message, const std::string &function = "",
-                const std::string &file = "", int line = 0 )
-      : m_message( message ), m_function( function ), m_file( file ),
-        m_line( line ) {}
+  explicit AthelasError( std::string message, const std::string& function = "",
+                         const std::string& file = "", int line = 0 )
+      : m_message_( std::move( message ) ), m_function_( function ),
+        m_file_( file ), m_line_( line ) {}
 
   // Override what() to provide error details
-  const char *what( ) const noexcept override {
+  [[nodiscard]] auto what( ) const noexcept -> const char* override {
     static thread_local std::string full_message;
     std::ostringstream oss;
 
-    oss << "!!! Athelas Error: " << m_message << "\n";
+    oss << "!!! Athelas Error: " << m_message_ << "\n";
 
-    if ( !m_function.empty( ) ) {
-      oss << "In function: " << m_function << "\n";
+    if ( !m_function_.empty( ) ) {
+      oss << "In function: " << m_function_ << "\n";
     }
 
-    if ( !m_file.empty( ) && m_line > 0 ) {
-      oss << "Location: " << m_file << ":" << m_line << "\n";
+    if ( !m_file_.empty( ) && m_line_ > 0 ) {
+      oss << "Location: " << m_file_ << ":" << m_line_ << "\n";
     }
 
     full_message = oss.str( );
     return full_message.c_str( );
   }
-
-  // Destructor
-  ~AthelasError( ) noexcept override {}
 };
 
-// Macro to simplify error throwing with file and line information
-#define THROW_ATHELAS_ERROR( message )                                         \
-  throw AthelasError( message, __FUNCTION__, __FILE__, __LINE__ )
+template <typename... Args>
+[[noreturn]] constexpr void THROW_ATHELAS_ERROR(
+    const char* message, const char* function = __builtin_FUNCTION( ),
+    const char* file = __builtin_FILE( ), int line = __builtin_LINE( ) ) {
+  throw AthelasError( message, function, file, line );
+}
 
 template <typename T>
 void check_state( T state, const int ihi, const bool do_rad ) {
-  auto uCR     = state->Get_uCR( );
-  auto uCF     = state->Get_uCF( );
+  auto uCR     = state->get_u_cr( );
+  auto uCF     = state->get_u_cf( );
   const Real c = constants::c_cgs;
 
   // Create host mirrors of the views

@@ -8,12 +8,12 @@
  * @brief Functions for radiation evolution.
  *
  * @details Key functions for radiation udates:
- *          - FluxFactor
- *          - Flux_Rad
- *          - RadiationFourForce
- *          - Source_Rad
+ *          - flux_factor
+ *          - flux_rad
+ *          - radiation_four_force
+ *          - source_rad
  *          - Compute_Closure
- *          - Lambda_HLL
+ *          - lambda_hll
  *          - numerical_flux_hll_rad
  *          - computeTimestep_Rad
  */
@@ -24,21 +24,20 @@
 
 #include "abstractions.hpp"
 
-Real FluxFactor( const Real E, const Real F );
-Real Flux_Rad( Real E, Real F, Real P, Real V, int iCR );
-std::tuple<Real, Real> RadiationFourForce( const Real D, const Real V,
-                                           const Real T, const Real kappa_r,
-                                           const Real kappa_p, const Real E,
-                                           const Real F, const Real Pr );
-Real Source_Rad( const Real D, const Real V, const Real T, const Real kappa_r,
-                 const Real kappa_p, const Real E, const Real F, const Real Pr,
-                 const int iCR );
-Real ComputeClosure( const Real E, const Real F );
-Real Lambda_HLL( const Real f, const int sign );
-void llf_flux( const Real Fp, const Real Fm, const Real Up, const Real Um,
-               const Real alpha, Real &out );
-void numerical_flux_hll_rad( const Real E_L, const Real E_R, const Real F_L,
-                             const Real F_R, const Real P_L, const Real P_R,
-                             Real &Flux_E, Real &Flux_F );
-Real ComputeTimestep_Rad( const GridStructure *Grid, const Real CFL );
+namespace radiation {
+
+auto flux_factor( Real E, Real F ) -> Real;
+auto flux_rad( Real E, Real F, Real P, Real V, int iCR ) -> Real;
+auto radiation_four_force( Real D, Real V, Real T, Real kappa_r, Real kappa_p,
+                           Real E, Real F, Real Pr ) -> std::tuple<Real, Real>;
+auto source_rad( Real D, Real V, Real T, Real kappa_r, Real kappa_p, Real E,
+                 Real F, Real Pr, int iCR ) -> Real;
+auto compute_closure( Real E, Real F ) -> Real;
+auto lambda_hll( Real f, int sign ) -> Real;
+void llf_flux( Real Fp, Real Fm, Real Up, Real Um, Real alpha, Real& out );
+auto numerical_flux_hll_rad( Real E_L, Real E_R, Real F_L, Real F_R, Real P_L,
+                             Real P_R ) -> std::tuple<Real, Real>;
+auto compute_timestep_rad( const GridStructure* grid, Real CFL ) -> Real;
+
+} // namespace radiation
 #endif // RAD_UTILITIES_HPP_

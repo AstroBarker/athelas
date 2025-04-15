@@ -9,7 +9,7 @@
  *
  * @details Functions:
  *            - NumNodes
- *            - ComputeCFL
+ *            - compute_cfl
  *            - compute_timestep
  */
 
@@ -17,10 +17,7 @@
 #include "eos.hpp"
 #include "grid.hpp"
 
-int NumNodes( const int order );
-
-Real ComputeCFL( const Real CFL, const int order, const int nStages,
-                 const int tOrder );
-Real compute_timestep( const View3D<Real> U, const GridStructure *Grid,
-                       EOS *eos, const Real CFL, const Options *opts );
+// auto compute_cfl( Real CFL, int order, int nStages, int tOrder ) -> Real;
+// auto compute_timestep( View3D<Real> U, const GridStructure* Grid,
+//                        EOS* eos, Real CFL, const Options* opts ) -> Real;
 #endif // DRIVER_HPP_

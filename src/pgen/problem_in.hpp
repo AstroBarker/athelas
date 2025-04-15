@@ -29,25 +29,25 @@ struct Options {
 
   std::string BC = "Homogenous";
 
-  geometry::Geometry geom    = geometry::Planar;
-  PolyBasis::PolyBasis basis = PolyBasis::Legendre;
+  geometry::Geometry geom      = geometry::Planar;
+  poly_basis::poly_basis basis = poly_basis::legendre;
 };
 
 class ProblemIn {
 
  public:
-  ProblemIn( const std::string fn );
+  explicit ProblemIn( const std::string& fn );
 
   std::string problem_name;
   std::string BC;
 
-  int nlim; // number of cycles
-  int ncycle_out; // std output
-  Real dt_hdf5; // hdf5 output
-  Real dt_init_frac; // ramp up dt
+  int nlim{ }; // number of cycles
+  int ncycle_out{ }; // std output
+  Real dt_hdf5{ }; // hdf5 output
+  Real dt_init_frac{ }; // ramp up dt
 
   std::string eos_type;
-  Real ideal_gamma;
+  Real ideal_gamma{ };
 
   int nElements;
   int nNodes;
@@ -63,7 +63,7 @@ class ProblemIn {
 
   Real t_end;
 
-  PolyBasis::PolyBasis Basis;
+  poly_basis::poly_basis basis;
   geometry::Geometry Geometry;
   bool Restart;
   bool do_rad;
@@ -75,10 +75,10 @@ class ProblemIn {
   Real gamma_i;
   Real gamma_r;
   Real weno_r;
-  Real b_tvd;
-  Real m_tvb;
+  Real b_tvd{ };
+  Real m_tvb{ };
   std::string limiter_type;
-  bool do_limiter;
+  bool do_limiter{ };
 
   // opac
   std::string opac_type;
@@ -86,4 +86,4 @@ class ProblemIn {
   toml::table in_table;
 };
 
-#endif // PROBLEMIN_HPP_
+#endif // PROBLEM_IN_HPP_

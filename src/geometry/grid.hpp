@@ -31,58 +31,58 @@
 
 class GridStructure {
  public:
-  GridStructure( ProblemIn *pin );
-  Real NodeCoordinate( int iC, int iN ) const;
-  Real Get_Centers( int iC ) const;
-  Real Get_Widths( int iC ) const;
-  Real Get_Nodes( int nN ) const;
-  Real Get_Weights( int nN ) const;
-  Real Get_Mass( int iX ) const;
-  Real Get_CenterOfMass( int iX ) const;
-  Real Get_xL( ) const;
-  Real Get_xR( ) const;
-  Real Get_SqrtGm( Real X ) const;
-  Real Get_LeftInterface( int iX ) const;
+  explicit GridStructure( const ProblemIn* pin );
+  [[nodiscard]] auto node_coordinate( int iC, int iN ) const -> Real;
+  [[nodiscard]] auto get_centers( int iC ) const -> Real;
+  [[nodiscard]] auto get_widths( int iC ) const -> Real;
+  [[nodiscard]] auto get_nodes( int nN ) const -> Real;
+  [[nodiscard]] auto get_weights( int nN ) const -> Real;
+  [[nodiscard]] auto get_mass( int iX ) const -> Real;
+  [[nodiscard]] auto get_center_of_mass( int iX ) const -> Real;
+  [[nodiscard]] auto get_x_l( ) const noexcept -> Real;
+  [[nodiscard]] auto get_x_r( ) const noexcept -> Real;
+  [[nodiscard]] auto get_sqrt_gm( Real X ) const -> Real;
+  [[nodiscard]] auto get_left_interface( int iX ) const -> Real;
 
-  bool DoGeometry( ) const;
+  [[nodiscard]] auto do_geometry( ) const noexcept -> bool;
 
-  int Get_Guard( ) const;
-  int Get_ilo( ) const;
-  int Get_ihi( ) const;
-  int Get_nNodes( ) const;
-  int Get_nElements( ) const;
+  [[nodiscard]] auto get_guard( ) const noexcept -> int;
+  [[nodiscard]] auto get_ilo( ) const noexcept -> int;
+  [[nodiscard]] auto get_ihi( ) const noexcept -> int;
+  [[nodiscard]] auto get_n_nodes( ) const noexcept -> int;
+  [[nodiscard]] auto get_n_elements( ) const noexcept -> int;
 
-  void CreateGrid( );
-  void UpdateGrid( View1D<Real> SData );
-  void ComputeMass( View3D<Real> uPF );
-  void ComputeCenterOfMass( View3D<Real> uPF );
-  void ComputeCenterOfMass_Radius( View3D<Real> uPF );
+  void create_grid( );
+  void update_grid( View1D<Real> SData );
+  void compute_mass( View3D<Real> uPF );
+  void compute_center_of_mass( View3D<Real> uPF );
+  void compute_center_of_mass_radius( View3D<Real> uPF );
 
-  Real &operator( )( int i, int j );
-  Real operator( )( int i, int j ) const;
+  auto operator( )( int i, int j ) -> Real&;
+  auto operator( )( int i, int j ) const -> Real;
 
  private:
-  int nElements;
-  int nNodes;
-  int nGhost;
-  int mSize;
+  int nElements_;
+  int nNodes_;
+  int nGhost_;
+  int mSize_;
 
-  Real xL;
-  Real xR;
+  Real xL_;
+  Real xR_;
 
-  geometry::Geometry Geometry;
+  geometry::Geometry geometry_;
 
-  View1D<Real> Nodes;
-  View1D<Real> Weights;
+  View1D<Real> nodes_{ };
+  View1D<Real> weights_{ };
 
-  View1D<Real> Centers;
-  View1D<Real> Widths;
-  View1D<Real> X_L; // left interface coordinate
+  View1D<Real> centers_{ };
+  View1D<Real> widths_{ };
+  View1D<Real> x_l_{ }; // left interface coordinate
 
-  View1D<Real> Mass;
-  View1D<Real> CenterOfMass;
+  View1D<Real> mass_{ };
+  View1D<Real> center_of_mass_{ };
 
-  View2D<Real> Grid;
+  View2D<Real> grid_{ };
 };
 
 #endif // GRID_HPP_

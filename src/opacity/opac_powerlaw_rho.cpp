@@ -6,20 +6,23 @@
  * @brief Density power law opacity model
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "abstractions.hpp"
 #include "constants.hpp"
 #include "opac.hpp"
 #include "opac_base.hpp"
 
-Real PowerlawRho::PlanckMean( const Real rho, const Real T, const Real X,
-                              const Real Y, const Real Z, Real *lambda ) const {
-  return k * std::pow( rho, exp );
+auto PowerlawRho::planck_mean( const Real rho, const Real /*T*/,
+                               const Real /*X*/, const Real /*Y*/,
+                               const Real /*Z*/, Real* /*lambda*/ ) const
+    -> Real {
+  return k_ * std::pow( rho, exp_ );
 }
 
-Real PowerlawRho::RosselandMean( const Real rho, const Real T, const Real X,
-                                 const Real Y, const Real Z,
-                                 Real *lambda ) const {
-  return k * std::pow( rho, exp );
+auto PowerlawRho::rosseland_mean( const Real rho, const Real /*T*/,
+                                  const Real /*X*/, const Real /*Y*/,
+                                  const Real /*Z*/, Real* /*lambda*/ ) const
+    -> Real {
+  return k_ * std::pow( rho, exp_ );
 }

@@ -8,8 +8,8 @@
  * @brief Core polynomial basis functions
  *
  * @details Provides means to construct and evaluate bases
- *            - Legendre
- *            - Taylor
+ *            - legendre
+ *            - taylor
  */
 
 #include <algorithm> // std::copy
@@ -20,59 +20,58 @@
 #include "abstractions.hpp"
 #include "grid.hpp"
 
-typedef Real BasisFuncType( int, Real, Real );
+using BasisFuncType = Real( int, Real, Real );
 
 class ModalBasis {
  public:
-  ModalBasis( PolyBasis::PolyBasis basis, const View3D<Real> uCF,
-              GridStructure *Grid, const int pOrder, const int nN,
-              const int nElements, const int nGuard );
-  static Real Taylor( const int order, const Real eta, const Real eta_c );
-  static Real dTaylor( const int order, const Real eta, const Real eta_c );
-  Real Ortho( const int order, const int iX, const int i_eta, const Real eta,
-              const Real eta_c, const View3D<Real> uCF, GridStructure *Grid,
-              const bool derivative_option );
-  Real InnerProduct( const int m, const int n, const int iX, const Real eta_c,
-                     const View3D<Real> uPF, GridStructure *Grid );
-  Real InnerProduct( const int n, const int iX, const Real eta_c,
-                     const View3D<Real> uPF, GridStructure *Grid );
-  void InitializeTaylorBasis( const View3D<Real> U, GridStructure *Grid );
-  void InitializeBasis( const PolyBasis::PolyBasis basis,
-                        const View3D<Real> uCF, GridStructure *Grid );
-  void CheckOrthogonality( const View3D<Real> uCF, GridStructure *Grid );
-  Real basis_eval( View3D<Real> U, const int iX, const int iCF,
-                   const int i_eta ) const;
-  Real basis_eval( View2D<Real> U, const int iX, const int iCF,
-                   const int i_eta ) const;
-  Real basis_eval( View1D<Real> U, const int iX, const int i_eta ) const;
-  void ComputeMassMatrix( const View3D<Real> uCF, GridStructure *Grid );
+  ModalBasis( poly_basis::poly_basis basis, View3D<Real> uCF,
+              GridStructure* grid, int pOrder, int nN, int nElements,
+              int nGuard );
+  static auto taylor( int order, Real eta, Real eta_c ) -> Real;
+  static auto d_taylor( int order, Real eta, Real eta_c ) -> Real;
+  auto ortho( int order, int iX, int i_eta, Real eta, Real eta_c,
+              View3D<Real> uCF, GridStructure* grid, bool derivative_option )
+      -> Real;
+  auto inner_product( int m, int n, int iX, Real eta_c, View3D<Real> uPF,
+                      GridStructure* grid ) const -> Real;
+  auto inner_product( int n, int iX, Real eta_c, View3D<Real> uPF,
+                      GridStructure* grid ) const -> Real;
+  void initialize_taylor_basis( View3D<Real> U, GridStructure* grid );
+  void initialize_basis( View3D<Real> uCF, GridStructure* grid );
+  void check_orthogonality( View3D<Real> uCF, GridStructure* grid ) const;
+  [[nodiscard]] auto basis_eval( View3D<Real> U, int iX, int iCF,
+                                 int i_eta ) const -> Real;
+  [[nodiscard]] auto basis_eval( View2D<Real> U, int iX, int iCF,
+                                 int i_eta ) const -> Real;
+  [[nodiscard]] auto basis_eval( View1D<Real> U, int iX, int i_eta ) const
+      -> Real;
+  void compute_mass_matrix( View3D<Real> uCF, GridStructure* grid );
 
-  Real Get_Phi( const int iX, const int i_eta, const int k ) const;
-  Real Get_dPhi( const int iX, const int i_eta, const int k ) const;
-  Real Get_MassMatrix( const int iX, const int k ) const;
+  [[nodiscard]] auto get_phi( int iX, int i_eta, int k ) const -> Real;
+  [[nodiscard]] auto get_d_phi( int iX, int i_eta, int k ) const -> Real;
+  [[nodiscard]] auto get_mass_matrix( int iX, int k ) const -> Real;
 
-  int Get_Order( ) const;
+  [[nodiscard]] auto get_order( ) const noexcept -> int;
 
-  static Real Legendre( const int order, const Real x );
-  static Real dLegendre( const int order, const Real x );
-  static Real Legendre( const int order, const Real x, const Real x_c );
-  static Real dLegendre( const int order, const Real x, const Real x_c );
-  static Real dLegendreN( const int poly_order, const int deriv_order,
-                          const Real x );
+  static auto legendre( int n, Real x ) -> Real;
+  static auto d_legendre( int order, Real x ) -> Real;
+  static auto legendre( int n, Real x, Real x_c ) -> Real;
+  static auto d_legendre( int n, Real x, Real x_c ) -> Real;
+  static auto d_legendre_n( int poly_order, int deriv_order, Real x ) -> Real;
 
  private:
-  int nX;
-  int order;
-  int nNodes;
-  int mSize;
+  int nX_;
+  int order_;
+  int nNodes_;
+  int mSize_;
 
-  View2D<Real> MassMatrix;
+  View2D<Real> mass_matrix_{ };
 
-  View3D<Real> Phi;
-  View3D<Real> dPhi;
+  View3D<Real> phi_{ };
+  View3D<Real> dphi_{ };
 
-  Real ( *func )( const int n, const Real x, const Real x_c );
-  Real ( *dfunc )( const int n, const Real x, Real const x_c );
+  Real ( *func_ )( const int n, const Real x, const Real x_c );
+  Real ( *dfunc_ )( const int n, const Real x, Real const x_c );
 };
 
 #endif // POLYNOMIAL_BASIS_HPP_

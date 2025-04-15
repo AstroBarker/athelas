@@ -17,8 +17,6 @@
 #include "polynomial_basis.hpp"
 #include "problem_in.hpp"
 #include "slope_limiter.hpp"
-// #include "slope_limiter_weno.hpp"
-// #include "slope_limiter_tvdminmod.hpp"
 #include "state.hpp"
 
 struct GridType {
@@ -29,15 +27,15 @@ struct DataType {
   Real x{ };
 };
 
-void WriteState( State *state, GridStructure Grid, SlopeLimiter *SL,
-                 const std::string ProblemName, Real time, int order,
-                 int i_write, bool do_rad );
+void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
+                  const std::string& problem_name, Real time, int order,
+                  int i_write, bool do_rad );
 
-void PrintSimulationParameters( GridStructure Grid, ProblemIn *pin,
-                                const Real CFL );
+void print_simulation_parameters( GridStructure grid, ProblemIn* pin,
+                                  Real CFL );
 
-void WriteBasis( ModalBasis *Basis, unsigned int ilo, unsigned int ihi,
-                 unsigned int nNodes, unsigned int order,
-                 std::string ProblemName );
+void write_basis( ModalBasis* basis, unsigned int ilo, unsigned int ihi,
+                  unsigned int nNodes, unsigned int order,
+                  const std::string& problem_name );
 
 #endif // IO_HPP_
