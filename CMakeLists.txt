@@ -132,11 +132,12 @@ set_target_properties(libathelas
     SUFFIX ".so"
 )
 
-# Check compiler ID
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang") # fix for C++23
-  message(STATUS "Using Clang, enabling libc++")
-  add_compile_options(-stdlib=libc++)
-  add_link_options(-stdlib=libc++ -lc++ -lc++abi)
+# hack because Clang is legacy..
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  # Workaround for std::expected not available in clang
+  add_compile_options(
+    -stdlib=libstdc++ -D__cpp_concepts=202002 -Wno-builtin-macro-redefined
+  )
 endif()
 
 # Check for FindOpenMP
