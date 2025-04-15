@@ -36,7 +36,7 @@ class RadiationEquilibriumTest(AthelasRegressionTest):
       build_required = False
     else:
       # For built executable, use relative path
-      executable = "main"
+      executable = "athelas"
       build_required = True
 
     # Initialize the parent class with test-specific parameters

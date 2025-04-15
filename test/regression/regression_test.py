@@ -27,12 +27,12 @@ class AthelasRegressionTest(unittest.TestCase):
     test_name="test_sod",
     src_dir="",
     build_dir="./build",
-    executable="./main",
+    executable="./athelas",
     infile="test_inputs/sod.toml",
     varlist=["grid/x"],
     run_dir="./run",
     build_type="Release",
-    num_procs=1,
+    num_procs=4,
     goldfile=None,
     upgold=False,
     tolerance=1.0e-5,
@@ -162,7 +162,7 @@ class AthelasRegressionTest(unittest.TestCase):
         # For absolute executable path, use absolute path for input file too
         abs_infile = os.path.abspath(self.infile)
         subprocess.run(
-          run_cmd + self.executable + " " + abs_infile,
+          run_cmd + self.executable + " -i " + abs_infile,
           shell=True,
           check=True,
           stdout=outfile,
@@ -170,7 +170,7 @@ class AthelasRegressionTest(unittest.TestCase):
         )
       else:
         subprocess.run(
-          run_cmd + self.executable + f" {self.infile}",
+          run_cmd + self.executable + f"-i {self.infile}",
           shell=True,
           check=True,
           stdout=outfile,
