@@ -74,4 +74,4 @@ jobs:
     - name: Run Regression Tests
       working-directory: test/regression
       run: |
-        python run_regression_tests.py -e ${{ steps.strings.outputs.build-output-dir }}/main
+        python run_regression_tests.py -e ${{ steps.strings.outputs.build-output-dir }}/athelas
