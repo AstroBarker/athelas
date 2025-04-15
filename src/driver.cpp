@@ -195,8 +195,8 @@ auto Driver::execute( ) -> int {
     } catch ( const AthelasError& e ) {
       std::cerr << e.what( ) << std::endl;
       std::println( "!!! Bad State found, writing _final_ output file ..." );
-      write_state( &state_, grid_, &sl_hydro_, problem_name, t, order, -1,
-                   opts_.do_rad );
+      write_state( &state_, grid_, &sl_hydro_, problem_name_, time_,
+                   pin_.pOrder, -1, opts_.do_rad );
       return AthelasExitCodes::FAILURE;
     }
 #endif
