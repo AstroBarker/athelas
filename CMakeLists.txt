@@ -98,6 +98,7 @@ include_directories(athelas PUBLIC
 
 # --- Source Files ---
 set( ATHELAS_SOURCES 
+  "src/driver.cpp"
   "src/pgen/problem_in.cpp"
   "src/basis/polynomial_basis.cpp"
   "src/bc/boundary_conditions.cpp"
@@ -209,8 +210,8 @@ include_directories("external/tomlplusplus")
 
 # --- main ---
 
-add_executable( main src/driver.cpp ${ATHELAS_SOURCES} )
-set_target_properties(main
+add_executable( athelas src/main.cpp ${ATHELAS_SOURCES} )
+set_target_properties(athelas
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib"
@@ -223,10 +224,10 @@ set_target_properties(main
 target_link_libraries( libathelas Kokkos::kokkos )
 target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenMP_CXX_FLAGS} )
 
-target_compile_options( main PRIVATE -fPIC -O2 -Wall -llapacke )
-add_dependencies( main libathelas )
+target_compile_options( athelas PRIVATE -fPIC -O2 -Wall -llapacke )
+add_dependencies( athelas libathelas )
 
-target_link_libraries( main ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos stdc++exp ${OpenMP_CXX_FLAGS} )
+target_link_libraries( athelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos stdc++exp ${OpenMP_CXX_FLAGS} )
 
 if ( ATHELAS_ENABLE_UNIT_TESTS )
   message("\nConfiguring tests")

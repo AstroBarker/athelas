@@ -162,7 +162,7 @@ class AthelasRegressionTest(unittest.TestCase):
         # For absolute executable path, use absolute path for input file too
         abs_infile = os.path.abspath(self.infile)
         subprocess.run(
-          run_cmd + self.executable + " " + abs_infile,
+          run_cmd + self.executable + " -i " + abs_infile,
           shell=True,
           check=True,
           stdout=outfile,

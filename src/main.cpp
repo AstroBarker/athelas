@@ -1,3 +1,4 @@
+#include <expected>
 #include <print>
 #include <string>
 
@@ -10,34 +11,33 @@
 #include "utils/error.hpp"
 
 namespace {
-auto parse_input_file(int argc, char* argv[]) -> std::string {
-    std::string input_path;
-
-    for (int i = 1; i < argc; ++i) {
-        std::string_view arg = argv[i];
-        if ((arg == "-i" || arg == "--input") && i + 1 < argc) {
-            input_path = argv[++i];
-        } else {
-            std::println(stderr, "Unknown or malformed option: {}", arg);
-            std::println(stderr, "Usage: ./athelas -i input_file.toml");
-            std::exit(1);
-        }
+auto parse_input_file( std::span<char*> args )
+    -> std::expected<std::string, std::string> {
+  for ( std::size_t i = 1; i < args.size( ); ++i ) {
+    std::string_view arg = args[i];
+    if ( arg == "-i" || arg == "--input" ) {
+      if ( i + 1 >= args.size( ) ) {
+        return std::unexpected( "Missing input file after -i" );
+      }
+      return std::string( args[i + 1] );
     }
-
-    if (input_path.empty()) {
-        std::println(stderr, "Missing required input file.");
-        std::println(stderr, "Usage: ./athelas -i input_file.toml");
-        std::exit(1);
-    }
-
-    return input_path;
+  }
+  return std::unexpected( "No input file passed! Use -i <path>" );
 }
 } // namespace
 
 using bc::apply_bc;
 
 auto main( int argc, char** argv ) -> int {
-  const std::string input_file = parse_input_file(argc, argv);
+  auto input_result =
+      parse_input_file( { argv, static_cast<std::size_t>( argc ) } );
+  if ( !input_result ) {
+    std::println( "Error: {}", input_result.error( ) );
+    return AthelasExitCodes::FAILURE;
+    ;
+  }
+
+  std::string input_path = *input_result;
 
   auto sig1 = signal( SIGSEGV, segfault_handler );
   auto sig2 = signal( SIGABRT, segfault_handler );
@@ -45,27 +45,25 @@ auto main( int argc, char** argv ) -> int {
   // create span of args
   auto args = std::span( argv, static_cast<size_t>( argc ) );
 
-  Kokkos::initialize(argc, argv);
+  Kokkos::initialize( argc, argv );
   {
     // pin
-    const auto pin = std::make_unique<ProblemIn>(input_file);
+    const auto pin = std::make_unique<ProblemIn>( input_path );
 
     // --- Create Driver ---
-    Driver driver(pin.get());
+    Driver driver( pin.get( ) );
 
     // --- Timer ---
     Kokkos::Timer timer_total;
 
     // --- execute driver ---
-    driver.execute();
+    driver.execute( );
 
     // --- Finalize timer ---
     Real const time = timer_total.seconds( );
     std::println( " ~ Done! Elapsed time: {} seconds.", time );
-
   }
-  Kokkos::finalize();
+  Kokkos::finalize( );
 
   return AthelasExitCodes::SUCCESS;
 } // main
-
