@@ -39,6 +39,14 @@ On Mac we support `-DMACHINE=MACOS`,
 Ubuntu supports `-DMACHINE=UBUNTU` (primarily because the CI fails to find `lapacke.h` unless we hold its hand and this is how we do that, for now.)
 This places the executable in the `build` dir.
 
+# Running
+To run `athelas` simply execute `./athelas -i ../inputs/sod.toml`, for instance.
+
+# Tests
+Regression tests live in `test/regression`. To run all test, run 
+`python run_regression_tests.py`. Pass `-e /path/to/athelas/executable` to 
+avoid rebuilding each test.
+
 
 ## NOTE: 
 The build system may not be perfect yet. Your mileage may vary.
