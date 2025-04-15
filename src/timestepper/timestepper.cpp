@@ -22,8 +22,8 @@
  * The constructor creates the necessary data structures for time evolution.
  * Lots of structures used in discretizations live here.
  **/
-TimeStepper::TimeStepper( ProblemIn *pin, GridStructure &grid )
-    : mSize_( grid.get_n_elements( ) + (2 * grid.get_guard( )) ),
+TimeStepper::TimeStepper( ProblemIn* pin, GridStructure& grid )
+    : mSize_( grid.get_n_elements( ) + ( 2 * grid.get_guard( ) ) ),
       nStages_( pin->nStages ), tOrder_( pin->tOrder ),
       implicit_tableau_(
           ButcherTableau( nStages_, tOrder_, TableauType::Implicit ) ),
