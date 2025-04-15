@@ -132,6 +132,13 @@ set_target_properties(libathelas
     SUFFIX ".so"
 )
 
+# Check compiler ID
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang") # fix for C++23
+  message(STATUS "Using Clang, enabling libc++")
+  add_compile_options(-stdlib=libc++)
+  add_link_options(-stdlib=libc++ -lc++ -lc++abi)
+endif()
+
 # Check for FindOpenMP
 find_package(OpenMP REQUIRED)
 if (OPENMP_FOUND)
@@ -224,7 +231,7 @@ set_target_properties(athelas
 target_link_libraries( libathelas Kokkos::kokkos )
 target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenMP_CXX_FLAGS} )
 
-target_compile_options( athelas PRIVATE -fPIC -O2 -Wall -llapacke -stdlib=libc++ )
+target_compile_options( athelas PRIVATE -fPIC -O2 -Wall -llapacke )
 add_dependencies( athelas libathelas )
 
 target_link_libraries( athelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos stdc++exp ${OpenMP_CXX_FLAGS} )
