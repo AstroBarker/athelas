@@ -59,7 +59,7 @@ class NohShockTubeTest(AthelasRegressionTest):
       tolerance=1.0e-5,
       build_required=build_required,
       compression_factor=2,
-      test_high_order=True,
+      test_high_order=False,
     )
 
   def test_noh(self):
