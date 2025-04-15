@@ -224,7 +224,7 @@ set_target_properties(athelas
 target_link_libraries( libathelas Kokkos::kokkos )
 target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenMP_CXX_FLAGS} )
 
-target_compile_options( athelas PRIVATE -fPIC -O2 -Wall -llapacke )
+target_compile_options( athelas PRIVATE -fPIC -O2 -Wall -llapacke -stdlib=libc++ )
 add_dependencies( athelas libathelas )
 
 target_link_libraries( athelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos stdc++exp ${OpenMP_CXX_FLAGS} )
