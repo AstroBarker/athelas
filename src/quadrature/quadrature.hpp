@@ -11,10 +11,13 @@
  */
 
 #include "abstractions.hpp"
+#include <vector>
 
 namespace quadrature {
-auto jacobi_matrix( int m, Real* aj, Real* bj ) -> Real;
-void lg_quadrature( int m, Real* nodes, Real* weights );
+auto jacobi_matrix( int m, std::vector<Real>& aj, std::vector<Real>& bj )
+    -> Real;
+void lg_quadrature( int m, std::vector<Real>& nodes,
+                    std::vector<Real>& weights );
 } // namespace quadrature
 
 #endif // QUADRATURE_HPP_

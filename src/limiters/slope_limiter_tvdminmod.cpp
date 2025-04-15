@@ -40,9 +40,9 @@ void TVDMinmod::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
     return;
   }
 
-  const int& ilo   = grid->get_ilo( );
-  const int& ihi   = grid->get_ihi( );
-  const int nvars_ = U.extent( 0 );
+  const int& ilo  = grid->get_ilo( );
+  const int& ihi  = grid->get_ihi( );
+  const int nvars = U.extent( 0 );
 
   // TODO(astrobarker): this is repeated code: clean up somehow
   /* map to characteristic vars */
@@ -53,7 +53,7 @@ void TVDMinmod::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
         KOKKOS_CLASS_LAMBDA( const int iX ) {
           // --- Characteristic Limiting Matrices ---
           // Note: using cell averages
-          for ( int iC = 0; iC < nvars_; iC++ ) {
+          for ( int iC = 0; iC < nvars; iC++ ) {
             mult_( iC, iX ) = U( iC, iX, 0 );
           }
 
@@ -66,13 +66,13 @@ void TVDMinmod::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
           compute_characteristic_decomposition( Mult_i, R_i, R_inv_i );
           for ( int k = 0; k < order_; k++ ) {
             // store w_.. = invR @ U_..
-            for ( int iC = 0; iC < nvars_; iC++ ) {
+            for ( int iC = 0; iC < nvars; iC++ ) {
               U_c_T_i( iC ) = U( iC, iX, k );
               w_c_T_i( iC ) = 0.0;
             }
             MAT_MUL( 1.0, R_inv_i, U_c_T_i, 1.0, w_c_T_i );
 
-            for ( int iC = 0; iC < nvars_; iC++ ) {
+            for ( int iC = 0; iC < nvars; iC++ ) {
               U( iC, iX, k ) = w_c_T_i( iC );
             } // end loop vars
           } // end loop k
@@ -85,7 +85,7 @@ void TVDMinmod::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
   // and skipping as appropriate
   if ( tci_opt_ ) detect_troubled_cells( U, D_, grid, basis );
 
-  for ( int iC = 0; iC < nvars_; iC++ ) {
+  for ( int iC = 0; iC < nvars; iC++ ) {
     Kokkos::parallel_for(
         "SlopeLimiter :: Minmod", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
         KOKKOS_CLASS_LAMBDA( const int iX ) {
@@ -140,7 +140,7 @@ void TVDMinmod::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
         KOKKOS_CLASS_LAMBDA( const int iX ) {
           // --- Characteristic Limiting Matrices ---
           // Note: using cell averages
-          for ( int iC = 0; iC < nvars_; iC++ ) {
+          for ( int iC = 0; iC < nvars; iC++ ) {
             mult_( iC, iX ) = U( iC, iX, 0 );
           }
 
@@ -152,13 +152,13 @@ void TVDMinmod::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
           auto Mult_i  = Kokkos::subview( mult_, Kokkos::ALL, iX );
           for ( int k = 0; k < order_; k++ ) {
             // store w_.. = invR @ U_..
-            for ( int iC = 0; iC < nvars_; iC++ ) {
+            for ( int iC = 0; iC < nvars; iC++ ) {
               U_c_T_i( iC ) = U( iC, iX, k );
               w_c_T_i( iC ) = 0.0;
             }
             MAT_MUL( 1.0, R_i, U_c_T_i, 1.0, w_c_T_i );
 
-            for ( int iC = 0; iC < nvars_; iC++ ) {
+            for ( int iC = 0; iC < nvars; iC++ ) {
               U( iC, iX, k ) = w_c_T_i( iC );
             } // end loop vars
           } // end loop k

@@ -16,6 +16,7 @@
  */
 
 #include <cmath> /* atan */
+#include <vector>
 
 #include "constants.hpp"
 #include "grid.hpp"
@@ -29,9 +30,8 @@ GridStructure::GridStructure( const ProblemIn* pin )
       x_l_( "Left Interface", mSize_ + 1 ), mass_( "Cell mass_", mSize_ ),
       center_of_mass_( "Center of mass_", mSize_ ),
       grid_( "Grid", mSize_, nNodes_ ) {
-  // TODO(astrobarker): Allow lg_quadrature to take in vectors.
-  Real* tmp_nodes   = new Real[nNodes_];
-  Real* tmp_weights = new Real[nNodes_];
+  std::vector<Real> tmp_nodes( nNodes_ );
+  std::vector<Real> tmp_weights( nNodes_ );
 
   for ( int iN = 0; iN < nNodes_; iN++ ) {
     tmp_nodes[iN]   = 0.0;
@@ -46,9 +46,6 @@ GridStructure::GridStructure( const ProblemIn* pin )
   }
 
   create_grid( );
-
-  delete[] tmp_nodes;
-  delete[] tmp_weights;
 }
 
 // linear shape function on the reference element

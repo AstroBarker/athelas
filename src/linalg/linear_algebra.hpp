@@ -13,6 +13,7 @@
  */
 
 #include "Kokkos_Core.hpp"
+#include <vector>
 
 #include "abstractions.hpp"
 
@@ -42,7 +43,8 @@ constexpr void MAT_MUL( Real /*alpha*/, M A, V x, Real /*beta*/, V y ) {
     }
   }
 }
-void tri_sym_diag( int n, Real* d, Real* e, Real* array );
-void invert_matrix( Real* M, int n );
+void tri_sym_diag( int n, std::vector<Real>& d, std::vector<Real>& e,
+                   std::vector<Real>& array );
+void invert_matrix( std::vector<Real>& M, int n );
 
 #endif // _LINEAR_ALGEBRA_HPP_

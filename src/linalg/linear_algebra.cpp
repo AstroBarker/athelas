@@ -38,7 +38,8 @@
  *
  * @note This function is used in quadrature initialization.
  */
-void tri_sym_diag( int n, Real* d, Real* e, Real* array ) {
+void tri_sym_diag( int n, std::vector<Real>& d, std::vector<Real>& e,
+                   std::vector<Real>& array ) {
 
   // Parameters for LaPack
   lapack_int m = 0, ldz = 0, info = 0, work_dim = 0;
@@ -52,10 +53,11 @@ void tri_sym_diag( int n, Real* d, Real* e, Real* array ) {
     work_dim = 2 * n - 2;
   }
 
-  Real* ev   = new Real[static_cast<unsigned long>( n * n )];
-  Real* work = new Real[work_dim];
+  std::vector<Real> ev( n * n );
+  std::vector<Real> work( work_dim );
 
-  info = LAPACKE_dstev( LAPACK_COL_MAJOR, job, m, d, e, ev, ldz );
+  info = LAPACKE_dstev( LAPACK_COL_MAJOR, job, m, d.data( ), e.data( ),
+                        ev.data( ), ldz );
 
   if ( info != 0 ) {
     THROW_ATHELAS_ERROR(
@@ -68,22 +70,19 @@ void tri_sym_diag( int n, Real* d, Real* e, Real* array ) {
     array[i] = k * ev[static_cast<ptrdiff_t>( n * i )];
   }
 
-  delete[] work;
-  delete[] ev;
+  // Update the input vectors with the results
 }
 
 /**
  * @brief Use LAPACKE to invert a matrix M using LU factorization.
  **/
-void invert_matrix( Real* M, int n ) {
+void invert_matrix( std::vector<Real>& M, int n ) {
   lapack_int info1 = 0, info2 = 0;
 
-  int* IPIV = new int[n];
+  std::vector<int> IPIV( n );
 
-  info1 = LAPACKE_dgetrf( LAPACK_COL_MAJOR, n, n, M, n, IPIV );
-  info2 = LAPACKE_dgetri( LAPACK_COL_MAJOR, n, M, n, IPIV );
-
-  delete[] IPIV;
+  info1 = LAPACKE_dgetrf( LAPACK_COL_MAJOR, n, n, M.data( ), n, IPIV.data( ) );
+  info2 = LAPACKE_dgetri( LAPACK_COL_MAJOR, n, M.data( ), n, IPIV.data( ) );
 
   if ( info1 != 0 || info2 != 0 ) {
     THROW_ATHELAS_ERROR( " ! Issue occured in matrix inversion." );

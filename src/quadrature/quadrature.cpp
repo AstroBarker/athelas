@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <vector>
 
 #include "constants.hpp"
 #include "linear_algebra.hpp"
@@ -28,7 +29,8 @@ namespace quadrature {
  * @param bj Output array for matrix subdiagonal elements
  * @return Real The zero-th moment (zemu) needed for weight computation
  */
-auto jacobi_matrix( int m, Real* aj, Real* bj ) -> Real {
+auto jacobi_matrix( int m, std::vector<Real>& aj, std::vector<Real>& bj )
+    -> Real {
 
   Real ab   = NAN;
   Real zemu = NAN;
@@ -65,9 +67,10 @@ auto jacobi_matrix( int m, Real* aj, Real* bj ) -> Real {
  * @param nodes Output array for quadrature nodes (abscissas)
  * @param weights Output array for quadrature weights
  */
-void lg_quadrature( int m, Real* nodes, Real* weights ) {
-  Real* aj = new Real[m];
-  Real* bj = new Real[m];
+void lg_quadrature( int m, std::vector<Real>& nodes,
+                    std::vector<Real>& weights ) {
+  std::vector<Real> aj( m );
+  std::vector<Real> bj( m );
 
   Real zemu = NAN;
 
@@ -94,9 +97,6 @@ void lg_quadrature( int m, Real* nodes, Real* weights ) {
     weights[i] *= 0.5;
     nodes[i] *= 0.5;
   }
-
-  delete[] aj;
-  delete[] bj;
 }
 
 } // namespace quadrature
