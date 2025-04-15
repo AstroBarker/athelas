@@ -30,7 +30,7 @@ class TimeStepper {
 
  public:
   // TODO(astrobarker): Is it possible to initialize grid_s_ from grid directly?
-  TimeStepper( ProblemIn* pin, GridStructure& grid );
+  TimeStepper( const ProblemIn* pin, GridStructure* grid );
 
   void initialize_timestepper( );
 
