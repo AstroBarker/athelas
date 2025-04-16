@@ -159,27 +159,12 @@ auto Driver::execute( ) -> int {
     }
 
     if ( !opts_.do_rad ) {
-      ssprk_.update_fluid( fluid::compute_increment_explicit, dt_, &state_,
-                           grid_, basis_.get( ), &eos_, &sl_hydro_, &opts_ );
+      ssprk_.update_fluid( dt_, &state_, grid_, basis_.get( ), &eos_,
+                           &sl_hydro_, &opts_ );
     } else {
-      // TODO(astrobarker): compile time swap operator splitting
-      // ssprk_.update_fluid( compute_increment_explicit, 0.5 * dt, &state,
-      // grid,
-      //                    &basis, &eos, &sl_hydro_, opts );
-      // ssprk_.update_radiation( compute_increment_explicit_rad, dt, &state,
-      // grid,
-      //                        &basis, &eos, &sl_hydro_, opts );
-      // ssprk_.update_fluid( compute_increment_explicit, 0.5 * dt, &state,
-      // grid,
-      //                    &basis, &eos, &sl_hydro_, opts );
-
       try {
-        ssprk_.update_rad_hydro( fluid::compute_increment_explicit,
-                                 radiation::compute_increment_explicit_rad,
-                                 fluid::compute_increment_fluid_rad,
-                                 radiation::compute_increment_rad_source, dt_,
-                                 &state_, grid_, basis_.get( ), &eos_, &opac_,
-                                 &sl_hydro_, &opts_ );
+        ssprk_.update_rad_hydro( dt_, &state_, grid_, basis_.get( ), &eos_,
+                                 &opac_, &sl_hydro_, &opts_ );
       } catch ( const AthelasError& e ) {
         std::cerr << e.what( ) << std::endl;
         return AthelasExitCodes::FAILURE;

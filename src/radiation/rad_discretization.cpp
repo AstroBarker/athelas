@@ -223,7 +223,7 @@ auto compute_increment_rad_source( View2D<Real> uCR, const int k, const int iCR,
  * uCR_L, uCR_R     : holds interface data
  * BC               : (string) boundary condition type
  **/
-void compute_increment_explicit_rad(
+void compute_increment_rad_explicit(
     const View3D<Real> uCR, const View3D<Real> uCF, const GridStructure& grid,
     const ModalBasis* basis, const EOS* eos, View3D<Real> dU,
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCR_F_L,

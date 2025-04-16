@@ -32,18 +32,18 @@ void compute_increment_fluid_geometry( View3D<Real> U,
                                        ModalBasis* Basis, EOS* eos,
                                        View3D<Real> dU );
 
-auto compute_increment_fluid_rad( View2D<Real> uCF, int k, int iCF,
-                                  View2D<Real> uCR, const GridStructure& grid,
-                                  const ModalBasis* Basis, const EOS* eos,
-                                  const Opacity* opac, int iX ) -> Real;
+auto compute_increment_fluid_source( View2D<Real> uCF, int k, int iCF,
+                                     View2D<Real> uCR,
+                                     const GridStructure& grid,
+                                     const ModalBasis* Basis, const EOS* eos,
+                                     const Opacity* opac, int iX ) -> Real;
 
-void compute_increment_explicit( View3D<Real> U, View3D<Real> uCR,
-                                 const GridStructure& grid,
-                                 const ModalBasis* Basis, const EOS* eos,
-                                 View3D<Real> dU, View3D<Real> Flux_q,
-                                 View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
-                                 View2D<Real> uCF_F_R, View1D<Real> Flux_U,
-                                 View1D<Real> Flux_P, const Options* opts );
+void compute_increment_fluid_explicit(
+    View3D<Real> U, View3D<Real> uCR, const GridStructure& grid,
+    const ModalBasis* Basis, const EOS* eos, View3D<Real> dU,
+    View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
+    View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
+    const Options* opts );
 
 } // namespace fluid
 #endif // FLUID_DISCRETIZATION_HPP_
