@@ -28,9 +28,9 @@
 #include "state.hpp"
 #include "tableau.hpp"
 
-using fluid::compute_increment_explicit;
-using fluid::compute_increment_fluid_rad;
-using radiation::compute_increment_explicit_rad;
+using fluid::compute_increment_fluid_explicit;
+using fluid::compute_increment_fluid_source;
+using radiation::compute_increment_rad_explicit;
 using radiation::compute_increment_rad_source;
 
 class TimeStepper {
@@ -89,9 +89,9 @@ class TimeStepper {
         auto dUs_j =
             Kokkos::subview( dU_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
         auto flux_u_j = Kokkos::subview( flux_u_, j, Kokkos::ALL );
-        compute_increment_explicit( Us_j, uCR, grid_s_[j], basis, eos, dUs_j,
-                                    flux_q_, dFlux_num_, uCF_F_L_, uCF_F_R_,
-                                    flux_u_j, flux_p_, opts );
+        compute_increment_fluid_explicit( Us_j, uCR, grid_s_[j], basis, eos,
+                                          dUs_j, flux_q_, dFlux_num_, uCF_F_L_,
+                                          uCF_F_R_, flux_u_j, flux_p_, opts );
 
         // inner sum
         Kokkos::parallel_for(
@@ -137,9 +137,9 @@ class TimeStepper {
           Kokkos::subview( dU_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto flux_u_j = Kokkos::subview( flux_u_, iS, Kokkos::ALL );
 
-      compute_increment_explicit( Us_j, uCR, grid_s_[iS], basis, eos, dUs_j,
-                                  flux_q_, dFlux_num_, uCF_F_L_, uCF_F_R_,
-                                  flux_u_j, flux_p_, opts );
+      compute_increment_fluid_explicit( Us_j, uCR, grid_s_[iS], basis, eos,
+                                        dUs_j, flux_q_, dFlux_num_, uCF_F_L_,
+                                        uCF_F_R_, flux_u_j, flux_p_, opts );
       Kokkos::parallel_for(
           "Timestepper :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
@@ -221,10 +221,10 @@ class TimeStepper {
                                          Kokkos::ALL );
         auto flux_u_j = Kokkos::subview( flux_u_, j, Kokkos::ALL );
 
-        compute_increment_explicit_rad( Us_j_r, Us_j_h, grid_s_[j], basis, eos,
+        compute_increment_rad_explicit( Us_j_r, Us_j_h, grid_s_[j], basis, eos,
                                         dUs_j_r, flux_q_, dFlux_num_, uCF_F_L_,
                                         uCF_F_R_, flux_u_j, flux_p_, opts );
-        compute_increment_explicit( // hydro
+        compute_increment_fluid_explicit( // hydro
             Us_j_h, Us_j_r, grid_s_[j], basis, eos, dUs_j_h, flux_q_,
             dFlux_num_, uCF_F_L_, uCF_F_R_, flux_u_j, flux_p_, opts );
 
@@ -251,13 +251,13 @@ class TimeStepper {
               auto u_r =
                   Kokkos::subview( U_s_r_, j, Kokkos::ALL, iX, Kokkos::ALL );
               SumVar_U_( 1, iX, k ) +=
-                  dt_a_im * compute_increment_fluid_rad( u_h, k, 1, u_r,
-                                                         grid_s_[iS], basis,
-                                                         eos, opac, iX );
+                  dt_a_im * compute_increment_fluid_source( u_h, k, 1, u_r,
+                                                            grid_s_[iS], basis,
+                                                            eos, opac, iX );
               SumVar_U_( 2, iX, k ) +=
-                  dt_a_im * compute_increment_fluid_rad( u_h, k, 2, u_r,
-                                                         grid_s_[iS], basis,
-                                                         eos, opac, iX );
+                  dt_a_im * compute_increment_fluid_source( u_h, k, 2, u_r,
+                                                            grid_s_[iS], basis,
+                                                            eos, opac, iX );
               SumVar_U_r_( 0, iX, k ) +=
                   dt_a_im * compute_increment_rad_source( u_r, k, 0, u_h,
                                                           grid_s_[iS], basis,
@@ -309,7 +309,7 @@ class TimeStepper {
                                  const int iX ) {
         return SumVar_U_( iC, iX, k ) +
                dt * implicit_tableau_.a_ij( iS, iS ) *
-                   compute_increment_fluid_rad(
+                   compute_increment_fluid_source(
                        scratch, k, iC, u_r, grid_s_[iS], basis, eos, opac, iX );
       };
 
@@ -360,12 +360,12 @@ class TimeStepper {
           Kokkos::subview( dU_s_r_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto flux_u_i = Kokkos::subview( flux_u_, iS, Kokkos::ALL );
 
-      compute_increment_explicit_rad( Us_i_r, Us_i_h, grid_s_[iS], basis, eos,
+      compute_increment_rad_explicit( Us_i_r, Us_i_h, grid_s_[iS], basis, eos,
                                       dUs_i_r, flux_q_, dFlux_num_, uCF_F_L_,
                                       uCF_F_R_, flux_u_i, flux_p_, opts );
-      compute_increment_explicit( Us_i_h, Us_i_r, grid_s_[iS], basis, eos,
-                                  dUs_i_h, flux_q_, dFlux_num_, uCF_F_L_,
-                                  uCF_F_R_, flux_u_i, flux_p_, opts );
+      compute_increment_fluid_explicit( Us_i_h, Us_i_r, grid_s_[iS], basis, eos,
+                                        dUs_i_h, flux_q_, dFlux_num_, uCF_F_L_,
+                                        uCF_F_R_, flux_u_i, flux_p_, opts );
       Kokkos::parallel_for(
           "Timestepper :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },
@@ -379,10 +379,10 @@ class TimeStepper {
             uCF( 1, iX, k ) += dt_b * dUs_i_h( 1, iX, k );
             uCF( 2, iX, k ) += dt_b * dUs_i_h( 2, iX, k );
 
-            uCF( 1, iX, k ) += dt_b_im * compute_increment_fluid_rad(
+            uCF( 1, iX, k ) += dt_b_im * compute_increment_fluid_source(
                                              u_h, k, 1, u_r, grid_s_[iS], basis,
                                              eos, opac, iX );
-            uCF( 2, iX, k ) += dt_b_im * compute_increment_fluid_rad(
+            uCF( 2, iX, k ) += dt_b_im * compute_increment_fluid_source(
                                              u_h, k, 2, u_r, grid_s_[iS], basis,
                                              eos, opac, iX );
 

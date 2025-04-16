@@ -190,11 +190,12 @@ void compute_increment_fluid_geometry( const View3D<Real> U,
  * Compute fluid increment from radiation sources
  * TODO: Modify inputs?
  **/
-auto compute_increment_fluid_rad( View2D<Real> uCF, const int k, const int iCF,
-                                  const View2D<Real> uCR,
-                                  const GridStructure& grid,
-                                  const ModalBasis* basis, const EOS* eos,
-                                  const Opacity* opac, const int iX ) -> Real {
+auto compute_increment_fluid_source( View2D<Real> uCF, const int k,
+                                     const int iCF, const View2D<Real> uCR,
+                                     const GridStructure& grid,
+                                     const ModalBasis* basis, const EOS* eos,
+                                     const Opacity* opac, const int iX )
+    -> Real {
   const int nNodes = grid.get_n_nodes( );
 
   Real local_sum = 0.0;
@@ -243,13 +244,12 @@ auto compute_increment_fluid_rad( View2D<Real> uCF, const int k, const int iCF,
  * uCF_L, uCF_R     : holds interface data
  * BC               : (string) boundary condition type
  **/
-void compute_increment_explicit( const View3D<Real> U, const View3D<Real> uCR,
-                                 const GridStructure& grid,
-                                 const ModalBasis* basis, const EOS* eos,
-                                 View3D<Real> dU, View3D<Real> Flux_q,
-                                 View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
-                                 View2D<Real> uCF_F_R, View1D<Real> Flux_U,
-                                 View1D<Real> Flux_P, const Options* opts ) {
+void compute_increment_fluid_explicit(
+    const View3D<Real> U, const View3D<Real> uCR, const GridStructure& grid,
+    const ModalBasis* basis, const EOS* eos, View3D<Real> dU,
+    View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
+    View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
+    const Options* opts ) {
 
   const auto& order = basis->get_order( );
   const auto& ilo   = grid.get_ilo( );

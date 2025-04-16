@@ -27,7 +27,7 @@ void compute_increment_rad_divergence(
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
     View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P );
 
-void compute_increment_explicit_rad( View3D<Real> uCR, View3D<Real> uCF,
+void compute_increment_rad_explicit( View3D<Real> uCR, View3D<Real> uCF,
                                      const GridStructure& grid,
                                      const ModalBasis* basis, const EOS* eos,
                                      View3D<Real> dU, View3D<Real> Flux_q,
