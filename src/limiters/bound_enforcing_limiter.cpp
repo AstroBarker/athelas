@@ -51,7 +51,8 @@ namespace bel {
  */
 void limit_density( View3D<Real> U, const ModalBasis* basis ) {
   constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
-  const int order               = basis->get_order( );
+                                           //
+  const int order = basis->get_order( );
 
   if ( order == 1 ) {
     return;
@@ -60,10 +61,10 @@ void limit_density( View3D<Real> U, const ModalBasis* basis ) {
   Kokkos::parallel_for(
       "BEF::Limit Density", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
       KOKKOS_LAMBDA( const int iX ) {
-        Real theta1 = 100000.0; // big
-        Real nodal  = 0.0;
-        Real frac   = 0.0;
-        Real avg    = U( 0, iX, 0 );
+        Real theta1    = 100000.0; // big
+        Real nodal     = 0.0;
+        Real frac      = 0.0;
+        const Real avg = U( 0, iX, 0 );
 
         for ( int iN = 0; iN <= order; iN++ ) {
           nodal = basis->basis_eval( U, iX, 0, iN );
@@ -109,6 +110,8 @@ void limit_density( View3D<Real> U, const ModalBasis* basis ) {
  */
 void limit_internal_energy( View3D<Real> U, const ModalBasis* basis,
                             const EOS* eos ) {
+  constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
+
   const int order = basis->get_order( );
 
   if ( order == 1 ) {
@@ -119,10 +122,9 @@ void limit_internal_energy( View3D<Real> U, const ModalBasis* basis,
       "BEF::Limit Internal Energy",
       Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
       KOKKOS_LAMBDA( const int iX ) {
-        constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
-        Real theta2                   = 10000000.0;
-        Real nodal                    = 0.0;
-        Real temp                     = 0.0;
+        Real theta2 = 10000000.0;
+        Real nodal  = 0.0;
+        Real temp   = 0.0;
 
         for ( int iN = 0; iN <= order + 1; iN++ ) {
           nodal = utilities::compute_internal_energy( U, basis, iX, iN );
@@ -163,6 +165,7 @@ void apply_bound_enforcing_limiter_rad( View3D<Real> U, const ModalBasis* basis,
   }
   limit_rad_momentum( U, basis, eos );
 }
+
 void limit_rad_momentum( View3D<Real> U, const ModalBasis* basis,
                          const EOS* eos ) {
   const int order = basis->get_order( );

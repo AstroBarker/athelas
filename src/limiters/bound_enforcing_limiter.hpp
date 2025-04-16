@@ -52,9 +52,9 @@ auto target_func_rad( Real theta, View3D<Real> U, const ModalBasis* basis,
 template <typename F>
 auto bisection( const View3D<Real> U, F target, const ModalBasis* basis,
                 const EOS* eos, const int iX, const int iN ) -> Real {
-  const Real TOL      = 1e-10;
-  const int MAX_ITERS = 100;
-  const Real delta    = 1.0e-3; // reduce root by delta
+  constexpr static Real TOL      = 1e-10;
+  constexpr static int MAX_ITERS = 100;
+  constexpr static Real delta    = 1.0e-3; // reduce root by delta
 
   // bisection bounds on theta
   Real a = 0.0;
