@@ -1,5 +1,4 @@
-#ifndef OPAC_VARIANT_HPP_
-#define OPAC_VARIANT_HPP_
+#pragma once
 /**
  * @file opac_variant.hpp
  * --------------
@@ -49,13 +48,13 @@ KOKKOS_INLINE_FUNCTION auto initialize_opacity( const ProblemIn* pin )
     -> Opacity {
   Opacity opac;
   if ( pin->opac_type == "constant" ) {
-    opac = Constant( pin->in_table["opacity"]["k"].value_or( 1.0 ) );
+    opac = Constant( pin->in_table["opacity"]["kP"].value_or( 1.0 ), 
+      pin->in_table["opacity"]["kR"].value_or(1.0) );
   } else { // powerlaw rho
     opac = PowerlawRho(
-        pin->in_table["opacity"]["k"].value_or( 4.0 * std::pow( 10.0, -8.0 ) ),
+        pin->in_table["opacity"]["kP"].value_or( 1.0 ),
+        pin->in_table["opacity"]["kR"].value_or(1.0),
         pin->in_table["opacity"]["exp"].value_or( 1.0 ) );
   }
   return opac;
 }
-
-#endif // OPAC_VARIANT_HPP_

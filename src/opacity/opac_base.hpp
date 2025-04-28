@@ -1,5 +1,4 @@
-#ifndef OPAC_BASE_HPP_
-#define OPAC_BASE_HPP_
+#pragma once
 /**
  * @file opac_base.hpp
  * --------------
@@ -37,5 +36,3 @@ class OpacBase {
                                                              lambda );
   }
 };
-
-#endif // OPAC_BASE_HPP_
