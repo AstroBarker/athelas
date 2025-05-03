@@ -112,7 +112,6 @@ ProblemIn::ProblemIn( const std::string& fn ) {
 
   if ( bc ) {
     BC = utilities::to_lower( bc.value( ) );
-    std::cout << BC << std::endl;
   } else {
     THROW_ATHELAS_ERROR(
         " ! Initialization Error: boundary condition not supplied in "

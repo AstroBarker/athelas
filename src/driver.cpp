@@ -147,7 +147,6 @@ auto Driver::execute( ) -> int {
   int i_out = 1; // output label, start 1
   std::cout << " ~ Step    t       dt       zone_cycles / wall_second\n"
             << std::endl;
-  std::println( "nlim = {}", nlim_ );
   while ( time_ < t_end_ && iStep <= nlim_ ) {
     timer_zone_cycles.reset( );
 
