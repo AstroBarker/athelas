@@ -72,19 +72,22 @@ void compute_increment_fluid_divergence(
                                                         uCF_L( 2 ), lambda );
         const Real Cs_L = eos->sound_speed_from_conserved(
             uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ), lambda );
-        const Real lam_L = Cs_L * rho_L;
+        //const Real lam_L = Cs_L * rho_L;
 
         const Real P_R  = eos->pressure_from_conserved( uCF_R( 0 ), uCF_R( 1 ),
                                                         uCF_R( 2 ), lambda );
         const Real Cs_R = eos->sound_speed_from_conserved(
             uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ), lambda );
-        const Real lam_R = Cs_R * rho_R;
+        //const Real lam_R = Cs_R * rho_R;
 
         // --- Numerical Fluxes ---
 
         // Riemann Problem
-        numerical_flux_gudonov( uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, lam_L, lam_R,
-                                Flux_U( iX ), Flux_P( iX ) );
+        //auto [flux_u, flux_p] = numerical_flux_gudonov( uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, lam_L, lam_R);
+        auto [flux_u, flux_p] = numerical_flux_gudonov_positivity( uCF_L(0), 
+                uCF_R(0), uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, Cs_L, Cs_R);
+        Flux_U[iX] = flux_u;
+        Flux_P[iX] = flux_p;
         // numerical_flux_hllc( uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, Cs_L, Cs_R,
         //  rho_L, rho_R, Flux_U( iX ), Flux_P( iX ) );
 
