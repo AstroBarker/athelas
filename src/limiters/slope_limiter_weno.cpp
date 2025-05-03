@@ -9,7 +9,7 @@
  * @details This file implements the WENO-Z slope limiter based on H. Zhu 2020,
  *          "Simple, high-order compact WENO RKDG slope limiter". The limiter
  *          uses a compact stencil approach to maintain high-order accuracy
- * while preventing oscillations.
+ *          while preventing oscillations.
  */
 
 #include <algorithm> /* std::min, std::max */
@@ -47,6 +47,9 @@ void WENO::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
   const int& ihi  = grid->get_ihi( );
   const int nvars = U.extent( 0 );
 
+  // --- Apply troubled cell indicator ---
+  if ( tci_opt_ ) detect_troubled_cells( U, D_, grid, basis );
+
   /* map to characteristic vars */
   if ( characteristic_ ) {
     Kokkos::parallel_for(
@@ -66,26 +69,18 @@ void WENO::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
           auto w_c_T_i = Kokkos::subview( w_c_T_, Kokkos::ALL, iX );
           auto mult_i  = Kokkos::subview( mult_, Kokkos::ALL, iX );
           compute_characteristic_decomposition( mult_i, R_i, R_inv_i );
-          for ( int k = 0; k < order_; k++ ) {
             // store w_.. = invR @ U_..
             for ( int iC = 0; iC < nvars; iC++ ) {
-              U_c_T_i( iC ) = U( iC, iX, k );
+              U_c_T_i( iC ) = U( iC, iX, 1 );
               w_c_T_i( iC ) = 0.0;
             }
             MAT_MUL( 1.0, R_inv_i, U_c_T_i, 1.0, w_c_T_i );
 
             for ( int iC = 0; iC < nvars; iC++ ) {
-              U( iC, iX, k ) = w_c_T_i( iC );
+              U( iC, iX, 1 ) = w_c_T_i( iC );
             } // end loop vars
-          } // end loop k
         } ); // par iX
   } // end map to characteristics
-
-  // --- Apply troubled cell indicator ---
-  // NOTE: applying TCI on characteristic vars
-  // Could probably reduce some work by checking this first
-  // and skipping as appropriate
-  if ( tci_opt_ ) detect_troubled_cells( U, D_, grid, basis );
 
   for ( int iC = 0; iC < nvars; iC++ ) {
     Kokkos::parallel_for(
@@ -110,11 +105,11 @@ void WENO::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
                                gamma_r_, iX, iC );
 
             const Real beta_l = smoothness_indicator(
-                U, modified_polynomial_i, grid, iX, 0, iC ); // iX - 1
+                U, modified_polynomial_i, grid, basis, iX, 0, iC ); // iX - 1
             const Real beta_i = smoothness_indicator( U, modified_polynomial_i,
-                                                      grid, iX, 1, iC ); // iX
+                                                      grid, basis, iX, 1, iC ); // iX
             const Real beta_r = smoothness_indicator(
-                U, modified_polynomial_i, grid, iX, 2, iC ); // iX + 1
+                U, modified_polynomial_i, grid, basis, iX, 2, iC ); // iX + 1
             const Real tau = weno_tau( beta_l, beta_i, beta_r, weno_r_ );
 
             // nonlinear weights w
@@ -129,8 +124,8 @@ void WENO::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
             w_r /= sum_w;
 
             // update solution via WENO
-            for ( int k = 0; k < order_; k++ ) {
-              U( iC, iX, k ) = w_l * modified_polynomial_i( 0, k ) +
+            for ( int k = 1; k < order_; k++ ) {
+              U(iC, iX, k) = w_l * modified_polynomial_i( 0, k ) +
                                w_i * modified_polynomial_i( 1, k ) +
                                w_r * modified_polynomial_i( 2, k );
             }
@@ -149,29 +144,19 @@ void WENO::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
         Kokkos::RangePolicy<>( ilo, ihi + 1 ),
         KOKKOS_CLASS_LAMBDA( const int iX ) {
           // --- Characteristic Limiting Matrices ---
-          // Note: using cell averages
-          for ( int iC = 0; iC < nvars; iC++ ) {
-            mult_( iC, iX ) = U( iC, iX, 0 );
-          }
-
           auto R_i = Kokkos::subview( R_, Kokkos::ALL, Kokkos::ALL, iX );
-          auto R_inv_i =
-              Kokkos::subview( R_inv_, Kokkos::ALL, Kokkos::ALL, iX );
           auto U_c_T_i = Kokkos::subview( U_c_T_, Kokkos::ALL, iX );
           auto w_c_T_i = Kokkos::subview( w_c_T_, Kokkos::ALL, iX );
-          auto mult_i  = Kokkos::subview( mult_, Kokkos::ALL, iX );
-          for ( int k = 0; k < order_; k++ ) {
             // store w_.. = invR @ U_..
             for ( int iC = 0; iC < nvars; iC++ ) {
-              U_c_T_i( iC ) = U( iC, iX, k );
+              U_c_T_i( iC ) = U( iC, iX, 1 );
               w_c_T_i( iC ) = 0.0;
             }
             MAT_MUL( 1.0, R_i, U_c_T_i, 1.0, w_c_T_i );
 
             for ( int iC = 0; iC < nvars; iC++ ) {
-              U( iC, iX, k ) = w_c_T_i( iC );
+              U( iC, iX, 1 ) = w_c_T_i( iC );
             } // end loop vars
-          } // end loop k
         } ); // par_for iX
   } // end map from characteristics
 } // end apply slope limiter
