@@ -90,7 +90,7 @@ void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
   View3D<Real> uPF = state->get_u_pf( );
 
   // Construct filename
-  std::string fn = "athelas_";
+  std::string fn = problem_name;
   auto i_str     = std::to_string( i_write );
   int n_pad      = 0;
   if ( i_write < 10 ) {
@@ -103,7 +103,6 @@ void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
     n_pad = 1;
   }
   std::string suffix = std::string( n_pad, '0' ).append( i_str );
-  fn.append( problem_name );
   fn.append( "_" );
   if ( i_write != -1 ) {
     fn.append( suffix );
@@ -213,8 +212,8 @@ void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
 void write_basis( ModalBasis* basis, unsigned int ilo, unsigned int ihi,
                   unsigned int nNodes, unsigned int order,
                   const std::string& problem_name ) {
-  std::string fn = "athelas_basis_";
-  fn.append( problem_name );
+  std::string fn = problem_name;
+  fn.append( "_basis" );
   fn.append( ".h5" );
 
   const char* fn2 = fn.c_str( );
