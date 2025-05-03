@@ -36,12 +36,15 @@ void sod_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   constexpr static int iPF_D = 0;
 
-  const Real V0  = pin->in_table["problem"]["params"]["v0"].value_or( 0.0 );
+  const Real V_L  = pin->in_table["problem"]["params"]["vL"].value_or( 0.0 );
+  const Real V_R  = pin->in_table["problem"]["params"]["vR"].value_or( 0.0 );
   const Real D_L = pin->in_table["problem"]["params"]["rhoL"].value_or( 1.0 );
   const Real D_R = pin->in_table["problem"]["params"]["rhoR"].value_or( 0.125 );
   const Real P_L = pin->in_table["problem"]["params"]["pL"].value_or( 1.0 );
   const Real P_R = pin->in_table["problem"]["params"]["pR"].value_or( 0.1 );
+  const Real x_d = pin->in_table["problem"]["params"]["x_d"].value_or(0.5);
 
+  const Real gamma = 1.4;
   Real X1 = 0.0;
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
@@ -51,19 +54,19 @@ void sod_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
         uCF( iCF_V, iX, k )   = 0.0;
         uCF( iCF_E, iX, k )   = 0.0;
 
-        if ( X1 <= 0.5 ) {
+        if ( X1 <= x_d ) {
           if ( k == 0 ) {
             uCF( iCF_Tau, iX, 0 ) = 1.0 / D_L;
-            uCF( iCF_V, iX, 0 )   = V0;
-            uCF( iCF_E, iX, 0 )   = ( P_L / 0.4 ) * uCF( iCF_Tau, iX, 0 );
+            uCF( iCF_V, iX, 0 )   = V_L;
+            uCF( iCF_E, iX, 0 )   = ( P_L / (gamma - 1.0) ) * uCF( iCF_Tau, iX, 0 ) + 0.5 * V_L * V_L;
           }
 
           uPF( iPF_D, iX, iNodeX ) = D_L;
         } else { // right domain
           if ( k == 0 ) {
             uCF( iCF_Tau, iX, 0 ) = 1.0 / D_R;
-            uCF( iCF_V, iX, 0 )   = V0;
-            uCF( iCF_E, iX, 0 )   = ( P_R / 0.4 ) * uCF( iCF_Tau, iX, 0 );
+            uCF( iCF_V, iX, 0 )   = V_R;
+            uCF( iCF_E, iX, 0 )   = ( P_R / (gamma - 1.0) ) * uCF( iCF_Tau, iX, 0 ) + 0.5 * V_R * V_R;
           }
 
           uPF( iPF_D, iX, iNodeX ) = D_R;
