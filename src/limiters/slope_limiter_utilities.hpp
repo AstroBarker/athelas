@@ -23,21 +23,21 @@ auto initialize_slope_limiter( const GridStructure* grid, const ProblemIn* pin,
 
 // Standard MINMOD function
 template <typename T>
-constexpr auto MINMOD( T a, T b, T c ) -> Real {
+constexpr auto MINMOD( T a, T b, T c ) -> T {
   if ( SGN( a ) == SGN( b ) && SGN( b ) == SGN( c ) ) {
     return SGN( a ) *
-           std::min( std::min( std::abs( a ), std::abs( b ) ), std::abs( c ) );
+           std::min({std::abs(a), std::abs(b), std::abs(c)});
   }
-  return 0.0;
+  return T(0);
 }
 
 // TVB MINMOD function
 template <typename T>
-constexpr auto MINMOD_B( T a, T b, T c, T dx, T M ) -> Real {
-  if ( std::abs( a ) < M * dx * dx ) {
-    return a;
+constexpr auto MINMOD_B( T a, T b, T c, T dx, T M ) -> T {
+  if ( std::abs( a ) > M * dx * dx ) {
+    return MINMOD(a, b, c);
   }
-  return MINMOD( a, b, c );
+  return a;
 }
 
 auto barth_jespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T,
@@ -56,7 +56,8 @@ void modify_polynomial( View3D<Real> U, View2D<Real> modified_polynomial,
                         int iCQ );
 
 auto smoothness_indicator( View3D<Real> U, View2D<Real> modified_polynomial,
-                           const GridStructure* grid, int iX, int i, int iCQ )
+                           const GridStructure* grid, const ModalBasis* basis,
+                           int iX, int i, int iCQ )
     -> Real;
 
 auto non_linear_weight( Real gamma, Real beta, Real tau, Real eps ) -> Real;

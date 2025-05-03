@@ -21,7 +21,7 @@ namespace limiter_utilities {
 auto initialize_slope_limiter( const GridStructure* grid, const ProblemIn* pin,
                                const int nvars ) -> SlopeLimiter {
   SlopeLimiter S_Limiter;
-  if ( pin->limiter_type == "MINMOD" ) {
+  if ( utilities::to_lower(pin->limiter_type) == "minmod" ) {
     S_Limiter = TVDMinmod( grid, pin, nvars );
   } else {
     S_Limiter = WENO( grid, pin, nvars );
@@ -120,6 +120,7 @@ void detect_troubled_cells( View3D<Real> U, View2D<Real> D,
               cell_avg );
 
           D( iC, iX ) = result / denominator;
+
         } ); // par_for iX
   } // loop iC;
 }
@@ -184,7 +185,7 @@ void modify_polynomial( const View3D<Real> U, View2D<Real> modified_polynomial,
                         const Real gamma_i, const Real gamma_l,
                         const Real gamma_r, const int iX, const int iCQ ) {
   const Real Ubar_i = U( iCQ, iX, 0 );
-  const Real fac    = 0.9;
+  const Real fac    = 1.0;
   const int order   = U.extent( 2 );
 
   modified_polynomial( 0, 0 ) = Ubar_i;
@@ -196,6 +197,7 @@ void modify_polynomial( const View3D<Real> U, View2D<Real> modified_polynomial,
     modified_polynomial( 0, k ) = 0.0;
     modified_polynomial( 2, k ) = 0.0;
   }
+
   for ( int k = 0; k < order; k++ ) {
     modified_polynomial( 1, k ) =
         U( iCQ, iX, k ) / gamma_i -
@@ -207,7 +209,8 @@ void modify_polynomial( const View3D<Real> U, View2D<Real> modified_polynomial,
 // WENO smoothness indicator beta
 auto smoothness_indicator( const View3D<Real> U,
                            const View2D<Real> modified_polynomial,
-                           const GridStructure* grid, const int iX, const int i,
+                           const GridStructure* grid, const ModalBasis* basis,
+                           const int iX, const int i,
                            const int /*iCQ*/ ) -> Real {
   const int k = U.extent( 2 );
 
@@ -218,8 +221,7 @@ auto smoothness_indicator( const View3D<Real> U,
     for ( int iN = 0; iN < k; iN++ ) {
       auto X = grid->node_coordinate( iX, iN );
       local_sum += grid->get_weights( iN ) *
-                   std::pow( modified_polynomial( i, s ) *
-                                 ModalBasis::d_legendre_n( k, s, X ),
+                   std::pow( modified_polynomial( i, s ) * ModalBasis::d_legendre_n( k, s, X ),
                              2.0 ) *
                    std::pow( grid->get_widths( iX ), 2.0 * s );
     }
@@ -237,7 +239,7 @@ auto non_linear_weight( const Real gamma, const Real beta, const Real tau,
 auto weno_tau( const Real beta_l, const Real beta_i, const Real beta_r,
                const Real weno_r ) -> Real {
   return std::pow(
-      ( std::fabs( beta_i - beta_l ) + std::fabs( beta_i - beta_r ) ) / 2.0,
+      ( std::abs( beta_i - beta_l ) + std::abs( beta_i - beta_r ) ) / 2.0,
       weno_r );
 }
 
