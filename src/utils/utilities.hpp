@@ -24,6 +24,11 @@
 
 namespace utilities {
 
+// [[x]]_+ = -.5 * (x + |x|) is positive part of x
+[[nodiscard]] KOKKOS_INLINE_FUNCTION auto pos_part(const Real x) noexcept -> Real {
+  return 0.5 * (x + std::abs(x));
+}
+
 // Implements a typesafe SGN function
 // https://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-SGN-in-c-c
 template <typename T>
