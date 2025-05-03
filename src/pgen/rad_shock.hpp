@@ -1,10 +1,10 @@
 #pragma once
 /**
- * @file rad_equilibrium.hpp
+ * @file rad_shock.hpp
  * --------------
  *
  * @author Brandon L. Barker
- * @brief Radiation fluid equilibriation test
+ * @brief Radiation shock test
  */
 
 #include <iostream>
@@ -17,27 +17,9 @@
 #include "grid.hpp"
 
 /**
- * @brief Initialize steady radiating shock
- * 
- * Two different cases: Mach 2 and Mach 5.
- * 
- * Mach 2 Case:
- * - Left side (pre-shock):
- *   - Density: 1.0 g/cm^3
- *   - Temperature: 1.16045181e6 K (100eV)
- * - Right side (post-shock):
- *   - Density: 2.286 g/cm^3
- *   - Temperature: 2.4109e6 K (207.756 eV)
- * 
- * Mach 5 Case:
- * - Left side (pre-shock):
- *   - Density: 1.0 g/cm^3
- *   - Temperature: 1.16045181e6 K (100 eV)
- * - Right side (post-shock):
- *   - Density: 3.598 g/cm^3
- *   - Temperature: 9.9302e6 K (855.720 eV)
+ * @brief Initialize radiating shock
  **/
-void rad_shock_steady_init( State* state, GridStructure* grid,
+void rad_shock_init( State* state, GridStructure* grid,
                            const ProblemIn* pin ) {
   View3D<Real> uCF = state->get_u_cf( );
   View3D<Real> uPF = state->get_u_pf( );
@@ -56,15 +38,17 @@ void rad_shock_steady_init( State* state, GridStructure* grid,
 
   const int iCR_E = 0;
 
-  const Real V0 = pin->in_table["problem"]["params"]["v0"].value_or( 0.0 );
+  const Real V_L = pin->in_table["problem"]["params"]["vL"].value_or( 5.19e7 );
+  const Real V_R = pin->in_table["problem"]["params"]["vR"].value_or( 1.73e7 );
   const Real rhoL =
-      pin->in_table["problem"]["params"]["rhoL"].value_or( 1.0 );
+      pin->in_table["problem"]["params"]["rhoL"].value_or( 5.69 );
   const Real rhoR =
-      pin->in_table["problem"]["params"]["rhoR"].value_or( 2.286 );
+      pin->in_table["problem"]["params"]["rhoR"].value_or( 17.1 );
   const Real T_L = pin->in_table["problem"]["params"]["T_L"].value_or(
-      1.16045181e6 ); // K
+      2.18e6 ); // K
   const Real T_R = pin->in_table["problem"]["params"]["T_R"].value_or(
-       2.4109e6); // K
+       7.98e6); // K
+  const Real x_d = pin->in_table["problem"]["params"]["x_d"].value_or(0.013);
 
   // TODO(astrobarker): thread through
   const Real Abar = 1.0;
@@ -84,11 +68,11 @@ void rad_shock_steady_init( State* state, GridStructure* grid,
         uCR( 0, iX, k )       = 0.0;
         uCR( 1, iX, k )       = 0.0;
 
-        if ( X1 <= 0.0 ) {
+        if ( X1 <= x_d ) {
         if ( k == 0 ) {
           uCF( iCF_Tau, iX, 0 ) = 1.0 / rhoL;
-          uCF( iCF_V, iX, 0 )   = V0;
-          uCF( iCF_E, iX, 0 )   = em_gas_L;
+          uCF( iCF_V, iX, 0 )   = V_L;
+          uCF( iCF_E, iX, 0 )   = em_gas_L + 0.5 * V_L * V_L;
 
           uCR( iCR_E, iX, 0 ) = em_rad_L;
         }
@@ -96,8 +80,8 @@ void rad_shock_steady_init( State* state, GridStructure* grid,
         } else {
         if ( k == 0 ) {
           uCF( iCF_Tau, iX, 0 ) = 1.0 / rhoR;
-          uCF( iCF_V, iX, 0 )   = V0;
-          uCF( iCF_E, iX, 0 )   = em_gas_R;
+          uCF( iCF_V, iX, 0 )   = V_R;
+          uCF( iCF_E, iX, 0 )   = em_gas_R + 0.5 * V_R * V_R;
 
           uCR( iCR_E, iX, 0 ) = em_rad_R;
         }

@@ -24,6 +24,7 @@
 #include "pgen/rad_advection.hpp"
 #include "pgen/rad_equilibrium.hpp"
 #include "pgen/rad_shock_steady.hpp"
+#include "pgen/rad_shock.hpp"
 #include "pgen/sedov.hpp"
 #include "pgen/shockless_noh.hpp"
 #include "pgen/shu_osher.hpp"
@@ -64,6 +65,8 @@ void initialize_fields( State* state, GridStructure* grid, const EOS* /*eos*/,
     rad_advection_init( state, grid, pin );
   } else if ( problem_name == "rad_shock_steady" ) {
     rad_shock_steady_init( state, grid, pin );
+  } else if ( problem_name == "rad_shock" ) {
+    rad_shock_init( state, grid, pin );
   } else {
     THROW_ATHELAS_ERROR( " ! Please choose a valid problem_name" );
   }
