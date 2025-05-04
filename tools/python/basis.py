@@ -29,7 +29,7 @@ class ModalBasis:
     """
 
     with h5py.File(fn, "r") as f:
-      self.phi = f["Basis"][:, :, :]  # nX, order + 2, order
+      self.phi = f["basis"][:, :, :]  # nX, order + 2, order
 
     self.order = len(self.phi[0, 0, :])
 
