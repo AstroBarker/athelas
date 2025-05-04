@@ -125,8 +125,7 @@ class TimeStepper {
 
       auto Us_j =
           Kokkos::subview( U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-      // S_Limiter->apply_slope_limiter( Us_j, &grid_s_[iS], basis );
-      apply_slope_limiter( S_Limiter, Us_j, &grid_s_[iS], basis );
+      apply_slope_limiter( S_Limiter, Us_j, &grid_s_[iS], basis, eos );
       bel::apply_bound_enforcing_limiter( Us_j, basis, eos );
     } // end outer loop
 
@@ -160,7 +159,7 @@ class TimeStepper {
     }
 
     grid = grid_s_[nStages_ - 1];
-    apply_slope_limiter( S_Limiter, U, &grid, basis );
+    //apply_slope_limiter( S_Limiter, U, &grid, basis, eos );
     bel::apply_bound_enforcing_limiter( U, basis, eos );
   }
 
@@ -339,10 +338,10 @@ class TimeStepper {
       // TODO(astrobarker): slope limit rad
       auto Us_j_h =
           Kokkos::subview( U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-      apply_slope_limiter( S_Limiter, Us_j_h, &grid_s_[iS], basis );
+      apply_slope_limiter( S_Limiter, Us_j_h, &grid_s_[iS], basis, eos );
       auto Us_j_r =
           Kokkos::subview( U_s_r_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-      apply_slope_limiter( S_Limiter, Us_j_r, &grid_s_[iS], basis );
+      apply_slope_limiter( S_Limiter, Us_j_r, &grid_s_[iS], basis, eos );
       bel::apply_bound_enforcing_limiter( Us_j_h, basis, eos );
       bel::apply_bound_enforcing_limiter_rad( Us_j_r, basis, eos );
     } // end outer loop
@@ -408,8 +407,8 @@ class TimeStepper {
 
     // TODO(astrobarker): slope limit rad
     grid = grid_s_[nStages_ - 1];
-    apply_slope_limiter( S_Limiter, uCF, &grid, basis );
-    apply_slope_limiter( S_Limiter, uCR, &grid, basis );
+    apply_slope_limiter( S_Limiter, uCF, &grid, basis, eos );
+    apply_slope_limiter( S_Limiter, uCR, &grid, basis, eos );
     bel::apply_bound_enforcing_limiter( uCF, basis, eos );
     bel::apply_bound_enforcing_limiter_rad( uCR, basis, eos );
   }
