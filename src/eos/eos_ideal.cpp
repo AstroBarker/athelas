@@ -31,9 +31,9 @@ auto IdealGas::sound_speed_from_conserved( const Real /*tau*/, const Real V,
   return std::sqrt( gamma_ * ( gamma_ - 1.0 ) * Em );
 }
 
-Real IdealGas::temperature_from_tau_pressure_abar( const Real tau, const Real P,
+auto IdealGas::temperature_from_tau_pressure_abar( const Real tau, const Real P,
                                                    const Real Abar,
-                                                   Real* /*lambda*/ ) {
+                                                   Real* /*lambda*/ ) const -> Real {
   return ( P * Abar * tau ) / ( constants::N_A * constants::k_B );
 }
 
@@ -43,6 +43,8 @@ auto IdealGas::temperature_from_tau_pressure( const Real tau, const Real P,
   return temperature_from_tau_pressure_abar( tau, P, Abar, lambda );
 }
 
-Real IdealGas::radiation_pressure( const Real T, Real* /*lambda*/ ) {
+auto IdealGas::radiation_pressure( const Real T, Real* /*lambda*/ ) -> Real {
   return constants::a * T * T * T * T;
 }
+
+auto IdealGas::get_gamma() const noexcept -> Real {return gamma_;}

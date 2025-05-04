@@ -1,5 +1,4 @@
-#ifndef SLOPE_LIMITER_HPP_
-#define SLOPE_LIMITER_HPP_
+#pragma once
 /**
  * @file slope_limiter.hpp
  * --------------
@@ -23,6 +22,7 @@
 #include <variant>
 
 #include "abstractions.hpp"
+#include "eos/eos.hpp"
 #include "error.hpp"
 #include "slope_limiter_base.hpp"
 
@@ -46,7 +46,7 @@ class WENO : public SlopeLimiterBase<WENO> {
         limited_cell_( "LimitedCell", grid->get_n_elements( ) + 2 ) {}
 
   void apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
-                            const ModalBasis* basis );
+                            const ModalBasis* basis, const EOS* eos );
   [[nodiscard]] auto get_limited( int iX ) const -> int;
 
  private:
@@ -99,7 +99,7 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
         limited_cell_( "LimitedCell",
                        grid->get_n_elements( ) + 2 * grid->get_guard( ) ) {}
   void apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
-                            const ModalBasis* basis );
+                            const ModalBasis* basis, const EOS* eos );
   [[nodiscard]] auto get_limited( int iX ) const -> int;
 
  private:
@@ -135,10 +135,11 @@ using SlopeLimiter = std::variant<WENO, TVDMinmod>;
 KOKKOS_INLINE_FUNCTION void apply_slope_limiter( SlopeLimiter* limiter,
                                                  View3D<Real> U,
                                                  const GridStructure* grid,
-                                                 const ModalBasis* basis ) {
+                                                 const ModalBasis* basis,
+                                                 const EOS* eos) {
   std::visit(
-      [&U, &grid, &basis]( auto& limiter ) {
-        limiter.apply_slope_limiter( U, grid, basis );
+      [&U, &grid, &basis, &eos]( auto& limiter ) {
+        limiter.apply_slope_limiter( U, grid, basis, eos );
       },
       *limiter );
 }
@@ -147,5 +148,3 @@ KOKKOS_INLINE_FUNCTION auto get_limited( SlopeLimiter* limiter, const int iX )
   return std::visit(
       [&iX]( auto& limiter ) { return limiter.get_limited( iX ); }, *limiter );
 }
-
-#endif // SLOPE_LIMITER_HPP_

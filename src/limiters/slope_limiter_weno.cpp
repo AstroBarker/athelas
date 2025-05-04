@@ -36,7 +36,7 @@ using namespace limiter_utilities;
  * H. Zhu 2020, simple, high-order compact WENO RKDG slope limiter
  **/
 void WENO::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
-                                const ModalBasis* basis ) {
+                                const ModalBasis* basis, const EOS* eos ) {
 
   // Do not apply for first order method or if we don't want to.
   if ( order_ == 1 || !do_limiter_ ) {
@@ -68,7 +68,7 @@ void WENO::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
           auto U_c_T_i = Kokkos::subview( U_c_T_, Kokkos::ALL, iX );
           auto w_c_T_i = Kokkos::subview( w_c_T_, Kokkos::ALL, iX );
           auto mult_i  = Kokkos::subview( mult_, Kokkos::ALL, iX );
-          compute_characteristic_decomposition( mult_i, R_i, R_inv_i );
+          compute_characteristic_decomposition( mult_i, R_i, R_inv_i, eos );
             // store w_.. = invR @ U_..
             for ( int iC = 0; iC < nvars; iC++ ) {
               U_c_T_i( iC ) = U( iC, iX, 1 );

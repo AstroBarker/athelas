@@ -101,7 +101,7 @@ void Driver::initialize( const ProblemIn* pin ) { // NOLINT
                                          pin->nElements, pin->nGhost );
 
   // --- slope limiter to initial condition ---
-  apply_slope_limiter( &sl_hydro_, state_.get_u_cf( ), &grid_, basis_.get( ) );
+  apply_slope_limiter( &sl_hydro_, state_.get_u_cf( ), &grid_, basis_.get( ), &eos_);
 }
 
 using limiter_utilities::initialize_slope_limiter;
@@ -114,7 +114,7 @@ Driver::Driver( const ProblemIn* pin ) // NOLINT
       nlim_( ( pin->nlim == -1 ) ? std::numeric_limits<double>::infinity( )
                                  : pin->nlim ),
       dt_hdf5_( pin->dt_hdf5 ), dt_init_frac_( pin->dt_init_frac ),
-      eos_( IdealGas( pin->ideal_gamma ) ), opac_( initialize_opacity( pin ) ),
+      eos_( IdealGas( pin->gamma_eos ) ), opac_( initialize_opacity( pin ) ),
       grid_( pin ),
       opts_( pin->do_rad, false, restart_, pin->BC, pin->Geometry, pin->basis ),
       state_( 3, 2, 3, 1, pin->nElements, pin->nGhost, pin->nNodes,
