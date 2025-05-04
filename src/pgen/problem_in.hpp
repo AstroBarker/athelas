@@ -47,7 +47,7 @@ class ProblemIn {
   Real dt_init_frac{ }; // ramp up dt
 
   std::string eos_type;
-  Real ideal_gamma{ };
+  Real gamma_eos{ };
 
   int nElements;
   int nNodes;

@@ -70,9 +70,9 @@ ProblemIn::ProblemIn( const std::string& fn ) {
     THROW_ATHELAS_ERROR(
         "Currently only ideal gas supported (eos_type = ideal).\n" );
   }
-  ideal_gamma = in_table["eos"]["ideal_gamma"].value_or( 1.4 );
-  if ( ideal_gamma <= 0.0 ) {
-    THROW_ATHELAS_ERROR( "ideal_gamma must be positive.\n" );
+  gamma_eos = in_table["eos"]["gamma"].value_or( 1.4 );
+  if ( gamma_eos <= 0.0 ) {
+    THROW_ATHELAS_ERROR( "eos::gamma must be positive.\n" );
   }
 
   // opac
