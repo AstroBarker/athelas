@@ -155,7 +155,7 @@ class AthelasRegressionTest(unittest.TestCase):
 
     run_cmd = ""  # empty now, can accomodate mpi runs
     outfile = open("out.dat", "w")
-    print("Running athelas...")
+    print("\nRunning athelas...")
 
     try:
       if os.path.isabs(self.executable):
@@ -170,7 +170,7 @@ class AthelasRegressionTest(unittest.TestCase):
         )
       else:
         subprocess.run(
-          run_cmd + self.executable + f"-i {self.infile}",
+          run_cmd + self.executable + f" -i {self.infile}",
           shell=True,
           check=True,
           stdout=outfile,
@@ -208,7 +208,7 @@ class AthelasRegressionTest(unittest.TestCase):
 
     # load sim data
     basename = os.path.splitext(os.path.basename(self.infile))[0]
-    filename = "athelas_" + basename + "_final.h5"
+    filename = basename + "_final.h5"
     variables_data = self.load_output(filename, self.varlist)
 
     # Compress results, if desired

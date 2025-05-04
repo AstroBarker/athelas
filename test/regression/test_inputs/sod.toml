@@ -10,11 +10,13 @@ bc = "homogenous"
 cfl = 0.8
 
 [problem.params]
-v0 = 0.0
+vL = 0.0
+vR = 0.0
 rhoL = 1.0
 rhoR = 0.125
 pL = 1.0
 pR = 0.1
+x_d = 0.5
 
 [output]
 nlim = -1
