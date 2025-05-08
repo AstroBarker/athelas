@@ -1,5 +1,4 @@
-#ifndef ROOT_FINDERS_HPP_
-#define ROOT_FINDERS_HPP_
+#pragma once
 /**
  * @file root_finders.hpp
  * --------------
@@ -348,5 +347,3 @@ auto newton_aa( F target, F dTarget, T x0, Args... args ) -> T {
 }
 
 } // namespace root_finders
-
-#endif // ROOT_FINDERS_HPP_

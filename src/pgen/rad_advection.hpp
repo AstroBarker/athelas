@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file rad_advection.hpp
  * --------------
@@ -5,9 +6,6 @@
  * @author Brandon L. Barker
  * @brief Radiation advection test
  */
-
-#ifndef RAD_ADVECTION_HPP_
-#define RAD_ADVECTION_HPP_
 
 #include <iostream>
 #include <math.h> /* sin */
@@ -79,4 +77,3 @@ void rad_advection_init( State* state, GridStructure* grid,
     }
   }
 }
-#endif // RAD_ADVECTION_HPP_

@@ -1,5 +1,4 @@
-#ifndef POLYNOMIAL_BASIS_HPP_
-#define POLYNOMIAL_BASIS_HPP_
+#pragma once
 /**
  * @file polynomial_basis.hpp
  * --------------
@@ -73,5 +72,3 @@ class ModalBasis {
   Real ( *func_ )( const int n, const Real x, const Real x_c );
   Real ( *dfunc_ )( const int n, const Real x, Real const x_c );
 };
-
-#endif // POLYNOMIAL_BASIS_HPP_

@@ -6,161 +6,86 @@
  * @brief Boundary conditions
  *
  * @details Implemented BCs
+ *            - outflow
  *            - reflecting
  *            - periodic
- *            - homogenous (default)
- *            - shockless noh
+ *            - Dirichlet
  */
 
 #include <iostream>
 #include <string>
 
-#include "Kokkos_Core.hpp"
-
 #include "boundary_conditions.hpp"
+#include "boundary_conditions_base.hpp"
 #include "grid.hpp"
 #include "utilities.hpp"
 
 namespace bc {
 
-/**
- * Apply Boundary Conditions to fluid fields
- * Supported Options:
- *  reflecting
- *  periodic
- *  shockless_noh
- *  homogenous (Default)
- **/
-void apply_bc( View3D<Real> U, const GridStructure* grid, const int order,
-               const std::string& BC ) {
-
-  const int ilo   = grid->get_ilo( );
-  const int ihi   = grid->get_ihi( );
-  const int nvars = U.extent( 0 );
-
-  const int nX = grid->get_n_elements( );
-  const int nG = grid->get_guard( );
-
-  // ! ? How to correctly implement reflecting BC ? !
-  if ( utilities::to_lower( BC ) == "reflecting" ) {
-    for ( int iCF = 0; iCF < nvars; iCF++ ) {
-      // Inner Boudnary
-      for ( int iX = 0; iX < ilo; iX++ ) {
-        for ( int k = 0; k < order; k++ ) {
-          if ( iCF != 1 ) {
-            if ( k == 0 ) {
-              U( iCF, iX, k ) = +U( iCF, ilo, k );
-            }
-            if ( k != 0 ) {
-              U( iCF, iX, k ) = -U( iCF, ilo, k );
-            }
-          } else {
-            if ( k == 0 ) {
-              U( 1, iX, 0 ) = -U( 1, ilo, 0 );
-            }
-            if ( k != 0 ) {
-              U( 1, iX, k ) = +U( 1, ilo, k );
-            }
-          }
-        }
-      }
-
-      // Outer Boundary
-      for ( int k = 0; k < order; k++ ) {
-        if ( iCF != 1 ) {
-          U( iCF, ihi + 1, k ) = U( iCF, ihi, k );
-        } else {
-          U( iCF, ihi + 1, k ) = U( 1, ihi, k );
-        }
-      }
-    }
-  } else if ( utilities::to_lower( BC ) == "periodic" ) {
-    for ( int iCF = 0; iCF < nvars; iCF++ ) {
-      for ( int iX = 0; iX < ilo; iX++ ) {
-        for ( int k = 0; k < order; k++ ) {
-          U( iCF, ilo - 1 - iX, k ) = U( iCF, ihi - iX, k );
-          U( iCF, ihi + 1 + iX, k ) = U( iCF, ilo + iX, k );
-        }
-      }
-    }
-  } else if ( utilities::to_lower( BC ) ==
-              "shockless_noh" ) /* Special case for ShocklessNoh test */
-  {
-    // for ( int iCF = 0; iCF < 3; iCF++ )
-    for ( int iX = 0; iX < ilo; iX++ ) {
-      for ( int k = 0; k < order; k++ )
-      // for ( int iCF = 0; iCF < 3; iCF++ )
-      {
-        if ( k == 0 ) {
-
-          U( 0, ilo - 1 - iX, k ) = U( 0, ilo + iX, k );
-          U( 0, ihi + 1 + iX, k ) = U( 0, ihi - iX, k );
-
-          U( 1, ilo - 1 - iX, k ) = -U( 1, ilo + iX, k );
-          U( 1, ihi + 1 + iX, k ) =
-              U( 1, ihi - iX, k ) +
-              ( U( 1, ihi - iX - 1, k ) - U( 1, ihi - iX - 2, k ) );
-
-          // Have to keep internal energy consistent with new velocities
-          U( 2, ilo - 1 - iX, k ) =
-              U( 2, ilo + iX, k ) -
-              0.5 * U( 1, ilo + iX, k ) * U( 1, ilo + iX, k ) +
-              0.5 * U( 1, ilo - 1 - iX, k ) * U( 1, ilo - 1 - iX, k );
-          U( 2, ihi + 1 + iX, k ) =
-              U( 2, ihi - iX, k ) -
-              0.5 * U( 1, ihi - iX, k ) * U( 1, ihi - iX, k ) +
-              0.5 * U( 1, ihi + 1 + iX, k ) * U( 1, ihi + 1 + iX, k );
-        } else if ( k == 1 ) {
-          U( 0, ilo - 1 - iX, k ) = 0.0;
-          U( 0, ihi + 1 + iX, k ) = 0.0;
-
-          U( 1, ilo - 1 - iX, k ) = U( 1, ilo + iX, k );
-          U( 1, ihi + 1 + iX, k ) = U( 1, ihi - iX, k );
-
-          U( 2, ilo - 1 - iX, k ) = -U( 1, ilo + iX, 0 ) * U( 1, ilo + iX, 1 );
-          U( 2, ihi + 1 + iX, k ) =
-              U( 1, ihi + 1 + iX, 0 ) * U( 1, ihi + 1 + iX, 1 );
-        } else if ( k == 2 ) {
-
-          // U( iCF, ilo - 1 - iX, k ) = 0.0;
-          // U( iCF, ihi + 1 + iX, k ) = 0.0;
-          U( 0, ilo - 1 - iX, k ) = U( 0, ilo + iX, k );
-          U( 0, ihi + 1 + iX, k ) = U( 0, ihi - iX, k );
-
-          // U( iCF, ilo - 1 - iX, k ) = 0.0;
-          // U( iCF, ihi + 1 + iX, k ) = 0.0;
-          U( 1, ilo - 1 - iX, k ) = U( 1, ilo + iX, k );
-          U( 1, ihi + 1 + iX, k ) = U( 1, ihi - iX, k );
-
-          // Have to keep internal energy consistent with new velocities
-          U( 2, ilo - 1 - iX, k ) =
-              U( 2, ilo + iX, 2 ); // * U( 1, ilo + iX, 1 );
-          U( 2, ihi + 1 + iX, k ) =
-              U( 2, ihi - iX, 2 ); //* U( 1, ihi - iX, 1 );
-        } else {
-          U( 0, ilo - 1 - iX, k ) = 0.0; // U( 0, ilo + iX, k );
-          U( 0, ihi + 1 + iX, k ) = 0.0; // U( 0, ihi - iX, k );
-
-          U( 1, ilo - 1 - iX, k ) = U( 1, ilo + iX, k );
-          U( 1, ihi + 1 + iX, k ) = U( 1, ihi - iX, k );
-
-          U( 2, ilo - 1 - iX, k ) = -U( 2, ilo + iX, k );
-          U( 2, ihi + 1 + iX, k ) = U( 2, ihi - iX, k );
-        }
-      }
-    }
-  } else if ( utilities::to_lower( BC ) == "homogenous" ) {
-    for ( int iCF = 0; iCF < nvars; iCF++ ) {
-      for ( int iX = 0; iX < ilo; iX++ ) {
-        for ( int k = 0; k < order; k++ ) {
-          U( iCF, ilo - 1 - iX, k ) = U( iCF, ilo + iX, k );
-          U( iCF, ihi + 1 + iX, k ) = U( iCF, ihi - iX, k );
-        }
-      }
-    }
-  } else {
-    THROW_ATHELAS_ERROR( " ! Error: BC not supported!" );
+BcType parse_bc_type(const std::string &name) {
+  if (name == "outflow") {
+    return BcType::Outflow;
   }
+  if (name == "reflecting") {
+    return BcType::Reflecting;
+  }
+  if (name == "periodic") {
+    return BcType::Periodic;
+  }
+  if (name == "dirichlet") {
+    return BcType::Dirichlet;
+  }
+  THROW_ATHELAS_ERROR(" ! bc_type not known!");
+  return BcType::Null;
 }
 
+BoundaryConditions make_boundary_conditions(
+    bool do_rad,
+
+    const std::string& fluid_bc_i,
+    const std::string& fluid_bc_o,
+    const std::array<Real, 3>& fluid_i_dirichlet_values,
+    const std::array<Real, 3>& fluid_o_dirichlet_values,
+
+    const std::string& rad_bc_i,
+    const std::string& rad_bc_o,
+    const std::array<Real, 2>& rad_i_dirichlet_values,
+    const std::array<Real, 2>& rad_o_dirichlet_values
+) {
+    BoundaryConditions my_bc;
+
+    // --- Fluid BCs ---
+    BcType f_inner = parse_bc_type(fluid_bc_i);
+    BcType f_outer = parse_bc_type(fluid_bc_o);
+
+    my_bc.fluid_bc[0] = (f_inner == BcType::Dirichlet)
+        ? BoundaryConditionsData<3>(f_inner, fluid_i_dirichlet_values)
+        : BoundaryConditionsData<3>(f_inner);
+
+    my_bc.fluid_bc[1] = (f_outer == BcType::Dirichlet)
+        ? BoundaryConditionsData<3>(f_outer, fluid_o_dirichlet_values)
+        : BoundaryConditionsData<3>(f_outer);
+
+    // --- Radiation BCs ---
+    if (do_rad) {
+        if (rad_bc_i == "" || rad_bc_o == "") {
+            THROW_ATHELAS_ERROR(" ! Radiation enabled but rad_bc_i/o is not set.");
+        }
+
+        my_bc.do_rad = true;
+
+        BcType r_inner = parse_bc_type(rad_bc_i);
+        BcType r_outer = parse_bc_type(rad_bc_o);
+
+        my_bc.rad_bc[0] = (r_inner == BcType::Dirichlet)
+            ? BoundaryConditionsData<2>(r_inner, rad_i_dirichlet_values)
+            : BoundaryConditionsData<2>(r_inner);
+
+        my_bc.rad_bc[1] = (r_outer == BcType::Dirichlet)
+            ? BoundaryConditionsData<2>(r_outer, rad_o_dirichlet_values)
+            : BoundaryConditionsData<2>(r_outer);
+    }
+
+    return my_bc;
+}
 } // namespace bc

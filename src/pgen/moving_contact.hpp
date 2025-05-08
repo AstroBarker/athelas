@@ -1,5 +1,4 @@
-#ifndef MOVING_CONTACT_HPP_
-#define MOVING_CONTACT_HPP_
+#pragma once
 /**
  * @file moving_contact.hpp
  * --------------
@@ -82,4 +81,3 @@ void moving_contact_init( State* state, GridStructure* grid,
     }
   }
 }
-#endif // MOVING_CONTACT_HPP_

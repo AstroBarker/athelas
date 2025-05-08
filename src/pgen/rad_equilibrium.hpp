@@ -1,5 +1,4 @@
-#ifndef RAD_EQUILIBRIUM_HPP_
-#define RAD_EQUILIBRIUM_HPP_
+#pragma once
 /**
  * @file rad_equilibrium.hpp
  * --------------
@@ -79,4 +78,3 @@ void rad_equilibrium_init( State* state, GridStructure* grid,
     }
   }
 }
-#endif // RAD_EQUILIBRIUM_HPP_

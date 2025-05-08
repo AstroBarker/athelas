@@ -1,5 +1,4 @@
-#ifndef SLOPE_LIMITER_UTILITIES_HPP_
-#define SLOPE_LIMITER_UTILITIES_HPP_
+#pragma once
 /**
  * @file slope_limiter_utilities.hpp
  * --------------
@@ -64,4 +63,3 @@ auto non_linear_weight( Real gamma, Real beta, Real tau, Real eps ) -> Real;
 
 auto weno_tau( Real beta_l, Real beta_i, Real beta_r, Real weno_r ) -> Real;
 } // namespace limiter_utilities
-#endif // SLOPE_LIMITER_UTILITIES_HPP_

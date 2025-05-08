@@ -1,5 +1,4 @@
-#ifndef SMOOTH_FLOW_HPP_
-#define SMOOTH_FLOW_HPP_
+#pragma once
 /**
  * @file smooth_flow.hpp
  * --------------
@@ -101,4 +100,3 @@ void smooth_flow_init( State* state, GridStructure* grid,
     }
   }
 }
-#endif // SMOOTH_FLOW_HPP_

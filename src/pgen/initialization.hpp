@@ -71,4 +71,3 @@ void initialize_fields( State* state, GridStructure* grid, const EOS* /*eos*/,
     THROW_ATHELAS_ERROR( " ! Please choose a valid problem_name" );
   }
 }
-// INITIALIZATION_HPP_

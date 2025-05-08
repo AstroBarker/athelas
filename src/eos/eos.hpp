@@ -1,5 +1,4 @@
-#ifndef EOS_HPP_
-#define EOS_HPP_
+#pragma once
 /**
  * @file eos.hpp
  * --------------
@@ -43,6 +42,8 @@ class IdealGas : public EosBase<IdealGas> {
                                                   Real* lambda ) const -> Real;
   auto temperature_from_tau_pressure( Real tau, Real P, Real* lambda ) const
       -> Real;
+  auto temperature_from_conserved( Real tau, Real V, Real E, Real* lambda ) const
+      -> Real;
   static auto radiation_pressure( Real T, Real* lambda ) -> Real;
   auto get_gamma( ) const noexcept -> Real;
 
@@ -59,6 +60,8 @@ class Stellar : public EosBase<Stellar> {
       -> Real;
   auto sound_speed_from_conserved( Real tau, Real V, Real EmT,
                                    Real* lambda ) const -> Real;
+  auto temperature_from_conserved( Real tau, Real V, Real E, Real* lambda ) const
+      -> Real;
   auto temperature_from_tau_pressure_abar( Real tau, Real P, Real Abar,
                                            Real* lambda ) const -> Real;
   auto temperature_from_tau_pressure( Real tau, Real P, Real* lambda ) const
@@ -71,5 +74,3 @@ class Stellar : public EosBase<Stellar> {
 
 // TODO(astrobarker): adjust when we support more than one EOS
 using EOS = IdealGas;
-
-#endif // EOS_HPP_

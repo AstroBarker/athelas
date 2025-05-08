@@ -1,5 +1,4 @@
-#ifndef FLUID_UTILITIES_HPP_
-#define FLUID_UTILITIES_HPP_
+#pragma once
 /**
  * @file fluid_utilities.hpp
  * --------------
@@ -37,4 +36,3 @@ auto compute_timestep_fluid( View3D<Real> U, const GridStructure* grid,
                              EOS* eos, Real CFL ) -> Real;
 
 } // namespace fluid
-#endif // FLUID_UTILITIES_HPP_

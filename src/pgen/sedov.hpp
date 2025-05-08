@@ -1,5 +1,4 @@
-#ifndef SEDOV_HPP_
-#define SEDOV_HPP_
+#pragma once
 /**
  * @file sedov.hpp
  * --------------
@@ -82,4 +81,3 @@ void sedov_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
     }
   }
 }
-#endif // SEDOV_HPP_

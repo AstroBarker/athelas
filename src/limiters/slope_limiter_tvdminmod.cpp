@@ -41,7 +41,7 @@ void TVDMinmod::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
   }
 
   constexpr static Real sl_threshold_ =
-      1.0e-5; // TODO(astrobarker): move to input deck
+      1.0e-10; // TODO(astrobarker): move to input deck
   constexpr static Real EPS = 1.0e-10;
 
   const int& ilo  = grid->get_ilo( );

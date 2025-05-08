@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file utilities.hpp
  * --------------
@@ -10,9 +11,6 @@
  *          - compute_internal_energy
  *          - to_lower
  */
-
-#ifndef UTILITIES_HPP_
-#define UTILITIES_HPP_
 
 #include <algorithm>
 #include <cctype>
@@ -27,6 +25,26 @@ namespace utilities {
 // [[x]]_+ = -.5 * (x + |x|) is positive part of x
 [[nodiscard]] KOKKOS_INLINE_FUNCTION auto pos_part(const Real x) noexcept -> Real {
   return 0.5 * (x + std::abs(x));
+}
+
+template <typename T = Real>
+KOKKOS_FORCEINLINE_FUNCTION constexpr auto EPS() {
+  return 10 * std::numeric_limits<T>::epsilon();
+}
+
+template <typename T = Real>
+KOKKOS_FORCEINLINE_FUNCTION constexpr auto LARGE() {
+  return 0.1 * std::numeric_limits<T>::max();
+}
+
+template <typename T = Real>
+KOKKOS_FORCEINLINE_FUNCTION constexpr auto SMALL() {
+  return 10 * std::numeric_limits<T>::min();
+}
+
+KOKKOS_FORCEINLINE_FUNCTION
+[[nodiscard]] Real make_bounded(const Real val, const Real vmin, const Real vmax) {
+  return std::min(std::max(val, vmin + EPS()), vmax * (1.0 - EPS()));
 }
 
 // Implements a typesafe SGN function
@@ -63,5 +81,3 @@ auto to_lower( T data ) -> T {
 }
 
 } // namespace utilities
-
-#endif // UTILITIES_HPP_

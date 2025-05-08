@@ -85,26 +85,29 @@ void compute_increment_rad_divergence(
 
         // Riemann Problem
 
-        // Real Fp = flux_rad( Em_R, Fm_R, vR, P_R, 0 );
-        // Real Fm = flux_rad( Em_L, Fm_L, vL, P_L, 0 );
-        // llf_flux( Fp, Fm, Em_R, Em_L, c_cgs, flux_e );
+        /*
+        auto c_cgs = constants::c_cgs;
+        Real Fp = flux_rad( Em_R, Fm_R, vR, P_R, 0 );
+        Real Fm = flux_rad( Em_L, Fm_L, vL, P_L, 0 );
+        auto flux_e = llf_flux( Fp, Fm, Em_R, Em_L, c_cgs );
 
-        // Fp = flux_rad( Em_R, Fm_R, P_R, vR, 1 );
-        // Fm = flux_rad( Em_L, Fm_L, P_L, vL, 1 ); // WEIRD
-        // llf_flux( Fp, Fm, Fm_R, Fm_L, c_cgs, flux_f );
+        Fp = flux_rad( Em_R, Fm_R, P_R, vR, 1 );
+        Fm = flux_rad( Em_L, Fm_L, P_L, vL, 1 );
+        auto flux_f = llf_flux( Fp, Fm, Fm_R, Fm_L, c_cgs );
+        */
 
+        const Real vstar = Flux_U( iX );
         auto [flux_e, flux_f] =
-            numerical_flux_hll_rad( Em_L, Em_R, Fm_L, Fm_R, P_L, P_R );
+            numerical_flux_hll_rad( Em_L, Em_R, Fm_L, Fm_R, P_L, P_R, vstar );
 
         // upwind advective fluxes
-        const Real vstar = Flux_U( iX );
         const Real advective_flux_e =
             ( vstar >= 0.0 ) ? vstar * Em_L : vstar * Em_R;
         const Real advective_flux_f =
             ( vstar >= 0.0 ) ? vstar * Fm_L : vstar * Fm_R;
 
-        flux_e += advective_flux_e;
-        flux_f += advective_flux_f;
+        flux_e -= advective_flux_e;
+        flux_f -= advective_flux_f;
 
         dFlux_num( 0, iX ) = flux_e;
         dFlux_num( 1, iX ) = flux_f;
@@ -134,13 +137,13 @@ void compute_increment_rad_divergence(
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                                 { nvars, ihi + 1, nNodes } ),
         KOKKOS_LAMBDA( const int iCR, const int iX, const int iN ) {
-          const Real tau = basis->basis_eval( uCF, iX, 0, iN + 1 );
+          const Real rho = 1.0 / basis->basis_eval( uCF, iX, 0, iN + 1 );
           const auto P =
-              compute_closure( basis->basis_eval( uCR, iX, 0, iN + 1 ) / tau,
-                               basis->basis_eval( uCR, iX, 1, iN + 1 ) / tau );
+              compute_closure( basis->basis_eval( uCR, iX, 0, iN + 1 ) * rho,
+                               basis->basis_eval( uCR, iX, 1, iN + 1 ) * rho );
           Flux_q( iCR, iX, iN ) =
-              flux_rad( basis->basis_eval( uCR, iX, 0, iN + 1 ) / tau,
-                        basis->basis_eval( uCR, iX, 1, iN + 1 ) / tau, P,
+              flux_rad( basis->basis_eval( uCR, iX, 0, iN + 1 ) * rho,
+                        basis->basis_eval( uCR, iX, 1, iN + 1 ) * rho, P,
                         basis->basis_eval( uCF, iX, 1, iN + 1 ), iCR );
         } );
 
@@ -180,10 +183,8 @@ auto compute_increment_rad_source( View2D<Real> uCR, const int k, const int iCR,
     const Real V    = basis->basis_eval( uCF, iX, 1, iN + 1 );
     const Real Em_T = basis->basis_eval( uCF, iX, 2, iN + 1 );
 
-    const Real Abar = 0.6; // TODO(astrobarker): update abar
-    Real lambda[2]  = { Abar, 0.0 };
-    const Real P    = eos->pressure_from_conserved( 1.0 / D, V, Em_T, lambda );
-    const Real T    = eos->temperature_from_tau_pressure( 1.0 / D, P, lambda );
+    auto lambda  = nullptr;
+    const Real T    = eos->temperature_from_conserved( 1.0 / D, V, Em_T, lambda );
 
     // TODO(astrobarker): composition
     const Real X = 1.0;
@@ -228,7 +229,7 @@ void compute_increment_rad_explicit(
     const ModalBasis* basis, const EOS* eos, View3D<Real> dU,
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCR_F_L,
     View2D<Real> uCR_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
-    const Options* opts ) {
+    const Options* opts, BoundaryConditions *bcs ) {
 
   const auto& order = basis->get_order( );
   const auto& ilo   = grid.get_ilo( );
@@ -236,8 +237,8 @@ void compute_increment_rad_explicit(
   const int nvars   = 2;
 
   // --- Apply BC ---
-  bc::apply_bc( uCR, &grid, order, opts->BC );
-  bc::apply_bc( uCF, &grid, order, opts->BC );
+  bc::fill_ghost_zones<2>( uCR, &grid, order, bcs );
+  bc::fill_ghost_zones<3>( uCF, &grid, order, bcs );
 
   // --- Compute Increment for new solution ---
 

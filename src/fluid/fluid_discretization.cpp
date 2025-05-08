@@ -6,16 +6,17 @@
  * @brief Contains the main discretization routines for the fluid
  *
  * @details We implement the core DG updates for the fluid here, including
- *          - ComputerIncrement_Fluid_Divergence (hyperbolic term)
+ *          - compute_increment_fluid_divergence (hyperbolic term)
  *          - compute_increment_fluid_geometry (geometric source)
- *          - compute_increment_fluid_rad (radiation source term)
+ *          - compute_increment_fluid_source (radiation source term)
  */
 
 #include <iostream>
 
 #include "Kokkos_Core.hpp"
 
-#include "boundary_conditions.hpp"
+#include "bc/boundary_conditions.hpp"
+#include "bc/boundary_conditions_base.hpp"
 #include "error.hpp"
 #include "fluid_discretization.hpp"
 #include "fluid_utilities.hpp"
@@ -212,8 +213,7 @@ auto compute_increment_fluid_source( View2D<Real> uCF, const int k,
     const Real Pr = radiation::compute_closure( Er, Fr );
 
     auto lambda  = nullptr;
-    const Real P = eos->pressure_from_conserved( 1.0 / D, Vel, EmT, lambda );
-    const Real T = eos->temperature_from_tau_pressure( 1.0 / D, P, lambda );
+    const Real T = eos->temperature_from_conserved( 1.0 / D, Vel, EmT, lambda );
 
     // TODO(astrobarker): composition
     const Real X = 1.0;
@@ -252,7 +252,7 @@ void compute_increment_fluid_explicit(
     const ModalBasis* basis, const EOS* eos, View3D<Real> dU,
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
     View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
-    const Options* opts ) {
+    const Options* opts, BoundaryConditions *bcs ) {
 
   const auto& order = basis->get_order( );
   const auto& ilo   = grid.get_ilo( );
@@ -260,9 +260,9 @@ void compute_increment_fluid_explicit(
   const int nvars   = U.extent( 0 );
 
   // --- Apply BC ---
-  bc::apply_bc( U, &grid, order, opts->BC );
+  bc::fill_ghost_zones<3>( U, &grid, order, bcs );
   if ( opts->do_rad ) {
-    bc::apply_bc( uCR, &grid, order, opts->BC );
+    bc::fill_ghost_zones<2>( uCR, &grid, order, bcs );
   }
 
   // --- Detect Shocks ---

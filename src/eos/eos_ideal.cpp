@@ -16,7 +16,7 @@
 #include "eos.hpp"
 #include "polynomial_basis.hpp"
 
-auto IdealGas::pressure_from_conserved( const Real tau, const Real V,
+[[nodiscard]] auto IdealGas::pressure_from_conserved( const Real tau, const Real V,
                                         const Real EmT, Real* /*lambda*/ ) const
     -> Real {
   const Real Em = EmT - ( 0.5 * V * V );
@@ -24,27 +24,34 @@ auto IdealGas::pressure_from_conserved( const Real tau, const Real V,
   return ( gamma_ - 1.0 ) * Ev;
 }
 
-auto IdealGas::sound_speed_from_conserved( const Real /*tau*/, const Real V,
+[[nodiscard]] auto IdealGas::sound_speed_from_conserved( const Real /*tau*/, const Real V,
                                            const Real EmT,
                                            Real* /*lambda*/ ) const -> Real {
   const Real Em = EmT - ( 0.5 * V * V );
   return std::sqrt( gamma_ * ( gamma_ - 1.0 ) * Em );
 }
 
-auto IdealGas::temperature_from_tau_pressure_abar( const Real tau, const Real P,
+[[nodiscard]] auto IdealGas::temperature_from_conserved( Real tau, Real V, Real E, Real* lambda ) const
+-> Real {
+  const Real sie = E - 0.5 * V * V;
+  const Real mu = 1.0 + constants::m_e / constants::m_p;
+  return (gamma_ - 1.0) * sie * mu * constants::m_p / constants::k_B;
+}
+
+[[nodiscard]] auto IdealGas::temperature_from_tau_pressure_abar( const Real tau, const Real P,
                                                    const Real Abar,
                                                    Real* /*lambda*/ ) const -> Real {
   return ( P * Abar * tau ) / ( constants::N_A * constants::k_B );
 }
 
-auto IdealGas::temperature_from_tau_pressure( const Real tau, const Real P,
+[[nodiscard]] auto IdealGas::temperature_from_tau_pressure( const Real tau, const Real P,
                                               Real* lambda ) const -> Real {
-  const Real Abar = 0.6;
+  const Real Abar = 1.0;
   return temperature_from_tau_pressure_abar( tau, P, Abar, lambda );
 }
 
-auto IdealGas::radiation_pressure( const Real T, Real* /*lambda*/ ) -> Real {
+[[nodiscard]] auto IdealGas::radiation_pressure( const Real T, Real* /*lambda*/ ) -> Real {
   return constants::a * T * T * T * T;
 }
 
-auto IdealGas::get_gamma() const noexcept -> Real {return gamma_;}
+[[nodiscard]] auto IdealGas::get_gamma() const noexcept -> Real {return gamma_;}

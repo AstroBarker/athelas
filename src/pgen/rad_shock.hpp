@@ -30,13 +30,13 @@ void rad_shock_init( State* state, GridStructure* grid,
   const int ihi    = grid->get_ihi( );
   const int nNodes = grid->get_n_nodes( );
 
-  const int iCF_Tau = 0;
-  const int iCF_V   = 1;
-  const int iCF_E   = 2;
+  constexpr static int iCF_Tau = 0;
+  constexpr static int iCF_V   = 1;
+  constexpr static int iCF_E   = 2;
 
-  const int iPF_D = 0;
+  constexpr static int iPF_D = 0;
 
-  const int iCR_E = 0;
+  constexpr static int iCR_E = 0;
 
   const Real V_L = pin->in_table["problem"]["params"]["vL"].value_or( 5.19e7 );
   const Real V_R = pin->in_table["problem"]["params"]["vR"].value_or( 1.73e7 );
@@ -51,10 +51,11 @@ void rad_shock_init( State* state, GridStructure* grid,
   const Real x_d = pin->in_table["problem"]["params"]["x_d"].value_or(0.013);
 
   // TODO(astrobarker): thread through
-  const Real Abar = 1.0;
+  const Real mu = 1.0 + constants::m_e / constants::m_p;
   const Real gamma = 5.0 / 3.0;
-  const Real em_gas_L = (T_L * constants::N_A * constants::k_B) / ((gamma - 1.0)*Abar);
-  const Real em_gas_R = (T_R * constants::N_A * constants::k_B) / ((gamma - 1.0)*Abar);
+  const Real gm1 = gamma - 1.0;
+  const Real em_gas_L = constants::k_B * T_L / (gm1 * mu * constants::m_p);
+  const Real em_gas_R = constants::k_B * T_R / (gm1 * mu * constants::m_p);
   const Real em_rad_L = constants::a * std::pow(T_L, 4.0) / rhoL;
   const Real em_rad_R = constants::a * std::pow(T_R, 4.0) / rhoR;
 
@@ -88,6 +89,8 @@ void rad_shock_init( State* state, GridStructure* grid,
         uPF( iPF_D, iX, iNodeX ) = rhoR;
 
       }
+        //std::println("erad {:10e} ", uCR(0,iX, 0));
+        std::println("egas {:10e} ", uCF(2,iX, 0));
     }
   }
   }

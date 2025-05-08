@@ -1,5 +1,4 @@
-#ifndef IO_HPP_
-#define IO_HPP_
+#pragma once
 /**
  * @file io.cpp
  * --------------
@@ -37,5 +36,3 @@ void print_simulation_parameters( GridStructure grid, ProblemIn* pin,
 void write_basis( ModalBasis* basis, unsigned int ilo, unsigned int ihi,
                   unsigned int nNodes, unsigned int order,
                   const std::string& problem_name );
-
-#endif // IO_HPP_

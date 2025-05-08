@@ -1,5 +1,4 @@
-#ifndef STATE_HPP_
-#define STATE_HPP_
+#pragma once
 /**
  * @file state.hpp
  * --------------
@@ -46,5 +45,3 @@ class State {
   View3D<Real> uAF_{ }; // auxiliary fluid
   View3D<Real> uCR_{ }; // conserved radiation
 };
-
-#endif // STATE_HPP_

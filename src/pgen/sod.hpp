@@ -1,5 +1,4 @@
-#ifndef SOD_HPP_
-#define SOD_HPP_
+#pragma once
 /**
  * @file sod.hpp
  * --------------
@@ -82,4 +81,3 @@ void sod_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
     }
   }
 }
-#endif // SOD_HPP_
