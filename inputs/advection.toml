@@ -6,13 +6,17 @@ restart = false
 do_rad = false
 xl = 0.0
 xr = 1.0
-bc = "periodic"
 cfl = 0.35
 
 [problem.params]
 v0 = 1.0
 p0 = 0.1
 amp = 1.0
+
+[bc]
+[bc.fluid]
+bc_i = "periodic"
+bc_o = "periodic"
 
 [output]
 nlim = -1

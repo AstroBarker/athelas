@@ -1,39 +1,47 @@
 [problem]
 problem = "rad_shock_steady"
-t_end = 1.0e-13
+t_end = 1.0e-11
 geometry = "planar"
 restart = false
 do_rad = true
 xl = -0.03
 xr = 0.03
-bc = "homogenous"
 cfl = 0.8
 
 # Mach 2 Case:
 # - Left side (pre-shock):
 #   - Density: 1.0 g/cm^3
-#   - Internal energy: 1.60217663e-10 erg (100eV)
+#   - Temperature: 1.16045181e6 K (100eV)
 # - Right side (post-shock):
 #   - Density: 2.286 g/cm^3
-#   - Internal energy: 3.3286e-10 ergs (207.756 eV)
+#   - Temperature: 2.4109e6 K (207.756 eV)
 # 
 # Mach 5 Case:
 # - Left side (pre-shock):
 #   - Density: 1.0 g/cm^3
-#   - Internal energy: 1.60217663e-10 erg (100 eV)
+#   - Temperature: 1.16045181e6 K (100 eV)
 # - Right side (post-shock):
 #   - Density: 3.598 g/cm^3
-#   - Internal energy: 1.37101e-9 ergs (855.720 eV)
+#   - Temperature: 9.9302e6 K (855.720 eV)
 [problem.params]
 v0 = 0.0
 rhoL = 1.0
 rhoR = 2.286 
-eL = 1.60217663e-10
-eR = 3.3286e-10
+T_L = 1.16045181e6
+T_R = 2.4109e6
+
+# TODO(astrobarker) fix
+[bc]
+[bc.fluid]
+bc_i = "outflow"
+bc_o = "outflow"
+[bc.rad]
+bc_i = "outflow"
+bc_o = "outflow"
 
 [output]
 nlim = -1
-ncycle_out = 1
+ncycle_out = 100
 #dt_hdf5 = 1.0e-10 # default: 100 outputs
 dt_init_frac = 1.0001
 
@@ -41,7 +49,7 @@ dt_init_frac = 1.0001
 basis = "legendre"
 nnodes = 1
 porder = 1
-nx = 32
+nx = 128
 ng = 1
 
 [time]
@@ -56,7 +64,7 @@ ideal_gamma = 1.66666666666667 # default: 1.4
 type = "powerlaw_rho"
 kP = 422.99 # 1 / cm
 kR = 788.03 # 1 / cm
-exp = 1.0
+exp = -1.0
 
 [limiters]
 type = "minmod"

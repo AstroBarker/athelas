@@ -1,18 +1,21 @@
 [problem]
-problem = "shu_osher"
-t_end = 1.8
+problem = "sod"
+t_end = 6.0
 geometry = "planar"
 restart = false
 do_rad = false
-xl = -5.0
-xr = 5.0
-cfl = 0.35
+xl = 0.0
+xr = 10.0
+cfl = 0.1
 
 [problem.params]
-v0 = 2.629369
-rhoL = 3.857143
-pL = 10.33333333
-pR = 1.0
+vL = 0.0
+vR = 0.0
+rhoL = 1.0
+rhoR = 1.0e-3
+pL = 0.066666667
+pR = 0.666666667e-10
+x_d = 3.0
 
 [bc]
 [bc.fluid]
@@ -23,29 +26,33 @@ bc_o = "outflow"
 nlim = -1
 ncycle_out = 100
 dt_hdf5 = 1.0e-2
+dt_init_frac = 1.1
 
 [fluid]
 basis = "legendre"
 nnodes = 1
 porder = 1
-nx = 256
+nx = 2048
 ng = 1
 
 [time]
-torder = 3
-nstages = 3
+torder = 2
+nstages = 2
 
 [eos]
 type = "ideal"
-gamma_ideal = 1.4
+ideal_gamma = 1.66666666667 # default: 1.4
 
 [limiters]
 do_limiter = true
 type = "minmod"
-weno_r = 2.0
+m_tvb = 0.0
+b_tvd = 1.0
 tci_opt = false
-tci_val = 0.1
-characteristic = false
-gamma_i = 0.8
+tci_val = 1.0e-5
+characteristic = true
+gamma_i = 0.1
 #gamma_r = 0.005
 #gamma_l = 0.005
+#b_tvd = 2.0 #minmod
+#m_tvb = 1.0 #minmod

@@ -6,13 +6,17 @@ restart = false
 do_rad = false
 xl = 0.0
 xr = 1.0
-bc = "reflecting"
 cfl = 0.25
 
 [problem.params]
 v0 = 0.0
 rho0 = 1.0
 E0 = 0.5
+
+[bc]
+[bc.fluid]
+bc_i = "reflecting"
+bc_o = "outflow"
 
 [output]
 nlim = -1
@@ -24,16 +28,16 @@ dt_init_frac = 1.05
 basis = "legendre"
 nnodes = 3
 porder = 3
-nx = 128
+nx = 256
 ng = 1
 
 [time]
-torder = 3
-nstages = 3
+torder = 4
+nstages = 5
 
 [eos]
 type = "ideal"
-gamma_ideal = 1.6666666667
+gamma_ideal = 1.4
 
 [limiters]
 do_limiter = true
@@ -41,9 +45,9 @@ type = "weno"
 b_tvd = 2.0
 m_tvb = 0.001
 tci_opt = true
-tci_val = 0.1
+tci_val = 0.25
 characteristic = true
-gamma_i = 0.998
+gamma_i = 0.9
 #gamma_r = 0.005
 #gamma_l = 0.005
 weno_r = 2.0

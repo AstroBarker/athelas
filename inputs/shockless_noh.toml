@@ -6,12 +6,16 @@ restart = false
 do_rad = false
 xl = 0.0
 xr = 1.0
-bc = "shockless_noh"
 cfl = 0.35
 
 [problem.params]
 rho = 1.0
 specific_energy = 1.0
+
+[bc]
+[bc.fluid]
+bc_i = "reflecting"
+bc_o = "reflecting"
 
 [output]
 nlim = -1
