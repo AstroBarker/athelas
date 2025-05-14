@@ -1,6 +1,6 @@
-# athelas (A radiaTion-Hydrodynamics codE for modeLing sphericAl Supernovae )
+# athelas (Astrophysical Transients with Hydrodynamics and Emission using a Lagrangian Adaptive-order Scheme )
 
-<p align="center">sypherically symmetric Lagrangian radiation-hydrodynamics solver written in C++ </p>
+<p align="center">1D Lagrangian radiation-hydrodynamics solver written in C++ </p>
 
 [![Build](https://github.com/AstroBarker/athelas/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/AstroBarker/athelas/actions/workflows/cmake-multi-platform.yml)
 <p align="center">
