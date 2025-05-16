@@ -21,6 +21,7 @@
 #include "pgen/moving_contact.hpp"
 #include "pgen/noh.hpp"
 #include "pgen/problem_in.hpp"
+#include "pgen/marshak.hpp"
 #include "pgen/rad_advection.hpp"
 #include "pgen/rad_equilibrium.hpp"
 #include "pgen/rad_shock_steady.hpp"
@@ -67,6 +68,8 @@ void initialize_fields( State* state, GridStructure* grid, const EOS* /*eos*/,
     rad_shock_steady_init( state, grid, pin );
   } else if ( problem_name == "rad_shock" ) {
     rad_shock_init( state, grid, pin );
+  } else if ( problem_name == "marshak" ) {
+    marshak_init( state, grid, pin );
   } else {
     THROW_ATHELAS_ERROR( " ! Please choose a valid problem_name" );
   }

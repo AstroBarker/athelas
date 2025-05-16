@@ -259,7 +259,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   gamma_i        = gamma2.value_or( 0.990 );
   gamma_r        = gamma3.value_or( 0.005 );
 
-  // varous checks
+  // various checks
   if ( CFL <= 0.0 ) {
     THROW_ATHELAS_ERROR( " ! Initialization : CFL <= 0.0!" );
   }
