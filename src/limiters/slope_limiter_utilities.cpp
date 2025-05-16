@@ -129,7 +129,7 @@ void detect_troubled_cells( View3D<Real> U, View2D<Real> D,
  * Return the cell average of a field iCF on cell iX.
  * The parameter `int extrapolate` designates how the cell average is
  *computed.
- *  0  : Return stadnard cell average on iX
+ *  0  : Return standard cell average on iX
  * -1 : Extrapolate left, e.g.,  polynomial from iX+1 into iX
  * +1 : Extrapolate right, e.g.,  polynomial from iX-1 into iX
  **/

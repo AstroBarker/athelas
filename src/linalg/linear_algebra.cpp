@@ -61,7 +61,7 @@ void tri_sym_diag( int n, std::vector<Real>& d, std::vector<Real>& e,
 
   if ( info != 0 ) {
     THROW_ATHELAS_ERROR(
-        " ! Issue occured in initializing quadrature in tri_sym_diag." );
+        " ! Issue occurred in initializing quadrature in tri_sym_diag." );
   }
 
   // Matrix multiply ev' * array. Only Array[0] is nonzero.
@@ -85,6 +85,6 @@ void invert_matrix( std::vector<Real>& M, int n ) {
   info2 = LAPACKE_dgetri( LAPACK_COL_MAJOR, n, M.data( ), n, IPIV.data( ) );
 
   if ( info1 != 0 || info2 != 0 ) {
-    THROW_ATHELAS_ERROR( " ! Issue occured in matrix inversion." );
+    THROW_ATHELAS_ERROR( " ! Issue occurred in matrix inversion." );
   }
 }

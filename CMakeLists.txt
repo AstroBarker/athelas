@@ -3,7 +3,7 @@
 # But it works.
 # ===
 
-cmake_minimum_required( VERSION 3.10 )
+cmake_minimum_required( VERSION 3.11 )
 cmake_policy(SET CMP0074 NEW)
 
 # If the user doesn't specify a build type, prefer RelWithDebInfo
@@ -40,7 +40,7 @@ endif()
 set(Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION ON CACHE BOOL
     "Kokkos aggressive vectorization" FORCE)
 
-### c++11 standards
+### c++23 standards
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS False)
@@ -50,6 +50,10 @@ set(CMAKE_FIND_APPBUNDLE NEVER)
 
 project( athelas VERSION 0.2 LANGUAGES CXX )
 enable_language(CXX)
+
+# for tracking git hash
+include("cmake/build_info.cmake")
+CheckGitSetup()
 
 include(CTest)
 option(ATHELAS_ENABLE_UNIT_TESTS "Enable unit tests" OFF)
@@ -98,6 +102,7 @@ include_directories(athelas PUBLIC
 
 # --- Source Files ---
 set( ATHELAS_SOURCES 
+  "generated/build_info.cpp"
   "src/driver.cpp"
   "src/pgen/problem_in.cpp"
   "src/basis/polynomial_basis.cpp"
@@ -229,10 +234,10 @@ set_target_properties(athelas
 # -- finalize ---
 # yeah it's a mess but it works
 
-target_link_libraries( libathelas Kokkos::kokkos )
+target_link_libraries( libathelas Kokkos::kokkos git_version )
 target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenMP_CXX_FLAGS} )
 
-target_compile_options( athelas PRIVATE -fPIC -O2 -Wall -llapacke )
+target_compile_options( athelas PRIVATE -fPIC -Wall -llapacke )
 add_dependencies( athelas libathelas )
 
 target_link_libraries( athelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos stdc++exp ${OpenMP_CXX_FLAGS} )

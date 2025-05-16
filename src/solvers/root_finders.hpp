@@ -316,7 +316,7 @@ auto newton_aa( F target, F dTarget, T x0, Args... args ) -> T {
   T xkp1  = 0.0;
   xk      = std::min( x0 - h, root_finders::FPTOL ); // keep positive definite
   xkm1    = x0;
-  T ans;
+  T result;
   if ( std::abs( xk - x0 ) <= root_finders::FPTOL ) {
     return xk;
   }
@@ -341,9 +341,9 @@ auto newton_aa( F target, F dTarget, T x0, Args... args ) -> T {
           " ! Root Finder :: Anderson Accelerated Newton Iteration "
           "Failed To Converge ! \n" );
     }
-    ans = xk;
+    result = xk;
   }
-  return ans;
+  return result;
 }
 
 } // namespace root_finders

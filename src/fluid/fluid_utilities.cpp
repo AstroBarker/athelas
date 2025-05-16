@@ -62,7 +62,7 @@ auto source_fluid_rad( const Real D, const Real V, const Real T,
 }
 
 /**
- * Positivity preserving numerical flux. Constucts v* and p* states.
+ * Positivity preserving numerical flux. Constructs v* and p* states.
  * TODO(astrobarker): do I need tau_r_star if I construct p* with left?
  **/
 auto numerical_flux_gudonov_positivity( const Real tauL, const Real tauR, 
@@ -95,7 +95,7 @@ auto numerical_flux_gudonov_positivity( const Real tauL, const Real tauR,
 }
 
 /**
- * Gudonov style numerical flux. Constucts v* and p* states.
+ * Gudonov style numerical flux. Constructs v* and p* states.
  **/
 auto numerical_flux_gudonov( const Real vL, const Real vR, const Real pL,
                              const Real pR, const Real zL, const Real zR ) -> std::tuple<Real, Real> {
@@ -107,7 +107,7 @@ auto numerical_flux_gudonov( const Real vL, const Real vR, const Real pL,
 }
 
 /**
- * Gudonov style numerical flux. Constucts v* and p* states.
+ * Gudonov style numerical flux. Constructs v* and p* states.
  **/
 void numerical_flux_hllc( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
                           Real rhoL, Real rhoR, Real& Flux_U, Real& Flux_P ) {
@@ -118,7 +118,7 @@ void numerical_flux_hllc( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
   Flux_P = rhoL * ( vL - aL ) * ( vL - Flux_U ) + pL;
 }
 
-// Compute Auxilliary
+// Compute Auxiliary
 
 /**
  * Compute the fluid timestep.
@@ -160,7 +160,7 @@ auto compute_timestep_fluid( const View3D<Real> U, const GridStructure* grid,
   dt = std::max( CFL * dt, MIN_DT );
   dt = std::min( dt, MAX_DT );
 
-  assert( !std::isnan( dt ) && "NaN encounted in compute_timestep_fluid.\n" );
+  assert( !std::isnan( dt ) && "NaN encountered in compute_timestep_fluid.\n" );
 
   return dt;
 }

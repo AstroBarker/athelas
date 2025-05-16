@@ -149,6 +149,7 @@ void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
 
   // Create groups
   H5::Group const group_md   = file.createGroup( "/metadata" );
+  H5::Group const group_mdb   = file.createGroup( "/metadata/build" );
   H5::Group const group_grid = file.createGroup( "/grid" );
   H5::Group const group_CF   = file.createGroup( "/conserved" );
   H5::Group const group_DF   = file.createGroup( "/diagnostic" );
@@ -163,7 +164,26 @@ void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
   std::array<hsize_t, 1> dim_md = { 1 };
   H5::DataSpace md_space( 1, dim_md.data( ) );
 
-  // Create and write datasets
+  // --- build info ---
+  H5::StrType stringtype(H5::PredType::C_S1, H5T_VARIABLE);
+  H5::DataSet const dataset_ghash = file.createDataSet(
+      "/metadata/build/git_hash", stringtype, md_space );
+  H5::DataSet const dataset_compiler = file.createDataSet(
+      "/metadata/build/compiler", stringtype, md_space );
+  H5::DataSet const dataset_timestamp = file.createDataSet(
+      "/metadata/build/timestamp", stringtype, md_space );
+  H5::DataSet const dataset_arch = file.createDataSet(
+      "/metadata/build/arch", stringtype, md_space );
+  H5::DataSet const dataset_os = file.createDataSet(
+      "/metadata/build/os", stringtype, md_space );
+
+  dataset_ghash.write( build_info::GIT_HASH, stringtype );
+  dataset_compiler.write( build_info::COMPILER, stringtype );
+  dataset_timestamp.write( build_info::BUILD_TIMESTAMP, stringtype );
+  dataset_arch.write( build_info::ARCH, stringtype );
+  dataset_os.write( build_info::OS, stringtype );
+
+  // --- Create and write datasets ---
   H5::DataSet const dataset_nx =
       file.createDataSet( "/metadata/nx", H5::PredType::NATIVE_INT, md_space );
   H5::DataSet const dataset_order = file.createDataSet(

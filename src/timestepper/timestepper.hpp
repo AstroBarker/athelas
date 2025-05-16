@@ -7,7 +7,7 @@
  * @brief Primary time marching routine.
  *
  * @details Timestppers for hydro and rad hydro.
- *          Uses explicity for transport terms and implicit for coupling.
+ *          Uses explicit for transport terms and implicit for coupling.
  */
 
 #include <math.h>
@@ -50,7 +50,7 @@ class TimeStepper {
                      SlopeLimiter* S_Limiter, const Options* opts, 
                      BoundaryConditions *bcs ) {
 
-    // hydro explicity update
+    // hydro explicit update
     update_fluid_explicit( dt, state, grid, basis, eos, S_Limiter, opts, bcs );
   }
 
