@@ -67,7 +67,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   std::optional<int> pO = in_table["fluid"]["porder"].value<int>( );
 
   // rad
-  do_rad  = rad.value_or( false );
+  do_rad = rad.value_or( false );
 
   // time
   std::optional<int> tO = in_table["time"]["torder"].value<int>( );
@@ -134,24 +134,26 @@ ProblemIn::ProblemIn( const std::string& fn ) {
         " ! Initialization Error: outer fluid boundary condition not supplied "
         "in input deck." );
   }
-  check_bc(fluid_bc_i);
-  check_bc(fluid_bc_o);
+  check_bc( fluid_bc_i );
+  check_bc( fluid_bc_o );
 
   // handle dirichlet..
-  fluid_i_dirichlet_values = {0.0, 0.0, 0.0};
-  fluid_o_dirichlet_values = {0.0, 0.0, 0.0};
+  fluid_i_dirichlet_values = { 0.0, 0.0, 0.0 };
+  fluid_o_dirichlet_values = { 0.0, 0.0, 0.0 };
   // --- testing ---
-  auto array = in_table["bc"]["fluid"]["dirichlet_values_i"].as_array();
-  if (array && fluid_bc_i == "dirichlet") {
-    read_toml_array(array, fluid_i_dirichlet_values);
-  } else if (!array && fluid_bc_i == "dirichlet") {
-      THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read fluid dirichlet_values_i as array.");
+  auto array = in_table["bc"]["fluid"]["dirichlet_values_i"].as_array( );
+  if ( array && fluid_bc_i == "dirichlet" ) {
+    read_toml_array( array, fluid_i_dirichlet_values );
+  } else if ( !array && fluid_bc_i == "dirichlet" ) {
+    THROW_ATHELAS_ERROR( " ! Initialization Error: Failed to read fluid "
+                         "dirichlet_values_i as array." );
   }
-  array = in_table["bc"]["fluid"]["dirichlet_values_o"].as_array();
-  if (array && fluid_bc_o == "dirichlet") {
-    read_toml_array(array, fluid_o_dirichlet_values);
-  } else if (!array && fluid_bc_o == "dirichlet") {
-      THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read fluid dirichlet_values_o as array.");
+  array = in_table["bc"]["fluid"]["dirichlet_values_o"].as_array( );
+  if ( array && fluid_bc_o == "dirichlet" ) {
+    read_toml_array( array, fluid_o_dirichlet_values );
+  } else if ( !array && fluid_bc_o == "dirichlet" ) {
+    THROW_ATHELAS_ERROR( " ! Initialization Error: Failed to read fluid "
+                         "dirichlet_values_o as array." );
   }
 
   // --- rad bc ---
@@ -159,37 +161,41 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   rad_bc_o = "";
   if ( rad_bc_i_ ) {
     rad_bc_i = utilities::to_lower( rad_bc_i_.value( ) );
-  } else if ( !rad_bc_i_ && do_rad ){
+  } else if ( !rad_bc_i_ && do_rad ) {
     THROW_ATHELAS_ERROR(
         " ! Initialization Error: inner radiation boundary condition not "
         "supplied in input deck but radiation was enabled." );
   }
   if ( rad_bc_o_ ) {
     rad_bc_o = utilities::to_lower( rad_bc_o_.value( ) );
-  } else if ( !rad_bc_o_ && do_rad ){
+  } else if ( !rad_bc_o_ && do_rad ) {
     THROW_ATHELAS_ERROR(
         " ! Initialization Error: outer radiation boundary condition not "
         "supplied in input deck but radiation was enabled." );
   }
-  if (do_rad) {
-    check_bc(rad_bc_i);
-    check_bc(rad_bc_o);
+  if ( do_rad ) {
+    check_bc( rad_bc_i );
+    check_bc( rad_bc_o );
   }
 
   // handle dirichlet..
-  rad_i_dirichlet_values = {0.0, 0.0};
-  rad_o_dirichlet_values = {0.0, 0.0};
-  array = in_table["bc"]["rad"]["dirichlet_values_i"].as_array();
-  if (array && rad_bc_i == "dirichlet") {
-    read_toml_array(array, rad_i_dirichlet_values);
-  } else if (!array && rad_bc_i == "dirichlet") {
-      THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read rad dirichlet_values_i as array.");
+  rad_i_dirichlet_values = { 0.0, 0.0 };
+  rad_o_dirichlet_values = { 0.0, 0.0 };
+  const bool do_dirichlet_rad_i = (rad_bc_i == "dirichlet" || rad_bc_i == "marshak");
+  const bool do_dirichlet_rad_o = (rad_bc_o == "dirichlet" || rad_bc_o == "marshak");
+  array = in_table["bc"]["rad"]["dirichlet_values_i"].as_array( );
+  if ( array && do_dirichlet_rad_i ) {
+    read_toml_array( array, rad_i_dirichlet_values );
+  } else if ( !array && do_dirichlet_rad_i ) {
+    THROW_ATHELAS_ERROR( " ! Initialization Error: Failed to read rad "
+                         "dirichlet_values_i as array." );
   }
-  array = in_table["bc"]["rad"]["dirichlet_values_o"].as_array();
-  if (array && rad_bc_o == "dirichlet") {
-    read_toml_array(array, rad_o_dirichlet_values);
-  } else if (!array && rad_bc_o == "dirichlet") {
-      THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read rad dirichlet_values_o as array.");
+  array = in_table["bc"]["rad"]["dirichlet_values_o"].as_array( );
+  if ( array && do_dirichlet_rad_o ) {
+    read_toml_array( array, rad_o_dirichlet_values );
+  } else if ( !array && do_dirichlet_rad_o ) {
+    THROW_ATHELAS_ERROR( " ! Initialization Error: Failed to read rad "
+                         "dirichlet_values_o as array." );
   }
 
   if ( geom ) {
@@ -299,10 +305,9 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   std::printf( " ~ Configuration ... Complete\n\n" );
 }
 
-
-bool check_bc(std::string &bc) {
+bool check_bc( std::string& bc ) {
   if ( bc != "outflow" && bc != "reflecting" && bc != "dirichlet" &&
-       bc != "periodic" ) {
+       bc != "periodic" && bc != "marshak") {
     THROW_ATHELAS_ERROR(
         " ! Initialization Error: Bad boundary condition choice. Choose: \n"
         " - outflow \n"

@@ -31,7 +31,7 @@ void compute_characteristic_decomposition( T1 U, T2 R, T2 R_inv, EOS eos ) {
 
   const Real Em = Em_T - ( 0.5 * V * V );
 
-  const Real GAMMA = eos->get_gamma();
+  const Real GAMMA = eos->get_gamma( );
 
   const Real k      = std::sqrt( GAMMA * ( GAMMA - 1.0 ) );
   const Real sqrt_e = std::sqrt( Em );

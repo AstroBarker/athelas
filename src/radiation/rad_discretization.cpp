@@ -184,7 +184,7 @@ auto compute_increment_rad_source( View2D<Real> uCR, const int k, const int iCR,
     const Real Em_T = basis->basis_eval( uCF, iX, 2, iN + 1 );
 
     auto lambda  = nullptr;
-    const Real T    = eos->temperature_from_conserved( 1.0 / D, V, Em_T, lambda );
+    const Real T = eos->temperature_from_conserved( 1.0 / D, V, Em_T, lambda );
 
     // TODO(astrobarker): composition
     const Real X = 1.0;
@@ -229,7 +229,7 @@ void compute_increment_rad_explicit(
     const ModalBasis* basis, const EOS* eos, View3D<Real> dU,
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCR_F_L,
     View2D<Real> uCR_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
-    const Options* opts, BoundaryConditions *bcs ) {
+    const Options* opts, BoundaryConditions* bcs ) {
 
   const auto& order = basis->get_order( );
   const auto& ilo   = grid.get_ilo( );

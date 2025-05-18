@@ -73,20 +73,22 @@ void compute_increment_fluid_divergence(
                                                         uCF_L( 2 ), lambda );
         const Real Cs_L = eos->sound_speed_from_conserved(
             uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ), lambda );
-        //const Real lam_L = Cs_L * rho_L;
+        // const Real lam_L = Cs_L * rho_L;
 
         const Real P_R  = eos->pressure_from_conserved( uCF_R( 0 ), uCF_R( 1 ),
                                                         uCF_R( 2 ), lambda );
         const Real Cs_R = eos->sound_speed_from_conserved(
             uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ), lambda );
-        //const Real lam_R = Cs_R * rho_R;
+        // const Real lam_R = Cs_R * rho_R;
 
         // --- Numerical Fluxes ---
 
         // Riemann Problem
-        //auto [flux_u, flux_p] = numerical_flux_gudonov( uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, lam_L, lam_R);
-        auto [flux_u, flux_p] = numerical_flux_gudonov_positivity( uCF_L(0), 
-                uCF_R(0), uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, Cs_L, Cs_R);
+        // auto [flux_u, flux_p] = numerical_flux_gudonov( uCF_L( 1 ), uCF_R( 1
+        // ), P_L, P_R, lam_L, lam_R);
+        auto [flux_u, flux_p] = numerical_flux_gudonov_positivity(
+            uCF_L( 0 ), uCF_R( 0 ), uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, Cs_L,
+            Cs_R );
         Flux_U[iX] = flux_u;
         Flux_P[iX] = flux_p;
         // numerical_flux_hllc( uCF_L( 1 ), uCF_R( 1 ), P_L, P_R, Cs_L, Cs_R,
@@ -252,7 +254,7 @@ void compute_increment_fluid_explicit(
     const ModalBasis* basis, const EOS* eos, View3D<Real> dU,
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
     View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
-    const Options* opts, BoundaryConditions *bcs ) {
+    const Options* opts, BoundaryConditions* bcs ) {
 
   const auto& order = basis->get_order( );
   const auto& ilo   = grid.get_ilo( );

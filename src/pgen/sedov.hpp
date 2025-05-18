@@ -45,8 +45,7 @@ void sedov_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
   const Real volume = ( 4.0 * M_PI / 3.0 ) *
                       std::pow( grid->get_left_interface( origin + 1 ), 3.0 );
   const Real gamma = 1.4;
-  const Real P0 = ( gamma - 1.0 ) * E0 / volume;
-
+  const Real P0    = ( gamma - 1.0 ) * E0 / volume;
 
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {

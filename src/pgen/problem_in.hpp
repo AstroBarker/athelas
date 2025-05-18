@@ -92,22 +92,23 @@ class ProblemIn {
 };
 
 // TODO(astrobarker) move into class
-bool check_bc(std::string &bc);
+bool check_bc( std::string& bc );
 template <typename T, typename G>
-void read_toml_array( T toml_array, G& out_array) {
+void read_toml_array( T toml_array, G& out_array ) {
   long unsigned int index = 0;
-  for (const auto& element : *toml_array) {
-      if (index < out_array.size()) {
-         if (auto elem = element.as_floating_point()) {
-            out_array[index] = static_cast<Real>(*elem);
-         } else {
-            std::cerr << "Type mismatch at index " << index << std::endl;
-            THROW_ATHELAS_ERROR(" ! Error reading dirichlet boundary conditions.");
-         }
-         index++;
+  for ( const auto& element : *toml_array ) {
+    if ( index < out_array.size( ) ) {
+      if ( auto elem = element.as_floating_point( ) ) {
+        out_array[index] = static_cast<Real>( *elem );
       } else {
-          std::cerr << "TOML array is larger than C++ array." << std::endl;
-          THROW_ATHELAS_ERROR(" ! Error reading dirichlet boundary conditions.");
+        std::cerr << "Type mismatch at index " << index << std::endl;
+        THROW_ATHELAS_ERROR(
+            " ! Error reading dirichlet boundary conditions." );
       }
+      index++;
+    } else {
+      std::cerr << "TOML array is larger than C++ array." << std::endl;
+      THROW_ATHELAS_ERROR( " ! Error reading dirichlet boundary conditions." );
+    }
   }
 }

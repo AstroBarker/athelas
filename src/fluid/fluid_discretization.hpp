@@ -45,6 +45,6 @@ void compute_increment_fluid_explicit(
     const ModalBasis* Basis, const EOS* eos, View3D<Real> dU,
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
     View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
-    const Options* opts, BoundaryConditions *bcs );
+    const Options* opts, BoundaryConditions* bcs );
 
 } // namespace fluid

@@ -70,9 +70,10 @@ auto flux_rad( Real E, Real F, Real P, Real V, int iCR ) -> Real {
  * F : radiation momentum density
  * Pr : radiation momentum closure
  **/
-auto radiation_four_force( const Real D, const Real V, const Real T,
-                           const Real kappa_r, const Real kappa_p, const Real E,
-                           const Real F, const Real Pr )
+[[nodiscard]] auto radiation_four_force( const Real D, const Real V,
+                                         const Real T, const Real kappa_r,
+                                         const Real kappa_p, const Real E,
+                                         const Real F, const Real Pr )
     -> std::tuple<Real, Real> {
   assert(
       D >= 0.0 &&
@@ -90,13 +91,14 @@ auto radiation_four_force( const Real D, const Real V, const Real T,
   const Real Fc    = F / c;
 
   // O(b^2) ala Fuksman
-  // const Real kappa = kappa_r;
-  // const Real G0 = D * kappa * ( term1 - b * Fc - b * b * E - b * b * Pr );
-  // const Real G  = D * kappa * ( b * ( term1 - 2.0 * b * Fc ) + ( Fc - b * E -
-  // b * Pr ) );
+  /*
+  const Real kappa = kappa_r;
+  const Real G0 = D * kappa * ( term1 - b * Fc - b * b * E - b * b * Pr );
+  const Real G  = D * kappa * ( b * ( term1 - 2.0 * b * Fc ) + ( Fc - b * E -
+  b * Pr ) );
+  */
 
   // Krumholz et al. 2007 O(b^2)
-  /*
   const Real G0 =
       D *
       ( kappa_p * term1 + ( kappa_r - 2.0 * kappa_p ) * b * Fc +
@@ -106,12 +108,13 @@ auto radiation_four_force( const Real D, const Real V, const Real T,
   const Real G = D * ( kappa_r * Fc + kappa_p * term1 * b -
                        kappa_r * b * ( E + Pr ) + 0.5 * kappa_r * Fc * b * b +
                        2.0 * ( kappa_r - kappa_p ) * b * b * Fc );
-  */
 
   // ala Skinner & Ostriker, simpler.
+  /*
   const Real kappa = kappa_r;
   const Real G0 = D * kappa * ( term1 - b * Fc );
   const Real G  = D * kappa * ( Fc - b * E + b * Pr );
+  */
   return { G0, G };
 }
 
@@ -119,9 +122,10 @@ auto radiation_four_force( const Real D, const Real V, const Real T,
  * source terms for radiation
  * TODO: total opacity X
  **/
-auto source_rad( const Real D, const Real V, const Real T, const Real kappa_r,
-                 const Real kappa_p, const Real E, const Real F, const Real Pr,
-                 const int iCR ) -> Real {
+[[nodiscard]] auto source_rad( const Real D, const Real V, const Real T,
+                               const Real kappa_r, const Real kappa_p,
+                               const Real E, const Real F, const Real Pr,
+                               const int iCR ) -> Real {
   assert( ( iCR == 0 || iCR == 1 ) && "Radiation :: source_rad :: bad iCR." );
   assert( D >= 0.0 &&
           "Radiation :: source_rad :: Non positive definite density." );
@@ -142,12 +146,14 @@ auto compute_closure( const Real E, const Real F ) -> Real {
   assert( E > 0.0 && "Radiation :: compute_closure :: Non positive definite "
                      "radiation energy density." );
   constexpr static Real one_third = 1.0 / 3.0;
-  const Real f   = utilities::make_bounded(flux_factor( E, F ), 0.0, 1.0);
+  const Real f   = utilities::make_bounded( flux_factor( E, F ), 0.0, 1.0 );
   const Real chi = ( 3.0 + 4.0 * f * f ) /
                    ( 5.0 + 2.0 * std::sqrt( 4.0 - ( 3.0 * f * f ) ) );
-  const Real T = utilities::make_bounded(( ( 1.0 - chi ) / 2.0 ) +
-                 ( ( 3.0 * chi - 1.0 ) * 1.0 / // utilities::SGN(F)
-                   2.0 ), one_third, 1.0); // TODO(astrobarker): Is this right?
+  const Real T = utilities::make_bounded(
+      ( ( 1.0 - chi ) / 2.0 ) +
+          ( ( 3.0 * chi - 1.0 ) * 1.0 / // utilities::SGN(F)
+            2.0 ),
+      one_third, 1.0 ); // TODO(astrobarker): Is this right?
   return E * T;
 }
 
@@ -178,31 +184,31 @@ auto lambda_hll( const Real f, const int sign ) -> Real {
  * see 2013ApJS..206...21S (Skinner & Ostriker 2013) Eq 39
  * and references & discussion therein
  *
- * Note: pass in Eulerian varaibles ( _ / cm^3 )
+ * Note: pass in Eulerian variables ( _ / cm^3 )
  **/
 auto numerical_flux_hll_rad( const Real E_L, const Real E_R, const Real F_L,
-                             const Real F_R, const Real P_L, const Real P_R, const Real vstar )
-    -> std::tuple<Real, Real> {
+                             const Real F_R, const Real P_L, const Real P_R,
+                             const Real vstar ) -> std::tuple<Real, Real> {
   // flux factors
   const Real f_L = flux_factor( E_L, F_L );
   const Real f_R = flux_factor( E_R, F_R );
 
   // TODO(astrobarker) - vstar?
   constexpr static Real c2 = constants::c_cgs * constants::c_cgs;
-  const Real lambda1_L = lambda_hll(f_L, -1.0) -vstar;
-  const Real lambda1_R = lambda_hll(f_R, -1.0) - vstar;
-  const Real lambda3_L = lambda_hll(f_L, 1.0) - vstar;
-  const Real lambda3_R = lambda_hll(f_R, 1.0) - vstar;
-  const Real lambda_min_L = std::min(lambda1_L, lambda3_L);
-  const Real lambda_min_R = std::min(lambda1_R, lambda3_R);
-  const Real lambda_max_L = std::max(lambda1_L, lambda3_L);
-  const Real lambda_max_R = std::max(lambda1_R, lambda3_R);
-  
-  const Real s_r = std::max(lambda_max_L, lambda_max_R);
-  const Real s_l = std::min(lambda_min_L, lambda_min_R);
+  const Real lambda1_L     = lambda_hll( f_L, -1.0 ) - vstar;
+  const Real lambda1_R     = lambda_hll( f_R, -1.0 ) - vstar;
+  const Real lambda3_L     = lambda_hll( f_L, 1.0 ) - vstar;
+  const Real lambda3_R     = lambda_hll( f_R, 1.0 ) - vstar;
+  const Real lambda_min_L  = std::min( lambda1_L, lambda3_L );
+  const Real lambda_min_R  = std::min( lambda1_R, lambda3_R );
+  const Real lambda_max_L  = std::max( lambda1_L, lambda3_L );
+  const Real lambda_max_R  = std::max( lambda1_R, lambda3_R );
 
-  const Real s_r_p = std::max(s_r, 0.0);
-  const Real s_l_m = std::min(s_l, 0.0);
+  const Real s_r = std::max( lambda_max_L, lambda_max_R );
+  const Real s_l = std::min( lambda_min_L, lambda_min_R );
+
+  const Real s_r_p = std::max( s_r, 0.0 );
+  const Real s_l_m = std::min( s_l, 0.0 );
 
   /*
   // eigenvalues
@@ -212,7 +218,7 @@ auto numerical_flux_hll_rad( const Real E_L, const Real E_R, const Real F_L,
       std::min( lambda_hll( f_L, -1.0 ), lambda_hll( f_R, -1.0 ) ), 0.0 );
   */
   const Real Flux_E = hll( E_L, E_R, F_L, F_R, s_l_m, s_r_p );
-  const Real Flux_F = hll( F_L, F_R, c2*P_L, c2*P_R, s_l_m, s_r_p );
+  const Real Flux_F = hll( F_L, F_R, c2 * P_L, c2 * P_R, s_l_m, s_r_p );
   return { Flux_E, Flux_F };
 }
 
@@ -244,7 +250,7 @@ auto compute_timestep_rad( const GridStructure* grid, const Real CFL ) -> Real {
   dt = std::max( CFL * dt, MIN_DT );
   dt = std::min( dt, MAX_DT );
 
-  assert( !std::isnan( dt ) && "NaN encounted in compute_timestep_rad.\n" );
+  assert( !std::isnan( dt ) && "NaN encountered in compute_timestep_rad.\n" );
 
   return dt;
 }

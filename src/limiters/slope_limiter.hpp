@@ -136,7 +136,7 @@ KOKKOS_INLINE_FUNCTION void apply_slope_limiter( SlopeLimiter* limiter,
                                                  View3D<Real> U,
                                                  const GridStructure* grid,
                                                  const ModalBasis* basis,
-                                                 const EOS* eos) {
+                                                 const EOS* eos ) {
   std::visit(
       [&U, &grid, &basis, &eos]( auto& limiter ) {
         limiter.apply_slope_limiter( U, grid, basis, eos );

@@ -28,11 +28,11 @@
 #include "state.hpp"
 #include "tableau.hpp"
 
+using bc::BoundaryConditions;
 using fluid::compute_increment_fluid_explicit;
 using fluid::compute_increment_fluid_source;
 using radiation::compute_increment_rad_explicit;
 using radiation::compute_increment_rad_source;
-using bc::BoundaryConditions;
 
 class TimeStepper {
 
@@ -47,8 +47,8 @@ class TimeStepper {
    **/
   void update_fluid( const Real dt, State* state, GridStructure& grid,
                      const ModalBasis* basis, const EOS* eos,
-                     SlopeLimiter* S_Limiter, const Options* opts, 
-                     BoundaryConditions *bcs ) {
+                     SlopeLimiter* S_Limiter, const Options* opts,
+                     BoundaryConditions* bcs ) {
 
     // hydro explicit update
     update_fluid_explicit( dt, state, grid, basis, eos, S_Limiter, opts, bcs );
@@ -59,8 +59,8 @@ class TimeStepper {
    **/
   void update_fluid_explicit( const Real dt, State* state, GridStructure& grid,
                               const ModalBasis* basis, const EOS* eos,
-                              SlopeLimiter* S_Limiter, const Options* opts, 
-                              BoundaryConditions *bcs ) {
+                              SlopeLimiter* S_Limiter, const Options* opts,
+                              BoundaryConditions* bcs ) {
 
     const auto& order = basis->get_order( );
     const auto& ihi   = grid.get_ihi( );
@@ -92,9 +92,9 @@ class TimeStepper {
         auto dUs_j =
             Kokkos::subview( dU_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
         auto flux_u_j = Kokkos::subview( flux_u_, j, Kokkos::ALL );
-        compute_increment_fluid_explicit( Us_j, uCR, grid_s_[j], basis, eos,
-                                          dUs_j, flux_q_, dFlux_num_, uCF_F_L_,
-                                          uCF_F_R_, flux_u_j, flux_p_, opts, bcs );
+        compute_increment_fluid_explicit(
+            Us_j, uCR, grid_s_[j], basis, eos, dUs_j, flux_q_, dFlux_num_,
+            uCF_F_L_, uCF_F_R_, flux_u_j, flux_p_, opts, bcs );
 
         // inner sum
         Kokkos::parallel_for(
@@ -139,9 +139,9 @@ class TimeStepper {
           Kokkos::subview( dU_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto flux_u_j = Kokkos::subview( flux_u_, iS, Kokkos::ALL );
 
-      compute_increment_fluid_explicit( Us_j, uCR, grid_s_[iS], basis, eos,
-                                        dUs_j, flux_q_, dFlux_num_, uCF_F_L_,
-                                        uCF_F_R_, flux_u_j, flux_p_, opts, bcs );
+      compute_increment_fluid_explicit(
+          Us_j, uCR, grid_s_[iS], basis, eos, dUs_j, flux_q_, dFlux_num_,
+          uCF_F_L_, uCF_F_R_, flux_u_j, flux_p_, opts, bcs );
       Kokkos::parallel_for(
           "Timestepper :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, 0, 0 },
@@ -162,7 +162,7 @@ class TimeStepper {
     }
 
     grid = grid_s_[nStages_ - 1];
-    //apply_slope_limiter( S_Limiter, U, &grid, basis, eos );
+    // apply_slope_limiter( S_Limiter, U, &grid, basis, eos );
     bel::apply_bound_enforcing_limiter( U, basis, eos );
   }
 
@@ -172,9 +172,10 @@ class TimeStepper {
   void update_rad_hydro( const Real dt, State* state, GridStructure& grid,
                          const ModalBasis* basis, const EOS* eos,
                          const Opacity* opac, SlopeLimiter* S_Limiter,
-                         const Options* opts, BoundaryConditions *bcs ) {
+                         const Options* opts, BoundaryConditions* bcs ) {
 
-    update_rad_hydro_imex( dt, state, grid, basis, eos, opac, S_Limiter, opts, bcs );
+    update_rad_hydro_imex( dt, state, grid, basis, eos, opac, S_Limiter, opts,
+                           bcs );
   }
 
   /**
@@ -183,7 +184,7 @@ class TimeStepper {
   void update_rad_hydro_imex( const Real dt, State* state, GridStructure& grid,
                               const ModalBasis* basis, const EOS* eos,
                               const Opacity* opac, SlopeLimiter* S_Limiter,
-                              const Options* opts, BoundaryConditions *bcs ) {
+                              const Options* opts, BoundaryConditions* bcs ) {
 
     const auto& order = basis->get_order( );
     const auto& ihi   = grid.get_ihi( );
@@ -223,9 +224,9 @@ class TimeStepper {
                                          Kokkos::ALL );
         auto flux_u_j = Kokkos::subview( flux_u_, j, Kokkos::ALL );
 
-        compute_increment_rad_explicit( Us_j_r, Us_j_h, grid_s_[j], basis, eos,
-                                        dUs_j_r, flux_q_, dFlux_num_, uCF_F_L_,
-                                        uCF_F_R_, flux_u_j, flux_p_, opts, bcs );
+        compute_increment_rad_explicit(
+            Us_j_r, Us_j_h, grid_s_[j], basis, eos, dUs_j_r, flux_q_,
+            dFlux_num_, uCF_F_L_, uCF_F_R_, flux_u_j, flux_p_, opts, bcs );
         compute_increment_fluid_explicit( // hydro
             Us_j_h, Us_j_r, grid_s_[j], basis, eos, dUs_j_h, flux_q_,
             dFlux_num_, uCF_F_L_, uCF_F_R_, flux_u_j, flux_p_, opts, bcs );
@@ -365,9 +366,9 @@ class TimeStepper {
       compute_increment_rad_explicit( Us_i_r, Us_i_h, grid_s_[iS], basis, eos,
                                       dUs_i_r, flux_q_, dFlux_num_, uCF_F_L_,
                                       uCF_F_R_, flux_u_i, flux_p_, opts, bcs );
-      compute_increment_fluid_explicit( Us_i_h, Us_i_r, grid_s_[iS], basis, eos,
-                                        dUs_i_h, flux_q_, dFlux_num_, uCF_F_L_,
-                                        uCF_F_R_, flux_u_i, flux_p_, opts, bcs );
+      compute_increment_fluid_explicit(
+          Us_i_h, Us_i_r, grid_s_[iS], basis, eos, dUs_i_h, flux_q_, dFlux_num_,
+          uCF_F_L_, uCF_F_R_, flux_u_i, flux_p_, opts, bcs );
       Kokkos::parallel_for(
           "Timestepper :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },

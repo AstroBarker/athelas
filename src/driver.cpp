@@ -7,12 +7,11 @@
  *
  */
 
-
+#include "driver.hpp"
 #include "abstractions.hpp"
 #include "bc/boundary_conditions.hpp"
 #include "bc/boundary_conditions_base.hpp"
-#include "driver.hpp"
-
+#include "build_info.hpp"
 #include "eos.hpp"
 #include "error.hpp"
 #include "fluid_discretization.hpp"
@@ -82,9 +81,10 @@ void Driver::initialize( const ProblemIn* pin ) { // NOLINT
     // --- Initialize fields ---
     initialize_fields( &state_, &grid_, &eos_, pin );
 
-    fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin->pOrder, bcs_.get() );
+    fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin->pOrder, bcs_.get( ) );
     if ( opts_.do_rad ) {
-      bc::fill_ghost_zones<2>( state_.get_u_cr( ), &grid_, pin->pOrder, bcs_.get() );
+      bc::fill_ghost_zones<2>( state_.get_u_cr( ), &grid_, pin->pOrder,
+                               bcs_.get( ) );
     }
   }
 
@@ -94,17 +94,20 @@ void Driver::initialize( const ProblemIn* pin ) { // NOLINT
                                          pin->nElements, pin->nGhost );
 
   // --- slope limiter to initial condition ---
-  apply_slope_limiter( &sl_hydro_, state_.get_u_cf( ), &grid_, basis_.get( ), &eos_);
+  apply_slope_limiter( &sl_hydro_, state_.get_u_cf( ), &grid_, basis_.get( ),
+                       &eos_ );
 }
 
 using limiter_utilities::initialize_slope_limiter;
 // Driver
 Driver::Driver( const ProblemIn* pin ) // NOLINT
     : pin_( *pin ), nX_( pin->nElements ), problem_name_( pin->problem_name ),
-      restart_( pin->Restart ), 
-      bcs_(std::make_unique<BoundaryConditions>(bc::make_boundary_conditions(pin->do_rad, pin->fluid_bc_i, pin->fluid_bc_o, 
-            pin->fluid_i_dirichlet_values, pin->fluid_o_dirichlet_values, 
-            pin->rad_bc_i, pin->rad_bc_o, pin->rad_i_dirichlet_values, pin->rad_o_dirichlet_values))),
+      restart_( pin->Restart ),
+      bcs_( std::make_unique<BoundaryConditions>( bc::make_boundary_conditions(
+          pin->do_rad, pin->fluid_bc_i, pin->fluid_bc_o,
+          pin->fluid_i_dirichlet_values, pin->fluid_o_dirichlet_values,
+          pin->rad_bc_i, pin->rad_bc_o, pin->rad_i_dirichlet_values,
+          pin->rad_o_dirichlet_values ) ) ),
       time_( 0.0 ), dt_( 1.0e-16 ), t_end_( pin->t_end ),
       cfl_( compute_cfl( pin->CFL, pin->pOrder, pin->nStages, pin->tOrder ) ),
       i_print_( pin->ncycle_out ),
@@ -132,7 +135,7 @@ auto Driver::execute( ) -> int {
 
   // --- Timer ---
   Kokkos::Timer timer_zone_cycles;
-  Real zc_ws      = 0.0; // zone cycles / wall second
+  Real zc_ws = 0.0; // zone cycles / wall second
 
   // initial timestep TODO(astrobarker) make input param
   Real const dt_init = 1.0e-16;
@@ -155,11 +158,11 @@ auto Driver::execute( ) -> int {
 
     if ( !opts_.do_rad ) {
       ssprk_.update_fluid( dt_, &state_, grid_, basis_.get( ), &eos_,
-                           &sl_hydro_, &opts_, bcs_.get() );
+                           &sl_hydro_, &opts_, bcs_.get( ) );
     } else {
       try {
         ssprk_.update_rad_hydro( dt_, &state_, grid_, basis_.get( ), &eos_,
-                                 &opac_, &sl_hydro_, &opts_, bcs_.get() );
+                                 &opac_, &sl_hydro_, &opts_, bcs_.get( ) );
       } catch ( const AthelasError& e ) {
         std::cerr << e.what( ) << std::endl;
         return AthelasExitCodes::FAILURE;
@@ -192,7 +195,8 @@ auto Driver::execute( ) -> int {
 
     // timer
     if ( iStep % i_print_ == 0 ) {
-      zc_ws = static_cast<Real>( i_print_ ) * nX_ / timer_zone_cycles.seconds();
+      zc_ws =
+          static_cast<Real>( i_print_ ) * nX_ / timer_zone_cycles.seconds( );
       std::println( " ~ {} {:.5e} {:.5e} {:.5e} ", iStep, time_, dt_, zc_ws );
       timer_zone_cycles.reset( );
     }
@@ -201,7 +205,8 @@ auto Driver::execute( ) -> int {
   }
 
   // --- Apply bc and write final output ---
-  bc::fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin_.pOrder, bcs_.get() );
+  bc::fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin_.pOrder,
+                           bcs_.get( ) );
   write_state( &state_, grid_, &sl_hydro_, problem_name_, time_, pin_.pOrder,
                -1, opts_.do_rad );
 

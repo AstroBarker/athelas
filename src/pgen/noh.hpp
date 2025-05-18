@@ -37,8 +37,7 @@ void noh_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   const Real V0 = pin->in_table["problem"]["params"]["v0"].value_or( -1.0 );
   const Real D0 = pin->in_table["problem"]["params"]["rho0"].value_or( 1.0 );
-  const Real P0 =
-      pin->in_table["problem"]["params"]["p0"].value_or( 0.000001 );
+  const Real P0 = pin->in_table["problem"]["params"]["p0"].value_or( 0.000001 );
 
   const Real GAMMA = 5.0 / 3.0;
 
@@ -49,15 +48,14 @@ void noh_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
         uCF( iCF_V, iX, k )   = 0.0;
         uCF( iCF_E, iX, k )   = 0.0;
 
-          if ( k == 0 ) {
-            uCF( iCF_Tau, iX, 0 ) = 1.0 / D0;
-            uCF( iCF_V, iX, 0 )   = V0;
-            uCF( iCF_E, iX, 0 ) =
-                ( P0 / ( GAMMA - 1.0 ) ) * uCF( iCF_Tau, iX, 0 ) +
-                0.5 * V0 * V0;
-          }
+        if ( k == 0 ) {
+          uCF( iCF_Tau, iX, 0 ) = 1.0 / D0;
+          uCF( iCF_V, iX, 0 )   = V0;
+          uCF( iCF_E, iX, 0 ) =
+              ( P0 / ( GAMMA - 1.0 ) ) * uCF( iCF_Tau, iX, 0 ) + 0.5 * V0 * V0;
+        }
 
-          uPF( iPF_D, iX, iNodeX ) = D0;
+        uPF( iPF_D, iX, iNodeX ) = D0;
       }
     }
   }

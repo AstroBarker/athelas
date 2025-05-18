@@ -35,7 +35,7 @@ void limit_density( View3D<Real> U, const ModalBasis* basis );
 void limit_internal_energy( View3D<Real> U, const ModalBasis* basis,
                             const EOS* eos );
 void limit_rad_energy( View3D<Real> U, const ModalBasis* basis,
-                            const EOS* eos );
+                       const EOS* eos );
 void limit_rad_momentum( View3D<Real> U, const ModalBasis* basis,
                          const EOS* eos );
 void apply_bound_enforcing_limiter( View3D<Real> U, const ModalBasis* basis,
@@ -48,9 +48,10 @@ auto compute_theta_state( View3D<Real> U, const ModalBasis* basis,
 auto target_func( Real theta, View3D<Real> U, const ModalBasis* basis,
                   const EOS* eos, int iX, int iN ) -> Real;
 auto target_func_rad_flux( Real theta, View3D<Real> U, const ModalBasis* basis,
-                      const EOS* eos, int iX, int iN ) -> Real;
-auto target_func_rad_energy( Real theta, View3D<Real> U, const ModalBasis* basis,
-                      const EOS* eos, int iX, int iN ) -> Real;
+                           const EOS* eos, int iX, int iN ) -> Real;
+auto target_func_rad_energy( Real theta, View3D<Real> U,
+                             const ModalBasis* basis, const EOS* eos, int iX,
+                             int iN ) -> Real;
 
 template <typename F>
 auto bisection( const View3D<Real> U, F target, const ModalBasis* basis,
