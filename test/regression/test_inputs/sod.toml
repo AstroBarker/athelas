@@ -18,6 +18,11 @@ pL = 1.0
 pR = 0.1
 x_d = 0.5
 
+[bc]
+[bc.fluid]
+bc_i = "outflow"
+bc_o = "outflow"
+
 [output]
 nlim = -1
 ncycle_out = 100000

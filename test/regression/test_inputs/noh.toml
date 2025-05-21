@@ -14,6 +14,11 @@ v0 = -1.0
 rho0 = 1.0
 p0 = 0.000001
 
+[bc]
+[bc.fluid]
+bc_i = "outflow"
+bc_o = "outflow"
+
 [output]
 nlim = -1
 ncycle_out = 100
