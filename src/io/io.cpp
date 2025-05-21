@@ -176,12 +176,15 @@ void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
       file.createDataSet( "/metadata/build/arch", stringtype, md_space );
   H5::DataSet const dataset_os =
       file.createDataSet( "/metadata/build/os", stringtype, md_space );
+  H5::DataSet const dataset_opt =
+      file.createDataSet( "/metadata/build/optimization", stringtype, md_space );
 
   dataset_ghash.write( build_info::GIT_HASH, stringtype );
   dataset_compiler.write( build_info::COMPILER, stringtype );
   dataset_timestamp.write( build_info::BUILD_TIMESTAMP, stringtype );
   dataset_arch.write( build_info::ARCH, stringtype );
   dataset_os.write( build_info::OS, stringtype );
+  dataset_opt.write( build_info::OPTIMIZATION, stringtype );
 
   // --- Create and write datasets ---
   H5::DataSet const dataset_nx =

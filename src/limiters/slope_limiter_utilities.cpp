@@ -187,10 +187,14 @@ void modify_polynomial( const View3D<Real> U, View2D<Real> modified_polynomial,
   const Real fac    = 1.0;
   const int order   = U.extent( 2 );
 
+  const Real modified_p_slope_mag = fac * std::min({U(iCQ, iX - 1, 1), U(iCQ, iX, 1), U(iCQ, iX + 1, 1)});
+  const int sign_l = utilities::SGN(U(iCQ, iX - 1, 1));
+  const int sign_r = utilities::SGN(U(iCQ, iX + 1, 1));
+
   modified_polynomial( 0, 0 ) = Ubar_i;
   modified_polynomial( 2, 0 ) = Ubar_i;
-  modified_polynomial( 0, 1 ) = fac * U( iCQ, iX - 1, 1 );
-  modified_polynomial( 2, 1 ) = fac * U( iCQ, iX + 1, 1 );
+  modified_polynomial( 0, 1 ) = sign_l * modified_p_slope_mag;
+  modified_polynomial( 2, 1 ) = sign_r * modified_p_slope_mag;
 
   for ( int k = 2; k < order; k++ ) {
     modified_polynomial( 0, k ) = 0.0;

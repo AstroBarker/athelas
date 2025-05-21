@@ -142,7 +142,7 @@ auto flux_rad( Real E, Real F, Real P, Real V, int iCR ) -> Real {
 
 /* pressure tensor closure */
 // TODO(astrobarker): check Closure
-auto compute_closure( const Real E, const Real F ) -> Real {
+[[nodiscard]] auto compute_closure( const Real E, const Real F ) -> Real {
   assert( E > 0.0 && "Radiation :: compute_closure :: Non positive definite "
                      "radiation energy density." );
   constexpr static Real one_third = 1.0 / 3.0;
