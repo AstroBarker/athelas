@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 
-import glob
-import sys
+import os
 
-from astropy import constants as consts
-from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import numpy as np
 
 from athelas import Athelas
-from exactpack.solvers.riemann.ep_riemann import IGEOS_Solver, streakplot
+from exactpack.solvers.riemann.ep_riemann import IGEOS_Solver#, streakplot
 
 plt.style.use("style.mplstyle")
 
@@ -87,6 +84,7 @@ def plot_shocktube(chk):
 def main():
   chk = "final"
   plot_shocktube(chk)
+  return os.EX_OK
 
 
 if __name__ == "__main__":
