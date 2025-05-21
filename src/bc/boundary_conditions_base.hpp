@@ -6,7 +6,7 @@
  * @author Brandon L. Barker
  * @brief Boundary conditions base structures
  *
- * TODO(astrobarker): 
+ * TODO(astrobarker):
  *  - add bc guards in pgen: marshak only for rad, etc
  *  - Move anything possible to .cpp..
  */
@@ -46,8 +46,9 @@ struct BoundaryConditionsData {
   KOKKOS_INLINE_FUNCTION
   BoundaryConditionsData( BcType type_, const std::array<Real, N> vals )
       : type( type_ ) {
-    assert( (type_ == BcType::Dirichlet || type_ == BcType::Marshak) &&
-            "This constructor is for Dirichlet and Marshak boundary conditions!\n" );
+    assert( ( type_ == BcType::Dirichlet || type_ == BcType::Marshak ) &&
+            "This constructor is for Dirichlet and Marshak boundary "
+            "conditions!\n" );
     for ( int i = 0; i < N; ++i ) {
       dirichlet_values[i] = vals[i];
     }
@@ -134,23 +135,22 @@ apply_bc( const BoundaryConditionsData<N>& bc, View3D<Real> U, const int q,
     }
     break;
 
-  // FIX: check if slope++ are correct. 
-  case BcType::Marshak:
-    {
+  // FIX: check if slope++ are correct.
+  case BcType::Marshak: {
     // Marshak uses dirichlet_values
     const Real Einc = bc.dirichlet_values[0];
     for ( int k = 0; k < num_modes; k++ ) {
-    if (q == 0) {
-      U( q, ghost_cell, k ) = Einc;
-    } else if (q == 1) {
-      constexpr static Real c = constants::c_cgs;
-      const Real E0 = U(0, interior_cell, k);
-      const Real F0 = U(1, interior_cell, k);
-      U( q, ghost_cell, k ) = 0.5 * c * Einc - 0.5 * (c * E0 + 2.0 * F0);
+      if ( q == 0 ) {
+        U( q, ghost_cell, k ) = Einc;
+      } else if ( q == 1 ) {
+        constexpr static Real c = constants::c_cgs;
+        const Real E0           = U( 0, interior_cell, k );
+        const Real F0           = U( 1, interior_cell, k );
+        U( q, ghost_cell, k )   = 0.5 * c * Einc - 0.5 * ( c * E0 + 2.0 * F0 );
+      }
     }
-    }
-    } // case Marshak
-    break;
+  } // case Marshak
+  break;
 
   // formality
   case BcType::Null:

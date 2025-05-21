@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+import os
+
 from basis import ModalBasis
 
 import h5py
-import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -74,7 +75,7 @@ class Athelas:
           self.uCR[1, :, i] = f["/conserved/rad_momentum"][
             (i * n) : ((i + 1) * n)
           ]
-        except Exception as e:
+        except Exception:
           self.uCR = None
 
       self.slope_limiter = f["diagnostic/limiter"][:]

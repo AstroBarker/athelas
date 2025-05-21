@@ -181,8 +181,10 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   // handle dirichlet..
   rad_i_dirichlet_values = { 0.0, 0.0 };
   rad_o_dirichlet_values = { 0.0, 0.0 };
-  const bool do_dirichlet_rad_i = (rad_bc_i == "dirichlet" || rad_bc_i == "marshak");
-  const bool do_dirichlet_rad_o = (rad_bc_o == "dirichlet" || rad_bc_o == "marshak");
+  const bool do_dirichlet_rad_i =
+      ( rad_bc_i == "dirichlet" || rad_bc_i == "marshak" );
+  const bool do_dirichlet_rad_o =
+      ( rad_bc_o == "dirichlet" || rad_bc_o == "marshak" );
   array = in_table["bc"]["rad"]["dirichlet_values_i"].as_array( );
   if ( array && do_dirichlet_rad_i ) {
     read_toml_array( array, rad_i_dirichlet_values );
@@ -307,7 +309,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
 
 bool check_bc( std::string& bc ) {
   if ( bc != "outflow" && bc != "reflecting" && bc != "dirichlet" &&
-       bc != "periodic" && bc != "marshak") {
+       bc != "periodic" && bc != "marshak" ) {
     THROW_ATHELAS_ERROR(
         " ! Initialization Error: Bad boundary condition choice. Choose: \n"
         " - outflow \n"
