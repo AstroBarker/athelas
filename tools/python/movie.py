@@ -1,8 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
-import multiprocessing
 import glob
 import re
-import os
 
 from shocktube import plot_shocktube
 
