@@ -44,8 +44,8 @@ KOKKOS_FORCEINLINE_FUNCTION constexpr auto SMALL( ) {
 }
 
 KOKKOS_FORCEINLINE_FUNCTION
-[[nodiscard]] Real make_bounded( const Real val, const Real vmin,
-                                 const Real vmax ) {
+auto make_bounded( const Real val, const Real vmin,
+                                 const Real vmax ) -> Real {
   return std::min( std::max( val, vmin + EPS( ) ), vmax * ( 1.0 - EPS( ) ) );
 }
 
