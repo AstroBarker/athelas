@@ -69,16 +69,18 @@ void WENO::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
           auto w_c_T_i = Kokkos::subview( w_c_T_, Kokkos::ALL, iX );
           auto mult_i  = Kokkos::subview( mult_, Kokkos::ALL, iX );
           compute_characteristic_decomposition( mult_i, R_i, R_inv_i, eos );
-          // store w_.. = invR @ U_..
-          for ( int iC = 0; iC < nvars; iC++ ) {
-            U_c_T_i( iC ) = U( iC, iX, 0 );
-            w_c_T_i( iC ) = 0.0;
-          }
-          MAT_MUL( 1.0, R_inv_i, U_c_T_i, 1.0, w_c_T_i );
+          for ( int k = 0; k < order_; k++ ) {
+            // store w_.. = invR @ U_..
+            for ( int iC = 0; iC < nvars; iC++ ) {
+              U_c_T_i( iC ) = U( iC, iX, k );
+              w_c_T_i( iC ) = 0.0;
+            }
+            MAT_MUL( 1.0, R_inv_i, U_c_T_i, 1.0, w_c_T_i );
 
-          for ( int iC = 0; iC < nvars; iC++ ) {
-            U( iC, iX, 0 ) = w_c_T_i( iC );
-          } // end loop vars
+            for ( int iC = 0; iC < nvars; iC++ ) {
+              U( iC, iX, k ) = w_c_T_i( iC );
+            } // end loop vars
+          } // end loop k
         } ); // par iX
   } // end map to characteristics
 
@@ -147,16 +149,18 @@ void WENO::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
           auto R_i     = Kokkos::subview( R_, Kokkos::ALL, Kokkos::ALL, iX );
           auto U_c_T_i = Kokkos::subview( U_c_T_, Kokkos::ALL, iX );
           auto w_c_T_i = Kokkos::subview( w_c_T_, Kokkos::ALL, iX );
-          // store w_.. = invR @ U_..
-          for ( int iC = 0; iC < nvars; iC++ ) {
-            U_c_T_i( iC ) = U( iC, iX, 0 );
-            w_c_T_i( iC ) = 0.0;
-          }
-          MAT_MUL( 1.0, R_i, U_c_T_i, 1.0, w_c_T_i );
+          for ( int k = 0; k < order_; k++ ) {
+            // store w_.. = invR @ U_..
+            for ( int iC = 0; iC < nvars; iC++ ) {
+              U_c_T_i( iC ) = U( iC, iX, k );
+              w_c_T_i( iC ) = 0.0;
+            }
+            MAT_MUL( 1.0, R_i, U_c_T_i, 1.0, w_c_T_i );
 
-          for ( int iC = 0; iC < nvars; iC++ ) {
-            U( iC, iX, 0 ) = w_c_T_i( iC );
-          } // end loop vars
+            for ( int iC = 0; iC < nvars; iC++ ) {
+              U( iC, iX, k ) = w_c_T_i( iC );
+            } // end loop vars
+          } // end loop k
         } ); // par_for iX
   } // end map from characteristics
 } // end apply slope limiter
