@@ -90,7 +90,7 @@ void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
   View3D<Real> uPF = state->get_u_pf( );
 
   // Construct filename
-  std::string fn = "athelas_";
+  std::string fn = problem_name;
   auto i_str     = std::to_string( i_write );
   int n_pad      = 0;
   if ( i_write < 10 ) {
@@ -103,7 +103,6 @@ void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
     n_pad = 1;
   }
   std::string suffix = std::string( n_pad, '0' ).append( i_str );
-  fn.append( problem_name );
   fn.append( "_" );
   if ( i_write != -1 ) {
     fn.append( suffix );
@@ -150,6 +149,7 @@ void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
 
   // Create groups
   H5::Group const group_md   = file.createGroup( "/metadata" );
+  H5::Group const group_mdb  = file.createGroup( "/metadata/build" );
   H5::Group const group_grid = file.createGroup( "/grid" );
   H5::Group const group_CF   = file.createGroup( "/conserved" );
   H5::Group const group_DF   = file.createGroup( "/diagnostic" );
@@ -164,7 +164,29 @@ void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
   std::array<hsize_t, 1> dim_md = { 1 };
   H5::DataSpace md_space( 1, dim_md.data( ) );
 
-  // Create and write datasets
+  // --- build info ---
+  H5::StrType stringtype( H5::PredType::C_S1, H5T_VARIABLE );
+  H5::DataSet const dataset_ghash =
+      file.createDataSet( "/metadata/build/git_hash", stringtype, md_space );
+  H5::DataSet const dataset_compiler =
+      file.createDataSet( "/metadata/build/compiler", stringtype, md_space );
+  H5::DataSet const dataset_timestamp =
+      file.createDataSet( "/metadata/build/timestamp", stringtype, md_space );
+  H5::DataSet const dataset_arch =
+      file.createDataSet( "/metadata/build/arch", stringtype, md_space );
+  H5::DataSet const dataset_os =
+      file.createDataSet( "/metadata/build/os", stringtype, md_space );
+  H5::DataSet const dataset_opt = file.createDataSet(
+      "/metadata/build/optimization", stringtype, md_space );
+
+  dataset_ghash.write( build_info::GIT_HASH, stringtype );
+  dataset_compiler.write( build_info::COMPILER, stringtype );
+  dataset_timestamp.write( build_info::BUILD_TIMESTAMP, stringtype );
+  dataset_arch.write( build_info::ARCH, stringtype );
+  dataset_os.write( build_info::OS, stringtype );
+  dataset_opt.write( build_info::OPTIMIZATION, stringtype );
+
+  // --- Create and write datasets ---
   H5::DataSet const dataset_nx =
       file.createDataSet( "/metadata/nx", H5::PredType::NATIVE_INT, md_space );
   H5::DataSet const dataset_order = file.createDataSet(
@@ -213,8 +235,8 @@ void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
 void write_basis( ModalBasis* basis, unsigned int ilo, unsigned int ihi,
                   unsigned int nNodes, unsigned int order,
                   const std::string& problem_name ) {
-  std::string fn = "athelas_basis_";
-  fn.append( problem_name );
+  std::string fn = problem_name;
+  fn.append( "_basis" );
   fn.append( ".h5" );
 
   const char* fn2 = fn.c_str( );

@@ -1,5 +1,4 @@
-#ifndef BOUND_ENFORCING_LIMITER_HPP_
-#define BOUND_ENFORCING_LIMITER_HPP_
+#pragma once
 /**
  * @file bound_enforcing_limiter.hpp
  * --------------
@@ -35,6 +34,8 @@ namespace bel {
 void limit_density( View3D<Real> U, const ModalBasis* basis );
 void limit_internal_energy( View3D<Real> U, const ModalBasis* basis,
                             const EOS* eos );
+void limit_rad_energy( View3D<Real> U, const ModalBasis* basis,
+                       const EOS* eos );
 void limit_rad_momentum( View3D<Real> U, const ModalBasis* basis,
                          const EOS* eos );
 void apply_bound_enforcing_limiter( View3D<Real> U, const ModalBasis* basis,
@@ -46,8 +47,11 @@ auto compute_theta_state( View3D<Real> U, const ModalBasis* basis,
     -> Real;
 auto target_func( Real theta, View3D<Real> U, const ModalBasis* basis,
                   const EOS* eos, int iX, int iN ) -> Real;
-auto target_func_rad( Real theta, View3D<Real> U, const ModalBasis* basis,
-                      const EOS* eos, int iX, int iN ) -> Real;
+auto target_func_rad_flux( Real theta, View3D<Real> U, const ModalBasis* basis,
+                           const EOS* eos, int iX, int iN ) -> Real;
+auto target_func_rad_energy( Real theta, View3D<Real> U,
+                             const ModalBasis* basis, const EOS* eos, int iX,
+                             int iN ) -> Real;
 
 template <typename F>
 auto bisection( const View3D<Real> U, F target, const ModalBasis* basis,
@@ -106,4 +110,3 @@ auto backtrace( const View3D<Real> U, F target, const ModalBasis* basis,
 }
 
 } // namespace bel
-#endif // BOUND_ENFORCING_LIMITER_HPP_

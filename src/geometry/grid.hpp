@@ -1,5 +1,4 @@
-#ifndef GRID_HPP_
-#define GRID_HPP_
+#pragma once
 /**
  * @file grid.hpp
  * --------------
@@ -84,5 +83,3 @@ class GridStructure {
 
   View2D<Real> grid_{ };
 };
-
-#endif // GRID_HPP_

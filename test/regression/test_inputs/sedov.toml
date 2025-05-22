@@ -14,6 +14,11 @@ v0 = 0.0
 rho0 = 1.0
 E0 = 0.5
 
+[bc]
+[bc.fluid]
+bc_i = "reflecting"
+bc_o = "outflow"
+
 [output]
 nlim = -1
 ncycle_out = 100

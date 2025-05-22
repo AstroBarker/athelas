@@ -89,8 +89,8 @@ def main():
   te = ThermalEquilibrium(e_gas, kappa, T, e_rad, t_end)
   te.evolve()
 
-  files = sorted(glob.glob("athelas_R*.h5"))[1:]
-  basis_fn = "athelas_basis_RadEquilibrium.h5"
+  files = sorted(glob.glob("rad_eq*.h5"))[1:]
+  basis_fn = "rad_equilibrium_basis.h5"
   athelas_time = np.zeros(len(files))
   athelas_ener = np.zeros(len(files))
 

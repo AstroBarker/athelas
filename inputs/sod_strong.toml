@@ -1,0 +1,58 @@
+[problem]
+problem = "sod"
+t_end = 0.4
+geometry = "planar"
+restart = false
+do_rad = false
+xl = 0.0
+xr = 5.0
+cfl = 0.8
+
+[problem.params]
+vL = 0.0
+vR = 0.0
+rhoL = 10.0
+rhoR = 1.0
+pL = 100.0
+pR = 1.0
+x_d = 2.0
+
+[bc]
+[bc.fluid]
+bc_i = "outflow"
+bc_o = "outflow"
+
+[output]
+nlim = -1
+ncycle_out = 100
+dt_hdf5 = 1.0e-2
+dt_init_frac = 1.5
+
+[fluid]
+basis = "legendre"
+nnodes = 3
+porder = 3
+nx = 1024
+ng = 1
+
+[time]
+torder = 4
+nstages = 5
+
+[eos]
+type = "ideal"
+ideal_gamma = 1.4 # default: 1.4
+
+[limiters]
+do_limiter = true
+type = "minmod"
+m_tvb = 0.0
+b_tvd = 1.0
+tci_opt = true
+tci_val = 0.12
+characteristic = true
+gamma_i = 0.1
+#gamma_r = 0.005
+#gamma_l = 0.005
+#b_tvd = 2.0 #minmod
+#m_tvb = 1.0 #minmod

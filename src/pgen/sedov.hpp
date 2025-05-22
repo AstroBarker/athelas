@@ -1,5 +1,4 @@
-#ifndef SEDOV_HPP_
-#define SEDOV_HPP_
+#pragma once
 /**
  * @file sedov.hpp
  * --------------
@@ -45,7 +44,8 @@ void sedov_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
   // TODO(astrobarker): geometry aware volume for energy
   const Real volume = ( 4.0 * M_PI / 3.0 ) *
                       std::pow( grid->get_left_interface( origin + 1 ), 3.0 );
-  const Real P0 = ( 5.0 / 3.0 - 1.0 ) * E0 / volume;
+  const Real gamma = 5.0 / 3.0;
+  const Real P0    = ( gamma - 1.0 ) * E0 / volume;
 
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
@@ -58,13 +58,13 @@ void sedov_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
         } else {
           uCF( iCF_Tau, iX, k ) = 1.0 / D0;
           uCF( iCF_V, iX, k )   = V0;
-          if ( iX == origin - 0 || iX == origin ) {
+          if ( iX == origin - 1 || iX == origin ) {
             uCF( iCF_E, iX, k ) =
-                ( P0 / ( 5.0 / 3.0 - 1.0 ) ) * uCF( iCF_Tau, iX, k ) +
+                ( P0 / ( gamma - 1.0 ) ) * uCF( iCF_Tau, iX, k ) +
                 0.5 * V0 * V0;
           } else {
             uCF( iCF_E, iX, k ) =
-                ( 1.0e-6 / ( 5.0 / 3.0 - 1.0 ) ) * uCF( iCF_Tau, iX, k ) +
+                ( 1.0e-6 / ( gamma - 1.0 ) ) * uCF( iCF_Tau, iX, k ) +
                 0.5 * V0 * V0;
           }
         }
@@ -80,4 +80,3 @@ void sedov_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
     }
   }
 }
-#endif // SEDOV_HPP_

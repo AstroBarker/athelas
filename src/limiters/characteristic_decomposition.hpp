@@ -1,5 +1,4 @@
-#ifndef CHARACTERISTIC_DECOMPOSITION_HPP_
-#define CHARACTERISTIC_DECOMPOSITION_HPP_
+#pragma once
 /**
  * @file characteristic_decomposition.hpp
  * --------------
@@ -9,7 +8,7 @@
  *
  * @details Implements a characteristic decomposition of the hydro variables.
  *          Currently this is only implemented ofr an ideal EOS.
- *          TODO: Template on EOS? Write down for radiation.
+ *          TODO(astrobarker): Write down for radiation.
  */
 
 #include <iostream>
@@ -20,8 +19,8 @@
 #include "abstractions.hpp"
 #include "error.hpp"
 
-template <class T1, class T2>
-void compute_characteristic_decomposition( T1 U, T2 R, T2 R_inv ) {
+template <class T1, class T2, class EOS>
+void compute_characteristic_decomposition( T1 U, T2 R, T2 R_inv, EOS eos ) {
 
   const Real tau  = U( 0 );
   const Real V    = U( 1 );
@@ -32,7 +31,7 @@ void compute_characteristic_decomposition( T1 U, T2 R, T2 R_inv ) {
 
   const Real Em = Em_T - ( 0.5 * V * V );
 
-  const float GAMMA = 1.4;
+  const Real GAMMA = eos->get_gamma( );
 
   const Real k      = std::sqrt( GAMMA * ( GAMMA - 1.0 ) );
   const Real sqrt_e = std::sqrt( Em );
@@ -79,5 +78,3 @@ void compute_characteristic_decomposition( T1 U, T2 R, T2 R_inv ) {
     }
   }
 }
-
-#endif // CHARACTERISTIC_DECOMPOSITION_HPP_

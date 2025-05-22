@@ -65,7 +65,7 @@ class RadiationEquilibriumTest(AthelasRegressionTest):
     varlist = [
       "conserved/energy",
     ]
-    fn = "athelas_rad_equilibrium_final.h5"
+    fn = "rad_equilibrium_final.h5"
     data = self.load_output(fn, varlist)
 
     # analytic sol

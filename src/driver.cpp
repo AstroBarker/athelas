@@ -7,19 +7,11 @@
  *
  */
 
-#include <algorithm> // std::min
-#include <cmath>
-#include <limits>
-#include <print>
-#include <string>
-#include <vector>
-
-#include "Kokkos_Core.hpp"
-
-#include "abstractions.hpp"
-#include "boundary_conditions.hpp"
 #include "driver.hpp"
-
+#include "abstractions.hpp"
+#include "bc/boundary_conditions.hpp"
+#include "bc/boundary_conditions_base.hpp"
+#include "build_info.hpp"
 #include "eos.hpp"
 #include "error.hpp"
 #include "fluid_discretization.hpp"
@@ -89,9 +81,10 @@ void Driver::initialize( const ProblemIn* pin ) { // NOLINT
     // --- Initialize fields ---
     initialize_fields( &state_, &grid_, &eos_, pin );
 
-    bc::apply_bc( state_.get_u_cf( ), &grid_, pin->pOrder, pin->BC );
+    fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin->pOrder, bcs_.get( ) );
     if ( opts_.do_rad ) {
-      bc::apply_bc( state_.get_u_cr( ), &grid_, pin->pOrder, pin->BC );
+      bc::fill_ghost_zones<2>( state_.get_u_cr( ), &grid_, pin->pOrder,
+                               bcs_.get( ) );
     }
   }
 
@@ -101,22 +94,29 @@ void Driver::initialize( const ProblemIn* pin ) { // NOLINT
                                          pin->nElements, pin->nGhost );
 
   // --- slope limiter to initial condition ---
-  apply_slope_limiter( &sl_hydro_, state_.get_u_cf( ), &grid_, basis_.get( ) );
+  apply_slope_limiter( &sl_hydro_, state_.get_u_cf( ), &grid_, basis_.get( ),
+                       &eos_ );
 }
 
 using limiter_utilities::initialize_slope_limiter;
 // Driver
 Driver::Driver( const ProblemIn* pin ) // NOLINT
     : pin_( *pin ), nX_( pin->nElements ), problem_name_( pin->problem_name ),
-      restart_( pin->Restart ), time_( 0.0 ), dt_( 0.0 ), t_end_( pin->t_end ),
+      restart_( pin->Restart ),
+      bcs_( std::make_unique<BoundaryConditions>( bc::make_boundary_conditions(
+          pin->do_rad, pin->fluid_bc_i, pin->fluid_bc_o,
+          pin->fluid_i_dirichlet_values, pin->fluid_o_dirichlet_values,
+          pin->rad_bc_i, pin->rad_bc_o, pin->rad_i_dirichlet_values,
+          pin->rad_o_dirichlet_values ) ) ),
+      time_( 0.0 ), dt_( 1.0e-16 ), t_end_( pin->t_end ),
       cfl_( compute_cfl( pin->CFL, pin->pOrder, pin->nStages, pin->tOrder ) ),
       i_print_( pin->ncycle_out ),
       nlim_( ( pin->nlim == -1 ) ? std::numeric_limits<double>::infinity( )
                                  : pin->nlim ),
       dt_hdf5_( pin->dt_hdf5 ), dt_init_frac_( pin->dt_init_frac ),
-      eos_( IdealGas( pin->ideal_gamma ) ), opac_( initialize_opacity( pin ) ),
+      eos_( IdealGas( pin->gamma_eos ) ), opac_( initialize_opacity( pin ) ),
       grid_( pin ),
-      opts_( pin->do_rad, false, restart_, pin->BC, pin->Geometry, pin->basis ),
+      opts_( pin->do_rad, false, restart_, pin->Geometry, pin->basis ),
       state_( 3, 2, 3, 1, pin->nElements, pin->nGhost, pin->nNodes,
               pin->pOrder ),
       sl_hydro_( initialize_slope_limiter( &grid_, pin, 3 ) ),
@@ -135,8 +135,7 @@ auto Driver::execute( ) -> int {
 
   // --- Timer ---
   Kokkos::Timer timer_zone_cycles;
-  Real zc_ws      = 0.0; // zone cycles / wall second
-  Real time_cycle = 0.0;
+  Real zc_ws = 0.0; // zone cycles / wall second
 
   // initial timestep TODO(astrobarker) make input param
   Real const dt_init = 1.0e-16;
@@ -147,7 +146,6 @@ auto Driver::execute( ) -> int {
   int i_out = 1; // output label, start 1
   std::cout << " ~ Step    t       dt       zone_cycles / wall_second\n"
             << std::endl;
-  std::println( "nlim = {}", nlim_ );
   while ( time_ < t_end_ && iStep <= nlim_ ) {
     timer_zone_cycles.reset( );
 
@@ -160,11 +158,11 @@ auto Driver::execute( ) -> int {
 
     if ( !opts_.do_rad ) {
       ssprk_.update_fluid( dt_, &state_, grid_, basis_.get( ), &eos_,
-                           &sl_hydro_, &opts_ );
+                           &sl_hydro_, &opts_, bcs_.get( ) );
     } else {
       try {
         ssprk_.update_rad_hydro( dt_, &state_, grid_, basis_.get( ), &eos_,
-                                 &opac_, &sl_hydro_, &opts_ );
+                                 &opac_, &sl_hydro_, &opts_, bcs_.get( ) );
       } catch ( const AthelasError& e ) {
         std::cerr << e.what( ) << std::endl;
         return AthelasExitCodes::FAILURE;
@@ -187,8 +185,6 @@ auto Driver::execute( ) -> int {
 #endif
 
     time_ += dt_;
-    time_cycle += timer_zone_cycles.seconds( );
-    timer_zone_cycles.reset( );
 
     // Write state
     if ( time_ >= i_out * dt_hdf5_ ) {
@@ -199,15 +195,18 @@ auto Driver::execute( ) -> int {
 
     // timer
     if ( iStep % i_print_ == 0 ) {
-      zc_ws = static_cast<Real>( i_print_ ) * nX_ / time_cycle;
+      zc_ws =
+          static_cast<Real>( i_print_ ) * nX_ / timer_zone_cycles.seconds( );
       std::println( " ~ {} {:.5e} {:.5e} {:.5e} ", iStep, time_, dt_, zc_ws );
+      timer_zone_cycles.reset( );
     }
 
     iStep++;
   }
 
   // --- Apply bc and write final output ---
-  bc::apply_bc( state_.get_u_cf( ), &grid_, pin_.pOrder, opts_.BC );
+  bc::fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin_.pOrder,
+                           bcs_.get( ) );
   write_state( &state_, grid_, &sl_hydro_, problem_name_, time_, pin_.pOrder,
                -1, opts_.do_rad );
 

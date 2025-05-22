@@ -1,5 +1,4 @@
-#ifndef PROBLEM_IN_HPP_
-#define PROBLEM_IN_HPP_
+#pragma once
 /**
  * @file problem_in.cpp
  * --------------
@@ -17,6 +16,7 @@
 #include "Kokkos_Core.hpp"
 
 #include "abstractions.hpp"
+#include "bc/boundary_conditions_base.hpp"
 #include "error.hpp"
 #include "geometry.hpp"
 #include "toml.hpp"
@@ -26,8 +26,6 @@ struct Options {
   bool do_rad  = false;
   bool do_grav = false;
   bool restart = false;
-
-  std::string BC = "Homogenous";
 
   geometry::Geometry geom      = geometry::Planar;
   poly_basis::poly_basis basis = poly_basis::legendre;
@@ -39,7 +37,14 @@ class ProblemIn {
   explicit ProblemIn( const std::string& fn );
 
   std::string problem_name;
-  std::string BC;
+  std::string fluid_bc_i;
+  std::string fluid_bc_o;
+  std::string rad_bc_i;
+  std::string rad_bc_o;
+  std::array<Real, 3> fluid_i_dirichlet_values;
+  std::array<Real, 3> fluid_o_dirichlet_values;
+  std::array<Real, 2> rad_i_dirichlet_values;
+  std::array<Real, 2> rad_o_dirichlet_values;
 
   int nlim{ }; // number of cycles
   int ncycle_out{ }; // std output
@@ -47,7 +52,7 @@ class ProblemIn {
   Real dt_init_frac{ }; // ramp up dt
 
   std::string eos_type;
-  Real ideal_gamma{ };
+  Real gamma_eos{ };
 
   int nElements;
   int nNodes;
@@ -86,4 +91,24 @@ class ProblemIn {
   toml::table in_table;
 };
 
-#endif // PROBLEM_IN_HPP_
+// TODO(astrobarker) move into class
+bool check_bc( std::string& bc );
+template <typename T, typename G>
+void read_toml_array( T toml_array, G& out_array ) {
+  long unsigned int index = 0;
+  for ( const auto& element : *toml_array ) {
+    if ( index < out_array.size( ) ) {
+      if ( auto elem = element.as_floating_point( ) ) {
+        out_array[index] = static_cast<Real>( *elem );
+      } else {
+        std::cerr << "Type mismatch at index " << index << std::endl;
+        THROW_ATHELAS_ERROR(
+            " ! Error reading dirichlet boundary conditions." );
+      }
+      index++;
+    } else {
+      std::cerr << "TOML array is larger than C++ array." << std::endl;
+      THROW_ATHELAS_ERROR( " ! Error reading dirichlet boundary conditions." );
+    }
+  }
+}

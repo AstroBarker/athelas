@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+import os
+
 from basis import ModalBasis
 
 import h5py
-import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -21,6 +22,15 @@ class Athelas:
 
     self.r = None  # spatial grid
     self.dr = None  # widths
+
+    # indices
+    self.idx = {
+      "tau": 0,
+      "velocity": 1,
+      "energy": 2,
+      "rad_energy": 0,
+      "rad_flux": 1,
+    }
 
     self.load_(fn)
 
@@ -58,10 +68,15 @@ class Athelas:
         self.uCF[0, :, i] = f["/conserved/tau"][(i * n) : ((i + 1) * n)]
         self.uCF[1, :, i] = f["/conserved/velocity"][(i * n) : ((i + 1) * n)]
         self.uCF[2, :, i] = f["/conserved/energy"][(i * n) : ((i + 1) * n)]
-        self.uCR[0, :, i] = f["/conserved/rad_energy"][(i * n) : ((i + 1) * n)]
-        self.uCR[1, :, i] = f["/conserved/rad_momentum"][
-          (i * n) : ((i + 1) * n)
-        ]
+        try:
+          self.uCR[0, :, i] = f["/conserved/rad_energy"][
+            (i * n) : ((i + 1) * n)
+          ]
+          self.uCR[1, :, i] = f["/conserved/rad_momentum"][
+            (i * n) : ((i + 1) * n)
+          ]
+        except Exception:
+          self.uCR = None
 
       self.slope_limiter = f["diagnostic/limiter"][:]
 
@@ -70,25 +85,34 @@ class Athelas:
 
     # End load_
 
-  def basis_eval(self, iF, iX, iEta):
+  def get(self, var, k=0):
+    idx = self.idx[var]
+    if "rad" not in var:
+      return self.uCF[idx, :, k]
+    else:
+      return self.uCR[idx, :, k]
+    return os.EX_SOFTWARE
+
+  # End get_
+
+  def basis_eval(self, iQ, iX, iEta):
     """
-    Evaluate polynomial for quantity iF at quadrature point iEta on cell iX
+    Evaluate polynomial for quantity iQ at quadrature point iEta on cell iX
     """
 
     assert self.basis is not None
 
     result = 0.0
     for k in range(self.basis.order):
-      result += self.basis.phi[iX, iEta, k] * self.uCF[iF, iX, k]
+      result += self.basis.phi[iX, iEta, k] * self.uCF[iQ, iX, k]
     return result
 
-  def plot(self, iF, ax, logx=False, logy=False, label=None, color="teal"):
+  def plot(self, ax, var, logx=False, logy=False, label=None, color="#b07aa1"):
     """
-    Basic plot function: plot quantity index iF from uCF.
-    TODO: generalize to select uCF, uCR, etc
+    Basic plot function: plot quantity var on axis ax
     """
 
-    q = self.uCF[iF, :, 0]
+    q = self.get(var, k=0)
     x = self.r
     if logy:
       q = np.log10(q)
@@ -104,12 +128,5 @@ class Athelas:
 
 if __name__ == "__main__":
   # Examples
-  a = Athelas("athelas_RadAdvection_00040.h5", "athelas_basis_RadAdvection.h5")
-
-  fig, ax = plt.subplots()
-  q = a.uCR[0, :, 0]
-  print(q)
-  ax.plot(a.r, q)
-  ax.axvline(0.5, color="k", ls="--")
-  ax.legend()
-  plt.savefig("test.png")
+  # a = Athelas("sod_final.h5", "sod_basis.h5")
+  print("athelas!")

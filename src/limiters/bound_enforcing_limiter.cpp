@@ -51,7 +51,7 @@ namespace bel {
  */
 void limit_density( View3D<Real> U, const ModalBasis* basis ) {
   constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
-                                           //
+
   const int order = basis->get_order( );
 
   if ( order == 1 ) {
@@ -59,7 +59,7 @@ void limit_density( View3D<Real> U, const ModalBasis* basis ) {
   }
 
   Kokkos::parallel_for(
-      "BEF::Limit Density", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
+      "BEL::Limit Density", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
       KOKKOS_LAMBDA( const int iX ) {
         Real theta1    = 100000.0; // big
         Real nodal     = 0.0;
@@ -119,7 +119,7 @@ void limit_internal_energy( View3D<Real> U, const ModalBasis* basis,
   }
 
   Kokkos::parallel_for(
-      "BEF::Limit Internal Energy",
+      "BEL::Limit Internal Energy",
       Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
       KOKKOS_LAMBDA( const int iX ) {
         Real theta2 = 10000000.0;
@@ -163,7 +163,44 @@ void apply_bound_enforcing_limiter_rad( View3D<Real> U, const ModalBasis* basis,
   if ( basis->get_order( ) == 1 ) {
     return;
   }
+  limit_rad_energy( U, basis, eos );
   limit_rad_momentum( U, basis, eos );
+}
+
+void limit_rad_energy( View3D<Real> U, const ModalBasis* basis,
+                       const EOS* eos ) {
+  constexpr static Real EPSILON = 1.0e-4; // maybe make this smarter
+
+  const int order = basis->get_order( );
+
+  Kokkos::parallel_for(
+      "BEL::Limit Rad Energy", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
+      KOKKOS_LAMBDA( const int iX ) {
+        Real theta2 = 10000000.0;
+        Real nodal  = 0.0;
+        Real temp   = 0.0;
+
+        for ( int iN = 0; iN <= order + 1; iN++ ) {
+          nodal = basis->basis_eval( U, iX, 0, iN );
+
+          if ( nodal >
+               EPSILON + std::abs( U( 1, iX, 0 ) ) / constants::c_cgs ) {
+            temp = 1.0;
+          } else {
+            // temp = backtrace( U, target_func, basis, eos, iX, iN );
+            // const Real theta_guess = 0.9; // needed for fixed point
+            // temp = root_finders::fixed_point_aa_root(target_func,
+            // theta_guess, U, basis, eos, iX, iN) - 1.0e-3;
+            temp = bisection( U, target_func_rad_energy, basis, eos, iX, iN );
+          }
+          theta2 = std::abs( std::min( theta2, temp ) );
+        }
+
+        for ( int k = 1; k < order; k++ ) {
+          U( 0, iX, k ) *= theta2;
+          U( 1, iX, k ) *= theta2;
+        }
+      } );
 }
 
 void limit_rad_momentum( View3D<Real> U, const ModalBasis* basis,
@@ -171,25 +208,27 @@ void limit_rad_momentum( View3D<Real> U, const ModalBasis* basis,
   const int order = basis->get_order( );
 
   Kokkos::parallel_for(
-      "BEF::Limit Rad Momentum", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
+      "BEL::Limit Rad Momentum", Kokkos::RangePolicy<>( 1, U.extent( 1 ) - 1 ),
       KOKKOS_LAMBDA( const int iX ) {
         Real theta2 = 10000000.0;
         Real nodal  = 0.0;
         Real temp   = 0.0;
 
+        constexpr static Real c = constants::c_cgs;
+
         for ( int iN = 0; iN <= order + 1; iN++ ) {
           nodal = basis->basis_eval( U, iX, 1, iN );
 
-          if ( nodal >= 0.0 && nodal <= U( 0, iX, 0 ) ) {
+          if ( std::abs( nodal ) <= c * U( 0, iX, 0 ) ) {
             temp = 1.0;
           } else {
             // TODO(astrobarker): Backtracing may be working okay...
             // const Real theta_guess = 0.9;
             // temp = backtrace( target_func_rad, theta_guess, U, basis, eos,
             // iX, iN );
-            temp = bisection( U, target_func_rad, basis, eos, iX, iN );
+            temp = bisection( U, target_func_rad_flux, basis, eos, iX, iN );
           }
-          theta2 = std::min( theta2, temp );
+          theta2 = std::abs( std::min( theta2, temp ) );
         }
 
         for ( int k = 1; k < order; k++ ) {
@@ -224,11 +263,23 @@ auto target_func( const Real theta, const View3D<Real> U,
   return e - w;
 }
 
-auto target_func_rad( const Real theta, const View3D<Real> U,
-                      const ModalBasis* basis, const EOS* /*eos*/, const int iX,
-                      const int iN ) -> Real {
+// TODO(astrobarker) some redundancy below
+auto target_func_rad_flux( const Real theta, const View3D<Real> U,
+                           const ModalBasis* basis, const EOS* /*eos*/,
+                           const int iX, const int iN ) -> Real {
   const Real w  = std::min( 1.0e-13, U( 1, iX, 0 ) );
   const Real s1 = compute_theta_state( U, basis, theta, 1, iX, iN );
+
+  const Real e = s1;
+
+  return e - w;
+}
+
+auto target_func_rad_energy( const Real theta, const View3D<Real> U,
+                             const ModalBasis* basis, const EOS* /*eos*/,
+                             const int iX, const int iN ) -> Real {
+  const Real w  = std::min( 1.0e-13, U( 0, iX, 0 ) );
+  const Real s1 = compute_theta_state( U, basis, theta, 0, iX, iN );
 
   const Real e = s1;
 

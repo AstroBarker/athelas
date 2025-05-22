@@ -1,5 +1,4 @@
-#ifndef TABLEAU_HPP_
-#define TABLEAU_HPP_
+#pragma once
 /**
  * @file tableau.hpp
  * --------------
@@ -56,5 +55,3 @@ class ShuOsherTableau {
 
   void initialize_tableau( );
 };
-
-#endif // TABLEAU_HPP_

@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file abstractions.hpp
  * --------------
@@ -5,9 +6,6 @@
  * @author Brandon L. Barker
  * @brief Provides useful definitions.
  */
-
-#ifndef ABSTRACTIONS_HPP_
-#define ABSTRACTIONS_HPP_
 
 #include "Kokkos_Core.hpp"
 
@@ -29,5 +27,3 @@ using View1D = Kokkos::View<T*>;
 namespace poly_basis {
 enum poly_basis { legendre, taylor };
 } // namespace poly_basis
-
-#endif // ABSTRACTIONS_HPP_

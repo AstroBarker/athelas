@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file utilities.hpp
  * --------------
@@ -11,9 +12,6 @@
  *          - to_lower
  */
 
-#ifndef UTILITIES_HPP_
-#define UTILITIES_HPP_
-
 #include <algorithm>
 #include <cctype>
 #include <string>
@@ -23,6 +21,32 @@
 #include "polynomial_basis.hpp"
 
 namespace utilities {
+
+// [[x]]_+ = -.5 * (x + |x|) is positive part of x
+[[nodiscard]] KOKKOS_INLINE_FUNCTION auto pos_part( const Real x ) noexcept
+    -> Real {
+  return 0.5 * ( x + std::abs( x ) );
+}
+
+template <typename T = Real>
+KOKKOS_FORCEINLINE_FUNCTION constexpr auto EPS( ) {
+  return 10 * std::numeric_limits<T>::epsilon( );
+}
+
+template <typename T = Real>
+KOKKOS_FORCEINLINE_FUNCTION constexpr auto LARGE( ) {
+  return 0.1 * std::numeric_limits<T>::max( );
+}
+
+template <typename T = Real>
+KOKKOS_FORCEINLINE_FUNCTION constexpr auto SMALL( ) {
+  return 10 * std::numeric_limits<T>::min( );
+}
+
+KOKKOS_FORCEINLINE_FUNCTION
+auto make_bounded( const Real val, const Real vmin, const Real vmax ) -> Real {
+  return std::min( std::max( val, vmin + EPS( ) ), vmax * ( 1.0 - EPS( ) ) );
+}
 
 // Implements a typesafe SGN function
 // https://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-SGN-in-c-c
@@ -58,5 +82,3 @@ auto to_lower( T data ) -> T {
 }
 
 } // namespace utilities
-
-#endif // UTILITIES_HPP_

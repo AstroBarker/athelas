@@ -1,5 +1,4 @@
-#ifndef ERROR_HPP_
-#define ERROR_HPP_
+#pragma once
 /**
  * @file error.hpp
  * --------------
@@ -143,5 +142,3 @@ void check_state( T state, const int ihi, const bool do_rad ) {
     }
   }
 }
-
-#endif // ERROR_HPP_

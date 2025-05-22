@@ -1,0 +1,73 @@
+[problem]
+problem = "rad_shock"
+t_end = 0.2e-9
+geometry = "planar"
+restart = false
+do_rad = true
+xl = 0.0
+xr = 0.01575
+x_d = 0.013
+cfl = 0.85
+
+# Mach 3 Case:
+# - Left side (pre-shock):
+#   - Density: 5.69 g/cm^3
+#   - Velocity: 5.19e7 cm / s
+#   - Temperature: 2.18e6 K
+# - Right side (post-shock):
+#   - Density: 17.1 g/cm^3
+#   - Velocity: 1.73e7 cm/s
+#   - Temperature: 7.98e6 K
+[problem.params]
+vL = 5.19e7
+vR = 1.73e7
+rhoL = 5.69
+rhoR = 17.1 
+T_L = 2.18e6
+T_R = 7.98e6
+
+[bc]
+[bc.fluid]
+bc_i = "outflow"
+bc_o = "outflow"
+dirichlet_values_i = [1.757469e-1, 5.19e7, 1.616577e15]
+dirichlet_values_o = [5.847953e-2, 1.73e7, 1.137159e15]
+[bc.rad]
+bc_i = "outflow"
+bc_o = "outflow"
+dirichlet_values_i = [3.003065e10, 0.0]
+dirichlet_values_o = [1.794182e12, 0.0]
+
+[output]
+nlim = -1
+ncycle_out = 250
+#dt_hdf5 = 1.0e-12 # default: 100 outputs
+dt_init_frac = 1.00001
+
+[fluid]
+basis = "legendre"
+nnodes = 2
+porder = 2
+nx = 128
+ng = 1
+
+[time]
+torder = 2
+nstages = 2
+
+[eos]
+type = "ideal"
+ideal_gamma = 1.66666666666667 # default: 1.4
+
+[opacity]
+type = "constant"
+kP = 577.0 # cm^2 / g
+kR = 577.0 # cm^2 / g
+
+[limiters]
+type = "weno"
+m_tvb = 0.0
+b_tvd = 1.0
+tci_opt = false
+tci_val = 0.1
+characteristic = false

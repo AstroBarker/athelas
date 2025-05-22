@@ -17,12 +17,12 @@ auto PowerlawRho::planck_mean( const Real rho, const Real /*T*/,
                                const Real /*X*/, const Real /*Y*/,
                                const Real /*Z*/, Real* /*lambda*/ ) const
     -> Real {
-  return k_ * std::pow( rho, exp_ );
+  return kP_ * std::pow( rho, exp_ );
 }
 
 auto PowerlawRho::rosseland_mean( const Real rho, const Real /*T*/,
                                   const Real /*X*/, const Real /*Y*/,
                                   const Real /*Z*/, Real* /*lambda*/ ) const
     -> Real {
-  return k_ * std::pow( rho, exp_ );
+  return kR_ * std::pow( rho, exp_ );
 }

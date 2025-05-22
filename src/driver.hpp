@@ -16,6 +16,7 @@
 #include <string>
 
 #include "basis/polynomial_basis.hpp"
+#include "bc/boundary_conditions_base.hpp"
 #include "eos/eos.hpp"
 #include "geometry/grid.hpp"
 #include "opacity/opac.hpp"
@@ -23,6 +24,8 @@
 #include "timestepper/timestepper.hpp"
 #include "utils/abstractions.hpp"
 #include "utils/error.hpp"
+
+using bc::BoundaryConditions;
 
 class Driver {
  public:
@@ -40,6 +43,8 @@ class Driver {
   int nX_;
   std::string problem_name_;
   bool restart_;
+
+  std::unique_ptr<BoundaryConditions> bcs_;
 
   Real time_;
   Real dt_;

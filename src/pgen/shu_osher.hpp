@@ -1,5 +1,4 @@
-#ifndef SHU_OSHER_HPP_
-#define SHU_OSHER_HPP_
+#pragma once
 /**
  * @file shu_osher.hpp
  * --------------
@@ -84,4 +83,3 @@ void shu_osher_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
     }
   }
 }
-#endif // SHU_OSHER_HPP_

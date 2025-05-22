@@ -1,5 +1,4 @@
-#ifndef EOS_BASE_HPP_
-#define EOS_BASE_HPP_
+#pragma once
 /**
  * @file eos_base.hpp
  * --------------
@@ -16,16 +15,12 @@
  *          The class provides the following:
  *          - pressure_from_conserved
  *          - sound_speed_from_conserved
+ *          - temperature_from_conserved
  *          - temperature_from_tau_pressure_abar
  *          - temperature_from_tau_pressure
  *          - radiation_pressure
  *
  *          These interfaces are implemented for all EOS
- *
- *          Each method is implemented as a non-virtual interface that delegates
- *to the derived class implementation through static_cast. This pattern allows
- *          for compile-time polymorphism with minimal runtime overhead.
- *
  **/
 
 #include "abstractions.hpp"
@@ -44,6 +39,11 @@ class EosBase {
     return static_cast<EOS const*>( this )->sound_speed_from_conserved(
         tau, V, EmT, lambda );
   }
+  auto temperature_from_conserved( const Real tau, const Real V, const Real EmT,
+                                   Real* lambda ) const -> Real {
+    return static_cast<EOS const*>( this )->temperature_from_conserved(
+        tau, V, EmT, lambda );
+  }
   auto temperature_from_tau_pressure_abar( const Real tau, const Real P,
                                            const Real Abar, Real* lambda ) const
       -> Real {
@@ -59,5 +59,3 @@ class EosBase {
     return static_cast<EOS const*>( this )->radiation_pressure( T, lambda );
   }
 };
-
-#endif // EOS_BASE_HPP_

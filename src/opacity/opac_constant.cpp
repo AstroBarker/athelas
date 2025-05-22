@@ -17,12 +17,12 @@
 auto Constant::planck_mean( const Real /*rho*/, const Real /*T*/,
                             const Real /*X*/, const Real /*Y*/,
                             const Real /*Z*/, Real* /*lambda*/ ) const -> Real {
-  return k_;
+  return kP_;
 }
 
 auto Constant::rosseland_mean( const Real /*rho*/, const Real /*T*/,
                                const Real /*X*/, const Real /*Y*/,
                                const Real /*Z*/, Real* /*lambda*/ ) const
     -> Real {
-  return k_;
+  return kR_;
 }

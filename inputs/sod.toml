@@ -6,21 +6,27 @@ restart = false
 do_rad = false
 xl = 0.0
 xr = 1.0
-bc = "homogenous"
-cfl = 0.5
+cfl = 0.7
 
 [problem.params]
-v0 = 0.0
+vL = 0.0
+vR = 0.0
 rhoL = 1.0
 rhoR = 0.125
 pL = 1.0
 pR = 0.1
+x_d = 0.5
+
+[bc]
+[bc.fluid]
+bc_i = "outflow"
+bc_o = "outflow"
 
 [output]
 nlim = -1
 ncycle_out = 100
-dt_hdf5 = 1.0e-2
-dt_init_frac = 1.5
+#dt_hdf5 = 2.5e-2
+dt_init_frac = 1.1
 
 [fluid]
 basis = "legendre"
@@ -30,8 +36,8 @@ nx = 256
 ng = 1
 
 [time]
-torder = 2
-nstages = 2
+torder = 4
+nstages = 5
 
 [eos]
 type = "ideal"
@@ -40,11 +46,11 @@ ideal_gamma = 1.4 # default: 1.4
 [limiters]
 do_limiter = true
 type = "weno"
+m_tvb = 0.0
+b_tvd = 1.0
 tci_opt = false
-tci_val = 0.05
+tci_val = 0.25
+#tci_val = 0.6
 characteristic = true
-gamma_i = 0.998
-#gamma_r = 0.005
-#gamma_l = 0.005
-#b_tvd = 2.0 #minmod
-#m_tvb = 1.0 #minmod
+gamma_i = 0.8
+weno_r = 2.0

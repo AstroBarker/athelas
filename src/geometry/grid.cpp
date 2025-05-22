@@ -96,13 +96,13 @@ auto GridStructure::get_weights( int nN ) const -> Real {
   return weights_( nN );
 }
 
-// Acessor for xL
+// Accessor for xL
 auto GridStructure::get_x_l( ) const noexcept -> Real { return xL_; }
 
-// Acessor for xR
+// Accessor for xR
 auto GridStructure::get_x_r( ) const noexcept -> Real { return xR_; }
 
-// Acessor for SqrtGm
+// Accessor for SqrtGm
 auto GridStructure::get_sqrt_gm( Real X ) const -> Real {
   if ( geometry_ == geometry::Spherical ) {
     return X * X;

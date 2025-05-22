@@ -1,5 +1,4 @@
-#ifndef SHOCKLESS_NOH_HPP_
-#define SHOCKLESS_NOH_HPP_
+#pragma once
 /**
  * @file shockless_noh.hpp
  * --------------
@@ -81,4 +80,3 @@ void shockless_noh_init( State* state, GridStructure* grid,
     }
   }
 }
-#endif // SHOCKLESS_NOH_HPP_

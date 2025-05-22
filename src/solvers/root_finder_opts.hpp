@@ -1,5 +1,4 @@
-#ifndef ROOT_FINDER_OPTS_HPP_
-#define ROOT_FINDER_OPTS_HPP_
+#pragma once
 /**
  * @file root_finder_opts.hpp
  * --------------
@@ -25,5 +24,3 @@ constexpr static Real ZBARTOL           = 1.0e-15;
 constexpr static Real ZBARTOLINV        = 1.0e15;
 
 } // namespace root_finders
-
-#endif // ROOT_FINDER_OPTS_HPP_

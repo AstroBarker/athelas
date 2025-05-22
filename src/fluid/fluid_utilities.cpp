@@ -20,6 +20,9 @@
 #include "grid.hpp"
 #include "polynomial_basis.hpp"
 #include "rad_utilities.hpp"
+#include "utils/utilities.hpp"
+
+using utilities::pos_part;
 
 namespace fluid {
 /**
@@ -57,20 +60,65 @@ auto source_fluid_rad( const Real D, const Real V, const Real T,
 
   return ( iCF == 1 ) ? G : c * G0;
 }
+
 /**
- * Gudonov style numerical flux. Constucts v* and p* states.
+ * Positivity preserving numerical flux. Constructs v* and p* states.
+ * TODO(astrobarker): do I need tau_r_star if I construct p* with left?
  **/
-void numerical_flux_gudonov( const Real vL, const Real vR, const Real pL,
-                             const Real pR, const Real zL, const Real zR,
-                             Real& Flux_U, Real& Flux_P ) {
+auto numerical_flux_gudonov_positivity( const Real tauL, const Real tauR,
+                                        const Real vL, const Real vR,
+                                        const Real pL, const Real pR,
+                                        const Real csL, const Real csR )
+    -> std::tuple<Real, Real> {
   assert( pL > 0.0 && pR > 0.0 &&
           "numerical_flux_gudonov :: negative pressure" );
-  Flux_U = ( pL - pR + zR * vR + zL * vL ) / ( zR + zL );
-  Flux_P = ( zR * pL + zL * pR + zL * zR * ( vL - vR ) ) / ( zR + zL );
+  const Real pRmL = pR - pL; // [[p]]
+  const Real vRmL = vR - vL; // [[v]]
+  /*
+  const Real zL   = std::max(
+      std::max( std::sqrt( pos_part( pRmL ) / tauL ), -( vRmL ) / tauL ),
+      csL / tauL );
+  const Real zR = std::max(
+      std::max( std::sqrt( pos_part( -pR + pL ) / tauR ), -( vRmL ) / tauR ),
+      csR / tauR );
+  */
+  const Real zL    = csL / tauL;
+  const Real zR    = csR / tauR;
+  const Real z_sum = zL + zR;
+
+  // get tau star states
+  const Real term1_l    = tauL - ( pRmL ) / ( zL * zL );
+  const Real term2_l    = tauL + vRmL / zL;
+  const Real tau_l_star = ( zL * term1_l + zR * term2_l ) / z_sum;
+
+  /*
+  const Real term1_r = tauR + vRmL / zR;
+  const Real term2_r = tauR + pRmL / (zR * zR);
+  const Real tau_r_star = (zL * term1_r + zR * term2_r) / z_sum;
+  */
+
+  // vstar, pstar
+  const Real Flux_U = ( -pRmL + zR * vR + zL * vL ) / ( z_sum );
+  const Real Flux_P = pL - ( zL * zL ) * ( tau_l_star - tauL );
+  return { Flux_U, Flux_P };
 }
 
 /**
- * Gudonov style numerical flux. Constucts v* and p* states.
+ * Gudonov style numerical flux. Constructs v* and p* states.
+ **/
+auto numerical_flux_gudonov( const Real vL, const Real vR, const Real pL,
+                             const Real pR, const Real zL, const Real zR )
+    -> std::tuple<Real, Real> {
+  assert( pL > 0.0 && pR > 0.0 &&
+          "numerical_flux_gudonov :: negative pressure" );
+  const Real Flux_U = ( pL - pR + zR * vR + zL * vL ) / ( zR + zL );
+  const Real Flux_P =
+      ( zR * pL + zL * pR + zL * zR * ( vL - vR ) ) / ( zR + zL );
+  return { Flux_U, Flux_P };
+}
+
+/**
+ * Gudonov style numerical flux. Constructs v* and p* states.
  **/
 void numerical_flux_hllc( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
                           Real rhoL, Real rhoR, Real& Flux_U, Real& Flux_P ) {
@@ -81,7 +129,7 @@ void numerical_flux_hllc( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
   Flux_P = rhoL * ( vL - aL ) * ( vL - Flux_U ) + pL;
 }
 
-// Compute Auxilliary
+// Compute Auxiliary
 
 /**
  * Compute the fluid timestep.
@@ -123,7 +171,7 @@ auto compute_timestep_fluid( const View3D<Real> U, const GridStructure* grid,
   dt = std::max( CFL * dt, MIN_DT );
   dt = std::min( dt, MAX_DT );
 
-  assert( !std::isnan( dt ) && "NaN encounted in compute_timestep_fluid.\n" );
+  assert( !std::isnan( dt ) && "NaN encountered in compute_timestep_fluid.\n" );
 
   return dt;
 }

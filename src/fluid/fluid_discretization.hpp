@@ -1,5 +1,4 @@
-#ifndef FLUID_DISCRETIZATION_HPP_
-#define FLUID_DISCRETIZATION_HPP_
+#pragma once
 /**
  * @file fluid_discretization.hpp
  * --------------
@@ -16,10 +15,13 @@
 #include "Kokkos_Core.hpp"
 
 #include "abstractions.hpp"
+#include "bc/boundary_conditions_base.hpp"
 #include "eos.hpp"
 #include "opacity/opac_variant.hpp"
 
 namespace fluid {
+
+using bc::BoundaryConditions;
 
 void compute_increment_fluid_divergence(
     View3D<Real> U, const GridStructure& grid, const ModalBasis* Basis,
@@ -43,7 +45,6 @@ void compute_increment_fluid_explicit(
     const ModalBasis* Basis, const EOS* eos, View3D<Real> dU,
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
     View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
-    const Options* opts );
+    const Options* opts, BoundaryConditions* bcs );
 
 } // namespace fluid
-#endif // FLUID_DISCRETIZATION_HPP_

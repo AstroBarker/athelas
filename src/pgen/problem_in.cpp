@@ -39,8 +39,14 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   std::optional<Real> tf = in_table["problem"]["t_end"].value<Real>( );
   std::optional<Real> x1 = in_table["problem"]["xl"].value<Real>( );
   std::optional<Real> x2 = in_table["problem"]["xr"].value<Real>( );
-  std::optional<std::string> bc =
-      in_table["problem"]["bc"].value<std::string>( );
+  std::optional<std::string> fluid_bc_i_ =
+      in_table["bc"]["fluid"]["bc_i"].value<std::string>( );
+  std::optional<std::string> fluid_bc_o_ =
+      in_table["bc"]["fluid"]["bc_o"].value<std::string>( );
+  std::optional<std::string> rad_bc_i_ =
+      in_table["bc"]["rad"]["bc_i"].value<std::string>( );
+  std::optional<std::string> rad_bc_o_ =
+      in_table["bc"]["rad"]["bc_o"].value<std::string>( );
   std::optional<Real> cfl = in_table["problem"]["cfl"].value<Real>( );
 
   // output
@@ -60,6 +66,9 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   std::optional<int> nG = in_table["fluid"]["ng"].value<int>( );
   std::optional<int> pO = in_table["fluid"]["porder"].value<int>( );
 
+  // rad
+  do_rad = rad.value_or( false );
+
   // time
   std::optional<int> tO = in_table["time"]["torder"].value<int>( );
   std::optional<int> nS = in_table["time"]["nstages"].value<int>( );
@@ -70,9 +79,9 @@ ProblemIn::ProblemIn( const std::string& fn ) {
     THROW_ATHELAS_ERROR(
         "Currently only ideal gas supported (eos_type = ideal).\n" );
   }
-  ideal_gamma = in_table["eos"]["ideal_gamma"].value_or( 1.4 );
-  if ( ideal_gamma <= 0.0 ) {
-    THROW_ATHELAS_ERROR( "ideal_gamma must be positive.\n" );
+  gamma_eos = in_table["eos"]["gamma"].value_or( 1.4 );
+  if ( gamma_eos <= 0.0 ) {
+    THROW_ATHELAS_ERROR( "eos::gamma must be positive.\n" );
   }
 
   // opac
@@ -110,22 +119,85 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   }
   // Validity of problem_name checked in initialization.
 
-  if ( bc ) {
-    BC = utilities::to_lower( bc.value( ) );
-    std::cout << BC << std::endl;
+  // --- fluid bc ---
+  if ( fluid_bc_i_ ) {
+    fluid_bc_i = utilities::to_lower( fluid_bc_i_.value( ) );
   } else {
     THROW_ATHELAS_ERROR(
-        " ! Initialization Error: boundary condition not supplied in "
-        "input deck." );
+        " ! Initialization Error: inner fluid boundary condition not supplied "
+        "in input deck." );
   }
-  if ( BC != "homogenous" && BC != "reflecting" && BC != "shockless_noh" &&
-       BC != "periodic" ) {
+  if ( fluid_bc_o_ ) {
+    fluid_bc_o = utilities::to_lower( fluid_bc_o_.value( ) );
+  } else {
     THROW_ATHELAS_ERROR(
-        " ! Initialization Error: Bad boundary condition choice. Choose: \n"
-        " - homogenous \n"
-        " - reflecting \n"
-        " - periodic \n"
-        " - shockless_noh" );
+        " ! Initialization Error: outer fluid boundary condition not supplied "
+        "in input deck." );
+  }
+  check_bc( fluid_bc_i );
+  check_bc( fluid_bc_o );
+
+  // handle dirichlet..
+  fluid_i_dirichlet_values = { 0.0, 0.0, 0.0 };
+  fluid_o_dirichlet_values = { 0.0, 0.0, 0.0 };
+  // --- testing ---
+  auto array = in_table["bc"]["fluid"]["dirichlet_values_i"].as_array( );
+  if ( array && fluid_bc_i == "dirichlet" ) {
+    read_toml_array( array, fluid_i_dirichlet_values );
+  } else if ( !array && fluid_bc_i == "dirichlet" ) {
+    THROW_ATHELAS_ERROR( " ! Initialization Error: Failed to read fluid "
+                         "dirichlet_values_i as array." );
+  }
+  array = in_table["bc"]["fluid"]["dirichlet_values_o"].as_array( );
+  if ( array && fluid_bc_o == "dirichlet" ) {
+    read_toml_array( array, fluid_o_dirichlet_values );
+  } else if ( !array && fluid_bc_o == "dirichlet" ) {
+    THROW_ATHELAS_ERROR( " ! Initialization Error: Failed to read fluid "
+                         "dirichlet_values_o as array." );
+  }
+
+  // --- rad bc ---
+  rad_bc_i = "";
+  rad_bc_o = "";
+  if ( rad_bc_i_ ) {
+    rad_bc_i = utilities::to_lower( rad_bc_i_.value( ) );
+  } else if ( !rad_bc_i_ && do_rad ) {
+    THROW_ATHELAS_ERROR(
+        " ! Initialization Error: inner radiation boundary condition not "
+        "supplied in input deck but radiation was enabled." );
+  }
+  if ( rad_bc_o_ ) {
+    rad_bc_o = utilities::to_lower( rad_bc_o_.value( ) );
+  } else if ( !rad_bc_o_ && do_rad ) {
+    THROW_ATHELAS_ERROR(
+        " ! Initialization Error: outer radiation boundary condition not "
+        "supplied in input deck but radiation was enabled." );
+  }
+  if ( do_rad ) {
+    check_bc( rad_bc_i );
+    check_bc( rad_bc_o );
+  }
+
+  // handle dirichlet..
+  rad_i_dirichlet_values = { 0.0, 0.0 };
+  rad_o_dirichlet_values = { 0.0, 0.0 };
+  const bool do_dirichlet_rad_i =
+      ( rad_bc_i == "dirichlet" || rad_bc_i == "marshak" );
+  const bool do_dirichlet_rad_o =
+      ( rad_bc_o == "dirichlet" || rad_bc_o == "marshak" );
+  array = in_table["bc"]["rad"]["dirichlet_values_i"].as_array( );
+  if ( array && do_dirichlet_rad_i ) {
+    read_toml_array( array, rad_i_dirichlet_values );
+  } else if ( !array && do_dirichlet_rad_i ) {
+    THROW_ATHELAS_ERROR( " ! Initialization Error: Failed to read rad "
+                         "dirichlet_values_i as array." );
+  }
+  array = in_table["bc"]["rad"]["dirichlet_values_o"].as_array( );
+  if ( array && do_dirichlet_rad_o ) {
+    read_toml_array( array, rad_o_dirichlet_values );
+  } else if ( !array && do_dirichlet_rad_o ) {
+    THROW_ATHELAS_ERROR( " ! Initialization Error: Failed to read rad "
+                         "dirichlet_values_o as array." );
   }
 
   if ( geom ) {
@@ -181,7 +253,6 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   // many defaults not mentioned below...
   CFL     = cfl.value_or( 0.5 );
   Restart = rest.value_or( false );
-  do_rad  = rad.value_or( false );
 
   nGhost  = nG.value_or( 1 );
   pOrder  = pO.value_or( 1 );
@@ -196,7 +267,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   gamma_i        = gamma2.value_or( 0.990 );
   gamma_r        = gamma3.value_or( 0.005 );
 
-  // varous checks
+  // various checks
   if ( CFL <= 0.0 ) {
     THROW_ATHELAS_ERROR( " ! Initialization : CFL <= 0.0!" );
   }
@@ -234,4 +305,17 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   weno_r = wenor.value_or( 2.0 );
 
   std::printf( " ~ Configuration ... Complete\n\n" );
+}
+
+bool check_bc( std::string& bc ) {
+  if ( bc != "outflow" && bc != "reflecting" && bc != "dirichlet" &&
+       bc != "periodic" && bc != "marshak" ) {
+    THROW_ATHELAS_ERROR(
+        " ! Initialization Error: Bad boundary condition choice. Choose: \n"
+        " - outflow \n"
+        " - reflecting \n"
+        " - periodic \n"
+        " - dirichlet" );
+  }
+  return AthelasExitCodes::FAILURE; // should not reach
 }

@@ -1,5 +1,4 @@
-#ifndef SLOPE_LIMITER_BASE_HPP_
-#define SLOPE_LIMITER_BASE_HPP_
+#pragma once
 /**
  * @file slope_limiter_base.hpp
  * --------------
@@ -16,13 +15,14 @@
  */
 
 #include "abstractions.hpp"
+#include "eos/eos.hpp"
 #include "polynomial_basis.hpp"
 
 template <class SlopeLimiter>
 class SlopeLimiterBase {
  public:
   void apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
-                            const ModalBasis* basis ) const {
+                            const ModalBasis* basis, const EOS* eos ) const {
     return static_cast<SlopeLimiter const*>( this )->apply_slope_limiter(
         U, grid, basis );
   }
@@ -30,5 +30,3 @@ class SlopeLimiterBase {
     return static_cast<SlopeLimiter const*>( this )->get_limited( iX );
   }
 };
-
-#endif // SLOPE_LIMITER_BASE_HPP_

@@ -1,5 +1,4 @@
-#ifndef QUADRATURE_HPP_
-#define QUADRATURE_HPP_
+#pragma once
 /**
  * @file quadrature.cpp
  * --------------
@@ -19,5 +18,3 @@ auto jacobi_matrix( int m, std::vector<Real>& aj, std::vector<Real>& bj )
 void lg_quadrature( int m, std::vector<Real>& nodes,
                     std::vector<Real>& weights );
 } // namespace quadrature
-
-#endif // QUADRATURE_HPP_

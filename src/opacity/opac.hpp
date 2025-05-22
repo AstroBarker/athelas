@@ -1,5 +1,4 @@
-#ifndef OPAC_HPP_
-#define OPAC_HPP_
+#pragma once
 /**
  * @file opac.hpp
  * --------------
@@ -25,7 +24,7 @@
 class Constant : public OpacBase<Constant> {
  public:
   Constant( ) = default;
-  explicit Constant( double k ) : k_( k ) {}
+  explicit Constant( double kP, double kR ) : kP_( kP ), kR_( kR ) {}
 
   auto planck_mean( Real rho, Real T, Real X, Real Y, Real Z,
                     Real* lambda ) const -> Real;
@@ -34,13 +33,15 @@ class Constant : public OpacBase<Constant> {
                        Real* lambda ) const -> Real;
 
  private:
-  Real k_{ };
+  Real kP_{ };
+  Real kR_{ };
 };
 
 class PowerlawRho : public OpacBase<PowerlawRho> {
  public:
   PowerlawRho( ) = default;
-  PowerlawRho( double k, double exp ) : k_( k ), exp_( exp ) {}
+  PowerlawRho( double kP, double kR, double exp )
+      : kP_( kP ), kR_( kR ), exp_( exp ) {}
 
   auto planck_mean( Real rho, Real T, Real X, Real Y, Real Z,
                     Real* lambda ) const -> Real;
@@ -49,8 +50,7 @@ class PowerlawRho : public OpacBase<PowerlawRho> {
                        Real* lambda ) const -> Real;
 
  private:
-  Real k_{ };
+  Real kP_{ };
+  Real kR_{ };
   Real exp_{ };
 };
-
-#endif // OPAC_HPP_

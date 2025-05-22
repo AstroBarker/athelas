@@ -6,7 +6,6 @@ restart = false
 do_rad = false
 xl = -5.0
 xr = 5.0
-bc = "homogenous"
 cfl = 0.35
 
 [problem.params]
@@ -14,6 +13,11 @@ v0 = 2.629369
 rhoL = 3.857143
 pL = 10.33333333
 pR = 1.0
+
+[bc]
+[bc.fluid]
+bc_i = "outflow"
+bc_o = "outflow"
 
 [output]
 nlim = -1

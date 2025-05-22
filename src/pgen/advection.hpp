@@ -1,5 +1,4 @@
-#ifndef ADVECTION_HPP_
-#define ADVECTION_HPP_
+#pragma once
 /**
  * @file advection.hpp
  * --------------
@@ -70,4 +69,3 @@ void advection_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
     }
   }
 }
-#endif // ADVECTION_HPP_

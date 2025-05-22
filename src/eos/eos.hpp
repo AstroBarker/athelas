@@ -1,5 +1,4 @@
-#ifndef EOS_HPP_
-#define EOS_HPP_
+#pragma once
 /**
  * @file eos.hpp
  * --------------
@@ -31,7 +30,7 @@ class IdealGas : public EosBase<IdealGas> {
   IdealGas( ) = default;
   explicit IdealGas( double gm ) : gamma_( gm ) {
     if ( gamma_ <= 0.0 ) {
-      THROW_ATHELAS_ERROR( " ! Adiabatic gamma <= 0.0!" );
+      THROW_ATHELAS_ERROR( " ! IdealGas :: Adiabatic gamma <= 0.0!" );
     }
   }
 
@@ -39,11 +38,14 @@ class IdealGas : public EosBase<IdealGas> {
       -> Real;
   auto sound_speed_from_conserved( Real tau, Real V, Real EmT,
                                    Real* lambda ) const -> Real;
-  static auto temperature_from_tau_pressure_abar( Real tau, Real P, Real Abar,
-                                                  Real* lambda ) -> Real;
+  auto temperature_from_tau_pressure_abar( Real tau, Real P, Real Abar,
+                                           Real* lambda ) const -> Real;
   auto temperature_from_tau_pressure( Real tau, Real P, Real* lambda ) const
       -> Real;
+  auto temperature_from_conserved( Real tau, Real V, Real E,
+                                   Real* lambda ) const -> Real;
   static auto radiation_pressure( Real T, Real* lambda ) -> Real;
+  auto get_gamma( ) const noexcept -> Real;
 
  private:
   Real gamma_{ };
@@ -58,6 +60,8 @@ class Stellar : public EosBase<Stellar> {
       -> Real;
   auto sound_speed_from_conserved( Real tau, Real V, Real EmT,
                                    Real* lambda ) const -> Real;
+  auto temperature_from_conserved( Real tau, Real V, Real E,
+                                   Real* lambda ) const -> Real;
   auto temperature_from_tau_pressure_abar( Real tau, Real P, Real Abar,
                                            Real* lambda ) const -> Real;
   auto temperature_from_tau_pressure( Real tau, Real P, Real* lambda ) const
@@ -70,5 +74,3 @@ class Stellar : public EosBase<Stellar> {
 
 // TODO(astrobarker): adjust when we support more than one EOS
 using EOS = IdealGas;
-
-#endif // EOS_HPP_
