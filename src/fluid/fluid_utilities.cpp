@@ -82,8 +82,8 @@ auto numerical_flux_gudonov_positivity( const Real tauL, const Real tauR,
       std::max( std::sqrt( pos_part( -pR + pL ) / tauR ), -( vRmL ) / tauR ),
       csR / tauR );
   */
-  const Real zL = csL / tauL;
-  const Real zR = csR / tauR;
+  const Real zL    = csL / tauL;
+  const Real zR    = csR / tauR;
   const Real z_sum = zL + zR;
 
   // get tau star states
