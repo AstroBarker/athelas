@@ -73,13 +73,13 @@ void TVDMinmod::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
           compute_characteristic_decomposition( Mult_i, R_i, R_inv_i, eos );
           // store w_.. = invR @ U_..
           for ( int iC = 0; iC < nvars; iC++ ) {
-            U_c_T_i( iC ) = U( iC, iX, 1 );
+            U_c_T_i( iC ) = U( iC, iX, 0 );
             w_c_T_i( iC ) = 0.0;
           }
           MAT_MUL( 1.0, R_inv_i, U_c_T_i, 1.0, w_c_T_i );
 
           for ( int iC = 0; iC < nvars; iC++ ) {
-            U( iC, iX, 1 ) = w_c_T_i( iC );
+            U( iC, iX, 0 ) = w_c_T_i( iC );
           } // end loop vars
         } ); // par iX
   } // end map to characteristics
@@ -139,13 +139,13 @@ void TVDMinmod::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
           auto w_c_T_i = Kokkos::subview( w_c_T_, Kokkos::ALL, iX );
           // store U.. = R @ w..
           for ( int iC = 0; iC < nvars; iC++ ) {
-            U_c_T_i( iC ) = U( iC, iX, 1 );
+            U_c_T_i( iC ) = U( iC, iX, 0 );
             w_c_T_i( iC ) = 0.0;
           }
           MAT_MUL( 1.0, R_i, U_c_T_i, 1.0, w_c_T_i );
 
           for ( int iC = 0; iC < nvars; iC++ ) {
-            U( iC, iX, 1 ) = w_c_T_i( iC );
+            U( iC, iX, 0 ) = w_c_T_i( iC );
           } // end loop vars
         } ); // par_for iX
   } // end map from characteristics

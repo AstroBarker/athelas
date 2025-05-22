@@ -39,12 +39,12 @@ void sedov_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
   const Real D0 = pin->in_table["problem"]["params"]["rho0"].value_or( 1.0 );
   const Real E0 = pin->in_table["problem"]["params"]["E0"].value_or( 0.3 );
 
-  const int origin = 2;
+  const int origin = 1;
 
   // TODO(astrobarker): geometry aware volume for energy
   const Real volume = ( 4.0 * M_PI / 3.0 ) *
                       std::pow( grid->get_left_interface( origin + 1 ), 3.0 );
-  const Real gamma = 1.4;
+  const Real gamma = 5.0 / 3.0;
   const Real P0    = ( gamma - 1.0 ) * E0 / volume;
 
   for ( int iX = ilo; iX <= ihi; iX++ ) {

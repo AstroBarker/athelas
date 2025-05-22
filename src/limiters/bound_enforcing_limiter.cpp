@@ -51,7 +51,7 @@ namespace bel {
  */
 void limit_density( View3D<Real> U, const ModalBasis* basis ) {
   constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
-                                           //
+
   const int order = basis->get_order( );
 
   if ( order == 1 ) {
