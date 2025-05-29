@@ -37,9 +37,9 @@ namespace {
 /**
  * Compute the CFL timestep restriction.
  **/
-auto compute_cfl( const Real CFL, const int order, const int nStages,
-                  const int tOrder ) -> Real {
-  Real c = 1.0;
+auto compute_cfl( const double CFL, const int order, const int nStages,
+                  const int tOrder ) -> double {
+  double c = 1.0;
 
   if ( nStages == tOrder ) {
     c = 1.0;
@@ -56,16 +56,16 @@ auto compute_cfl( const Real CFL, const int order, const int nStages,
     }
   }
 
-  const Real max_cfl = 0.95;
+  const double max_cfl = 0.95;
   return std::min( c * CFL / ( ( 2.0 * (order)-1.0 ) ), max_cfl );
 }
 
 /**
  * Compute timestep
  **/
-auto compute_timestep( const View3D<Real> U, const GridStructure* grid,
-                       EOS* eos, const Real CFL, const Options* opts ) -> Real {
-  Real dt = 0.0;
+auto compute_timestep( const View3D<double> U, const GridStructure* grid,
+                       EOS* eos, const double CFL, const Options* opts ) -> double {
+  double dt = 0.0;
   if ( !opts->do_rad ) {
     dt = fluid::compute_timestep_fluid( U, grid, eos, CFL );
   } else {
@@ -140,10 +140,10 @@ auto Driver::execute( ) -> int {
 
   // --- Timer ---
   Kokkos::Timer timer_zone_cycles;
-  Real zc_ws = 0.0; // zone cycles / wall second
+  double zc_ws = 0.0; // zone cycles / wall second
 
   // initial timestep TODO(astrobarker) make input param
-  Real const dt_init = 1.0e-16;
+  double const dt_init = 1.0e-16;
   dt_                = dt_init;
 
   // --- Evolution loop ---
@@ -202,7 +202,7 @@ auto Driver::execute( ) -> int {
     // timer
     if ( iStep % i_print_ == 0 ) {
       zc_ws =
-          static_cast<Real>( i_print_ ) * nX_ / timer_zone_cycles.seconds( );
+          static_cast<double>( i_print_ ) * nX_ / timer_zone_cycles.seconds( );
       std::println( " ~ {} {:.5e} {:.5e} {:.5e} ", iStep, time_, dt_, zc_ws );
       timer_zone_cycles.reset( );
     }

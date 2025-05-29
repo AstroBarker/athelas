@@ -28,7 +28,7 @@ namespace bc {
  *  dirichlet
  **/
 template <int N> // N = 3 for fluid, N = 2 for rad...
-void fill_ghost_zones( View3D<Real> U, const GridStructure* grid,
+void fill_ghost_zones( View3D<double> U, const GridStructure* grid,
                        const int order, BoundaryConditions* bcs ) {
 
   const int nvars = U.extent( 0 );

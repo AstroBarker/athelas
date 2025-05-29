@@ -24,12 +24,12 @@ namespace root_finders {
 
 /* templated residual function */
 // template <typename T, typename F, typename... Args>
-// Real residual( F g, T x0, Args... args ) {
+// double residual( F g, T x0, Args... args ) {
 //   return g( x0, args... ) - x0;
 // }
 
 template <typename T, typename F, typename... Args>
-auto residual( F g, T x0, const int k, const int iC, Args... args ) -> Real {
+auto residual( F g, T x0, const int k, const int iC, Args... args ) -> double {
   return g( x0, k, iC, args... ) - x0( iC, k );
 }
 
@@ -81,11 +81,11 @@ template <typename T, typename F, typename... Args>
 auto fixed_point_aa_root( F target, T x0, Args... args ) -> T {
 
   // puts f(x) = 0 into fixed point form
-  auto f = [&]( const Real x, Args... args ) {
+  auto f = [&]( const double x, Args... args ) {
     return target( x, args... ) + x;
   };
   // residual function, used in AA algorithm
-  auto g = [&]( const Real x, Args... args ) { return f( x, args... ) - x; };
+  auto g = [&]( const double x, Args... args ) { return f( x, args... ) - x; };
 
   unsigned int n = 0;
 
@@ -125,18 +125,18 @@ auto fixed_point_aa_root( F target, T x0, Args... args ) -> T {
  **/
 template <typename F, typename T, typename... Args>
 auto fixed_point_aa( F target, const int k, T scratch, const int iC,
-                     Args... args ) -> Real {
+                     Args... args ) -> double {
 
-  View2D<Real> scratch_km1( "scratch_km1", scratch.extent( 0 ),
+  View2D<double> scratch_km1( "scratch_km1", scratch.extent( 0 ),
                             scratch.extent( 1 ) );
   Kokkos::deep_copy( scratch_km1, scratch );
 
   unsigned int n = 0;
 
-  Real error = 1.0;
-  Real xkm1  = 0.0;
-  Real xk    = 0.0;
-  Real xkp1  = 0.0;
+  double error = 1.0;
+  double xkm1  = 0.0;
+  double xk    = 0.0;
+  double xkp1  = 0.0;
   xk         = scratch( iC, k );
   xk         = target( scratch, k, iC, args... ); // one fixed point step
   xkm1       = scratch( iC, k );
@@ -153,7 +153,7 @@ auto fixed_point_aa( F target, const int k, T scratch, const int iC,
   }
   while ( n <= root_finders::MAX_ITERS && error >= root_finders::RELTOL ) {
     /* Anderson acceleration step */
-    Real alpha = -residual( target, scratch, k, iC, args... ) /
+    double alpha = -residual( target, scratch, k, iC, args... ) /
                  ( residual( target, scratch_km1, k, iC, args... ) -
                    residual( target, scratch, k, iC, args... ) );
 
@@ -184,15 +184,15 @@ auto fixed_point_aa( F target, const int k, T scratch, const int iC,
 // unused generic fixed point iteration for implicit update
 template <typename F, typename T, typename... Args>
 auto fixed_point_implicit( F target, const int k, T scratch, const int iC,
-                           Args... args ) -> Real {
+                           Args... args ) -> double {
 
   // auto x0 = scratch[0];
   unsigned int n = 0;
 
-  Real error = 1.0;
-  Real xkm1  = 0.0;
-  Real xk    = 0.0;
-  Real xkp1  = 0.0;
+  double error = 1.0;
+  double xkm1  = 0.0;
+  double xk    = 0.0;
+  double xkp1  = 0.0;
   xk         = scratch( iC, k );
   xk         = target( scratch, k, iC, args... ); // one fixed point step
   xkm1       = scratch( iC, k );

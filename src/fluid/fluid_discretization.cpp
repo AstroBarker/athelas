@@ -27,10 +27,10 @@
 namespace fluid {
 // Compute the divergence of the flux term for the update
 void compute_increment_fluid_divergence(
-    const View3D<Real> U, const GridStructure& grid, const ModalBasis* basis,
-    const EOS* eos, View3D<Real> dU, View3D<Real> Flux_q,
-    View2D<Real> dFlux_num, View2D<Real> uCF_F_L, View2D<Real> uCF_F_R,
-    View1D<Real> Flux_U, View1D<Real> Flux_P ) {
+    const View3D<double> U, const GridStructure& grid, const ModalBasis* basis,
+    const EOS* eos, View3D<double> dU, View3D<double> Flux_q,
+    View2D<double> dFlux_num, View2D<double> uCF_F_L, View2D<double> uCF_F_R,
+    View1D<double> Flux_U, View1D<double> Flux_P ) {
   const auto& nNodes = grid.get_n_nodes( );
   const auto& order  = basis->get_order( );
   const auto& ilo    = grid.get_ilo( );
@@ -55,31 +55,22 @@ void compute_increment_fluid_divergence(
         auto uCF_L = Kokkos::subview( uCF_F_L, Kokkos::ALL, iX );
         auto uCF_R = Kokkos::subview( uCF_F_R, Kokkos::ALL, iX );
 
-        const Real rho_L = 1.0 / uCF_L( 0 );
-        const Real rho_R = 1.0 / uCF_R( 0 );
-
         // Debug mode assertions.
-        assert( rho_L > 0.0 && !std::isnan( rho_L ) &&
-                "fluid_discretization :: Numerical Fluxes bad rho." );
-        assert( rho_R > 0.0 && !std::isnan( rho_R ) &&
-                "fluid_discretization :: Numerical Fluxes bad rho." );
         assert( uCF_L( 2 ) > 0.0 && !std::isnan( uCF_L( 2 ) ) &&
                 "fluid_discretization :: Numerical Fluxes bad energy." );
         assert( uCF_R( 2 ) > 0.0 && !std::isnan( uCF_R( 2 ) ) &&
                 "fluid_discretization :: Numerical Fluxes bad energy." );
 
         auto lambda     = nullptr;
-        const Real P_L  = eos->pressure_from_conserved( uCF_L( 0 ), uCF_L( 1 ),
+        const double P_L  = eos->pressure_from_conserved( uCF_L( 0 ), uCF_L( 1 ),
                                                         uCF_L( 2 ), lambda );
-        const Real Cs_L = eos->sound_speed_from_conserved(
+        const double Cs_L = eos->sound_speed_from_conserved(
             uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ), lambda );
-        // const Real lam_L = Cs_L * rho_L;
 
-        const Real P_R  = eos->pressure_from_conserved( uCF_R( 0 ), uCF_R( 1 ),
+        const double P_R  = eos->pressure_from_conserved( uCF_R( 0 ), uCF_R( 1 ),
                                                         uCF_R( 2 ), lambda );
-        const Real Cs_R = eos->sound_speed_from_conserved(
+        const double Cs_R = eos->sound_speed_from_conserved(
             uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ), lambda );
-        // const Real lam_R = Cs_R * rho_R;
 
         // --- Numerical Fluxes ---
 
@@ -128,7 +119,7 @@ void compute_increment_fluid_divergence(
                                                 { nvars, ihi + 1, nNodes } ),
         KOKKOS_LAMBDA( const int iCF, const int iX, const int iN ) {
           auto lambda  = nullptr;
-          const Real P = eos->pressure_from_conserved(
+          const double P = eos->pressure_from_conserved(
               basis->basis_eval( U, iX, 0, iN + 1 ),
               basis->basis_eval( U, iX, 1, iN + 1 ),
               basis->basis_eval( U, iX, 2, iN + 1 ), lambda );
@@ -143,7 +134,7 @@ void compute_increment_fluid_divergence(
         Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 0, ilo, 0 },
                                                 { nvars, ihi + 1, order } ),
         KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
-          Real local_sum = 0.0;
+          double local_sum = 0.0;
           for ( int iN = 0; iN < nNodes; iN++ ) {
             auto X = grid.node_coordinate( iX, iN );
             local_sum += grid.get_weights( iN ) * Flux_q( iCF, iX, iN ) *
@@ -160,10 +151,10 @@ void compute_increment_fluid_divergence(
  * Compute fluid increment from geometry in spherical symmetry
  * TODO: ? missing sqrt(det gamma) ?
  **/
-void compute_increment_fluid_geometry( const View3D<Real> U,
+void compute_increment_fluid_geometry( const View3D<double> U,
                                        const GridStructure& grid,
                                        const ModalBasis* basis, const EOS* eos,
-                                       View3D<Real> dU ) {
+                                       View3D<double> dU ) {
   const int nNodes = grid.get_n_nodes( );
   const int order  = basis->get_order( );
   const int ilo    = grid.get_ilo( );
@@ -173,15 +164,15 @@ void compute_increment_fluid_geometry( const View3D<Real> U,
       "Fluid :: Geometry Term",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { ilo, 0 }, { ihi + 1, order } ),
       KOKKOS_LAMBDA( const int iX, const int k ) {
-        Real local_sum = 0.0;
+        double local_sum = 0.0;
         auto lambda    = nullptr;
         for ( int iN = 0; iN < nNodes; iN++ ) {
-          const Real P = eos->pressure_from_conserved(
+          const double P = eos->pressure_from_conserved(
               basis->basis_eval( U, iX, 0, iN + 1 ),
               basis->basis_eval( U, iX, 1, iN + 1 ),
               basis->basis_eval( U, iX, 2, iN + 1 ), lambda );
 
-          Real X = grid.node_coordinate( iX, iN );
+          double X = grid.node_coordinate( iX, iN );
 
           local_sum +=
               grid.get_weights( iN ) * P * basis->get_phi( iX, iN + 1, k ) * X;
@@ -196,36 +187,36 @@ void compute_increment_fluid_geometry( const View3D<Real> U,
  * Compute fluid increment from radiation sources
  * TODO: Modify inputs?
  **/
-auto compute_increment_fluid_source( View2D<Real> uCF, const int k,
-                                     const int iCF, const View2D<Real> uCR,
+auto compute_increment_fluid_source( View2D<double> uCF, const int k,
+                                     const int iCF, const View2D<double> uCR,
                                      const GridStructure& grid,
                                      const ModalBasis* fluid_basis, 
                                      const ModalBasis* rad_basis, 
                                      const EOS* eos, const Opacity* opac, 
                                      const int iX )
-    -> Real {
+    -> double {
   const int nNodes = grid.get_n_nodes( );
 
-  Real local_sum = 0.0;
+  double local_sum = 0.0;
   for ( int iN = 0; iN < nNodes; iN++ ) {
-    const Real D   = 1.0 / fluid_basis->basis_eval( uCF, iX, 0, iN + 1 );
-    const Real Vel = fluid_basis->basis_eval( uCF, iX, 1, iN + 1 );
-    const Real EmT = fluid_basis->basis_eval( uCF, iX, 2, iN + 1 );
+    const double D   = 1.0 / fluid_basis->basis_eval( uCF, iX, 0, iN + 1 );
+    const double Vel = fluid_basis->basis_eval( uCF, iX, 1, iN + 1 );
+    const double EmT = fluid_basis->basis_eval( uCF, iX, 2, iN + 1 );
 
-    const Real Er = rad_basis->basis_eval( uCR, iX, 0, iN + 1 );
-    const Real Fr = rad_basis->basis_eval( uCR, iX, 1, iN + 1 );
-    const Real Pr = radiation::compute_closure( Er, Fr );
+    const double Er = rad_basis->basis_eval( uCR, iX, 0, iN + 1 );
+    const double Fr = rad_basis->basis_eval( uCR, iX, 1, iN + 1 );
+    const double Pr = radiation::compute_closure( Er, Fr );
 
     auto lambda  = nullptr;
-    const Real T = eos->temperature_from_conserved( 1.0 / D, Vel, EmT, lambda );
+    const double T = eos->temperature_from_conserved( 1.0 / D, Vel, EmT, lambda );
 
     // TODO(astrobarker): composition
-    const Real X = 1.0;
-    const Real Y = 1.0;
-    const Real Z = 1.0;
+    const double X = 1.0;
+    const double Y = 1.0;
+    const double Z = 1.0;
 
-    const Real kappa_r = rosseland_mean( opac, D, T, X, Y, Z, lambda );
-    const Real kappa_p = planck_mean( opac, D, T, X, Y, Z, lambda );
+    const double kappa_r = rosseland_mean( opac, D, T, X, Y, Z, lambda );
+    const double kappa_p = planck_mean( opac, D, T, X, Y, Z, lambda );
 
     local_sum +=
         grid.get_weights( iN ) * fluid_basis->get_phi( iX, iN + 1, k ) *
@@ -252,10 +243,10 @@ auto compute_increment_fluid_source( View2D<Real> uCF, const int k,
  * BC               : (string) boundary condition type
  **/
 void compute_increment_fluid_explicit(
-    const View3D<Real> U, const GridStructure& grid,
-    const ModalBasis* basis, const EOS* eos, View3D<Real> dU,
-    View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
-    View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
+    const View3D<double> U, const GridStructure& grid,
+    const ModalBasis* basis, const EOS* eos, View3D<double> dU,
+    View3D<double> Flux_q, View2D<double> dFlux_num, View2D<double> uCF_F_L,
+    View2D<double> uCF_F_R, View1D<double> Flux_U, View1D<double> Flux_P,
     const Options* opts, BoundaryConditions* bcs ) {
 
   const auto& order = basis->get_order( );

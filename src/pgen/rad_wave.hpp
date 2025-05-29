@@ -20,9 +20,9 @@
  * @brief Initialize radiating shock
  **/
 void rad_shock_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
-  View3D<Real> uCF = state->get_u_cf( );
-  View3D<Real> uPF = state->get_u_pf( );
-  View3D<Real> uCR = state->get_u_cr( );
+  View3D<double> uCF = state->get_u_cf( );
+  View3D<double> uPF = state->get_u_pf( );
+  View3D<double> uCR = state->get_u_cr( );
   const int pOrder = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
@@ -37,24 +37,24 @@ void rad_shock_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   constexpr static int iCR_E = 0;
 
-  const Real lambda =
+  const double lambda =
       pin->in_table["problem"]["params"]["lambda"].value_or( 0.1 );
-  const Real kappa =
+  const double kappa =
       pin->in_table["problem"]["params"]["kappa"].value_or( 1.0 );
-  const Real epsilon =
+  const double epsilon =
       pin->in_table["problem"]["params"]["epsilon"].value_or( 1.0e-6 );
-  const Real rho0 = pin->in_table["problem"]["params"]["rho0"].value_or( 1.0 );
-  const Real P0 =
+  const double rho0 = pin->in_table["problem"]["params"]["rho0"].value_or( 1.0 );
+  const double P0 =
       pin->in_table["problem"]["params"]["p0"].value_or( 1.0e-6 ); // K
 
   // TODO(astrobarker): thread through
-  const Real gamma = 5.0 / 3.0;
-  const Real gm1   = gamma - 1.0;
+  const double gamma = 5.0 / 3.0;
+  const double gm1   = gamma - 1.0;
 
   for ( int iX = 0; iX <= ihi + 1; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-        Real X1               = grid->get_centers( iX );
+        double X1               = grid->get_centers( iX );
         uCF( iCF_Tau, iX, k ) = 0.0;
         uCF( iCF_V, iX, k )   = 0.0;
         uCF( iCF_E, iX, k )   = 0.0;

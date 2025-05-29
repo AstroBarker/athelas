@@ -22,8 +22,8 @@
 void shockless_noh_init( State* state, GridStructure* grid,
                          const ProblemIn* pin ) {
 
-  View3D<Real> uCF = state->get_u_cf( );
-  View3D<Real> uPF = state->get_u_pf( );
+  View3D<double> uCF = state->get_u_cf( );
+  View3D<double> uPF = state->get_u_pf( );
   const int pOrder = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
@@ -36,11 +36,11 @@ void shockless_noh_init( State* state, GridStructure* grid,
 
   constexpr static int iPF_D = 0;
 
-  const Real D = pin->in_table["problem"]["params"]["rho"].value_or( 1.0 );
-  const Real E_M =
+  const double D = pin->in_table["problem"]["params"]["rho"].value_or( 1.0 );
+  const double E_M =
       pin->in_table["problem"]["params"]["specific_energy"].value_or( 1.0 );
 
-  Real X1 = 0.0;
+  double X1 = 0.0;
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {

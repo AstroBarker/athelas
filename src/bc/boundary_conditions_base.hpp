@@ -33,8 +33,8 @@ BcType parse_bc_type( const std::string& name );
 template <int N>
 struct BoundaryConditionsData {
   BcType type;
-  Real dirichlet_values[N] = { }; // Only used if type == Dirichlet
-  Real time; // placeholder for now
+  double dirichlet_values[N] = { }; // Only used if type == Dirichlet
+  double time; // placeholder for now
 
   // necessary
   KOKKOS_INLINE_FUNCTION
@@ -44,7 +44,7 @@ struct BoundaryConditionsData {
   BoundaryConditionsData( BcType type_ ) : type( type_ ) {}
 
   KOKKOS_INLINE_FUNCTION
-  BoundaryConditionsData( BcType type_, const std::array<Real, N> vals )
+  BoundaryConditionsData( BcType type_, const std::array<double, N> vals )
       : type( type_ ) {
     assert( ( type_ == BcType::Dirichlet || type_ == BcType::Marshak ) &&
             "This constructor is for Dirichlet and Marshak boundary "
@@ -55,7 +55,7 @@ struct BoundaryConditionsData {
   }
 
   KOKKOS_INLINE_FUNCTION
-  auto get_dirichlet_value( int i ) const -> Real {
+  auto get_dirichlet_value( int i ) const -> double {
     return dirichlet_values[i];
   }
 };
@@ -90,7 +90,7 @@ KOKKOS_INLINE_FUNCTION auto get_bc_data<2>( BoundaryConditions* bc )
 // Applies boundary condition for one variable `q`
 template <int N>
 KOKKOS_INLINE_FUNCTION void
-apply_bc( const BoundaryConditionsData<N>& bc, View3D<Real> U, const int q,
+apply_bc( const BoundaryConditionsData<N>& bc, View3D<double> U, const int q,
           const int ghost_cell, const int interior_cell, const int num_modes ) {
   switch ( bc.type ) {
   case BcType::Outflow:
@@ -138,14 +138,14 @@ apply_bc( const BoundaryConditionsData<N>& bc, View3D<Real> U, const int q,
   // FIX: check if slope++ are correct.
   case BcType::Marshak: {
     // Marshak uses dirichlet_values
-    const Real Einc = bc.dirichlet_values[0];
+    const double Einc = bc.dirichlet_values[0];
     for ( int k = 0; k < num_modes; k++ ) {
       if ( q == 0 ) {
         U( q, ghost_cell, k ) = Einc;
       } else if ( q == 1 ) {
-        constexpr static Real c = constants::c_cgs;
-        const Real E0           = U( 0, interior_cell, k );
-        const Real F0           = U( 1, interior_cell, k );
+        constexpr static double c = constants::c_cgs;
+        const double E0           = U( 0, interior_cell, k );
+        const double F0           = U( 1, interior_cell, k );
         U( q, ghost_cell, k )   = 0.5 * c * Einc - 0.5 * ( c * E0 + 2.0 * F0 );
       }
     }
@@ -164,11 +164,11 @@ BoundaryConditions make_boundary_conditions(
     bool do_rad,
 
     const std::string& fluid_bc_i, const std::string& fluid_bc_o,
-    const std::array<Real, 3>& fluid_i_dirichlet_values,
-    const std::array<Real, 3>& fluid_o_dirichlet_values,
+    const std::array<double, 3>& fluid_i_dirichlet_values,
+    const std::array<double, 3>& fluid_o_dirichlet_values,
 
     const std::string& rad_bc_i, const std::string& rad_bc_o,
-    const std::array<Real, 2>& rad_i_dirichlet_values,
-    const std::array<Real, 2>& rad_o_dirichlet_values );
+    const std::array<double, 2>& rad_i_dirichlet_values,
+    const std::array<double, 2>& rad_o_dirichlet_values );
 
 } // namespace bc

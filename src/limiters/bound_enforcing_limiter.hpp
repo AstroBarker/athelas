@@ -31,42 +31,42 @@
 
 namespace bel {
 
-void limit_density( View3D<Real> U, const ModalBasis* basis );
-void limit_internal_energy( View3D<Real> U, const ModalBasis* basis,
+void limit_density( View3D<double> U, const ModalBasis* basis );
+void limit_internal_energy( View3D<double> U, const ModalBasis* basis,
                             const EOS* eos );
-void limit_rad_energy( View3D<Real> U, const ModalBasis* basis,
+void limit_rad_energy( View3D<double> U, const ModalBasis* basis,
                        const EOS* eos );
-void limit_rad_momentum( View3D<Real> U, const ModalBasis* basis,
+void limit_rad_momentum( View3D<double> U, const ModalBasis* basis,
                          const EOS* eos );
-void apply_bound_enforcing_limiter( View3D<Real> U, const ModalBasis* basis,
+void apply_bound_enforcing_limiter( View3D<double> U, const ModalBasis* basis,
                                     const EOS* eos );
-void apply_bound_enforcing_limiter_rad( View3D<Real> U, const ModalBasis* basis,
+void apply_bound_enforcing_limiter_rad( View3D<double> U, const ModalBasis* basis,
                                         const EOS* eos );
-auto compute_theta_state( View3D<Real> U, const ModalBasis* basis,
-                          const EOS* eos, Real theta, int iCF, int iX, int iN )
-    -> Real;
-auto target_func( Real theta, View3D<Real> U, const ModalBasis* basis,
-                  const EOS* eos, int iX, int iN ) -> Real;
-auto target_func_rad_flux( Real theta, View3D<Real> U, const ModalBasis* basis,
-                           const EOS* eos, int iX, int iN ) -> Real;
-auto target_func_rad_energy( Real theta, View3D<Real> U,
+auto compute_theta_state( View3D<double> U, const ModalBasis* basis,
+                          const EOS* eos, double theta, int iCF, int iX, int iN )
+    -> double;
+auto target_func( double theta, View3D<double> U, const ModalBasis* basis,
+                  const EOS* eos, int iX, int iN ) -> double;
+auto target_func_rad_flux( double theta, View3D<double> U, const ModalBasis* basis,
+                           const EOS* eos, int iX, int iN ) -> double;
+auto target_func_rad_energy( double theta, View3D<double> U,
                              const ModalBasis* basis, const EOS* eos, int iX,
-                             int iN ) -> Real;
+                             int iN ) -> double;
 
 template <typename F>
-auto bisection( const View3D<Real> U, F target, const ModalBasis* basis,
-                const EOS* eos, const int iX, const int iN ) -> Real {
-  constexpr static Real TOL      = 1e-10;
+auto bisection( const View3D<double> U, F target, const ModalBasis* basis,
+                const EOS* eos, const int iX, const int iN ) -> double {
+  constexpr static double TOL      = 1e-10;
   constexpr static int MAX_ITERS = 100;
-  constexpr static Real delta    = 1.0e-3; // reduce root by delta
+  constexpr static double delta    = 1.0e-3; // reduce root by delta
 
   // bisection bounds on theta
-  Real a = 0.0;
-  Real b = 1.0;
-  Real c = 0.5;
+  double a = 0.0;
+  double b = 1.0;
+  double c = 0.5;
 
-  Real fa = 0.0; // f(a) etc
-  Real fc = 0.0;
+  double fa = 0.0; // f(a) etc
+  double fc = 0.0;
 
   int n = 0;
   while ( n <= MAX_ITERS ) {
@@ -94,11 +94,11 @@ auto bisection( const View3D<Real> U, F target, const ModalBasis* basis,
 }
 
 template <typename F>
-auto backtrace( const View3D<Real> U, F target, const ModalBasis* basis,
-                const EOS* eos, const int iX, const int iN ) -> Real {
-  constexpr static Real EPSILON = 1.0e-10; // maybe make this smarter
-  Real theta                    = 1.0;
-  Real nodal                    = -1.0;
+auto backtrace( const View3D<double> U, F target, const ModalBasis* basis,
+                const EOS* eos, const int iX, const int iN ) -> double {
+  constexpr static double EPSILON = 1.0e-10; // maybe make this smarter
+  double theta                    = 1.0;
+  double nodal                    = -1.0;
 
   while ( theta >= 0.01 && nodal < EPSILON ) {
     nodal = target( theta, U, basis, eos, iX, iN );

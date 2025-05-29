@@ -36,9 +36,9 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   std::optional<bool> rad  = in_table["problem"]["do_rad"].value<bool>( );
   std::optional<std::string> geom =
       in_table["problem"]["geometry"].value<std::string>( );
-  std::optional<Real> tf = in_table["problem"]["t_end"].value<Real>( );
-  std::optional<Real> x1 = in_table["problem"]["xl"].value<Real>( );
-  std::optional<Real> x2 = in_table["problem"]["xr"].value<Real>( );
+  std::optional<double> tf = in_table["problem"]["t_end"].value<double>( );
+  std::optional<double> x1 = in_table["problem"]["xl"].value<double>( );
+  std::optional<double> x2 = in_table["problem"]["xr"].value<double>( );
   std::optional<std::string> fluid_bc_i_ =
       in_table["bc"]["fluid"]["bc_i"].value<std::string>( );
   std::optional<std::string> fluid_bc_o_ =
@@ -47,7 +47,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
       in_table["bc"]["rad"]["bc_i"].value<std::string>( );
   std::optional<std::string> rad_bc_o_ =
       in_table["bc"]["rad"]["bc_o"].value<std::string>( );
-  std::optional<Real> cfl = in_table["problem"]["cfl"].value<Real>( );
+  std::optional<double> cfl = in_table["problem"]["cfl"].value<double>( );
 
   // output
   nlim         = in_table["output"]["nlim"].value_or( -1 );
@@ -91,13 +91,13 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   // limiters
   do_limiter = in_table["limiters"]["do_limiter"].value_or( true );
   std::optional<bool> tci_opt = in_table["limiters"]["tci_opt"].value<bool>( );
-  std::optional<Real> tci_val = in_table["limiters"]["tci_val"].value<Real>( );
+  std::optional<double> tci_val = in_table["limiters"]["tci_val"].value<double>( );
   std::optional<bool> characteristic =
       in_table["limiters"]["characteristic"].value<bool>( );
-  std::optional<Real> gamma1 = in_table["limiters"]["gamma_l"].value<Real>( );
-  std::optional<Real> gamma2 = in_table["limiters"]["gamma_i"].value<Real>( );
-  std::optional<Real> gamma3 = in_table["limiters"]["gamma_r"].value<Real>( );
-  std::optional<Real> wenor  = in_table["limiters"]["weno_r"].value<Real>( );
+  std::optional<double> gamma1 = in_table["limiters"]["gamma_l"].value<double>( );
+  std::optional<double> gamma2 = in_table["limiters"]["gamma_i"].value<double>( );
+  std::optional<double> gamma3 = in_table["limiters"]["gamma_r"].value<double>( );
+  std::optional<double> wenor  = in_table["limiters"]["weno_r"].value<double>( );
   b_tvd                      = in_table["limiters"]["b_tvd"].value_or( 1.0 );
   m_tvb                      = in_table["limiters"]["m_tvb"].value_or( 1.0 );
   limiter_type = in_table["limiters"]["type"].value_or( "minmod" );
@@ -295,7 +295,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
     gamma_l = ( 1.0 - gamma_i ) / 2.0;
     gamma_r = ( 1.0 - gamma_i ) / 2.0;
   }
-  const Real sum_g = gamma_l + gamma_i + gamma_r;
+  const double sum_g = gamma_l + gamma_i + gamma_r;
   if ( std::fabs( sum_g - 1.0 ) > 1.0e-10 ) {
     std::fprintf( stderr, "{gamma}, sum gamma = { %.10f %.10f %.10f }, %.18e\n",
                   gamma_l, gamma_i, gamma_r, 1.0 - sum_g );

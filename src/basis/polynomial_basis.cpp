@@ -32,7 +32,7 @@
  * Constructor creates necessary matrices and bases, etc.
  * This has to be called after the problem is initialized.
  **/
-ModalBasis::ModalBasis( poly_basis::poly_basis basis, const View3D<Real> uPF,
+ModalBasis::ModalBasis( poly_basis::poly_basis basis, const View3D<double> uPF,
                         GridStructure* grid, const int pOrder, const int nN,
                         const int nElements, const int nGuard, const bool density_weight )
     : nX_( nElements ), order_( pOrder ), nNodes_( nN ),
@@ -68,8 +68,8 @@ ModalBasis::ModalBasis( poly_basis::poly_basis basis, const View3D<Real> uPF,
  * eta   : coordinate
  * eta_c : center of mass
  **/
-auto ModalBasis::taylor( const int order, const Real eta, const Real eta_c )
-    -> Real {
+auto ModalBasis::taylor( const int order, const double eta, const double eta_c )
+    -> double {
 
   if ( order < 0 ) {
     THROW_ATHELAS_ERROR(
@@ -97,8 +97,8 @@ auto ModalBasis::taylor( const int order, const Real eta, const Real eta_c )
  * eta : coordinate
  * eta_c: center of mass
  **/
-auto ModalBasis::d_taylor( const int order, const Real eta, const Real eta_c )
-    -> Real {
+auto ModalBasis::d_taylor( const int order, const double eta, const double eta_c )
+    -> double {
 
   if ( order < 0 ) {
     THROW_ATHELAS_ERROR(
@@ -124,16 +124,16 @@ auto ModalBasis::d_taylor( const int order, const Real eta, const Real eta_c )
 /* --- legendre Methods --- */
 /* TODO: Make sure that x_c offset for legendre works with COM != 0 */
 
-auto ModalBasis::legendre( const int n, const Real x, const Real x_c ) -> Real {
+auto ModalBasis::legendre( const int n, const double x, const double x_c ) -> double {
   return legendre( n, x - x_c );
 }
 
-auto ModalBasis::d_legendre( const int n, Real x, const Real x_c ) -> Real {
+auto ModalBasis::d_legendre( const int n, double x, const double x_c ) -> double {
   return d_legendre( n, x - x_c );
 }
 
 // legendre polynomials
-auto ModalBasis::legendre( const int n, const Real x ) -> Real {
+auto ModalBasis::legendre( const int n, const double x ) -> double {
   return ( n == 0 )   ? 1.0
          : ( n == 1 ) ? x
                       : ( ( ( 2 * n ) - 1 ) * x * legendre( n - 1, x ) -
@@ -142,9 +142,9 @@ auto ModalBasis::legendre( const int n, const Real x ) -> Real {
 }
 
 // Derivative of legendre polynomials
-auto ModalBasis::d_legendre( const int order, const Real x ) -> Real {
+auto ModalBasis::d_legendre( const int order, const double x ) -> double {
 
-  Real dPn = 0.0; // P_n
+  double dPn = 0.0; // P_n
 
   for ( int i = 0; i < order; i++ ) {
     dPn = ( i + 1 ) * legendre( i, x ) + x * dPn;
@@ -154,7 +154,7 @@ auto ModalBasis::d_legendre( const int order, const Real x ) -> Real {
 }
 
 auto ModalBasis::d_legendre_n( const int poly_order, const int deriv_order,
-                               const Real x ) -> Real {
+                               const double x ) -> double {
   if ( deriv_order == 0 ) {
     return legendre( poly_order, x );
   }
@@ -178,14 +178,14 @@ auto ModalBasis::d_legendre_n( const int poly_order, const int deriv_order,
  * TODO: Make inner_product functions cleaner????
  **/
 auto ModalBasis::inner_product( const int m, const int n, const int iX,
-                                const Real eta_c, const View3D<Real> uPF,
-                                GridStructure* grid ) const -> Real {
-  Real result = 0.0;
+                                const double eta_c, const View3D<double> uPF,
+                                GridStructure* grid ) const -> double {
+  double result = 0.0;
   for ( int iN = 0; iN < nNodes_; iN++ ) {
     // include rho in integrand if necessary
-    const Real rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
-    const Real eta_q = grid->get_nodes( iN );
-    const Real X     = grid->node_coordinate( iX, iN );
+    const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
+    const double eta_q = grid->get_nodes( iN );
+    const double X     = grid->node_coordinate( iX, iN );
     result += func_( n, eta_q, eta_c ) * phi_( iX, iN + 1, m ) *
               grid->get_weights( iN ) * rho *
               grid->get_widths( iX ) * grid->get_sqrt_gm( X );
@@ -200,14 +200,14 @@ auto ModalBasis::inner_product( const int m, const int n, const int iX,
  * Computes < phi__m, phi__n >
  * <f,g> = \sum_q \rho_q f_q g_q j^0 w_q
  **/
-auto ModalBasis::inner_product( const int n, const int iX, const Real /*eta_c*/,
-                                const View3D<Real> uPF,
-                                GridStructure* grid ) const -> Real {
-  Real result = 0.0;
+auto ModalBasis::inner_product( const int n, const int iX, const double /*eta_c*/,
+                                const View3D<double> uPF,
+                                GridStructure* grid ) const -> double {
+  double result = 0.0;
   for ( int iN = 0; iN < nNodes_; iN++ ) {
     // include rho in integrand if necessary
-    const Real rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
-    const Real X = grid->node_coordinate( iX, iN );
+    const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
+    const double X = grid->node_coordinate( iX, iN );
     result += phi_( iX, iN + 1, n ) * phi_( iX, iN + 1, n ) *
               grid->get_weights( iN ) * rho *
               grid->get_widths( iX ) * grid->get_sqrt_gm( X );
@@ -218,11 +218,11 @@ auto ModalBasis::inner_product( const int n, const int iX, const Real /*eta_c*/,
 
 // Gram-Schmidt orthogonalization of basis
 auto ModalBasis::ortho( const int order, const int iX, const int i_eta,
-                        const Real eta, const Real eta_c,
-                        const View3D<Real> uPF, GridStructure* grid,
-                        bool const derivative_option ) -> Real {
+                        const double eta, const double eta_c,
+                        const View3D<double> uPF, GridStructure* grid,
+                        bool const derivative_option ) -> double {
 
-  Real result = 0.0;
+  double result = 0.0;
 
   // TODO(astrobarker): Can this be cleaned up?
   if ( not derivative_option ) {
@@ -233,11 +233,11 @@ auto ModalBasis::ortho( const int order, const int iX, const int i_eta,
 
   // if ( order == 0 ) return result;
 
-  Real phi_n = 0.0;
+  double phi_n = 0.0;
   for ( int k = 0; k < order; k++ ) {
-    const Real numerator =
+    const double numerator =
         inner_product( order - k - 1, order, iX, eta_c, uPF, grid );
-    const Real denominator =
+    const double denominator =
         inner_product( order - k - 1, iX, eta_c, uPF, grid );
     // ? Can this be cleaned up?
     if ( !derivative_option ) {
@@ -258,13 +258,13 @@ auto ModalBasis::ortho( const int order, const int iX, const int i_eta,
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
  * TODO: Incorporate COM centering?
  **/
-void ModalBasis::initialize_basis( const Kokkos::View<Real***> uPF,
+void ModalBasis::initialize_basis( const Kokkos::View<double***> uPF,
                                    GridStructure* grid ) {
   const int n_eta = ( 3 * nNodes_ ) + 2;
   const int ilo   = grid->get_ilo( );
   const int ihi   = grid->get_ihi( );
 
-  Real eta = 0.5;
+  double eta = 0.5;
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < order_; k++ ) {
       for ( int i_eta = 0; i_eta < n_eta; i_eta++ ) {
@@ -321,7 +321,7 @@ void ModalBasis::initialize_basis( const Kokkos::View<Real***> uPF,
  * The following checks orthogonality of basis functions on each cell.
  * Returns error if orthogonality is not met.
  **/
-void ModalBasis::check_orthogonality( const Kokkos::View<Real***> uPF,
+void ModalBasis::check_orthogonality( const Kokkos::View<double***> uPF,
                                       GridStructure* grid ) const {
 
   const int ilo = grid->get_ilo( );
@@ -330,12 +330,12 @@ void ModalBasis::check_orthogonality( const Kokkos::View<Real***> uPF,
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k1 = 0; k1 < order_; k1++ ) {
       for ( int k2 = 0; k2 < order_; k2++ ) {
-        Real result = 0.0;
+        double result = 0.0;
         for ( int i_eta = 1; i_eta <= nNodes_;
               i_eta++ ) // loop over quadratures
         {
-          const Real rho = density_weight_ ? uPF(0, iX, i_eta - 1) : 1.0;
-          const Real X = grid->node_coordinate( iX, i_eta - 1 );
+          const double rho = density_weight_ ? uPF(0, iX, i_eta - 1) : 1.0;
+          const double X = grid->node_coordinate( iX, i_eta - 1 );
           // Not using an inner_product function because their API is odd..
           result += phi_( iX, i_eta, k1 ) * phi_( iX, i_eta, k2 ) *
                     rho * grid->get_weights( i_eta - 1 ) *
@@ -363,7 +363,7 @@ void ModalBasis::check_orthogonality( const Kokkos::View<Real***> uPF,
  * ? If so, how do I expand this ?
  * ? I would need to compute and store more GL nodes, weights ?
  **/
-void ModalBasis::compute_mass_matrix( const View3D<Real> uPF,
+void ModalBasis::compute_mass_matrix( const View3D<double> uPF,
                                       GridStructure* grid ) {
   const int ilo     = grid->get_ilo( );
   const int ihi     = grid->get_ihi( );
@@ -371,11 +371,11 @@ void ModalBasis::compute_mass_matrix( const View3D<Real> uPF,
 
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < order_; k++ ) {
-      Real result = 0.0;
+      double result = 0.0;
       for ( int iN = 0; iN < nNodes_; iN++ ) {
         // include rho in integrand if necessary
-        const Real rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
-        const Real X = grid->node_coordinate( iX, iN );
+        const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
+        const double X = grid->node_coordinate( iX, iN );
         result += phi_( iX, iN + 1, k ) * phi_( iX, iN + 1, k ) *
                   grid->get_weights( iN ) * grid->get_widths( iX ) *
                   grid->get_sqrt_gm( X ) * rho;
@@ -388,9 +388,9 @@ void ModalBasis::compute_mass_matrix( const View3D<Real> uPF,
 /**
  * Evaluate (modal) basis on element iX for quantity iCF.
  **/
-auto ModalBasis::basis_eval( View3D<Real> U, const int iX, const int iCF,
-                             const int i_eta ) const -> Real {
-  Real result = 0.0;
+auto ModalBasis::basis_eval( View3D<double> U, const int iX, const int iCF,
+                             const int i_eta ) const -> double {
+  double result = 0.0;
   for ( int k = 0; k < order_; k++ ) {
     result += phi_( iX, i_eta, k ) * U( iCF, iX, k );
   }
@@ -399,9 +399,9 @@ auto ModalBasis::basis_eval( View3D<Real> U, const int iX, const int iCF,
 
 // Same as above, for a 2D vector U_k on a given cell and quantity
 // e.g., U(:, iX, :)
-auto ModalBasis::basis_eval( View2D<Real> U, const int iX, const int iCF,
-                             const int i_eta ) const -> Real {
-  Real result = 0.0;
+auto ModalBasis::basis_eval( View2D<double> U, const int iX, const int iCF,
+                             const int i_eta ) const -> double {
+  double result = 0.0;
   for ( int k = 0; k < order_; k++ ) {
     result += phi_( iX, i_eta, k ) * U( iCF, k );
   }
@@ -410,9 +410,9 @@ auto ModalBasis::basis_eval( View2D<Real> U, const int iX, const int iCF,
 
 // Same as above, for a 1D vector U_k on a given cell and quantity
 // e.g., U(iCF, iX, :)
-auto ModalBasis::basis_eval( View1D<Real> U, const int iX,
-                             const int i_eta ) const -> Real {
-  Real result = 0.0;
+auto ModalBasis::basis_eval( View1D<double> U, const int iX,
+                             const int i_eta ) const -> double {
+  double result = 0.0;
   for ( int k = 0; k < order_; k++ ) {
     result += phi_( iX, i_eta, k ) * U( k );
   }
@@ -421,18 +421,18 @@ auto ModalBasis::basis_eval( View1D<Real> U, const int iX,
 
 // Accessor for phi_
 auto ModalBasis::get_phi( const int iX, const int i_eta, const int k ) const
-    -> Real {
+    -> double {
   return phi_( iX, i_eta, k );
 }
 
 // Accessor for dphi_
 auto ModalBasis::get_d_phi( const int iX, const int i_eta, const int k ) const
-    -> Real {
+    -> double {
   return dphi_( iX, i_eta, k );
 }
 
 // Accessor for mass matrix
-auto ModalBasis::get_mass_matrix( const int iX, const int k ) const -> Real {
+auto ModalBasis::get_mass_matrix( const int iX, const int k ) const -> double {
   return mass_matrix_( iX, k );
 }
 

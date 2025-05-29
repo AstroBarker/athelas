@@ -46,14 +46,14 @@ class Driver {
 
   std::unique_ptr<BoundaryConditions> bcs_;
 
-  Real time_;
-  Real dt_;
-  Real t_end_;
-  Real cfl_;
+  double time_;
+  double dt_;
+  double t_end_;
+  double cfl_;
   int i_print_;
-  Real nlim_;
-  Real dt_hdf5_;
-  Real dt_init_frac_;
+  double nlim_;
+  double dt_hdf5_;
+  double dt_init_frac_;
 
   // core bits
   EOS eos_;

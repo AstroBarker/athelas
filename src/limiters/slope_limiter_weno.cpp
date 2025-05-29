@@ -35,7 +35,7 @@ using namespace limiter_utilities;
  * Apply the slope limiter. We use a compact stencil WENO-Z limiter
  * H. Zhu 2020, simple, high-order compact WENO RKDG slope limiter
  **/
-void WENO::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
+void WENO::apply_slope_limiter( View3D<double> U, const GridStructure* grid,
                                 const ModalBasis* basis, const EOS* eos ) {
 
   // Do not apply for first order method or if we don't want to.
@@ -106,21 +106,21 @@ void WENO::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
             modify_polynomial( U, modified_polynomial_i, gamma_i_, gamma_l_,
                                gamma_r_, iX, iC );
 
-            const Real beta_l = smoothness_indicator(
+            const double beta_l = smoothness_indicator(
                 U, modified_polynomial_i, grid, basis, iX, 0, iC ); // iX - 1
-            const Real beta_i = smoothness_indicator(
+            const double beta_i = smoothness_indicator(
                 U, modified_polynomial_i, grid, basis, iX, 1, iC ); // iX
-            const Real beta_r = smoothness_indicator(
+            const double beta_r = smoothness_indicator(
                 U, modified_polynomial_i, grid, basis, iX, 2, iC ); // iX + 1
-            const Real tau = weno_tau( beta_l, beta_i, beta_r, weno_r_ );
+            const double tau = weno_tau( beta_l, beta_i, beta_r, weno_r_ );
 
             // nonlinear weights w
-            const Real dx_i = 0.1 * grid->get_widths( iX );
-            Real w_l        = non_linear_weight( gamma_l_, beta_l, tau, dx_i );
-            Real w_i        = non_linear_weight( gamma_i_, beta_i, tau, dx_i );
-            Real w_r        = non_linear_weight( gamma_r_, beta_r, tau, dx_i );
+            const double dx_i = 0.1 * grid->get_widths( iX );
+            double w_l        = non_linear_weight( gamma_l_, beta_l, tau, dx_i );
+            double w_i        = non_linear_weight( gamma_i_, beta_i, tau, dx_i );
+            double w_r        = non_linear_weight( gamma_r_, beta_r, tau, dx_i );
 
-            const Real sum_w = w_l + w_i + w_r;
+            const double sum_w = w_l + w_i + w_r;
             w_l /= sum_w;
             w_i /= sum_w;
             w_r /= sum_w;

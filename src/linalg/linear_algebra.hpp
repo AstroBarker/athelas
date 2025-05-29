@@ -34,7 +34,7 @@ constexpr void IDENTITY_MATRIX( T Mat, int n ) {
  * @brief Matrix vector multiplication
  **/
 template <class M, class V>
-constexpr void MAT_MUL( Real /*alpha*/, M A, V x, Real /*beta*/, V y ) {
+constexpr void MAT_MUL( double /*alpha*/, M A, V x, double /*beta*/, V y ) {
   // Calculate A*x=y
   for ( int i = 0; i < 3; i++ ) {
     for ( int j = 0; j < 3; j++ ) {
@@ -42,9 +42,9 @@ constexpr void MAT_MUL( Real /*alpha*/, M A, V x, Real /*beta*/, V y ) {
     }
   }
 }
-void tri_sym_diag( int n, std::vector<Real>& d, std::vector<Real>& e,
-                   std::vector<Real>& array );
-void invert_matrix( std::vector<Real>& M, int n );
+void tri_sym_diag( int n, std::vector<double>& d, std::vector<double>& e,
+                   std::vector<double>& array );
+void invert_matrix( std::vector<double>& M, int n );
 
 /**
  * @brief Testing function: checks A A^-1 = I

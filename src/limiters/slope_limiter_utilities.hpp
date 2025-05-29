@@ -39,26 +39,26 @@ constexpr auto MINMOD_B( T a, T b, T c, T dx, T M ) -> T {
   return a;
 }
 
-auto barth_jespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T,
-                      Real U_c_R, Real alpha ) -> Real;
+auto barth_jespersen( double U_v_L, double U_v_R, double U_c_L, double U_c_T,
+                      double U_c_R, double alpha ) -> double;
 
-void detect_troubled_cells( View3D<Real> U, View2D<Real> D,
+void detect_troubled_cells( View3D<double> U, View2D<double> D,
                             const GridStructure* grid,
                             const ModalBasis* basis );
 
-auto cell_average( View3D<Real> U, const GridStructure* grid,
+auto cell_average( View3D<double> U, const GridStructure* grid,
                    const ModalBasis* basis, int iCF, int iX, int extrapolate )
-    -> Real;
+    -> double;
 
-void modify_polynomial( View3D<Real> U, View2D<Real> modified_polynomial,
-                        Real gamma_i, Real gamma_l, Real gamma_r, int iX,
+void modify_polynomial( View3D<double> U, View2D<double> modified_polynomial,
+                        double gamma_i, double gamma_l, double gamma_r, int iX,
                         int iCQ );
 
-auto smoothness_indicator( View3D<Real> U, View2D<Real> modified_polynomial,
+auto smoothness_indicator( View3D<double> U, View2D<double> modified_polynomial,
                            const GridStructure* grid, const ModalBasis* basis,
-                           int iX, int i, int iCQ ) -> Real;
+                           int iX, int i, int iCQ ) -> double;
 
-auto non_linear_weight( Real gamma, Real beta, Real tau, Real eps ) -> Real;
+auto non_linear_weight( double gamma, double beta, double tau, double eps ) -> double;
 
-auto weno_tau( Real beta_l, Real beta_i, Real beta_r, Real weno_r ) -> Real;
+auto weno_tau( double beta_l, double beta_i, double beta_r, double weno_r ) -> double;
 } // namespace limiter_utilities

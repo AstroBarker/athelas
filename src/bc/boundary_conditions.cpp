@@ -46,12 +46,12 @@ BoundaryConditions make_boundary_conditions(
     bool do_rad,
 
     const std::string& fluid_bc_i, const std::string& fluid_bc_o,
-    const std::array<Real, 3>& fluid_i_dirichlet_values,
-    const std::array<Real, 3>& fluid_o_dirichlet_values,
+    const std::array<double, 3>& fluid_i_dirichlet_values,
+    const std::array<double, 3>& fluid_o_dirichlet_values,
 
     const std::string& rad_bc_i, const std::string& rad_bc_o,
-    const std::array<Real, 2>& rad_i_dirichlet_values,
-    const std::array<Real, 2>& rad_o_dirichlet_values ) {
+    const std::array<double, 2>& rad_i_dirichlet_values,
+    const std::array<double, 2>& rad_o_dirichlet_values ) {
   BoundaryConditions my_bc;
 
   // --- Fluid BCs ---

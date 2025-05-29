@@ -27,15 +27,15 @@ namespace quadrature {
  * @param m Number of quadrature nodes (matrix dimension)
  * @param aj Output array for matrix diagonal elements
  * @param bj Output array for matrix subdiagonal elements
- * @return Real The zero-th moment (zemu) needed for weight computation
+ * @return double The zero-th moment (zemu) needed for weight computation
  */
-auto jacobi_matrix( int m, std::vector<Real>& aj, std::vector<Real>& bj )
-    -> Real {
+auto jacobi_matrix( int m, std::vector<double>& aj, std::vector<double>& bj )
+    -> double {
 
-  Real ab   = NAN;
-  Real zemu = NAN;
-  Real abi  = NAN;
-  Real abj  = NAN;
+  double ab   = NAN;
+  double zemu = NAN;
+  double abi  = NAN;
+  double abj  = NAN;
 
   ab   = 0.0;
   zemu = 2.0 / ( ab + 1.0 );
@@ -67,12 +67,12 @@ auto jacobi_matrix( int m, std::vector<Real>& aj, std::vector<Real>& bj )
  * @param nodes Output array for quadrature nodes (abscissas)
  * @param weights Output array for quadrature weights
  */
-void lg_quadrature( int m, std::vector<Real>& nodes,
-                    std::vector<Real>& weights ) {
-  std::vector<Real> aj( m );
-  std::vector<Real> bj( m );
+void lg_quadrature( int m, std::vector<double>& nodes,
+                    std::vector<double>& weights ) {
+  std::vector<double> aj( m );
+  std::vector<double> bj( m );
 
-  Real zemu = NAN;
+  double zemu = NAN;
 
   //  Get the Jacobi matrix and zero-th moment.
   zemu = jacobi_matrix( m, aj, bj );

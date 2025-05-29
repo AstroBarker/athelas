@@ -40,13 +40,13 @@ auto initialize_slope_limiter( const GridStructure* grid, const ProblemIn* pin,
  *  alpha: scaling coefficient for BJ limiter.
  *    alpha=1 is classical limiter, alpha=0 enforces constant solutions
  **/
-auto barth_jespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T,
-                      Real U_c_R, Real alpha ) -> Real {
+auto barth_jespersen( double U_v_L, double U_v_R, double U_c_L, double U_c_T,
+                      double U_c_R, double alpha ) -> double {
   // Get U_min, U_max
-  Real U_min_L = 10000000.0 * U_c_T;
-  Real U_min_R = 10000000.0 * U_c_T;
-  Real U_max_L = std::numeric_limits<Real>::epsilon( ) * U_c_T * 0.00001;
-  Real U_max_R = std::numeric_limits<Real>::epsilon( ) * U_c_T * 0.00001;
+  double U_min_L = 10000000.0 * U_c_T;
+  double U_min_R = 10000000.0 * U_c_T;
+  double U_max_L = std::numeric_limits<double>::epsilon( ) * U_c_T * 0.00001;
+  double U_max_R = std::numeric_limits<double>::epsilon( ) * U_c_T * 0.00001;
 
   U_min_L = std::min( U_min_L, std::min( U_c_T, U_c_L ) );
   U_max_L = std::max( U_max_L, std::max( U_c_T, U_c_L ) );
@@ -54,8 +54,8 @@ auto barth_jespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T,
   U_max_R = std::max( U_max_R, std::max( U_c_T, U_c_R ) );
 
   // loop of cell certices
-  Real phi_L = 0.0;
-  Real phi_R = 0.0;
+  double phi_L = 0.0;
+  double phi_R = 0.0;
 
   // left vertex
   if ( U_v_L - U_c_T + 1.0 > 1.0 ) {
@@ -83,7 +83,7 @@ auto barth_jespersen( Real U_v_L, Real U_v_R, Real U_c_L, Real U_c_T,
  * Apply the Troubled Cell Indicator of Fu & Shu (2017)
  * to flag cells for limiting
  **/
-void detect_troubled_cells( View3D<Real> U, View2D<Real> D,
+void detect_troubled_cells( View3D<double> U, View2D<double> D,
                             const GridStructure* grid,
                             const ModalBasis* basis ) {
   const int nvars = U.extent( 0 );
@@ -99,18 +99,18 @@ void detect_troubled_cells( View3D<Real> U, View2D<Real> D,
     Kokkos::parallel_for(
         "SlopeLimiter :: TCI", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
         KOKKOS_LAMBDA( const int iX ) {
-          Real denominator = 0.0;
-          Real result      = 0.0;
-          Real cell_avg    = U( iC, iX, 0 );
+          double denominator = 0.0;
+          double result      = 0.0;
+          double cell_avg    = U( iC, iX, 0 );
 
           // Extrapolate neighboring poly representations into current cell
           // and compute the new cell averages
-          Real cell_avg_L_T =
+          double cell_avg_L_T =
               cell_average( U, grid, basis, iC, iX + 1, -1 ); // from right
-          Real cell_avg_R_T =
+          double cell_avg_R_T =
               cell_average( U, grid, basis, iC, iX - 1, +1 ); // from left
-          Real cell_avg_L = U( iC, iX - 1, 0 ); // native left
-          Real cell_avg_R = U( iC, iX + 1, 0 ); // native right
+          double cell_avg_L = U( iC, iX - 1, 0 ); // native left
+          double cell_avg_R = U( iC, iX + 1, 0 ); // native right
 
           result += ( std::abs( cell_avg - cell_avg_L_T ) +
                       std::abs( cell_avg - cell_avg_R_T ) );
@@ -132,14 +132,14 @@ void detect_troubled_cells( View3D<Real> U, View2D<Real> D,
  * -1 : Extrapolate left, e.g.,  polynomial from iX+1 into iX
  * +1 : Extrapolate right, e.g.,  polynomial from iX-1 into iX
  **/
-auto cell_average( View3D<Real> U, const GridStructure* grid,
+auto cell_average( View3D<double> U, const GridStructure* grid,
                    const ModalBasis* basis, const int iCF, const int iX,
-                   const int extrapolate ) -> Real {
+                   const int extrapolate ) -> double {
   const int nNodes = grid->get_n_nodes( );
 
-  Real avg  = 0.0;
-  Real mass = 0.0;
-  Real X    = 0.0;
+  double avg  = 0.0;
+  double mass = 0.0;
+  double X    = 0.0;
 
   // Used to set loop bounds
   int mult  = 1;
@@ -180,14 +180,14 @@ auto cell_average( View3D<Real> U, const GridStructure* grid,
  * H. Zhu et al 2020, simple and high-order
  * compact WENO RKDG slope limiter
  **/
-void modify_polynomial( const View3D<Real> U, View2D<Real> modified_polynomial,
-                        const Real gamma_i, const Real gamma_l,
-                        const Real gamma_r, const int iX, const int iCQ ) {
-  const Real Ubar_i = U( iCQ, iX, 0 );
-  const Real fac    = 1.0;
+void modify_polynomial( const View3D<double> U, View2D<double> modified_polynomial,
+                        const double gamma_i, const double gamma_l,
+                        const double gamma_r, const int iX, const int iCQ ) {
+  const double Ubar_i = U( iCQ, iX, 0 );
+  const double fac    = 1.0;
   const int order   = U.extent( 2 );
 
-  const Real modified_p_slope_mag =
+  const double modified_p_slope_mag =
       fac *
       std::min( { U( iCQ, iX - 1, 1 ), U( iCQ, iX, 1 ), U( iCQ, iX + 1, 1 ) } );
   const int sign_l = utilities::SGN( U( iCQ, iX - 1, 1 ) );
@@ -212,17 +212,17 @@ void modify_polynomial( const View3D<Real> U, View2D<Real> modified_polynomial,
 }
 
 // WENO smoothness indicator beta
-auto smoothness_indicator( const View3D<Real> U,
-                           const View2D<Real> modified_polynomial,
+auto smoothness_indicator( const View3D<double> U,
+                           const View2D<double> modified_polynomial,
                            const GridStructure* grid, const ModalBasis* basis,
                            const int iX, const int i, const int /*iCQ*/ )
-    -> Real {
+    -> double {
   const int k = U.extent( 2 );
 
-  Real beta = 0.0; // output var
+  double beta = 0.0; // output var
   for ( int s = 1; s < k; s++ ) { // loop over modes
     // integrate mode on cell
-    Real local_sum = 0.0;
+    double local_sum = 0.0;
     for ( int iN = 0; iN < k; iN++ ) {
       auto X = grid->node_coordinate( iX, iN );
       local_sum += grid->get_weights( iN ) *
@@ -236,14 +236,14 @@ auto smoothness_indicator( const View3D<Real> U,
   return beta;
 }
 
-auto non_linear_weight( const Real gamma, const Real beta, const Real tau,
-                        const Real eps ) -> Real {
+auto non_linear_weight( const double gamma, const double beta, const double tau,
+                        const double eps ) -> double {
   return gamma * ( 1.0 + tau / ( eps + beta ) );
 }
 
 // weno-z tau variable
-auto weno_tau( const Real beta_l, const Real beta_i, const Real beta_r,
-               const Real weno_r ) -> Real {
+auto weno_tau( const double beta_l, const double beta_i, const double beta_r,
+               const double weno_r ) -> double {
   return std::pow(
       ( std::abs( beta_i - beta_l ) + std::abs( beta_i - beta_r ) ) / 2.0,
       weno_r );

@@ -45,7 +45,7 @@ class TimeStepper {
   /**
    * Update fluid solution with SSPRK methods
    **/
-  void update_fluid( const Real dt, State* state, GridStructure& grid,
+  void update_fluid( const double dt, State* state, GridStructure& grid,
                      const ModalBasis* fluid_basis, const EOS* eos,
                      SlopeLimiter* S_Limiter, const Options* opts,
                      BoundaryConditions* bcs ) {
@@ -57,7 +57,7 @@ class TimeStepper {
   /**
    * Explicit fluid update with SSPRK methods
    **/
-  void update_fluid_explicit( const Real dt, State* state, GridStructure& grid,
+  void update_fluid_explicit( const double dt, State* state, GridStructure& grid,
                               const ModalBasis* fluid_basis, const EOS* eos,
                               SlopeLimiter* S_Limiter, const Options* opts,
                               BoundaryConditions* bcs ) {
@@ -168,7 +168,7 @@ class TimeStepper {
   /**
    * Update rad hydro solution with SSPRK methods
    **/
-  void update_rad_hydro( const Real dt, State* state, GridStructure& grid,
+  void update_rad_hydro( const double dt, State* state, GridStructure& grid,
                          const ModalBasis* fluid_basis, 
                          const ModalBasis* rad_basis, const EOS* eos,
                          const Opacity* opac, SlopeLimiter* S_Limiter,
@@ -181,7 +181,7 @@ class TimeStepper {
   /**
    * Fully coupled IMEX rad hydro update with SSPRK methods
    **/
-  void update_rad_hydro_imex( const Real dt, State* state, GridStructure& grid,
+  void update_rad_hydro_imex( const double dt, State* state, GridStructure& grid,
                               const ModalBasis* fluid_basis, 
                               const ModalBasis* rad_basis, const EOS* eos,
                               const Opacity* opac, SlopeLimiter* S_Limiter,
@@ -213,8 +213,8 @@ class TimeStepper {
       // --- Inner update loop ---
 
       for ( int j = 0; j < iS; j++ ) {
-        const Real dt_a    = dt * explicit_tableau_.a_ij( iS, j );
-        const Real dt_a_im = dt * implicit_tableau_.a_ij( iS, j );
+        const double dt_a    = dt * explicit_tableau_.a_ij( iS, j );
+        const double dt_a_im = dt * implicit_tableau_.a_ij( iS, j );
         auto Us_j_h =
             Kokkos::subview( U_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
         auto Us_j_r =
@@ -297,8 +297,8 @@ class TimeStepper {
           } );
 
       // capturing sumvar_u_r bad?
-      auto implicit_rad = [&]( View2D<Real> scratch, const int k, const int iC,
-                               const View2D<Real> u_h, GridStructure& grid,
+      auto implicit_rad = [&]( View2D<double> scratch, const int k, const int iC,
+                               const View2D<double> u_h, GridStructure& grid,
                                const ModalBasis* fluid_basis, 
                                const ModalBasis* rad_basis, const EOS* eos,
                                const Opacity* opac, const int iX ) {
@@ -307,8 +307,8 @@ class TimeStepper {
                    compute_increment_rad_source(
                        scratch, k, iC, u_h, grid_s_[iS], fluid_basis, rad_basis, eos, opac, iX );
       };
-      auto implicit_hydro = [&]( View2D<Real> scratch, const int k,
-                                 const int iC, const View2D<Real> u_r,
+      auto implicit_hydro = [&]( View2D<double> scratch, const int k,
+                                 const int iC, const View2D<double> u_r,
                                  GridStructure& grid, const ModalBasis* fluid_basis,
                                  const ModalBasis* rad_basis, const EOS* eos, 
                                  const Opacity* opac, const int iX ) {
@@ -329,12 +329,12 @@ class TimeStepper {
             auto u_r =
                 Kokkos::subview( U_s_r_, iS, Kokkos::ALL, iX, Kokkos::ALL );
 
-            const Real temp2 = root_finders::fixed_point_aa(
+            const double temp2 = root_finders::fixed_point_aa(
                 implicit_rad, k, u_r, iC - 1, u_h, grid_s_[iS], fluid_basis, rad_basis, eos,
                 opac, iX );
             U_s_r_( iS, iC - 1, iX, k ) = temp2;
 
-            const Real temp1 = root_finders::fixed_point_aa(
+            const double temp1 = root_finders::fixed_point_aa(
                 implicit_hydro, k, u_h, iC, u_r, grid_s_[iS], fluid_basis, rad_basis, eos, opac,
                 iX );
 
@@ -353,8 +353,8 @@ class TimeStepper {
     } // end outer loop
 
     for ( unsigned short int iS = 0; iS < nStages_; iS++ ) {
-      const Real dt_b    = dt * explicit_tableau_.b_i( iS );
-      const Real dt_b_im = dt * implicit_tableau_.b_i( iS );
+      const double dt_b    = dt * explicit_tableau_.b_i( iS );
+      const double dt_b_im = dt * implicit_tableau_.b_i( iS );
       auto Us_i_h =
           Kokkos::subview( U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto Us_i_r =
@@ -432,23 +432,23 @@ class TimeStepper {
   ButcherTableau explicit_tableau_;
 
   // Hold stage data
-  View4D<Real> U_s_{ };
-  View4D<Real> dU_s_{ };
-  View4D<Real> U_s_r_{ };
-  View4D<Real> dU_s_r_{ };
-  View3D<Real> SumVar_U_{ };
-  View3D<Real> SumVar_U_r_{ };
+  View4D<double> U_s_{ };
+  View4D<double> dU_s_{ };
+  View4D<double> U_s_r_{ };
+  View4D<double> dU_s_r_{ };
+  View3D<double> SumVar_U_{ };
+  View3D<double> SumVar_U_r_{ };
   std::vector<GridStructure> grid_s_{ };
 
   // stage_data_ Holds cell left interface positions
-  View2D<Real> stage_data_{ };
+  View2D<double> stage_data_{ };
 
   // Variables to pass to update step
-  View3D<Real> flux_q_{ };
+  View3D<double> flux_q_{ };
 
-  View2D<Real> dFlux_num_{ };
-  View2D<Real> uCF_F_L_{ };
-  View2D<Real> uCF_F_R_{ };
-  View2D<Real> flux_u_{ };
-  View1D<Real> flux_p_{ };
+  View2D<double> dFlux_num_{ };
+  View2D<double> uCF_F_L_{ };
+  View2D<double> uCF_F_R_{ };
+  View2D<double> flux_u_{ };
+  View1D<double> flux_p_{ };
 };

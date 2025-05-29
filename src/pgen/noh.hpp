@@ -21,8 +21,8 @@
  **/
 void noh_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
-  View3D<Real> uCF = state->get_u_cf( );
-  View3D<Real> uPF = state->get_u_pf( );
+  View3D<double> uCF = state->get_u_cf( );
+  View3D<double> uPF = state->get_u_pf( );
   const int pOrder = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
@@ -35,11 +35,11 @@ void noh_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   constexpr static int iPF_D = 0;
 
-  const Real V0 = pin->in_table["problem"]["params"]["v0"].value_or( -1.0 );
-  const Real D0 = pin->in_table["problem"]["params"]["rho0"].value_or( 1.0 );
-  const Real P0 = pin->in_table["problem"]["params"]["p0"].value_or( 0.000001 );
+  const double V0 = pin->in_table["problem"]["params"]["v0"].value_or( -1.0 );
+  const double D0 = pin->in_table["problem"]["params"]["rho0"].value_or( 1.0 );
+  const double P0 = pin->in_table["problem"]["params"]["p0"].value_or( 0.000001 );
 
-  const Real GAMMA = 5.0 / 3.0;
+  const double GAMMA = 5.0 / 3.0;
 
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {

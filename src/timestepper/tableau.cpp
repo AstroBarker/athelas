@@ -132,7 +132,7 @@ void ButcherTableau::initialize_tableau( ) {
       a_ij( 0, 0 ) = 1.0;
       b_i( 0 )     = 1.0;
     } else if ( nStages == 2 && tOrder == 2 ) {
-      const static Real gam = 1.0 - ( 1.0 / std::sqrt( 2 ) );
+      const static double gam = 1.0 - ( 1.0 / std::sqrt( 2 ) );
       a_ij( 0, 0 )          = gam; // 0.71921758;
       a_ij( 1, 0 )          = 1.0 - gam; // 0.11776435;
       a_ij( 1, 1 )          = gam; // 0.16301806;

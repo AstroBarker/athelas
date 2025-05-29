@@ -32,7 +32,7 @@ auto State::get_n_cr( ) const noexcept -> int { return this->nCR_; }
 auto State::get_p_order( ) const noexcept -> int { return this->pOrder_; }
 
 // view accessors
-View3D<Real> State::get_u_cf( ) const noexcept { return this->uCF_; }
-View3D<Real> State::get_u_pf( ) const noexcept { return this->uPF_; }
-View3D<Real> State::get_u_af( ) const noexcept { return this->uAF_; }
-View3D<Real> State::get_u_cr( ) const noexcept { return this->uCR_; }
+View3D<double> State::get_u_cf( ) const noexcept { return this->uCF_; }
+View3D<double> State::get_u_pf( ) const noexcept { return this->uPF_; }
+View3D<double> State::get_u_af( ) const noexcept { return this->uAF_; }
+View3D<double> State::get_u_cr( ) const noexcept { return this->uCR_; }

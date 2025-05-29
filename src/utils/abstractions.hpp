@@ -9,8 +9,6 @@
 
 #include "Kokkos_Core.hpp"
 
-using Real = double;
-
 template <typename T>
 using View4D = Kokkos::View<T****>;
 

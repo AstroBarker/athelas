@@ -41,18 +41,18 @@ class ProblemIn {
   std::string fluid_bc_o;
   std::string rad_bc_i;
   std::string rad_bc_o;
-  std::array<Real, 3> fluid_i_dirichlet_values;
-  std::array<Real, 3> fluid_o_dirichlet_values;
-  std::array<Real, 2> rad_i_dirichlet_values;
-  std::array<Real, 2> rad_o_dirichlet_values;
+  std::array<double, 3> fluid_i_dirichlet_values;
+  std::array<double, 3> fluid_o_dirichlet_values;
+  std::array<double, 2> rad_i_dirichlet_values;
+  std::array<double, 2> rad_o_dirichlet_values;
 
   int nlim{ }; // number of cycles
   int ncycle_out{ }; // std output
-  Real dt_hdf5{ }; // hdf5 output
-  Real dt_init_frac{ }; // ramp up dt
+  double dt_hdf5{ }; // hdf5 output
+  double dt_init_frac{ }; // ramp up dt
 
   std::string eos_type;
-  Real gamma_eos{ };
+  double gamma_eos{ };
 
   int nElements;
   int nNodes;
@@ -62,11 +62,11 @@ class ProblemIn {
   int tOrder;
   int nStages;
 
-  Real xL;
-  Real xR;
-  Real CFL;
+  double xL;
+  double xR;
+  double CFL;
 
-  Real t_end;
+  double t_end;
 
   poly_basis::poly_basis basis;
   geometry::Geometry Geometry;
@@ -74,14 +74,14 @@ class ProblemIn {
   bool do_rad;
 
   bool TCI_Option;
-  Real TCI_Threshold;
+  double TCI_Threshold;
   bool Characteristic;
-  Real gamma_l;
-  Real gamma_i;
-  Real gamma_r;
-  Real weno_r;
-  Real b_tvd{ };
-  Real m_tvb{ };
+  double gamma_l;
+  double gamma_i;
+  double gamma_r;
+  double weno_r;
+  double b_tvd{ };
+  double m_tvb{ };
   std::string limiter_type;
   bool do_limiter{ };
 
@@ -99,7 +99,7 @@ void read_toml_array( T toml_array, G& out_array ) {
   for ( const auto& element : *toml_array ) {
     if ( index < out_array.size( ) ) {
       if ( auto elem = element.as_floating_point( ) ) {
-        out_array[index] = static_cast<Real>( *elem );
+        out_array[index] = static_cast<double>( *elem );
       } else {
         std::cerr << "Type mismatch at index " << index << std::endl;
         THROW_ATHELAS_ERROR(

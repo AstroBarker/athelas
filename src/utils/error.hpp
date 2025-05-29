@@ -88,7 +88,7 @@ template <typename T>
 void check_state( T state, const int ihi, const bool do_rad ) {
   auto uCR     = state->get_u_cr( );
   auto uCF     = state->get_u_cf( );
-  const Real c = constants::c_cgs;
+  const double c = constants::c_cgs;
 
   // Create host mirrors of the views
   auto uCR_h = Kokkos::create_mirror_view( uCR );
@@ -101,11 +101,11 @@ void check_state( T state, const int ihi, const bool do_rad ) {
   // Check state on host
   for ( int iX = 1; iX <= ihi; iX++ ) {
 
-    const Real tau   = uCF_h( 0, iX, 0 ); // cell averages checked
-    const Real vel   = uCF_h( 1, iX, 0 );
-    const Real e_m   = uCF_h( 2, iX, 0 );
-    const Real e_rad = uCR_h( 0, iX, 0 );
-    const Real f_rad = uCR_h( 1, iX, 0 );
+    const double tau   = uCF_h( 0, iX, 0 ); // cell averages checked
+    const double vel   = uCF_h( 1, iX, 0 );
+    const double e_m   = uCF_h( 2, iX, 0 );
+    const double e_rad = uCR_h( 0, iX, 0 );
+    const double f_rad = uCR_h( 1, iX, 0 );
 
     if ( tau <= 0.0 ) {
       THROW_ATHELAS_ERROR( "Negative or zero density!" );

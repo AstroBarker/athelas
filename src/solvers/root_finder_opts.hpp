@@ -17,10 +17,10 @@
 
 namespace root_finders {
 
-constexpr static unsigned int MAX_ITERS = 200;
-constexpr static Real FPTOL             = 1.0e-10;
-constexpr static Real RELTOL            = 1.0e-14;
-constexpr static Real ZBARTOL           = 1.0e-15;
-constexpr static Real ZBARTOLINV        = 1.0e15;
+constexpr static unsigned int MAX_ITERS = 10;
+constexpr static double FPTOL             = 1.0e-10;
+constexpr static double RELTOL            = 1.0e-10;
+constexpr static double ZBARTOL           = 1.0e-15;
+constexpr static double ZBARTOLINV        = 1.0e15;
 
 } // namespace root_finders

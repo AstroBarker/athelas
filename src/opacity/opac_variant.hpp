@@ -20,10 +20,10 @@
 
 using Opacity = std::variant<Constant, PowerlawRho>;
 
-KOKKOS_INLINE_FUNCTION auto planck_mean( const Opacity* opac, const Real rho,
-                                         const Real T, const Real X,
-                                         const Real Y, const Real Z,
-                                         Real* lambda ) -> Real {
+KOKKOS_INLINE_FUNCTION auto planck_mean( const Opacity* opac, const double rho,
+                                         const double T, const double X,
+                                         const double Y, const double Z,
+                                         double* lambda ) -> double {
   return std::visit(
       [&rho, &T, &X, &Y, &Z, &lambda]( auto& opac ) {
         return opac.planck_mean( rho, T, X, Y, Z, lambda );
@@ -31,10 +31,10 @@ KOKKOS_INLINE_FUNCTION auto planck_mean( const Opacity* opac, const Real rho,
       *opac );
 }
 
-KOKKOS_INLINE_FUNCTION auto rosseland_mean( const Opacity* opac, const Real rho,
-                                            const Real T, const Real X,
-                                            const Real Y, const Real Z,
-                                            Real* lambda ) -> Real {
+KOKKOS_INLINE_FUNCTION auto rosseland_mean( const Opacity* opac, const double rho,
+                                            const double T, const double X,
+                                            const double Y, const double Z,
+                                            double* lambda ) -> double {
   return std::visit(
       [&rho, &T, &X, &Y, &Z, &lambda]( auto& opac ) {
         return opac.rosseland_mean( rho, T, X, Y, Z, lambda );

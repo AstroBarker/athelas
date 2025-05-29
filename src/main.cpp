@@ -60,7 +60,7 @@ auto main( int argc, char** argv ) -> int {
     driver.execute( );
 
     // --- Finalize timer ---
-    Real const time = timer_total.seconds( );
+    double const time = timer_total.seconds( );
     std::println( " ~ Done! Elapsed time: {} seconds.", time );
   }
   Kokkos::finalize( );

@@ -23,28 +23,28 @@
 namespace utilities {
 
 // [[x]]_+ = -.5 * (x + |x|) is positive part of x
-[[nodiscard]] KOKKOS_INLINE_FUNCTION auto pos_part( const Real x ) noexcept
-    -> Real {
+[[nodiscard]] KOKKOS_INLINE_FUNCTION auto pos_part( const double x ) noexcept
+    -> double {
   return 0.5 * ( x + std::abs( x ) );
 }
 
-template <typename T = Real>
+template <typename T = double>
 KOKKOS_FORCEINLINE_FUNCTION constexpr auto EPS( ) {
   return 10 * std::numeric_limits<T>::epsilon( );
 }
 
-template <typename T = Real>
+template <typename T = double>
 KOKKOS_FORCEINLINE_FUNCTION constexpr auto LARGE( ) {
   return 0.1 * std::numeric_limits<T>::max( );
 }
 
-template <typename T = Real>
+template <typename T = double>
 KOKKOS_FORCEINLINE_FUNCTION constexpr auto SMALL( ) {
   return 10 * std::numeric_limits<T>::min( );
 }
 
 KOKKOS_FORCEINLINE_FUNCTION
-auto make_bounded( const Real val, const Real vmin, const Real vmax ) -> Real {
+auto make_bounded( const double val, const double vmin, const double vmax ) -> double {
   return std::min( std::max( val, vmin + EPS( ) ), vmax * ( 1.0 - EPS( ) ) );
 }
 
@@ -58,16 +58,16 @@ constexpr auto SGN( T val ) -> int {
 // nodal specific internal energy
 template <class T>
 auto compute_internal_energy( T U, const ModalBasis* basis, const int iX,
-                              const int iN ) -> Real {
-  const Real Vel = basis->basis_eval( U, iX, 1, iN );
-  const Real EmT = basis->basis_eval( U, iX, 2, iN );
+                              const int iN ) -> double {
+  const double Vel = basis->basis_eval( U, iX, 1, iN );
+  const double EmT = basis->basis_eval( U, iX, 2, iN );
 
   return EmT - ( 0.5 * Vel * Vel );
 }
 
 // cell average specific internal energy
 template <class T>
-auto compute_internal_energy( T U, const int iX ) -> Real {
+auto compute_internal_energy( T U, const int iX ) -> double {
   return U( 2, iX, 0 ) - ( 0.5 * U( 1, iX, 0 ) * U( 1, iX, 0 ) );
 }
 

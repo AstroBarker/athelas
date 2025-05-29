@@ -32,7 +32,7 @@ using namespace limiter_utilities;
 /**
  * TVD Minmod limiter. See the Cockburn & Shu papers
  **/
-void TVDMinmod::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
+void TVDMinmod::apply_slope_limiter( View3D<double> U, const GridStructure* grid,
                                      const ModalBasis* basis, const EOS* eos ) {
 
   // Do not apply for first order method or if we don't want to.
@@ -40,9 +40,9 @@ void TVDMinmod::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
     return;
   }
 
-  constexpr static Real sl_threshold_ =
+  constexpr static double sl_threshold_ =
       1.0e-10; // TODO(astrobarker): move to input deck
-  constexpr static Real EPS = 1.0e-10;
+  constexpr static double EPS = 1.0e-10;
 
   const int& ilo  = grid->get_ilo( );
   const int& ihi  = grid->get_ihi( );
@@ -97,12 +97,12 @@ void TVDMinmod::apply_slope_limiter( View3D<Real> U, const GridStructure* grid,
                !tci_opt_ ) {
 
             /* Begin TVD Minmod Limiter */
-            const Real s_i = U( iC, iX, 1 ); // target cell slope
-            const Real c_i = U( iC, iX, 0 ); // target cell avg
-            const Real c_p = U( iC, iX + 1, 0 ); // cell iX + 1 avg
-            const Real c_m = U( iC, iX - 1, 0 ); // cell iX - 1 avg
-            const Real dx  = grid->get_widths( iX );
-            const Real new_slope =
+            const double s_i = U( iC, iX, 1 ); // target cell slope
+            const double c_i = U( iC, iX, 0 ); // target cell avg
+            const double c_p = U( iC, iX + 1, 0 ); // cell iX + 1 avg
+            const double c_m = U( iC, iX - 1, 0 ); // cell iX - 1 avg
+            const double dx  = grid->get_widths( iX );
+            const double new_slope =
                 MINMOD_B( s_i, b_tvd_ * ( c_p - c_i ), b_tvd_ * ( c_i - c_m ),
                           dx, m_tvb_ );
 

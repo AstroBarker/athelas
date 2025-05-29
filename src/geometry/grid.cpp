@@ -30,8 +30,8 @@ GridStructure::GridStructure( const ProblemIn* pin )
       x_l_( "Left Interface", mSize_ + 1 ), mass_( "Cell mass_", mSize_ ),
       center_of_mass_( "Center of mass_", mSize_ ),
       grid_( "Grid", mSize_, nNodes_ ) {
-  std::vector<Real> tmp_nodes( nNodes_ );
-  std::vector<Real> tmp_weights( nNodes_ );
+  std::vector<double> tmp_nodes( nNodes_ );
+  std::vector<double> tmp_weights( nNodes_ );
 
   for ( int iN = 0; iN < nNodes_; iN++ ) {
     tmp_nodes[iN]   = 0.0;
@@ -50,8 +50,8 @@ GridStructure::GridStructure( const ProblemIn* pin )
 
 // linear shape function on the reference element
 KOKKOS_INLINE_FUNCTION
-const Real shape_function( const int interface, const Real eta ) {
-  Real mult = 1.0;
+const double shape_function( const int interface, const double eta ) {
+  double mult = 1.0;
 
   if ( interface == 0 ) {
     mult = -1.0;
@@ -67,43 +67,43 @@ const Real shape_function( const int interface, const Real eta ) {
 }
 
 // Give physical grid coordinate from a node.
-auto GridStructure::node_coordinate( int iC, int iN ) const -> Real {
+auto GridStructure::node_coordinate( int iC, int iN ) const -> double {
   return x_l_( iC ) * shape_function( 0, nodes_( iN ) ) +
          x_l_( iC + 1 ) * shape_function( 1, nodes_( iN ) );
 }
 
 // Return cell center
-auto GridStructure::get_centers( int iC ) const -> Real {
+auto GridStructure::get_centers( int iC ) const -> double {
   return centers_( iC );
 }
 
 // Return cell width
-auto GridStructure::get_widths( int iC ) const -> Real { return widths_( iC ); }
+auto GridStructure::get_widths( int iC ) const -> double { return widths_( iC ); }
 
 // Return cell mass
-auto GridStructure::get_mass( int iX ) const -> Real { return mass_( iX ); }
+auto GridStructure::get_mass( int iX ) const -> double { return mass_( iX ); }
 
 // Return cell reference Center of mass_
-auto GridStructure::get_center_of_mass( int iX ) const -> Real {
+auto GridStructure::get_center_of_mass( int iX ) const -> double {
   return center_of_mass_( iX );
 }
 
 // Return given quadrature node
-auto GridStructure::get_nodes( int nN ) const -> Real { return nodes_( nN ); }
+auto GridStructure::get_nodes( int nN ) const -> double { return nodes_( nN ); }
 
 // Return given quadrature weight
-auto GridStructure::get_weights( int nN ) const -> Real {
+auto GridStructure::get_weights( int nN ) const -> double {
   return weights_( nN );
 }
 
 // Accessor for xL
-auto GridStructure::get_x_l( ) const noexcept -> Real { return xL_; }
+auto GridStructure::get_x_l( ) const noexcept -> double { return xL_; }
 
 // Accessor for xR
-auto GridStructure::get_x_r( ) const noexcept -> Real { return xR_; }
+auto GridStructure::get_x_r( ) const noexcept -> double { return xR_; }
 
 // Accessor for SqrtGm
-auto GridStructure::get_sqrt_gm( Real X ) const -> Real {
+auto GridStructure::get_sqrt_gm( double X ) const -> double {
   if ( geometry_ == geometry::Spherical ) {
     return X * X;
   }
@@ -111,7 +111,7 @@ auto GridStructure::get_sqrt_gm( Real X ) const -> Real {
 }
 
 // Accessor for x_l_
-auto GridStructure::get_left_interface( int iX ) const -> Real {
+auto GridStructure::get_left_interface( int iX ) const -> double {
   return x_l_( iX );
 }
 
@@ -177,13 +177,13 @@ void GridStructure::create_grid( ) {
 /**
  * Compute cell masses
  **/
-void GridStructure::compute_mass( View3D<Real> uPF ) {
+void GridStructure::compute_mass( View3D<double> uPF ) {
   const int nNodes_ = get_n_nodes( );
   const int ilo     = get_ilo( );
   const int ihi     = get_ihi( );
 
-  Real mass = NAN;
-  Real X    = NAN;
+  double mass = NAN;
+  double X    = NAN;
 
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     mass = 0.0;
@@ -205,13 +205,13 @@ void GridStructure::compute_mass( View3D<Real> uPF ) {
 /**
  * Compute cell centers of masses reference coordinates
  **/
-void GridStructure::compute_center_of_mass( View3D<Real> uPF ) {
+void GridStructure::compute_center_of_mass( View3D<double> uPF ) {
   const int nNodes_ = get_n_nodes( );
   const int ilo     = get_ilo( );
   const int ihi     = get_ihi( );
 
-  Real com = 0.0;
-  Real X   = 0.0;
+  double com = 0.0;
+  double X   = 0.0;
 
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     com = 0.0;
@@ -234,7 +234,7 @@ void GridStructure::compute_center_of_mass( View3D<Real> uPF ) {
 /**
  * Update grid coordinates using interface velocities.
  **/
-void GridStructure::update_grid( View1D<Real> SData ) {
+void GridStructure::update_grid( View1D<double> SData ) {
 
   const int ilo = get_ilo( );
   const int ihi = get_ihi( );
@@ -257,10 +257,10 @@ void GridStructure::update_grid( View1D<Real> SData ) {
 }
 
 // Access by (element, node)
-auto GridStructure::operator( )( int i, int j ) -> Real& {
+auto GridStructure::operator( )( int i, int j ) -> double& {
   return grid_( i, j );
 }
 
-auto GridStructure::operator( )( int i, int j ) const -> Real {
+auto GridStructure::operator( )( int i, int j ) const -> double {
   return grid_( i, j );
 }

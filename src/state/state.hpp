@@ -28,10 +28,10 @@ class State {
   [[nodiscard]] auto get_n_af( ) const noexcept -> int;
   [[nodiscard]] auto get_p_order( ) const noexcept -> int;
 
-  [[nodiscard]] auto get_u_cf( ) const noexcept -> View3D<Real>;
-  [[nodiscard]] auto get_u_pf( ) const noexcept -> View3D<Real>;
-  [[nodiscard]] auto get_u_af( ) const noexcept -> View3D<Real>;
-  [[nodiscard]] auto get_u_cr( ) const noexcept -> View3D<Real>;
+  [[nodiscard]] auto get_u_cf( ) const noexcept -> View3D<double>;
+  [[nodiscard]] auto get_u_pf( ) const noexcept -> View3D<double>;
+  [[nodiscard]] auto get_u_af( ) const noexcept -> View3D<double>;
+  [[nodiscard]] auto get_u_cr( ) const noexcept -> View3D<double>;
 
  private:
   int nCF_;
@@ -40,8 +40,8 @@ class State {
   int nAF_;
   int pOrder_;
 
-  View3D<Real> uCF_{ }; // Conserved fluid
-  View3D<Real> uPF_{ }; // primitive fluid
-  View3D<Real> uAF_{ }; // auxiliary fluid
-  View3D<Real> uCR_{ }; // conserved radiation
+  View3D<double> uCF_{ }; // Conserved fluid
+  View3D<double> uPF_{ }; // primitive fluid
+  View3D<double> uAF_{ }; // auxiliary fluid
+  View3D<double> uCR_{ }; // conserved radiation
 };

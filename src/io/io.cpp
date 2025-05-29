@@ -28,7 +28,7 @@
  * for the current simulation.
  **/
 void print_simulation_parameters( GridStructure grid, ProblemIn* pin,
-                                  const Real CFL ) {
+                                  const double CFL ) {
   const int nX        = grid.get_n_elements( );
   const int nNodes    = grid.get_n_nodes( );
   const int basis_int = ( pin->basis == poly_basis::legendre ) ? 0 : 1;
@@ -83,11 +83,11 @@ void print_simulation_parameters( GridStructure grid, ProblemIn* pin,
  * Write simulation output to disk
  **/
 void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
-                  const std::string& problem_name, Real time, int order,
+                  const std::string& problem_name, double time, int order,
                   int i_write, bool do_rad ) {
-  View3D<Real> uCF = state->get_u_cf( );
-  View3D<Real> uCR = state->get_u_cr( );
-  View3D<Real> uPF = state->get_u_pf( );
+  View3D<double> uCF = state->get_u_cf( );
+  View3D<double> uCR = state->get_u_cr( );
+  View3D<double> uPF = state->get_u_pf( );
 
   // Construct filename
   std::string fn = problem_name;
@@ -245,7 +245,7 @@ void write_basis( ModalBasis* basis, unsigned int ilo, unsigned int ihi,
   const size_t total_size = static_cast<size_t>( ihi ) * ( nNodes + 2 ) * order;
 
   // Use std::vector instead of raw pointer for automatic memory management
-  std::vector<Real> data( total_size );
+  std::vector<double> data( total_size );
 
   // Fill data using vector indexing instead of pointer arithmetic
   for ( unsigned int iX = ilo; iX <= ihi; iX++ ) {

@@ -21,8 +21,8 @@
  **/
 void advection_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
   // Smooth advection problem
-  View3D<Real> uCF = state->get_u_cf( );
-  View3D<Real> uPF = state->get_u_pf( );
+  View3D<double> uCF = state->get_u_cf( );
+  View3D<double> uPF = state->get_u_pf( );
   const int pOrder = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
@@ -35,11 +35,11 @@ void advection_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   const int iPF_D = 0;
 
-  const Real V0  = pin->in_table["problem"]["params"]["v0"].value_or( -1.0 );
-  const Real P0  = pin->in_table["problem"]["params"]["p0"].value_or( 0.01 );
-  const Real Amp = pin->in_table["problem"]["params"]["amp"].value_or( 1.0 );
+  const double V0  = pin->in_table["problem"]["params"]["v0"].value_or( -1.0 );
+  const double P0  = pin->in_table["problem"]["params"]["p0"].value_or( 0.01 );
+  const double Amp = pin->in_table["problem"]["params"]["amp"].value_or( 1.0 );
 
-  Real X1 = 0.0;
+  double X1 = 0.0;
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {

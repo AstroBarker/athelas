@@ -26,8 +26,8 @@ class ButcherTableau {
   int nStages;
   int tOrder;
 
-  View2D<Real> a_ij{ };
-  View1D<Real> b_i{ };
+  View2D<double> a_ij{ };
+  View1D<double> b_i{ };
 
  private:
   TableauType type_;
@@ -46,8 +46,8 @@ class ShuOsherTableau {
   int nStages;
   int tOrder;
 
-  View2D<Real> a_ij{ };
-  View2D<Real> b_ij{ };
+  View2D<double> a_ij{ };
+  View2D<double> b_ij{ };
 
  private:
   TableauType type_;

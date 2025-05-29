@@ -39,9 +39,9 @@
  **/
 void rad_shock_steady_init( State* state, GridStructure* grid,
                             const ProblemIn* pin ) {
-  View3D<Real> uCF = state->get_u_cf( );
-  View3D<Real> uPF = state->get_u_pf( );
-  View3D<Real> uCR = state->get_u_cr( );
+  View3D<double> uCF = state->get_u_cf( );
+  View3D<double> uPF = state->get_u_pf( );
+  View3D<double> uCR = state->get_u_cr( );
   const int pOrder = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
@@ -56,29 +56,29 @@ void rad_shock_steady_init( State* state, GridStructure* grid,
 
   const int iCR_E = 0;
 
-  const Real V0   = pin->in_table["problem"]["params"]["v0"].value_or( 0.0 );
-  const Real rhoL = pin->in_table["problem"]["params"]["rhoL"].value_or( 1.0 );
-  const Real rhoR =
+  const double V0   = pin->in_table["problem"]["params"]["v0"].value_or( 0.0 );
+  const double rhoL = pin->in_table["problem"]["params"]["rhoL"].value_or( 1.0 );
+  const double rhoR =
       pin->in_table["problem"]["params"]["rhoR"].value_or( 2.286 );
-  const Real T_L =
+  const double T_L =
       pin->in_table["problem"]["params"]["T_L"].value_or( 1.16045181e6 ); // K
-  const Real T_R =
+  const double T_R =
       pin->in_table["problem"]["params"]["T_R"].value_or( 2.4109e6 ); // K
 
   // TODO(astrobarker): thread through
-  const Real Abar  = 1.0;
-  const Real gamma = 5.0 / 3.0;
-  const Real em_gas_L =
+  const double Abar  = 1.0;
+  const double gamma = 5.0 / 3.0;
+  const double em_gas_L =
       ( T_L * constants::N_A * constants::k_B ) / ( ( gamma - 1.0 ) * Abar );
-  const Real em_gas_R =
+  const double em_gas_R =
       ( T_R * constants::N_A * constants::k_B ) / ( ( gamma - 1.0 ) * Abar );
-  const Real em_rad_L = constants::a * std::pow( T_L, 4.0 ) / rhoL;
-  const Real em_rad_R = constants::a * std::pow( T_R, 4.0 ) / rhoR;
+  const double e_rad_L = constants::a * std::pow( T_L, 4.0 );
+  const double e_rad_R = constants::a * std::pow( T_R, 4.0 );
 
   for ( int iX = 0; iX <= ihi + 1; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-        Real X1               = grid->get_centers( iX );
+        double X1               = grid->get_centers( iX );
         uCF( iCF_Tau, iX, k ) = 0.0;
         uCF( iCF_V, iX, k )   = 0.0;
         uCF( iCF_E, iX, k )   = 0.0;
@@ -91,7 +91,7 @@ void rad_shock_steady_init( State* state, GridStructure* grid,
             uCF( iCF_V, iX, 0 )   = V0;
             uCF( iCF_E, iX, 0 )   = em_gas_L;
 
-            uCR( iCR_E, iX, 0 ) = em_rad_L;
+            uCR( iCR_E, iX, 0 ) = e_rad_L;
           }
           uPF( iPF_D, iX, iNodeX ) = rhoL;
         } else {
@@ -100,7 +100,7 @@ void rad_shock_steady_init( State* state, GridStructure* grid,
             uCF( iCF_V, iX, 0 )   = V0;
             uCF( iCF_E, iX, 0 )   = em_gas_R;
 
-            uCR( iCR_E, iX, 0 ) = em_rad_R;
+            uCR( iCR_E, iX, 0 ) = e_rad_R;
           }
           uPF( iPF_D, iX, iNodeX ) = rhoR;
         }

@@ -21,8 +21,8 @@
  **/
 void shu_osher_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
-  View3D<Real> uCF = state->get_u_cf( );
-  View3D<Real> uPF = state->get_u_pf( );
+  View3D<double> uCF = state->get_u_cf( );
+  View3D<double> uPF = state->get_u_pf( );
   const int pOrder = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
@@ -35,14 +35,14 @@ void shu_osher_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   constexpr static int iPF_D = 0;
 
-  const Real V0 = pin->in_table["problem"]["params"]["v0"].value_or( 2.629369 );
-  const Real D_L =
+  const double V0 = pin->in_table["problem"]["params"]["v0"].value_or( 2.629369 );
+  const double D_L =
       pin->in_table["problem"]["params"]["rhoL"].value_or( 3.857143 );
-  const Real P_L =
+  const double P_L =
       pin->in_table["problem"]["params"]["pL"].value_or( 10.333333333333 );
-  const Real P_R = pin->in_table["problem"]["params"]["pR"].value_or( 1.0 );
+  const double P_R = pin->in_table["problem"]["params"]["pR"].value_or( 1.0 );
 
-  Real X1 = 0.0;
+  double X1 = 0.0;
   for ( int iX = 0; iX <= ihi; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {

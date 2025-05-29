@@ -21,8 +21,8 @@
  **/
 void sedov_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
-  View3D<Real> uCF = state->get_u_cf( );
-  View3D<Real> uPF = state->get_u_pf( );
+  View3D<double> uCF = state->get_u_cf( );
+  View3D<double> uPF = state->get_u_pf( );
   const int pOrder = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
@@ -35,17 +35,17 @@ void sedov_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   constexpr static int iPF_D = 0;
 
-  const Real V0 = pin->in_table["problem"]["params"]["v0"].value_or( 0.0 );
-  const Real D0 = pin->in_table["problem"]["params"]["rho0"].value_or( 1.0 );
-  const Real E0 = pin->in_table["problem"]["params"]["E0"].value_or( 0.3 );
+  const double V0 = pin->in_table["problem"]["params"]["v0"].value_or( 0.0 );
+  const double D0 = pin->in_table["problem"]["params"]["rho0"].value_or( 1.0 );
+  const double E0 = pin->in_table["problem"]["params"]["E0"].value_or( 0.3 );
 
   const int origin = 1;
 
   // TODO(astrobarker): geometry aware volume for energy
-  const Real volume = ( 4.0 * M_PI / 3.0 ) *
+  const double volume = ( 4.0 * M_PI / 3.0 ) *
                       std::pow( grid->get_left_interface( origin + 1 ), 3.0 );
-  const Real gamma = 5.0 / 3.0;
-  const Real P0    = ( gamma - 1.0 ) * E0 / volume;
+  const double gamma = 5.0 / 3.0;
+  const double P0    = ( gamma - 1.0 ) * E0 / volume;
 
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {

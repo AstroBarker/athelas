@@ -22,8 +22,8 @@
 void smooth_flow_init( State* state, GridStructure* grid,
                        const ProblemIn* pin ) {
 
-  View3D<Real> uCF = state->get_u_cf( );
-  View3D<Real> uPF = state->get_u_pf( );
+  View3D<double> uCF = state->get_u_cf( );
+  View3D<double> uPF = state->get_u_pf( );
   const int pOrder = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
@@ -36,10 +36,10 @@ void smooth_flow_init( State* state, GridStructure* grid,
 
   constexpr static int iPF_D = 0;
 
-  const Real amp = pin->in_table["problem"]["params"]["amp"].value_or(
+  const double amp = pin->in_table["problem"]["params"]["amp"].value_or(
       0.9999999999999999999 );
 
-  Real X1 = 0.0;
+  double X1 = 0.0;
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
@@ -49,13 +49,13 @@ void smooth_flow_init( State* state, GridStructure* grid,
         uCF( iCF_E, iX, k )   = 0.0;
 
         if ( k == 0 ) {
-          Real const D = ( 1.0 + ( amp * sin( constants::PI( ) * X1 ) ) );
+          double const D = ( 1.0 + ( amp * sin( constants::PI( ) * X1 ) ) );
           uCF( iCF_Tau, iX, 0 ) = 1.0 / D;
           uCF( iCF_V, iX, 0 )   = 0.0;
           uCF( iCF_E, iX, 0 )   = ( D * D * D / 2.0 ) * uCF( iCF_Tau, iX, 0 );
         } else if ( k == 1 ) {
-          Real const D = ( 1.0 + ( amp * sin( constants::PI( ) * X1 ) ) );
-          Real const dD =
+          double const D = ( 1.0 + ( amp * sin( constants::PI( ) * X1 ) ) );
+          double const dD =
               ( amp * constants::PI( ) * cos( constants::PI( ) * X1 ) );
           uCF( iCF_Tau, iX, k ) =
               ( -1 / ( D * D ) ) * dD * grid->get_widths( iX );
@@ -63,8 +63,8 @@ void smooth_flow_init( State* state, GridStructure* grid,
           uCF( iCF_E, iX, k ) =
               ( ( 2.0 / 2.0 ) * D ) * dD * grid->get_widths( iX );
         } else if ( k == 2 ) {
-          Real const D   = ( 1.0 + ( amp * sin( constants::PI( ) * X1 ) ) );
-          Real const ddD = -( amp * constants::PI( ) * constants::PI( ) ) *
+          double const D   = ( 1.0 + ( amp * sin( constants::PI( ) * X1 ) ) );
+          double const ddD = -( amp * constants::PI( ) * constants::PI( ) ) *
                            sin( constants::PI( ) * X1 );
           uCF( iCF_Tau, iX, k ) = ( 2.0 / ( D * D * D ) ) * ddD *
                                   grid->get_widths( iX ) *
@@ -73,8 +73,8 @@ void smooth_flow_init( State* state, GridStructure* grid,
           uCF( iCF_E, iX, k ) = ( 2.0 / 2.0 ) * ddD * grid->get_widths( iX ) *
                                 grid->get_widths( iX );
         } else if ( k == 3 ) {
-          Real const D    = ( 1.0 + ( amp * sin( constants::PI( ) * X1 ) ) );
-          Real const dddD = -( amp * constants::PI( ) * constants::PI( ) *
+          double const D    = ( 1.0 + ( amp * sin( constants::PI( ) * X1 ) ) );
+          double const dddD = -( amp * constants::PI( ) * constants::PI( ) *
                                constants::PI( ) ) *
                             cos( constants::PI( ) * X1 );
           uCF( iCF_Tau, iX, k ) =

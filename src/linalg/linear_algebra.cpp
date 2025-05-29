@@ -38,8 +38,8 @@
  *
  * @note This function is used in quadrature initialization.
  */
-void tri_sym_diag( int n, std::vector<Real>& d, std::vector<Real>& e,
-                   std::vector<Real>& array ) {
+void tri_sym_diag( int n, std::vector<double>& d, std::vector<double>& e,
+                   std::vector<double>& array ) {
 
   // Parameters for LaPack
   lapack_int m = 0, ldz = 0, info = 0, work_dim = 0;
@@ -53,8 +53,8 @@ void tri_sym_diag( int n, std::vector<Real>& d, std::vector<Real>& e,
     work_dim = 2 * n - 2;
   }
 
-  std::vector<Real> ev( n * n );
-  std::vector<Real> work( work_dim );
+  std::vector<double> ev( n * n );
+  std::vector<double> work( work_dim );
 
   info = LAPACKE_dstev( LAPACK_COL_MAJOR, job, m, d.data( ), e.data( ),
                         ev.data( ), ldz );
@@ -65,7 +65,7 @@ void tri_sym_diag( int n, std::vector<Real>& d, std::vector<Real>& e,
   }
 
   // Matrix multiply ev' * array. Only Array[0] is nonzero.
-  Real const k = array[0];
+  double const k = array[0];
   for ( int i = 0; i < n; i++ ) {
     array[i] = k * ev[static_cast<ptrdiff_t>( n * i )];
   }
@@ -76,7 +76,7 @@ void tri_sym_diag( int n, std::vector<Real>& d, std::vector<Real>& e,
 /**
  * @brief Use LAPACKE to invert a matrix M using LU factorization.
  **/
-void invert_matrix( std::vector<Real>& M, int n ) {
+void invert_matrix( std::vector<double>& M, int n ) {
   lapack_int info1 = 0, info2 = 0;
 
   std::vector<int> IPIV( n );
