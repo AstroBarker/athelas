@@ -26,7 +26,7 @@
 namespace radiation {
 
 auto flux_factor( Real E, Real F ) -> Real;
-auto flux_rad( Real E, Real F, Real P, Real V, int iCR ) -> Real;
+auto flux_rad( Real E, Real F, Real P, Real vstar, int iCR ) -> Real;
 auto radiation_four_force( Real D, Real V, Real T, Real kappa_r, Real kappa_p,
                            Real E, Real F, Real Pr ) -> std::tuple<Real, Real>;
 auto source_rad( Real D, Real V, Real T, Real kappa_r, Real kappa_p, Real E,

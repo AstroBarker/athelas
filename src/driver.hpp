@@ -69,5 +69,6 @@ class Driver {
   // timestepper
   TimeStepper ssprk_;
 
-  std::unique_ptr<ModalBasis> basis_; // init in constr body
+  std::unique_ptr<ModalBasis> fluid_basis_; // init in constr body
+  std::unique_ptr<ModalBasis> radiation_basis_; // init in constr body
 }; // class Driver

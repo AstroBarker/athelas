@@ -49,13 +49,13 @@ auto flux_factor( const Real E, const Real F ) -> Real {
  * The radiation fluxes
  * Here E and F are per unit volume
  **/
-auto flux_rad( Real E, Real F, Real P, Real V, int iCR ) -> Real {
+auto flux_rad( const Real E, const Real F, const Real P, const Real V, const int iCR ) -> Real {
   assert( ( iCR == 0 || iCR == 1 ) && "Radiation :: flux_factor :: bad iCR." );
   assert( E > 0.0 &&
           "Radiation :: flux_rad :: non positive definite energy density." );
 
   constexpr static Real c = constants::c_cgs;
-  return ( iCR == 0 ) ? ( F ) - ( E * V ) : ( c * c * P ) - ( F * V );
+  return ( iCR == 0 ) ? F - V * E : c * c * P - V * F;
 }
 
 /**
@@ -217,8 +217,8 @@ auto numerical_flux_hll_rad( const Real E_L, const Real E_R, const Real F_L,
   const Real s_l_m = std::min(
       std::min( lambda_hll( f_L, -1.0 ), lambda_hll( f_R, -1.0 ) ), 0.0 );
   */
-  const Real Flux_E = hll( E_L, E_R, F_L, F_R, s_l_m, s_r_p );
-  const Real Flux_F = hll( F_L, F_R, c2 * P_L, c2 * P_R, s_l_m, s_r_p );
+  const Real Flux_E = hll( E_L, E_R, F_L - vstar * E_L, F_R - vstar * E_R, s_l_m, s_r_p );
+  const Real Flux_F = hll( F_L, F_R, c2 * P_L - vstar * F_L, c2 * P_R - vstar * F_R, s_l_m, s_r_p );
   return { Flux_E, Flux_F };
 }
 
@@ -237,11 +237,11 @@ auto compute_timestep_rad( const GridStructure* grid, const Real CFL ) -> Real {
   Kokkos::parallel_reduce(
       "Compute Timestep", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
       KOKKOS_LAMBDA( const int iX, Real& lmin ) {
-        Real dr = grid->get_widths( iX );
+        const Real dr = grid->get_widths( iX );
 
-        Real eigval = constants::c_cgs;
+        const Real eigval = constants::c_cgs;
 
-        Real dt_old = std::abs( dr ) / std::abs( eigval );
+        const Real dt_old = std::abs( dr ) / std::abs( eigval );
 
         if ( dt_old < lmin ) lmin = dt_old;
       },

@@ -8,6 +8,10 @@
  * @details Provides means to construct and evaluate bases
  *            - legendre
  *            - taylor
+ *
+ * TODO(astrobarker): kokkos
+ * TODO(astrobarker): need center of mass for some probs?
+ * TODO(astrobarker): derivative matrix
  */
 
 #include <algorithm> /* std::sort */
@@ -30,12 +34,13 @@
  **/
 ModalBasis::ModalBasis( poly_basis::poly_basis basis, const View3D<Real> uPF,
                         GridStructure* grid, const int pOrder, const int nN,
-                        const int nElements, const int nGuard )
+                        const int nElements, const int nGuard, const bool density_weight )
     : nX_( nElements ), order_( pOrder ), nNodes_( nN ),
       mSize_( ( nN ) * ( nN + 2 ) * ( nElements + 2 * nGuard ) ),
+      density_weight_(density_weight),
       mass_matrix_( "MassMatrix", nElements + 2 * nGuard, pOrder ),
       phi_( "phi_", nElements + 2 * nGuard, 3 * nN + 2, pOrder ),
-      dphi_( "dphi_", nElements + 2 * nGuard, 3 * nN + 2, pOrder ) {
+      dphi_( "dphi_", nElements + 2 * nGuard, 3 * nN + 2, pOrder ){
   // --- Compute grid quantities ---
   grid->compute_mass( uPF );
   grid->compute_center_of_mass( uPF );
@@ -177,10 +182,12 @@ auto ModalBasis::inner_product( const int m, const int n, const int iX,
                                 GridStructure* grid ) const -> Real {
   Real result = 0.0;
   for ( int iN = 0; iN < nNodes_; iN++ ) {
+    // include rho in integrand if necessary
+    const Real rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
     const Real eta_q = grid->get_nodes( iN );
     const Real X     = grid->node_coordinate( iX, iN );
     result += func_( n, eta_q, eta_c ) * phi_( iX, iN + 1, m ) *
-              grid->get_weights( iN ) * uPF( 0, iX, iN ) *
+              grid->get_weights( iN ) * rho *
               grid->get_widths( iX ) * grid->get_sqrt_gm( X );
   }
 
@@ -198,9 +205,11 @@ auto ModalBasis::inner_product( const int n, const int iX, const Real /*eta_c*/,
                                 GridStructure* grid ) const -> Real {
   Real result = 0.0;
   for ( int iN = 0; iN < nNodes_; iN++ ) {
+    // include rho in integrand if necessary
+    const Real rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
     const Real X = grid->node_coordinate( iX, iN );
     result += phi_( iX, iN + 1, n ) * phi_( iX, iN + 1, n ) *
-              grid->get_weights( iN ) * uPF( 0, iX, iN ) *
+              grid->get_weights( iN ) * rho *
               grid->get_widths( iX ) * grid->get_sqrt_gm( X );
   }
 
@@ -325,10 +334,11 @@ void ModalBasis::check_orthogonality( const Kokkos::View<Real***> uPF,
         for ( int i_eta = 1; i_eta <= nNodes_;
               i_eta++ ) // loop over quadratures
         {
+          const Real rho = density_weight_ ? uPF(0, iX, i_eta - 1) : 1.0;
           const Real X = grid->node_coordinate( iX, i_eta - 1 );
           // Not using an inner_product function because their API is odd..
           result += phi_( iX, i_eta, k1 ) * phi_( iX, i_eta, k2 ) *
-                    uPF( 0, iX, i_eta - 1 ) * grid->get_weights( i_eta - 1 ) *
+                    rho * grid->get_weights( i_eta - 1 ) *
                     grid->get_widths( iX ) * grid->get_sqrt_gm( X );
         }
 
@@ -363,10 +373,12 @@ void ModalBasis::compute_mass_matrix( const View3D<Real> uPF,
     for ( int k = 0; k < order_; k++ ) {
       Real result = 0.0;
       for ( int iN = 0; iN < nNodes_; iN++ ) {
+        // include rho in integrand if necessary
+        const Real rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
         const Real X = grid->node_coordinate( iX, iN );
         result += phi_( iX, iN + 1, k ) * phi_( iX, iN + 1, k ) *
                   grid->get_weights( iN ) * grid->get_widths( iX ) *
-                  grid->get_sqrt_gm( X ) * uPF( 0, iX, iN );
+                  grid->get_sqrt_gm( X ) * rho;
       }
       mass_matrix_( iX, k ) = result;
     }

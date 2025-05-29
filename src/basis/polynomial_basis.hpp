@@ -25,7 +25,7 @@ class ModalBasis {
  public:
   ModalBasis( poly_basis::poly_basis basis, View3D<Real> uCF,
               GridStructure* grid, int pOrder, int nN, int nElements,
-              int nGuard );
+              int nGuard, bool density_weight );
   static auto taylor( int order, Real eta, Real eta_c ) -> Real;
   static auto d_taylor( int order, Real eta, Real eta_c ) -> Real;
   auto ortho( int order, int iX, int i_eta, Real eta, Real eta_c,
@@ -63,6 +63,7 @@ class ModalBasis {
   int order_;
   int nNodes_;
   int mSize_;
+  bool density_weight_;
 
   View2D<Real> mass_matrix_{ };
 

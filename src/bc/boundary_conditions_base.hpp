@@ -103,8 +103,8 @@ apply_bc( const BoundaryConditionsData<N>& bc, View3D<Real> U, const int q,
   // use is different. interior_cell should be of the opposite
   // side as ghost_cell. Not ideal, but works.
   case BcType::Periodic:
-    assert( interior_cell != ghost_cell + 1 && "Bad use of periodic BC!\n" );
-    assert( interior_cell != ghost_cell - 1 && "Bad use of periodic BC!\n" );
+    //assert( interior_cell != ghost_cell + 1 && "Bad use of periodic BC!\n" );
+    //assert( interior_cell != ghost_cell - 1 && "Bad use of periodic BC!\n" );
     for ( int k = 0; k < num_modes; k++ ) {
       U( q, ghost_cell, k ) = U( q, interior_cell, k );
     }

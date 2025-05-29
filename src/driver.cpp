@@ -89,12 +89,17 @@ void Driver::initialize( const ProblemIn* pin ) { // NOLINT
   }
 
   // --- Datastructure for modal basis ---
-  basis_ = std::make_unique<ModalBasis>( pin->basis, state_.get_u_pf( ), &grid_,
+  fluid_basis_ = std::make_unique<ModalBasis>( pin->basis, state_.get_u_pf( ), &grid_,
                                          pin->pOrder, pin->nNodes,
-                                         pin->nElements, pin->nGhost );
+                                         pin->nElements, pin->nGhost, true );
+  if (opts_.do_rad) {
+  radiation_basis_ = std::make_unique<ModalBasis>( pin->basis, state_.get_u_pf( ), &grid_,
+                                         pin->pOrder, pin->nNodes,
+                                         pin->nElements, pin->nGhost, false );
+  }
 
   // --- slope limiter to initial condition ---
-  apply_slope_limiter( &sl_hydro_, state_.get_u_cf( ), &grid_, basis_.get( ),
+  apply_slope_limiter( &sl_hydro_, state_.get_u_cf( ), &grid_, fluid_basis_.get( ),
                        &eos_ );
 }
 
@@ -127,7 +132,7 @@ Driver::Driver( const ProblemIn* pin ) // NOLINT
 
 auto Driver::execute( ) -> int {
   // some startup io
-  write_basis( basis_.get( ), pin_.nGhost, pin_.nElements, pin_.nNodes,
+  write_basis( fluid_basis_.get( ), pin_.nGhost, pin_.nElements, pin_.nNodes,
                pin_.pOrder, pin_.problem_name );
   print_simulation_parameters( grid_, &pin_, cfl_ );
   write_state( &state_, grid_, &sl_hydro_, problem_name_, time_, pin_.pOrder, 0,
@@ -157,12 +162,13 @@ auto Driver::execute( ) -> int {
     }
 
     if ( !opts_.do_rad ) {
-      ssprk_.update_fluid( dt_, &state_, grid_, basis_.get( ), &eos_,
+      ssprk_.update_fluid( dt_, &state_, grid_, fluid_basis_.get( ), &eos_,
                            &sl_hydro_, &opts_, bcs_.get( ) );
     } else {
       try {
-        ssprk_.update_rad_hydro( dt_, &state_, grid_, basis_.get( ), &eos_,
-                                 &opac_, &sl_hydro_, &opts_, bcs_.get( ) );
+        ssprk_.update_rad_hydro( dt_, &state_, grid_, fluid_basis_.get( ), 
+                                 radiation_basis_.get(), &eos_, &opac_, 
+                                 &sl_hydro_, &opts_, bcs_.get( ) );
       } catch ( const AthelasError& e ) {
         std::cerr << e.what( ) << std::endl;
         return AthelasExitCodes::FAILURE;
@@ -189,7 +195,7 @@ auto Driver::execute( ) -> int {
     // Write state
     if ( time_ >= i_out * dt_hdf5_ ) {
       write_state( &state_, grid_, &sl_hydro_, problem_name_, time_,
-                   basis_.get( )->get_order( ), i_out, opts_.do_rad );
+                   fluid_basis_.get( )->get_order( ), i_out, opts_.do_rad );
       i_out += 1;
     }
 

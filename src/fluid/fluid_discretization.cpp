@@ -199,19 +199,21 @@ void compute_increment_fluid_geometry( const View3D<Real> U,
 auto compute_increment_fluid_source( View2D<Real> uCF, const int k,
                                      const int iCF, const View2D<Real> uCR,
                                      const GridStructure& grid,
-                                     const ModalBasis* basis, const EOS* eos,
-                                     const Opacity* opac, const int iX )
+                                     const ModalBasis* fluid_basis, 
+                                     const ModalBasis* rad_basis, 
+                                     const EOS* eos, const Opacity* opac, 
+                                     const int iX )
     -> Real {
   const int nNodes = grid.get_n_nodes( );
 
   Real local_sum = 0.0;
   for ( int iN = 0; iN < nNodes; iN++ ) {
-    const Real D   = 1.0 / basis->basis_eval( uCF, iX, 0, iN + 1 );
-    const Real Vel = basis->basis_eval( uCF, iX, 1, iN + 1 );
-    const Real EmT = basis->basis_eval( uCF, iX, 2, iN + 1 );
+    const Real D   = 1.0 / fluid_basis->basis_eval( uCF, iX, 0, iN + 1 );
+    const Real Vel = fluid_basis->basis_eval( uCF, iX, 1, iN + 1 );
+    const Real EmT = fluid_basis->basis_eval( uCF, iX, 2, iN + 1 );
 
-    const Real Er = basis->basis_eval( uCR, iX, 0, iN + 1 ) * D;
-    const Real Fr = basis->basis_eval( uCR, iX, 1, iN + 1 ) * D;
+    const Real Er = rad_basis->basis_eval( uCR, iX, 0, iN + 1 );
+    const Real Fr = rad_basis->basis_eval( uCR, iX, 1, iN + 1 );
     const Real Pr = radiation::compute_closure( Er, Fr );
 
     auto lambda  = nullptr;
@@ -226,12 +228,12 @@ auto compute_increment_fluid_source( View2D<Real> uCF, const int k,
     const Real kappa_p = planck_mean( opac, D, T, X, Y, Z, lambda );
 
     local_sum +=
-        grid.get_weights( iN ) * basis->get_phi( iX, iN + 1, k ) *
+        grid.get_weights( iN ) * fluid_basis->get_phi( iX, iN + 1, k ) *
         source_fluid_rad( D, Vel, T, kappa_r, kappa_p, Er, Fr, Pr, iCF );
   }
 
   return ( local_sum * grid.get_widths( iX ) ) /
-         basis->get_mass_matrix( iX, k );
+         fluid_basis->get_mass_matrix( iX, k );
 }
 
 /** Compute dU for timestep update. e.g., U = U + dU * dt
@@ -250,7 +252,7 @@ auto compute_increment_fluid_source( View2D<Real> uCF, const int k,
  * BC               : (string) boundary condition type
  **/
 void compute_increment_fluid_explicit(
-    const View3D<Real> U, const View3D<Real> uCR, const GridStructure& grid,
+    const View3D<Real> U, const GridStructure& grid,
     const ModalBasis* basis, const EOS* eos, View3D<Real> dU,
     View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
     View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
@@ -263,9 +265,6 @@ void compute_increment_fluid_explicit(
 
   // --- Apply BC ---
   bc::fill_ghost_zones<3>( U, &grid, order, bcs );
-  if ( opts->do_rad ) {
-    bc::fill_ghost_zones<2>( uCR, &grid, order, bcs );
-  }
 
   // --- Detect Shocks ---
   // TODO(astrobarker): Code up a shock detector...
