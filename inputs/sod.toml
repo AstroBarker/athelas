@@ -6,7 +6,7 @@ restart = false
 do_rad = false
 xl = 0.0
 xr = 1.0
-cfl = 0.7
+cfl = 0.8
 
 [problem.params]
 vL = 0.0
@@ -17,7 +17,7 @@ pL = 1.0
 pR = 0.1
 x_d = 0.5
 
-[bc]
+#[bc]
 [bc.fluid]
 bc_i = "outflow"
 bc_o = "outflow"
@@ -32,12 +32,14 @@ dt_init_frac = 1.1
 basis = "legendre"
 nnodes = 3
 porder = 3
+porder = 3
 nx = 256
 ng = 1
 
 [time]
-torder = 4
-nstages = 5
+integrator = "EX_SSPRK33"
+torder = 1
+nstages = 1
 
 [eos]
 type = "ideal"
@@ -45,12 +47,12 @@ ideal_gamma = 1.4 # default: 1.4
 
 [limiters]
 do_limiter = true
-type = "weno"
-m_tvb = 0.0
+type = "minmod"
+m_tvb = 100.0
 b_tvd = 1.0
-tci_opt = false
-tci_val = 0.25
+tci_opt = true
+tci_val = 0.05
 #tci_val = 0.6
-characteristic = true
-gamma_i = 0.8
+characteristic = false
+gamma_i = 0.5
 weno_r = 2.0

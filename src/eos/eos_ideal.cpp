@@ -40,6 +40,8 @@ IdealGas::sound_speed_from_conserved( const double /*tau*/, const double V,
   const double mu = 
       1.0 + constants::m_e / constants::m_p; // TODO(astrobarker) generalize
   return ( gamma_ - 1.0 ) * sie * mu * constants::m_p / constants::k_B;
+  //const double ev = sie / tau;
+  //return std::pow(ev / constants::a, 0.25);
 }
 
 [[nodiscard]] auto

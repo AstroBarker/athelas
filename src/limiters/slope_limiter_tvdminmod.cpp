@@ -48,6 +48,13 @@ void TVDMinmod::apply_slope_limiter( View3D<double> U, const GridStructure* grid
   const int& ihi  = grid->get_ihi( );
   const int nvars = U.extent( 0 );
 
+  Kokkos::parallel_for(
+      "SlopeLimiter :: Minmod :: Reset limiter indicator", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
+      KOKKOS_CLASS_LAMBDA( const int iX ) {
+        limited_cell_( iX ) = 0;
+  });
+
+
   // --- Apply troubled cell indicator ---
   if ( tci_opt_ ) detect_troubled_cells( U, D_, grid, basis );
 
@@ -60,7 +67,16 @@ void TVDMinmod::apply_slope_limiter( View3D<double> U, const GridStructure* grid
         KOKKOS_CLASS_LAMBDA( const int iX ) {
           // --- Characteristic Limiting Matrices ---
           // Note: using cell averages
-          for ( int iC = 0; iC < nvars; iC++ ) {
+          auto lambda = nullptr;
+          const double v = U(1, iX, 0);
+          const double Em_T = U(2, iX, 0);
+          const double tau = U(0, iX, 0);
+          const double p  = eos->pressure_from_conserved( tau, v, Em_T, lambda );
+          const double c1 = std::sqrt(p * eos->get_gamma() * tau);
+          const double c2 = eos->sound_speed_from_conserved(tau, v, Em_T, lambda);
+          std::println("check: P - vz {}", p - v * c1 / tau);
+          std::println("check1: 1/P - vz {}", 1.0/(p - v * c2 / tau));
+          for ( int iC = 0; iC < nvars; ++iC ) {
             mult_( iC, iX ) = U( iC, iX, 0 );
           }
 
@@ -71,22 +87,26 @@ void TVDMinmod::apply_slope_limiter( View3D<double> U, const GridStructure* grid
           auto w_c_T_i = Kokkos::subview( w_c_T_, Kokkos::ALL, iX );
           auto Mult_i  = Kokkos::subview( mult_, Kokkos::ALL, iX );
           compute_characteristic_decomposition( Mult_i, R_i, R_inv_i, eos );
-          for ( int k = 0; k <= 1; k++ ) {
+          if (!multiply_and_check_identity(R_inv_i, R_i)) {
+          std::println("iX {} !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", iX);
+          THROW_ATHELAS_ERROR("!!");
+          }
+          for ( int k = 0; k <= 1; ++k ) {
             // store w_.. = invR @ U_..
-            for ( int iC = 0; iC < nvars; iC++ ) {
+            for ( int iC = 0; iC < nvars; ++iC ) {
               U_c_T_i( iC ) = U( iC, iX, k );
               w_c_T_i( iC ) = 0.0;
             }
-            MAT_MUL( 1.0, R_inv_i, U_c_T_i, 1.0, w_c_T_i );
+            MAT_MUL<3>( 1.0, R_inv_i, U_c_T_i, 0.0, w_c_T_i );
 
-            for ( int iC = 0; iC < nvars; iC++ ) {
+            for ( int iC = 0; iC < nvars; ++iC ) {
               U( iC, iX, k ) = w_c_T_i( iC );
             } // end loop vars
           } // end loop k
         } ); // par iX
   } // end map to characteristics
 
-  for ( int iC = 0; iC < nvars; iC++ ) {
+  for ( int iC = 0; iC < nvars; ++iC ) {
     Kokkos::parallel_for(
         "SlopeLimiter :: Minmod", Kokkos::RangePolicy<>( ilo, ihi + 1 ),
         KOKKOS_CLASS_LAMBDA( const int iX ) {
@@ -96,33 +116,36 @@ void TVDMinmod::apply_slope_limiter( View3D<double> U, const GridStructure* grid
           if ( ( D_( 0, iX ) > tci_val_ || D_( 2, iX ) > tci_val_ ) ||
                !tci_opt_ ) {
 
-            /* Begin TVD Minmod Limiter */
+            // --- Begin TVD Minmod Limiter --- //
             const double s_i = U( iC, iX, 1 ); // target cell slope
             const double c_i = U( iC, iX, 0 ); // target cell avg
             const double c_p = U( iC, iX + 1, 0 ); // cell iX + 1 avg
             const double c_m = U( iC, iX - 1, 0 ); // cell iX - 1 avg
             const double dx  = grid->get_widths( iX );
-            const double new_slope =
+            double new_slope =
                 MINMOD_B( s_i, b_tvd_ * ( c_p - c_i ), b_tvd_ * ( c_i - c_m ),
                           dx, m_tvb_ );
 
             // check limited slope difference vs threshold
             if ( std::abs( new_slope - s_i ) >
-                 sl_threshold_ * std::max( std::abs( s_i ), EPS ) ) {
+                 0*sl_threshold_ * std::max( std::abs( s_i ), EPS ) ) {
               // limit
+              if (std::abs(new_slope) > std::abs(U(iC, iX, 1))) {
+                new_slope = 0.0;
+                std::println("FUCK!!!!!!!!!");
+                std::println("si, cp-ci, ci-cm, min {} {} {} {}", s_i, c_p-c_i, c_m-c_i, std::min({s_i, c_p - c_i, c_m-c_i}));
+                std::println("new, old {} {}", new_slope, U(iC, iX, 1));
+              }
               U( iC, iX, 1 ) = new_slope;
-              if ( order_ > 2 &&
-                   new_slope !=
-                       s_i ) { // remove any higher order_ contributions
-                for ( int k = 2; k < order_; k++ ) {
+                // remove any higher order contributions
+                for ( int k = 2; k < order_; ++k ) {
                   U( iC, iX, k ) = 0.0;
                 }
-              }
             }
-            /* End TVD Minmod Limiter */
+            // --- End TVD Minmod Limiter --- //
             // The TVDMinmod part is really small... reusing a lot of code
 
-            /* Note we have limited this cell */
+            // --- Note we have limited this cell --- //
             limited_cell_( iX ) = 1;
 
           } // end if "limit_this_cell"
@@ -139,15 +162,15 @@ void TVDMinmod::apply_slope_limiter( View3D<double> U, const GridStructure* grid
           auto R_i     = Kokkos::subview( R_, Kokkos::ALL, Kokkos::ALL, iX );
           auto U_c_T_i = Kokkos::subview( U_c_T_, Kokkos::ALL, iX );
           auto w_c_T_i = Kokkos::subview( w_c_T_, Kokkos::ALL, iX );
-          for ( int k = 0; k <= 1; k++ ) {
+          for ( int k = 0; k < 2; ++k ) {
             // store U.. = R @ w..
-            for ( int iC = 0; iC < nvars; iC++ ) {
+            for ( int iC = 0; iC < nvars; ++iC ) {
               U_c_T_i( iC ) = U( iC, iX, k );
               w_c_T_i( iC ) = 0.0;
             }
-            MAT_MUL( 1.0, R_i, U_c_T_i, 1.0, w_c_T_i );
+            MAT_MUL<3>( 1.0, R_i, U_c_T_i, 0.0, w_c_T_i );
 
-            for ( int iC = 0; iC < nvars; iC++ ) {
+            for ( int iC = 0; iC < nvars; ++iC ) {
               U( iC, iX, k ) = w_c_T_i( iC );
             } // end loop vars
           } // end loop k

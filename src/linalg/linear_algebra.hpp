@@ -18,6 +18,7 @@
 
 // Fill identity matrix
 template <class T>
+KOKKOS_INLINE_FUNCTION
 constexpr void IDENTITY_MATRIX( T Mat, int n ) {
   for ( int i = 0; i < n; i++ ) {
     for ( int j = 0; j < n; j++ ) {
@@ -33,13 +34,17 @@ constexpr void IDENTITY_MATRIX( T Mat, int n ) {
 /**
  * @brief Matrix vector multiplication
  **/
-template <class M, class V>
-constexpr void MAT_MUL( double /*alpha*/, M A, V x, double /*beta*/, V y ) {
+template <int N, class M, class V>
+KOKKOS_INLINE_FUNCTION
+constexpr void MAT_MUL( double alpha, M A, V x, double beta, V y ) {
+  static_assert(M::rank == 2 && V::rank == 1, "Input types must be rank 2 and rank 1 views.");
   // Calculate A*x=y
-  for ( int i = 0; i < 3; i++ ) {
-    for ( int j = 0; j < 3; j++ ) {
-      y( i ) += ( A( i, j ) * x( j ) );
+  for ( int i = 0; i < N; i++ ) {
+    double sum = 0.0;
+    for ( int j = 0; j < N; j++ ) {
+      sum += A( i, j ) * x( j );
     }
+    y(i) = alpha * sum + beta * y(i);
   }
 }
 void tri_sym_diag( int n, std::vector<double>& d, std::vector<double>& e,
@@ -50,6 +55,7 @@ void invert_matrix( std::vector<double>& M, int n );
  * @brief Testing function: checks A A^-1 = I
  **/
 template <typename T>
+KOKKOS_INLINE_FUNCTION
 bool multiply_and_check_identity( T A, T B, double tol = 1e-8 ) {
   using Scalar = typename T::value_type;
   static_assert( T::rank == 2, "Input views must be rank 2." );
@@ -65,7 +71,7 @@ bool multiply_and_check_identity( T A, T B, double tol = 1e-8 ) {
   }
 
   // Allocate result matrix
-  Kokkos::View<Scalar**, Kokkos::LayoutRight> C( "C", N, M );
+  Kokkos::View<double**, Kokkos::LayoutRight> C( "C", N, M );
 
   // Matrix multiplication: C(i,j) = sum_k A(i,k) * B(k,j)
   Kokkos::parallel_for(
@@ -80,6 +86,7 @@ bool multiply_and_check_identity( T A, T B, double tol = 1e-8 ) {
       } );
 
   // Check if result is an identity matrix
+  bool flag = true;
   auto C_host = Kokkos::create_mirror_view_and_copy( Kokkos::HostSpace( ), C );
   for ( int i = 0; i < N; ++i ) {
     for ( int j = 0; j < M; ++j ) {
@@ -87,10 +94,10 @@ bool multiply_and_check_identity( T A, T B, double tol = 1e-8 ) {
       if ( std::abs( C_host( i, j ) - expected ) > tol ) {
         std::cout << "Mismatch at (" << i << ", " << j
                   << "): " << C_host( i, j ) << " != " << expected << "\n";
-        return false;
+        flag = false;
       }
     }
   }
 
-  return true;
+  return flag;
 }

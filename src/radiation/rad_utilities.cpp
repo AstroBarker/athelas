@@ -99,6 +99,7 @@ auto flux_rad( const double E, const double F, const double P, const double V, c
   */
 
   // Krumholz et al. 2007 O(b^2)
+  /*
   const double G0 =
       D *
       ( kappa_p * term1 + ( kappa_r - 2.0 * kappa_p ) * b * Fc +
@@ -108,36 +109,22 @@ auto flux_rad( const double E, const double F, const double P, const double V, c
   const double G = D * ( kappa_r * Fc + kappa_p * term1 * b -
                        kappa_r * b * ( E + Pr ) + 0.5 * kappa_r * Fc * b * b +
                        2.0 * ( kappa_r - kappa_p ) * b * b * Fc );
+  */
 
   // ala Skinner & Ostriker, simpler.
-  /*
   const double kappa = kappa_r;
   const double G0 = D * kappa * ( term1 - b * Fc );
   const double G  = D * kappa * ( Fc - b * E + b * Pr );
-  */
   return { G0, G };
 }
 
 /**
- * source terms for radiation
+ * factor of c scaling terms for radiation-matter sources
  * TODO: total opacity X
  **/
-[[nodiscard]] auto source_rad( const double D, const double V, const double T,
-                               const double kappa_r, const double kappa_p,
-                               const double E, const double F, const double Pr,
-                               const int iCR ) -> double {
-  assert( ( iCR == 0 || iCR == 1 ) && "Radiation :: source_rad :: bad iCR." );
-  assert( D >= 0.0 &&
-          "Radiation :: source_rad :: Non positive definite density." );
-  assert( T > 0.0 && "Radiation :: source_rad :: Non positive temperature." );
-  assert( E > 0.0 && "Radiation :: source_rad :: Non positive "
-                     "definite radiation energy density." );
-
-  const double c = constants::c_cgs;
-
-  auto [G0, G] = radiation_four_force( D, V, T, kappa_r, kappa_p, E, F, Pr );
-
-  return ( iCR == 0 ) ? -c * G0 : -c * c * G;
+[[nodiscard]] auto source_factor_rad() -> std::tuple<double, double> {
+  constexpr static double c = constants::c_cgs;
+  return {c, c*c};
 }
 
 /* pressure tensor closure */
@@ -188,38 +175,33 @@ auto lambda_hll( const double f, const int sign ) -> double {
  **/
 auto numerical_flux_hll_rad( const double E_L, const double E_R, const double F_L,
                              const double F_R, const double P_L, const double P_R,
-                             const double vstar ) -> std::tuple<double, double> {
+                             const double vstar, const double tau ) -> std::tuple<double, double> {
   // flux factors
   const double f_L = flux_factor( E_L, F_L );
   const double f_R = flux_factor( E_R, F_R );
 
   // TODO(astrobarker) - vstar?
   constexpr static double c2 = constants::c_cgs * constants::c_cgs;
-  const double lambda1_L     = lambda_hll( f_L, -1.0 ) - vstar;
-  const double lambda1_R     = lambda_hll( f_R, -1.0 ) - vstar;
-  const double lambda3_L     = lambda_hll( f_L, 1.0 ) - vstar;
-  const double lambda3_R     = lambda_hll( f_R, 1.0 ) - vstar;
-  const double lambda_min_L  = std::min( lambda1_L, lambda3_L );
-  const double lambda_min_R  = std::min( lambda1_R, lambda3_R );
-  const double lambda_max_L  = std::max( lambda1_L, lambda3_L );
-  const double lambda_max_R  = std::max( lambda1_R, lambda3_R );
+  const double lambda1_L     = lambda_hll( f_L, -1.0 ) - 0*vstar;
+  const double lambda1_R     = lambda_hll( f_R, -1.0 ) - 0*vstar;
+  const double lambda3_L     = lambda_hll( f_L, 1.0 ) - 0*vstar;
+  const double lambda3_R     = lambda_hll( f_R, 1.0 ) - 0*vstar;
+  const double lambda_min_L  = lambda1_L;
+  const double lambda_min_R  = lambda1_R;
+  const double lambda_max_L  = lambda3_L;
+  const double lambda_max_R  = lambda3_R;
 
-  const double s_r = std::max( lambda_max_L, lambda_max_R );
-  const double s_l = std::min( lambda_min_L, lambda_min_R );
+  const double s_r = std::max( lambda_max_L, lambda_max_R ) - vstar;
+  const double s_l = std::min( lambda_min_L, lambda_min_R ) - vstar;
 
   const double s_r_p = std::max( s_r, 0.0 );
   const double s_l_m = std::min( s_l, 0.0 );
 
-  /*
-  // eigenvalues
-  const double s_r_p = std::max(
-      std::max( lambda_hll( f_L, 1.0 ), lambda_hll( f_R, 1.0 ) ), 0.0 );
-  const double s_l_m = std::min(
-      std::min( lambda_hll( f_L, -1.0 ), lambda_hll( f_R, -1.0 ) ), 0.0 );
-  */
-  const double Flux_E = hll( E_L, E_R, F_L - vstar * E_L, F_R - vstar * E_R, s_l_m, s_r_p );
-  const double Flux_F = hll( F_L, F_R, c2 * P_L - vstar * F_L, c2 * P_R - vstar * F_R, s_l_m, s_r_p );
-  return { Flux_E, Flux_F };
+  const double flux_e = hll( E_L, E_R, F_L, F_R, s_l_m, s_r_p );
+  const double flux_f = hll( F_L, F_R, c2 * P_L, c2 * P_R, s_l_m, s_r_p );
+  //const double Flux_E = hll( E_L, E_R, F_L - vstar * E_L, F_R - vstar * E_R, s_l_m, s_r_p );
+  //const double Flux_F = hll( F_L, F_R, c2 * P_L - vstar * F_L, c2 * P_R - vstar * F_R, s_l_m, s_r_p );
+  return { flux_e, flux_f };
 }
 
 /**

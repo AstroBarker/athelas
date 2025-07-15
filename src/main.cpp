@@ -4,10 +4,11 @@
 
 #include "Kokkos_Core.hpp"
 
-#include "bc/boundary_conditions.hpp"
+//#include "bc/boundary_conditions.hpp"
+#include "main.hpp"
+#include "basis/polynomial_basis.hpp"
 #include "driver.hpp"
 #include "io/io.hpp"
-#include "main.hpp"
 #include "utils/error.hpp"
 
 namespace {
@@ -25,8 +26,6 @@ auto parse_input_file( std::span<char*> args )
   return std::unexpected( "No input file passed! Use -i <path>" );
 }
 } // namespace
-
-using bc::apply_bc;
 
 auto main( int argc, char** argv ) -> int {
   auto input_result =

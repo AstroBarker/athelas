@@ -184,7 +184,7 @@ void limit_rad_energy( View3D<double> U, const ModalBasis* basis,
           nodal = basis->basis_eval( U, iX, 0, iN );
 
           if ( nodal >
-               EPSILON + std::abs( U( 1, iX, 0 ) ) / constants::c_cgs ) {
+               EPSILON + 0*std::abs( U( 1, iX, 0 ) ) / constants::c_cgs ) {
             temp = 1.0;
           } else {
             // temp = backtrace( U, target_func, basis, eos, iX, iN );

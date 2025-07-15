@@ -9,13 +9,13 @@
 
 #include "driver.hpp"
 #include "abstractions.hpp"
-#include "bc/boundary_conditions.hpp"
-#include "bc/boundary_conditions_base.hpp"
+#include "basis/polynomial_basis.hpp"
 #include "build_info.hpp"
 #include "eos.hpp"
 #include "error.hpp"
 #include "fluid_discretization.hpp"
 #include "fluid_utilities.hpp"
+#include "problem_in.hpp"
 #include "grid.hpp"
 #include "initialization.hpp"
 #include "io/io.hpp"
@@ -23,7 +23,6 @@
 #include "opacity/opac.hpp"
 #include "opacity/opac_base.hpp"
 #include "opacity/opac_variant.hpp"
-#include "problem_in.hpp"
 #include "rad_discretization.hpp"
 #include "rad_utilities.hpp"
 #include "slope_limiter.hpp"
@@ -81,11 +80,11 @@ void Driver::initialize( const ProblemIn* pin ) { // NOLINT
     // --- Initialize fields ---
     initialize_fields( &state_, &grid_, &eos_, pin );
 
-    fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin->pOrder, bcs_.get( ) );
-    if ( opts_.do_rad ) {
-      bc::fill_ghost_zones<2>( state_.get_u_cr( ), &grid_, pin->pOrder,
-                               bcs_.get( ) );
-    }
+    //fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin->pOrder, bcs_.get( ) );
+    //if ( opts_.do_rad ) {
+    //  bc::fill_ghost_zones<2>( state_.get_u_cr( ), &grid_, pin->pOrder,
+    //                           bcs_.get( ) );
+    //}
   }
 
   // --- Datastructure for modal basis ---
@@ -211,8 +210,8 @@ auto Driver::execute( ) -> int {
   }
 
   // --- Apply bc and write final output ---
-  bc::fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin_.pOrder,
-                           bcs_.get( ) );
+  //bc::fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, fluid_basis_.get(),
+  //                         bcs_.get( ) );
   write_state( &state_, grid_, &sl_hydro_, problem_name_, time_, pin_.pOrder,
                -1, opts_.do_rad );
 

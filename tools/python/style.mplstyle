@@ -33,7 +33,7 @@ legend.fontsize : 8
 legend.frameon : False
 
 # Lines and markers
-lines.linewidth : 1
+lines.linewidth : 0.75
 lines.markersize : 4
 
 # Grid

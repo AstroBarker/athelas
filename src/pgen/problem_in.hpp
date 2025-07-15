@@ -19,6 +19,7 @@
 #include "bc/boundary_conditions_base.hpp"
 #include "error.hpp"
 #include "geometry.hpp"
+#include "timestepper/tableau.hpp"
 #include "toml.hpp"
 
 /* hold various program options */
@@ -61,6 +62,8 @@ class ProblemIn {
   int pOrder;
   int tOrder;
   int nStages;
+  std::string integrator;
+  MethodID method_id;
 
   double xL;
   double xR;

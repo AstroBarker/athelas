@@ -17,6 +17,7 @@
 #include "Kokkos_Core.hpp"
 
 #include "abstractions.hpp"
+#include "problem_in.hpp"
 #include "grid.hpp"
 
 using BasisFuncType = double( int, double, double );

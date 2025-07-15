@@ -79,6 +79,7 @@ else()
 endif()
 
 include_directories(src)
+include_directories("src/concepts")
 include_directories("src/geometry")
 include_directories("src/quadrature")
 include_directories("src/utils")

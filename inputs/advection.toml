@@ -31,6 +31,7 @@ nx = 128
 ng = 1
 
 [time]
+integrator = "EX_SSPRK22"
 torder = 4
 nstages = 5
 

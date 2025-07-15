@@ -42,4 +42,9 @@ auto compute_increment_rad_source( View2D<double> uCR, int k, int iCR,
                                    const ModalBasis* fluid_basis, 
                                    const ModalBasis* rad_basis, const EOS* eos,
                                    const Opacity* opac, int iX ) -> double;
+auto compute_increment_radhydro_source( View2D<double> uCRH, int k,
+                                   const GridStructure& grid,
+                                   const ModalBasis* fluid_basis, 
+                                   const ModalBasis* rad_basis, const EOS* eos,
+                                   const Opacity* opac, int iX ) -> std::tuple<double, double, double, double>;
 } // namespace radiation

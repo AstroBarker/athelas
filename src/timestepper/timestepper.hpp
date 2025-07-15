@@ -8,6 +8,8 @@
  *
  * @details Timestppers for hydro and rad hydro.
  *          Uses explicit for transport terms and implicit for coupling.
+ *
+ * TODO(astrobaker) move to calling step<fluid> / step<radhydro>
  */
 
 #include <math.h>
@@ -102,14 +104,14 @@ class TimeStepper {
                                                     { nvars, ihi + 2, order } ),
             KOKKOS_CLASS_LAMBDA( const int iCF, const int iX, const int k ) {
               SumVar_U_( iCF, iX, k ) +=
-                  dt * explicit_tableau_.a_ij( iS, j ) * dUs_j( iCF, iX, k );
+                  dt * integrator_.explicit_tableau.a_ij( iS, j ) * dUs_j( iCF, iX, k );
             } );
 
         Kokkos::parallel_for(
             "Timestepper::stage_data_", ihi + 2,
             KOKKOS_CLASS_LAMBDA( const int iX ) {
               stage_data_( iS, iX ) +=
-                  dt * explicit_tableau_.a_ij( iS, j ) * flux_u_j( iX );
+                  dt * integrator_.explicit_tableau.a_ij( iS, j ) * flux_u_j( iX );
             } );
       } // End inner loop
 
@@ -127,7 +129,7 @@ class TimeStepper {
 
       auto Us_j =
           Kokkos::subview( U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
-      apply_slope_limiter( S_Limiter, Us_j, &grid_s_[iS], fluid_basis, eos );
+      //apply_slope_limiter( S_Limiter, Us_j, &grid_s_[iS], fluid_basis, eos );
       bel::apply_bound_enforcing_limiter( Us_j, fluid_basis, eos );
     } // end outer loop
 
@@ -147,21 +149,21 @@ class TimeStepper {
                                                   { nvars, ihi + 2, order } ),
           KOKKOS_CLASS_LAMBDA( const int iCF, const int iX, const int k ) {
             U( iCF, iX, k ) +=
-                dt * explicit_tableau_.b_i( iS ) * dUs_j( iCF, iX, k );
+                dt * integrator_.explicit_tableau.b_i( iS ) * dUs_j( iCF, iX, k );
           } );
 
       Kokkos::parallel_for(
           "Timestepper::stage_data_::final", ihi + 2,
           KOKKOS_CLASS_LAMBDA( const int iX ) {
             stage_data_( 0, iX ) +=
-                dt * flux_u_j( iX ) * explicit_tableau_.b_i( iS );
+                dt * flux_u_j( iX ) * integrator_.explicit_tableau.b_i( iS );
           } );
       auto stage_data_j = Kokkos::subview( stage_data_, 0, Kokkos::ALL );
       grid_s_[iS].update_grid( stage_data_j );
     }
 
     grid = grid_s_[nStages_ - 1];
-    // apply_slope_limiter( S_Limiter, U, &grid, fluid_basis, eos );
+    apply_slope_limiter( S_Limiter, U, &grid, fluid_basis, eos );
     bel::apply_bound_enforcing_limiter( U, fluid_basis, eos );
   }
 
@@ -213,8 +215,8 @@ class TimeStepper {
       // --- Inner update loop ---
 
       for ( int j = 0; j < iS; j++ ) {
-        const double dt_a    = dt * explicit_tableau_.a_ij( iS, j );
-        const double dt_a_im = dt * implicit_tableau_.a_ij( iS, j );
+        const double dt_a    = dt * integrator_.explicit_tableau.a_ij( iS, j );
+        const double dt_a_im = dt * integrator_.implicit_tableau.a_ij( iS, j );
         auto Us_j_h =
             Kokkos::subview( U_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
         auto Us_j_r =
@@ -247,8 +249,7 @@ class TimeStepper {
 
         Kokkos::parallel_for(
             "Timestepper :: implicit piece in inner loop",
-            Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 1, 0 },
-                                                    { ihi + 1, order } ),
+            Kokkos::MDRangePolicy<Kokkos::Rank<2>>( {1, 0}, {ihi + 1, order} ),
             KOKKOS_CLASS_LAMBDA( const int iX, const int k ) {
               auto u_h =
                   Kokkos::subview( U_s_, j, Kokkos::ALL, iX, Kokkos::ALL );
@@ -276,7 +277,7 @@ class TimeStepper {
             "Timestepper::stage_data_", ihi + 2,
             KOKKOS_CLASS_LAMBDA( const int iX ) {
               stage_data_( j, iX ) +=
-                  dt * explicit_tableau_.a_ij( iS, j ) * flux_u_j( iX );
+                  dt * integrator_.explicit_tableau.a_ij( iS, j ) * flux_u_j( iX );
             } );
       } // End inner loop
 
@@ -296,65 +297,83 @@ class TimeStepper {
             U_s_r_( iS, 1, iX, k ) = SumVar_U_r_( 1, iX, k );
           } );
 
-      // capturing sumvar_u_r bad?
-      auto implicit_rad = [&]( View2D<double> scratch, const int k, const int iC,
-                               const View2D<double> u_h, GridStructure& grid,
-                               const ModalBasis* fluid_basis, 
-                               const ModalBasis* rad_basis, const EOS* eos,
-                               const Opacity* opac, const int iX ) {
-        return SumVar_U_r_( iC, iX, k ) +
-               dt * implicit_tableau_.a_ij( iS, iS ) *
-                   compute_increment_rad_source(
-                       scratch, k, iC, u_h, grid_s_[iS], fluid_basis, rad_basis, eos, opac, iX );
-      };
-      auto implicit_hydro = [&]( View2D<double> scratch, const int k,
-                                 const int iC, const View2D<double> u_r,
-                                 GridStructure& grid, const ModalBasis* fluid_basis,
-                                 const ModalBasis* rad_basis, const EOS* eos, 
-                                 const Opacity* opac, const int iX ) {
-        return SumVar_U_( iC, iX, k ) +
-               dt * implicit_tableau_.a_ij( iS, iS ) *
-                   compute_increment_fluid_source(
-                       scratch, k, iC, u_r, grid_s_[iS], fluid_basis, rad_basis, eos, opac, iX );
-      };
+      auto Us_j_h =
+          Kokkos::subview( U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
+      auto Us_j_r =
+          Kokkos::subview( U_s_r_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
+      apply_slope_limiter( S_Limiter, Us_j_h, &grid_s_[iS], fluid_basis, eos );
+      apply_slope_limiter( S_Limiter, Us_j_r, &grid_s_[iS], rad_basis, eos );
+      bel::apply_bound_enforcing_limiter( Us_j_h, fluid_basis, eos );
+      bel::apply_bound_enforcing_limiter_rad( Us_j_r, rad_basis, eos );
+      bel::apply_bound_enforcing_limiter_rad( SumVar_U_r_, rad_basis, eos );
+      bel::apply_bound_enforcing_limiter( SumVar_U_, rad_basis, eos );
 
       // implicit update
+      // TODO(astrobarker) cleanup scratch mess
+      // TODO(astrobarker) combined U, U_r
+      View3D<double> scratch_implicit("scratch_implicit", ihi+2, 5, order);
+      View3D<double> scratch_solution_k("scratch_solution_k", ihi + 2, 5, order);
+      View3D<double> scratch_solution_km1("scratch_solution_km1", ihi + 2, 5, order);
+      View3D<double> R("R", ihi + 2, 5, order);
       Kokkos::parallel_for(
           "Timestepper implicit",
-          Kokkos::MDRangePolicy<Kokkos::Rank<3>>( { 1, 1, 0 },
-                                                  { 3, ihi + 1, order } ),
-          KOKKOS_CLASS_LAMBDA( const int iC, const int iX, const int k ) {
+          Kokkos::RangePolicy<>(  1, ihi + 1 ),
+          KOKKOS_CLASS_LAMBDA( const int iX ) {
+            const double dt_a_ii = dt * integrator_.implicit_tableau.a_ij(iS, iS);
             auto u_h =
                 Kokkos::subview( U_s_, iS, Kokkos::ALL, iX, Kokkos::ALL );
             auto u_r =
                 Kokkos::subview( U_s_r_, iS, Kokkos::ALL, iX, Kokkos::ALL );
+            auto scratch_sol_ix = Kokkos::subview(scratch_implicit, iX, Kokkos::ALL, Kokkos::ALL);
+            auto scratch_sol_ix_k = Kokkos::subview(scratch_solution_k, iX, Kokkos::ALL, Kokkos::ALL);
+            auto scratch_sol_ix_km1 = Kokkos::subview(scratch_solution_km1, iX, Kokkos::ALL, Kokkos::ALL);
+            auto R_ix = Kokkos::subview(R, iX, Kokkos::ALL, Kokkos::ALL);
 
-            const double temp2 = root_finders::fixed_point_aa(
-                implicit_rad, k, u_r, iC - 1, u_h, grid_s_[iS], fluid_basis, rad_basis, eos,
+            // TODO(astrobarker): invert loops
+            for (int k = 0; k < order; ++k) {
+              // set hydro vars
+              for (int i = 0; i < 3; ++i) { 
+                scratch_sol_ix_k(i, k) = u_h(i,k);
+                scratch_sol_ix_km1(i, k) = u_h(i,k);
+                scratch_sol_ix(i, k) = u_h(i,k);
+                R_ix(i, k) = SumVar_U_(i, iX, k);
+              }
+              // set rad vars
+              for (int i = 3; i < 5; ++i) { 
+                scratch_sol_ix_k(i, k) = u_r(i-3,k);
+                scratch_sol_ix_km1(i, k) = u_r(i-3,k);
+                scratch_sol_ix(i, k) = u_r(i-3,k);
+                R_ix(i, k) = SumVar_U_r_(i-3, iX, k);
+              }
+            }
+
+            root_finders::fixed_point_radhydro_aa(
+                R_ix, dt_a_ii, scratch_sol_ix_k, scratch_sol_ix_km1, scratch_sol_ix, grid_s_[iS], fluid_basis, rad_basis, eos,
                 opac, iX );
-            U_s_r_( iS, iC - 1, iX, k ) = temp2;
 
-            const double temp1 = root_finders::fixed_point_aa(
-                implicit_hydro, k, u_h, iC, u_r, grid_s_[iS], fluid_basis, rad_basis, eos, opac,
-                iX );
-
-            U_s_( iS, iC, iX, k ) = temp1;
+            // TODO(astrobarker): invert loops
+            for (int k = 0; k < order; ++k) {
+              for (int i = 3; i < 5; ++i) { 
+                U_s_r_(iS, i-3, iX, k) = scratch_sol_ix(i, k);
+              } 
+              // hydro (no need to update density)
+              for (int i = 1; i < 3; ++i) { 
+                U_s_(iS, i, iX, k) = scratch_sol_ix(i, k);
+              }
+            }
+            
           } );
 
       // TODO(astrobarker): slope limit rad
-      auto Us_j_h =
-          Kokkos::subview( U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       apply_slope_limiter( S_Limiter, Us_j_h, &grid_s_[iS], fluid_basis, eos );
-      auto Us_j_r =
-          Kokkos::subview( U_s_r_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       apply_slope_limiter( S_Limiter, Us_j_r, &grid_s_[iS], rad_basis, eos );
       bel::apply_bound_enforcing_limiter( Us_j_h, fluid_basis, eos );
       bel::apply_bound_enforcing_limiter_rad( Us_j_r, rad_basis, eos );
     } // end outer loop
 
     for ( unsigned short int iS = 0; iS < nStages_; iS++ ) {
-      const double dt_b    = dt * explicit_tableau_.b_i( iS );
-      const double dt_b_im = dt * implicit_tableau_.b_i( iS );
+      const double dt_b    = dt * integrator_.explicit_tableau.b_i( iS );
+      const double dt_b_im = dt * integrator_.implicit_tableau.b_i( iS );
       auto Us_i_h =
           Kokkos::subview( U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto Us_i_r =
@@ -422,14 +441,16 @@ class TimeStepper {
 
  private:
   const int mSize_;
-  const int nStages_;
-  const int tOrder_;
 
   // tableaus
   // TODO(astrobarker): always have both tableaus?
   // Maybe create an IMEX class... (or new implicit and explicit classes)
-  ButcherTableau implicit_tableau_;
-  ButcherTableau explicit_tableau_;
+  //ButcherTableau implicit_tableau_;
+  //ButcherTableau explicit_tableau_;
+  RKIntegrator integrator_;
+
+  const int nStages_;
+  const int tOrder_;
 
   // Hold stage data
   View4D<double> U_s_{ };
@@ -442,6 +463,9 @@ class TimeStepper {
 
   // stage_data_ Holds cell left interface positions
   View2D<double> stage_data_{ };
+
+  // scratch for root finder
+  View2D<double> scratch_{};
 
   // Variables to pass to update step
   View3D<double> flux_q_{ };

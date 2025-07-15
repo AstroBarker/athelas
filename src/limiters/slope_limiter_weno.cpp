@@ -75,7 +75,7 @@ void WENO::apply_slope_limiter( View3D<double> U, const GridStructure* grid,
               U_c_T_i( iC ) = U( iC, iX, k );
               w_c_T_i( iC ) = 0.0;
             }
-            MAT_MUL( 1.0, R_inv_i, U_c_T_i, 1.0, w_c_T_i );
+            MAT_MUL<3>( 1.0, R_inv_i, U_c_T_i, 1.0, w_c_T_i );
 
             for ( int iC = 0; iC < nvars; iC++ ) {
               U( iC, iX, k ) = w_c_T_i( iC );
@@ -155,7 +155,7 @@ void WENO::apply_slope_limiter( View3D<double> U, const GridStructure* grid,
               U_c_T_i( iC ) = U( iC, iX, k );
               w_c_T_i( iC ) = 0.0;
             }
-            MAT_MUL( 1.0, R_i, U_c_T_i, 1.0, w_c_T_i );
+            MAT_MUL<3>( 1.0, R_i, U_c_T_i, 1.0, w_c_T_i );
 
             for ( int iC = 0; iC < nvars; iC++ ) {
               U( iC, iX, k ) = w_c_T_i( iC );

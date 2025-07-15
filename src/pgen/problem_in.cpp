@@ -72,6 +72,13 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   // time
   std::optional<int> tO = in_table["time"]["torder"].value<int>( );
   std::optional<int> nS = in_table["time"]["nstages"].value<int>( );
+  std::optional<std::string> integrator_ = in_table["time"]["integrator"].value<std::string>();
+  if (integrator_) {
+    integrator = utilities::to_lower(integrator_.value());
+    method_id = string_to_id(integrator);
+  } else {
+    THROW_ATHELAS_ERROR("You must list an integrator in the input deck!");
+  }
 
   // eos
   eos_type = in_table["eos"]["type"].value_or( "ideal" );
@@ -101,9 +108,9 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   b_tvd                      = in_table["limiters"]["b_tvd"].value_or( 1.0 );
   m_tvb                      = in_table["limiters"]["m_tvb"].value_or( 1.0 );
   limiter_type = in_table["limiters"]["type"].value_or( "minmod" );
-  if ( b_tvd < 1.0 || b_tvd > 2.0 ) {
-    THROW_ATHELAS_ERROR( "b_tvd must be in [1.0, 2.0]." );
-  }
+  //if ( b_tvd < 1.0 || b_tvd > 2.0 ) {
+  //  THROW_ATHELAS_ERROR( "b_tvd must be in [1.0, 2.0]." );
+  //}
   if ( utilities::to_lower( limiter_type ) != "minmod" &&
        utilities::to_lower( limiter_type ) != "weno" ) {
     THROW_ATHELAS_ERROR( "Please choose a valid limiter! Current options: \n"

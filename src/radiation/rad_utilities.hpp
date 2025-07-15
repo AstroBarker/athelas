@@ -29,13 +29,12 @@ auto flux_factor( double E, double F ) -> double;
 auto flux_rad( double E, double F, double P, double vstar, int iCR ) -> double;
 auto radiation_four_force( double D, double V, double T, double kappa_r, double kappa_p,
                            double E, double F, double Pr ) -> std::tuple<double, double>;
-auto source_rad( double D, double V, double T, double kappa_r, double kappa_p, double E,
-                 double F, double Pr, int iCR ) -> double;
+auto source_factor_rad(  ) -> std::tuple<double, double>;
 auto compute_closure( double E, double F ) -> double;
 auto lambda_hll( double f, int sign ) -> double;
 auto llf_flux( double Fp, double Fm, double Up, double Um, double alpha ) -> double;
 auto numerical_flux_hll_rad( double E_L, double E_R, double F_L, double F_R, double P_L,
-                             double P_R, double vstar ) -> std::tuple<double, double>;
+                             double P_R, double vstar, double tau = 1.0 ) -> std::tuple<double, double>;
 auto compute_timestep_rad( const GridStructure* grid, double CFL ) -> double;
 
 } // namespace radiation

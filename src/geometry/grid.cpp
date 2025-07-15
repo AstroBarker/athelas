@@ -182,8 +182,8 @@ void GridStructure::compute_mass( View3D<double> uPF ) {
   const int ilo     = get_ilo( );
   const int ihi     = get_ihi( );
 
-  double mass = NAN;
-  double X    = NAN;
+  double mass = 0.0;
+  double X    = 0.0;
 
   for ( int iX = ilo; iX <= ihi; iX++ ) {
     mass = 0.0;

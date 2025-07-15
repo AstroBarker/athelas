@@ -9,6 +9,19 @@
 
 #include "Kokkos_Core.hpp"
 
+using DevMemSpace = Kokkos::DefaultExecutionSpace::memory_space;
+using HostMemSpace = Kokkos::HostSpace;
+using DevExecSpace = Kokkos::DefaultExecutionSpace;
+using ScratchMemSpace = DevExecSpace::scratch_memory_space;
+
+using HostExecSpace = Kokkos::DefaultHostExecutionSpace;
+using MemUnmanaged = Kokkos::MemoryTraits<Kokkos::Unmanaged>;
+
+template <typename T>
+using ScratchPad1D = Kokkos::View<T *, ScratchMemSpace, MemUnmanaged>;
+template <typename T>
+using ScratchPad2D = Kokkos::View<T **, ScratchMemSpace, MemUnmanaged>;
+
 template <typename T>
 using View4D = Kokkos::View<T****>;
 

@@ -199,6 +199,7 @@ auto compute_increment_fluid_source( View2D<double> uCF, const int k,
 
   double local_sum = 0.0;
   for ( int iN = 0; iN < nNodes; iN++ ) {
+    const double tau   = fluid_basis->basis_eval( uCF, iX, 0, iN + 1 );
     const double D   = 1.0 / fluid_basis->basis_eval( uCF, iX, 0, iN + 1 );
     const double Vel = fluid_basis->basis_eval( uCF, iX, 1, iN + 1 );
     const double EmT = fluid_basis->basis_eval( uCF, iX, 2, iN + 1 );
@@ -217,6 +218,7 @@ auto compute_increment_fluid_source( View2D<double> uCF, const int k,
 
     const double kappa_r = rosseland_mean( opac, D, T, X, Y, Z, lambda );
     const double kappa_p = planck_mean( opac, D, T, X, Y, Z, lambda );
+//    std::println("fluid source k tau Tg Eg Er Fr {} {} {} {} {} {}", k, tau, T, EmT, Er, Fr);
 
     local_sum +=
         grid.get_weights( iN ) * fluid_basis->get_phi( iX, iN + 1, k ) *
@@ -255,7 +257,7 @@ void compute_increment_fluid_explicit(
   const int nvars   = U.extent( 0 );
 
   // --- Apply BC ---
-  bc::fill_ghost_zones<3>( U, &grid, order, bcs );
+  bc::fill_ghost_zones<3>( U, &grid, basis, bcs );
 
   // --- Detect Shocks ---
   // TODO(astrobarker): Code up a shock detector...

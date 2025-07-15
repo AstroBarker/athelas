@@ -53,9 +53,9 @@ void rad_shock_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
   const double gm1      = gamma - 1.0;
   const double em_gas_L = constants::k_B * T_L / ( gm1 * mu * constants::m_p );
   const double em_gas_R = constants::k_B * T_R / ( gm1 * mu * constants::m_p );
-  std::println("egas_L egas_R {:.5e} {:.5e}", em_gas_L, em_gas_R);
   const double e_rad_L = constants::a * std::pow( T_L, 4.0 );
   const double e_rad_R = constants::a * std::pow( T_R, 4.0 );
+  std::println("erad_L erad_R {:.5e} {:.5e}", e_rad_L, e_rad_R);
 
   for ( int iX = 0; iX <= ihi + 1; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {

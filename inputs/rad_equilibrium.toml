@@ -36,6 +36,8 @@ nx = 1
 ng = 1
 
 [time]
+#integrator = "IMEX_SSPRK11"
+integrator = "IMEX_SSPRK22_DIRK"
 torder = 2
 nstages = 2
 
