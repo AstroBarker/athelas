@@ -27,8 +27,7 @@ dt_init_frac = 1.05
 
 [fluid]
 basis = "legendre"
-nnodes = 3
-porder = 3
+integrator = "SSPRK33"
 nx = 128
 ng = 1
 

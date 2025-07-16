@@ -62,9 +62,10 @@ class ThermalEquilibrium:
     N_A = consts.N_A.cgs.value
     gamma = 5.0 / 3.0
     p = (gamma - 1.0) * e_gas
-    mu = 0.6
     rho = 1.0e-7
-    return mu * p / (k * N_A * rho)
+    sie = e_gas / rho
+    mu = 1.0 + consts.m_e.cgs.value / consts.m_p.cgs.value
+    return (gamma - 1.0) * mu * consts.m_p.cgs.value * sie / (k)
 
   # End T_
 
@@ -98,7 +99,7 @@ def main():
   i = 0
   for fn in files:
     if "basis" in fn:
-        continue
+      continue
     a = Athelas(fn)
     athelas_time[i] = a.time
     athelas_ener[i] = a.uCF[2, 0, 0] / a.uCF[0, 0, 0]
