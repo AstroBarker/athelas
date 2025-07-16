@@ -14,7 +14,7 @@
 #include "abstractions.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
-#include "eos/eos.hpp"
+#include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
 #include "opacity/opac_variant.hpp"
 

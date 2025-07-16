@@ -10,7 +10,7 @@
 #include "driver.hpp"
 #include "abstractions.hpp"
 #include "basis/polynomial_basis.hpp"
-#include "eos.hpp"
+#include "eos_variant.hpp"
 #include "error.hpp"
 #include "fluid_utilities.hpp"
 #include "grid.hpp"
@@ -72,7 +72,7 @@ auto compute_timestep( const View3D<double> U, const GridStructure* grid,
 void Driver::initialize( const ProblemIn* pin ) { // NOLINT
   if ( !restart_ ) {
     // --- Initialize fields ---
-    initialize_fields( &state_, &grid_, &eos_, pin );
+    initialize_fields( &state_, &grid_, eos_.get( ), pin );
 
     // fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin->pOrder, bcs_.get( )
     // ); if ( opts_.do_rad ) {
@@ -93,7 +93,7 @@ void Driver::initialize( const ProblemIn* pin ) { // NOLINT
 
   // --- slope limiter to initial condition ---
   apply_slope_limiter( &sl_hydro_, state_.get_u_cf( ), &grid_,
-                       fluid_basis_.get( ), &eos_ );
+                       fluid_basis_.get( ), eos_.get( ) );
 }
 
 using limiter_utilities::initialize_slope_limiter;
@@ -112,7 +112,8 @@ Driver::Driver( const ProblemIn* pin ) // NOLINT
       nlim_( ( pin->nlim == -1 ) ? std::numeric_limits<double>::infinity( )
                                  : pin->nlim ),
       dt_hdf5_( pin->dt_hdf5 ), dt_init_frac_( pin->dt_init_frac ),
-      eos_( IdealGas( pin->gamma_eos ) ), opac_( initialize_opacity( pin ) ),
+      eos_( std::make_unique<EOS>( initialize_eos( pin ) ) ),
+      opac_( std::make_unique<Opacity>( initialize_opacity( pin ) ) ),
       grid_( pin ),
       opts_( pin->do_rad, false, restart_, pin->Geometry, pin->basis ),
       state_( 3, 2, 3, 1, pin->nElements, pin->nGhost, pin->nNodes,
@@ -142,25 +143,25 @@ auto Driver::execute( ) -> int {
   // --- Evolution loop ---
   int iStep = 0;
   int i_out = 1; // output label, start 1
-  std::println( " # Step    t       dt       zone_cycles / wall_second" );
+  std::println( "# Step    t       dt       zone_cycles / wall_second" );
   while ( time_ < t_end_ && iStep <= nlim_ ) {
     timer_zone_cycles.reset( );
 
-    dt_ = std::min(
-        compute_timestep( state_.get_u_cf( ), &grid_, &eos_, cfl_, &opts_ ),
-        dt_ * dt_init_frac_ );
+    dt_ = std::min( compute_timestep( state_.get_u_cf( ), &grid_, eos_.get( ),
+                                      cfl_, &opts_ ),
+                    dt_ * dt_init_frac_ );
     if ( time_ + dt_ > t_end_ ) {
       dt_ = t_end_ - time_;
     }
 
     if ( !opts_.do_rad ) {
-      ssprk_.update_fluid( dt_, &state_, grid_, fluid_basis_.get( ), &eos_,
-                           &sl_hydro_, &opts_, bcs_.get( ) );
+      ssprk_.update_fluid( dt_, &state_, grid_, fluid_basis_.get( ),
+                           eos_.get( ), &sl_hydro_, &opts_, bcs_.get( ) );
     } else {
       try {
-        ssprk_.update_rad_hydro( dt_, &state_, grid_, fluid_basis_.get( ),
-                                 radiation_basis_.get( ), &eos_, &opac_,
-                                 &sl_hydro_, &opts_, bcs_.get( ) );
+        ssprk_.update_rad_hydro(
+            dt_, &state_, grid_, fluid_basis_.get( ), radiation_basis_.get( ),
+            eos_.get( ), opac_.get( ), &sl_hydro_, &opts_, bcs_.get( ) );
       } catch ( const AthelasError& e ) {
         std::cerr << e.what( ) << "\n";
         return AthelasExitCodes::FAILURE;
@@ -197,7 +198,7 @@ auto Driver::execute( ) -> int {
       //     static_cast<double>( i_print_ ) * nX_ / timer_zone_cycles.seconds(
       //     );
       zc_ws = nX_ / timer_zone_cycles.seconds( );
-      std::println( " ~ {} {:.5e} {:.5e} {:.5e} ", iStep, time_, dt_, zc_ws );
+      std::println( "{} {:.5e} {:.5e} {:.5e} ", iStep, time_, dt_, zc_ws );
       timer_zone_cycles.reset( );
     }
 

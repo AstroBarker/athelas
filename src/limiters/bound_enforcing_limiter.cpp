@@ -26,7 +26,6 @@
 #include <cstdlib> /* abs */
 
 #include "bound_enforcing_limiter.hpp"
-#include "eos.hpp"
 #include "polynomial_basis.hpp"
 #include "utilities.hpp"
 

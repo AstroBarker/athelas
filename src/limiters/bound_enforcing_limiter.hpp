@@ -25,7 +25,7 @@
 #include <print>
 
 #include "abstractions.hpp"
-#include "eos.hpp"
+#include "eos_variant.hpp"
 #include "polynomial_basis.hpp"
 #include "utils/utilities.hpp"
 

@@ -97,7 +97,9 @@ def main():
   fig, ax = plt.subplots()
   i = 0
   for fn in files:
-    a = Athelas(fn, basis_fn)
+    if "basis" in fn:
+        continue
+    a = Athelas(fn)
     athelas_time[i] = a.time
     athelas_ener[i] = a.uCF[2, 0, 0] / a.uCF[0, 0, 0]
     i += 1

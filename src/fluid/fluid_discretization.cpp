@@ -13,6 +13,7 @@
 
 #include "fluid_discretization.hpp"
 #include "bc/boundary_conditions.hpp"
+#include "eos/eos_variant.hpp"
 #include "fluid_utilities.hpp"
 #include "grid.hpp"
 #include "polynomial_basis.hpp"
@@ -55,15 +56,15 @@ void compute_increment_fluid_divergence(
                 "fluid_discretization :: Numerical Fluxes bad energy." );
 
         auto lambda      = nullptr;
-        const double P_L = eos->pressure_from_conserved( uCF_L( 0 ), uCF_L( 1 ),
-                                                         uCF_L( 2 ), lambda );
-        const double Cs_L = eos->sound_speed_from_conserved(
-            uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ), lambda );
+        const double P_L = pressure_from_conserved( eos, uCF_L( 0 ), uCF_L( 1 ),
+                                                    uCF_L( 2 ), lambda );
+        const double Cs_L = sound_speed_from_conserved(
+            eos, uCF_L( 0 ), uCF_L( 1 ), uCF_L( 2 ), lambda );
 
-        const double P_R = eos->pressure_from_conserved( uCF_R( 0 ), uCF_R( 1 ),
-                                                         uCF_R( 2 ), lambda );
-        const double Cs_R = eos->sound_speed_from_conserved(
-            uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ), lambda );
+        const double P_R = pressure_from_conserved( eos, uCF_R( 0 ), uCF_R( 1 ),
+                                                    uCF_R( 2 ), lambda );
+        const double Cs_R = sound_speed_from_conserved(
+            eos, uCF_R( 0 ), uCF_R( 1 ), uCF_R( 2 ), lambda );
 
         // --- Numerical Fluxes ---
 
@@ -113,8 +114,8 @@ void compute_increment_fluid_divergence(
           double local_sum = 0.0;
           for ( int iN = 0; iN < nNodes; iN++ ) {
             auto lambda    = nullptr;
-            const double P = eos->pressure_from_conserved(
-                basis->basis_eval( U, iX, 0, iN + 1 ),
+            const double P = pressure_from_conserved(
+                eos, basis->basis_eval( U, iX, 0, iN + 1 ),
                 basis->basis_eval( U, iX, 1, iN + 1 ),
                 basis->basis_eval( U, iX, 2, iN + 1 ), lambda );
             const double flux =
@@ -150,8 +151,8 @@ void compute_increment_fluid_geometry( const View3D<double> U,
         double local_sum = 0.0;
         auto lambda      = nullptr;
         for ( int iN = 0; iN < nNodes; iN++ ) {
-          const double P = eos->pressure_from_conserved(
-              basis->basis_eval( U, iX, 0, iN + 1 ),
+          const double P = pressure_from_conserved(
+              eos, basis->basis_eval( U, iX, 0, iN + 1 ),
               basis->basis_eval( U, iX, 1, iN + 1 ),
               basis->basis_eval( U, iX, 2, iN + 1 ), lambda );
 
@@ -191,7 +192,7 @@ auto compute_increment_fluid_source( View2D<double> uCF, const int k,
     const double Pr = radiation::compute_closure( Er, Fr );
 
     auto lambda    = nullptr;
-    const double T = eos->temperature_from_conserved( tau, Vel, EmT, lambda );
+    const double T = temperature_from_conserved( eos, tau, Vel, EmT, lambda );
 
     // TODO(astrobarker): composition
     const double X = 1.0;

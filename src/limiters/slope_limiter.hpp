@@ -22,7 +22,7 @@
 #include <variant>
 
 #include "abstractions.hpp"
-#include "eos/eos.hpp"
+#include "eos/eos_variant.hpp"
 #include "slope_limiter_base.hpp"
 
 class WENO : public SlopeLimiterBase<WENO> {

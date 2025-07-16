@@ -49,7 +49,6 @@ class ProblemIn {
   double dt_init_frac{ }; // ramp up dt
 
   std::string eos_type;
-  double gamma_eos{ };
 
   int nElements;
   int nNodes;

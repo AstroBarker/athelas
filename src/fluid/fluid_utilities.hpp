@@ -15,7 +15,7 @@
  */
 
 #include "abstractions.hpp"
-#include "eos.hpp"
+#include "eos_variant.hpp"
 #include "grid.hpp"
 
 namespace fluid {

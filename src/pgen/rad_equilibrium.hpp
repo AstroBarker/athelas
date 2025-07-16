@@ -60,7 +60,7 @@ void rad_equilibrium_init( State* state, GridStructure* grid,
         if ( k == 0 ) {
           uCF( iCF_Tau, iX, 0 ) = 1.0 / D;
           uCF( iCF_V, iX, 0 )   = V0;
-          uCF( iCF_E, iX, 0 )   = Ev_gas * uCF( iCF_Tau, iX, 0 );
+          uCF( iCF_E, iX, 0 )   = Ev_gas;
 
           uCR( iCR_E, iX, 0 ) = Ev_rad;
         }

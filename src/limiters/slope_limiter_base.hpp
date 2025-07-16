@@ -15,7 +15,7 @@
  */
 
 #include "abstractions.hpp"
-#include "eos/eos.hpp"
+#include "eos/eos_variant.hpp"
 #include "polynomial_basis.hpp"
 
 template <class SlopeLimiter>

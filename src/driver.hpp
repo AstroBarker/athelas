@@ -16,7 +16,7 @@
 #include <string>
 
 #include "basis/polynomial_basis.hpp"
-#include "eos/eos.hpp"
+#include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
 #include "pgen/problem_in.hpp"
 #include "timestepper/timestepper.hpp"
@@ -52,8 +52,8 @@ class Driver {
   double dt_init_frac_;
 
   // core bits
-  EOS eos_;
-  Opacity opac_;
+  std::unique_ptr<EOS> eos_;
+  std::unique_ptr<Opacity> opac_;
   GridStructure grid_;
   Options opts_;
   State state_;

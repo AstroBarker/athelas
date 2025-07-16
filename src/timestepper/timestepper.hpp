@@ -15,7 +15,7 @@
 #include "abstractions.hpp"
 #include "bc/boundary_conditions_base.hpp"
 #include "bound_enforcing_limiter.hpp"
-#include "eos.hpp"
+#include "eos_variant.hpp"
 #include "fluid/fluid_discretization.hpp"
 #include "opacity/opac_variant.hpp"
 #include "polynomial_basis.hpp"

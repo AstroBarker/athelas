@@ -32,49 +32,50 @@ void print_simulation_parameters( GridStructure grid, ProblemIn* pin,
   const int nNodes    = grid.get_n_nodes( );
   const int basis_int = ( pin->basis == poly_basis::legendre ) ? 0 : 1;
 
-  std::println( " ~ --- Physics Parameters --- " );
-  std::println( " ~ Radiation      : {}", static_cast<int>( pin->do_rad ) );
+  std::println( "# --- Physics Parameters --- " );
+  std::println( "# Radiation      : {}", static_cast<int>( pin->do_rad ) );
+  std::println( "# EOS            : {}", pin->eos_type );
   std::println( "" );
 
-  std::println( " ~ --- Order Parameters --- " );
-  std::println( " ~ basis          : {} ( 0 : legendre, 1: taylor )",
+  std::println( "# --- Order Parameters --- " );
+  std::println( "# basis          : {} ( 0 : legendre, 1: taylor )",
                 basis_int );
-  std::println( " ~ Spatial Order  : {}", pin->pOrder );
-  std::println( " ~ Temporal Order : {}", pin->tOrder );
-  std::println( " ~ RK Stages      : {}", pin->nStages );
+  std::println( "# Spatial Order  : {}", pin->pOrder );
+  std::println( "# Temporal Order : {}", pin->tOrder );
+  std::println( "# RK Stages      : {}", pin->nStages );
   std::println( "" );
 
-  std::println( " ~ --- grid Parameters --- " );
-  std::println( " ~ Mesh Elements  : {}", nX );
-  std::println( " ~ Number Nodes   : {}", nNodes );
-  std::println( " ~ Lower Boundary : {}", grid.get_x_l( ) );
-  std::println( " ~ Upper Boundary : {}", grid.get_x_r( ) );
+  std::println( "# --- grid Parameters --- " );
+  std::println( "# Mesh Elements  : {}", nX );
+  std::println( "# Number Nodes   : {}", nNodes );
+  std::println( "# Lower Boundary : {}", grid.get_x_l( ) );
+  std::println( "# Upper Boundary : {}", grid.get_x_r( ) );
   std::println( "" );
 
-  std::println( " ~ --- Limiter Parameters --- " );
+  std::println( "# --- Limiter Parameters --- " );
   if ( pin->pOrder == 1 ) {
-    std::println( " ~ Spatial Order 1: Slope limiter not applied." );
+    std::println( "# Spatial Order 1: Slope limiter not applied." );
   } else {
-    std::println( " ~ gamma_l          : {}", pin->gamma_l );
-    std::println( " ~ gamma_i          : {}", pin->gamma_i );
-    std::println( " ~ gamma_r          : {}", pin->gamma_r );
-    std::println( " ~ weno_r           : {}", pin->weno_r );
+    std::println( "# gamma_l          : {}", pin->gamma_l );
+    std::println( "# gamma_i          : {}", pin->gamma_i );
+    std::println( "# gamma_r          : {}", pin->gamma_r );
+    std::println( "# weno_r           : {}", pin->weno_r );
   }
   if ( pin->TCI_Option ) {
-    std::println( " ~ TCI Value      : {}", pin->TCI_Threshold );
+    std::println( "# TCI Value      : {}", pin->TCI_Threshold );
   } else {
-    std::println( " ~ TCI Not Used." );
+    std::println( "# TCI Not Used." );
   }
   if ( pin->Characteristic ) {
-    std::println( " ~ Limiting       : Characteristic" );
+    std::println( "# Limiting       : Characteristic" );
   } else {
-    std::println( " ~ Limiting       : Componentwise" );
+    std::println( "# Limiting       : Componentwise" );
   }
   std::println( "" );
 
-  std::println( " ~ --- Other --- " );
-  std::println( " ~ Problem Name    : {}", pin->problem_name );
-  std::println( " ~ CFL             : {}", CFL );
+  std::println( "# --- Other --- " );
+  std::println( "# Problem Name    : {}", pin->problem_name );
+  std::println( "# CFL             : {}", CFL );
   std::println( "" );
 }
 

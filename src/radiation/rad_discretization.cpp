@@ -13,7 +13,7 @@
 #include "rad_discretization.hpp"
 #include "boundary_conditions.hpp"
 #include "constants.hpp"
-#include "eos.hpp"
+#include "eos_variant.hpp"
 #include "grid.hpp"
 #include "polynomial_basis.hpp"
 #include "rad_utilities.hpp"
@@ -160,7 +160,7 @@ auto compute_increment_rad_source( View2D<double> uCR, const int k,
 
     auto lambda = nullptr;
     const double t_g =
-        eos->temperature_from_conserved( tau, vel, em_t, lambda );
+        temperature_from_conserved( eos, tau, vel, em_t, lambda );
 
     // TODO(astrobarker): composition
     const double X = 1.0;
@@ -224,7 +224,7 @@ auto compute_increment_radhydro_source( View2D<double> uCRH, int k,
 
     auto lambda = nullptr;
     const double t_g =
-        eos->temperature_from_conserved( tau, vel, em_t, lambda );
+        temperature_from_conserved( eos, tau, vel, em_t, lambda );
 
     // TODO(astrobarker): composition
     const double X = 1.0;

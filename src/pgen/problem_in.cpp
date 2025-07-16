@@ -25,7 +25,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
     THROW_ATHELAS_ERROR( " ! Issue reading input deck!" );
   }
 
-  std::println( " ~ Loading Input Deck ..." );
+  std::println( "# Loading Input Deck ..." );
 
   /* Grab as std::optional<type> */
 
@@ -83,14 +83,6 @@ ProblemIn::ProblemIn( const std::string& fn ) {
 
   // eos
   eos_type = in_table["eos"]["type"].value_or( "ideal" );
-  if ( eos_type != "ideal" ) {
-    THROW_ATHELAS_ERROR(
-        "Currently only ideal gas supported (eos_type = ideal).\n" );
-  }
-  gamma_eos = in_table["eos"]["gamma"].value_or( 1.4 );
-  if ( gamma_eos <= 0.0 ) {
-    THROW_ATHELAS_ERROR( "eos::gamma must be positive.\n" );
-  }
 
   // opac
   opac_type = in_table["opacity"]["type"].value_or( "constant" );
@@ -316,7 +308,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   }
   weno_r = wenor.value_or( 2.0 );
 
-  std::println( " ~ Configuration ... Complete\n" );
+  std::println( "# Configuration ... Complete\n" );
 }
 
 auto check_bc( std::string& bc ) -> bool {

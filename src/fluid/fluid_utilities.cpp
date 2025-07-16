@@ -12,7 +12,7 @@
 #include <cstdlib> /* abs */
 
 #include "constants.hpp"
-#include "eos.hpp"
+#include "eos_variant.hpp"
 #include "error.hpp"
 #include "fluid_utilities.hpp"
 #include "grid.hpp"
@@ -161,7 +161,7 @@ auto compute_timestep_fluid( const View3D<double> U, const GridStructure* grid,
 
         auto lambda = nullptr;
         const double Cs =
-            eos->sound_speed_from_conserved( tau_x, vel_x, eint_x, lambda );
+            sound_speed_from_conserved( eos, tau_x, vel_x, eint_x, lambda );
         double eigval = Cs + std::abs( vel_x );
 
         double dt_old = std::abs( dr ) / std::abs( eigval );

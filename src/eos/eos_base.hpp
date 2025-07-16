@@ -16,9 +16,6 @@
  *          - pressure_from_conserved
  *          - sound_speed_from_conserved
  *          - temperature_from_conserved
- *          - temperature_from_tau_pressure_abar
- *          - temperature_from_tau_pressure
- *          - radiation_pressure
  *
  *          These interfaces are implemented for all EOS
  **/

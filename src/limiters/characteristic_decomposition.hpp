@@ -11,7 +11,9 @@
  *          TODO(astrobarker): Write down for radiation.
  */
 
-#include <cmath> /* sqrt */
+#include <cmath>
+
+#include "eos_variant.hpp"
 
 template <class T1, class T2, class EOS>
 void compute_characteristic_decomposition( T1 U, T2 R, T2 R_inv, EOS eos ) {
@@ -21,9 +23,9 @@ void compute_characteristic_decomposition( T1 U, T2 R, T2 R_inv, EOS eos ) {
   const double Em_T = U( 2 );
 
   auto lambda    = nullptr;
-  const double p = eos->pressure_from_conserved( tau, v, Em_T, lambda );
+  const double p = pressure_from_conserved( eos, tau, v, Em_T, lambda );
 
-  const double gamma = eos->get_gamma( );
+  const double gamma = get_gamma( eos );
   const double gm1   = gamma - 1.0;
 
   const double v2  = v * v;
