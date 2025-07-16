@@ -40,15 +40,17 @@ void limit_rad_momentum( View3D<double> U, const ModalBasis* basis,
                          const EOS* eos );
 void apply_bound_enforcing_limiter( View3D<double> U, const ModalBasis* basis,
                                     const EOS* eos );
-void apply_bound_enforcing_limiter_rad( View3D<double> U, const ModalBasis* basis,
+void apply_bound_enforcing_limiter_rad( View3D<double> U,
+                                        const ModalBasis* basis,
                                         const EOS* eos );
 auto compute_theta_state( View3D<double> U, const ModalBasis* basis,
-                          const EOS* eos, double theta, int iCF, int iX, int iN )
-    -> double;
+                          const EOS* eos, double theta, int iCF, int iX,
+                          int iN ) -> double;
 auto target_func( double theta, View3D<double> U, const ModalBasis* basis,
                   const EOS* eos, int iX, int iN ) -> double;
-auto target_func_rad_flux( double theta, View3D<double> U, const ModalBasis* basis,
-                           const EOS* eos, int iX, int iN ) -> double;
+auto target_func_rad_flux( double theta, View3D<double> U,
+                           const ModalBasis* basis, const EOS* eos, int iX,
+                           int iN ) -> double;
 auto target_func_rad_energy( double theta, View3D<double> U,
                              const ModalBasis* basis, const EOS* eos, int iX,
                              int iN ) -> double;
@@ -56,9 +58,9 @@ auto target_func_rad_energy( double theta, View3D<double> U,
 template <typename F>
 auto bisection( const View3D<double> U, F target, const ModalBasis* basis,
                 const EOS* eos, const int iX, const int iN ) -> double {
-  constexpr static double TOL      = 1e-10;
+  constexpr static double TOL    = 1e-10;
   constexpr static int MAX_ITERS = 100;
-  constexpr static double delta    = 1.0e-3; // reduce root by delta
+  constexpr static double delta  = 1.0e-3; // reduce root by delta
 
   // bisection bounds on theta
   double a = 0.0;

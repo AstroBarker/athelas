@@ -12,13 +12,10 @@
  *            - Dirichlet
  */
 
-#include <iostream>
 #include <string>
 
-#include "boundary_conditions.hpp"
 #include "boundary_conditions_base.hpp"
-#include "grid.hpp"
-#include "utilities.hpp"
+#include "utils/error.hpp"
 
 namespace bc {
 

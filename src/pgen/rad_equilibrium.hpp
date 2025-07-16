@@ -7,14 +7,11 @@
  * @brief Radiation fluid equilibriation test
  */
 
-#include <iostream>
-#include <math.h> /* sin */
-#include <string>
+#include <cmath>
 
 #include "abstractions.hpp"
-#include "constants.hpp"
-#include "error.hpp"
 #include "grid.hpp"
+#include "state.hpp"
 
 /**
  * Initialize equilibrium rad test
@@ -24,7 +21,7 @@ void rad_equilibrium_init( State* state, GridStructure* grid,
   View3D<double> uCF = state->get_u_cf( );
   View3D<double> uPF = state->get_u_pf( );
   View3D<double> uCR = state->get_u_cr( );
-  const int pOrder = state->get_p_order( );
+  const int pOrder   = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
   const int ihi    = grid->get_ihi( );
@@ -41,10 +38,12 @@ void rad_equilibrium_init( State* state, GridStructure* grid,
   const double V0 = pin->in_table["problem"]["params"]["v0"].value_or( 0.0 );
   const double logD =
       pin->in_table["problem"]["params"]["logrho"].value_or( -7.0 );
-  const double logE_gas = pin->in_table["problem"]["params"]["logE_gas"].value_or(
-      10.0 ); // erg / cm^3
-  const double logE_rad = pin->in_table["problem"]["params"]["logE_rad"].value_or(
-      12.0 ); // erg / cm^3
+  const double logE_gas =
+      pin->in_table["problem"]["params"]["logE_gas"].value_or(
+          10.0 ); // erg / cm^3
+  const double logE_rad =
+      pin->in_table["problem"]["params"]["logE_rad"].value_or(
+          12.0 ); // erg / cm^3
   const double D      = std::pow( 10.0, logD );
   const double Ev_gas = std::pow( 10.0, logE_gas );
   const double Ev_rad = std::pow( 10.0, logE_rad );

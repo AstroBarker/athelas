@@ -7,14 +7,12 @@
  * @brief Radiation marshak wave test
  */
 
-#include <iostream>
-#include <math.h> /* sin */
-#include <string>
+#include <cmath>
 
 #include "abstractions.hpp"
 #include "constants.hpp"
-#include "error.hpp"
 #include "grid.hpp"
+#include "state.hpp"
 
 /**
  * @brief Initialize radiating shock
@@ -23,7 +21,7 @@ void marshak_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
   View3D<double> uCF = state->get_u_cf( );
   View3D<double> uPF = state->get_u_pf( );
   View3D<double> uCR = state->get_u_cr( );
-  const int pOrder = state->get_p_order( );
+  const int pOrder   = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
   const int ihi    = grid->get_ihi( );
@@ -46,7 +44,8 @@ void marshak_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
   const double V0 = pin->in_table["problem"]["params"]["vL"].value_or( 0.0 );
   const double epsilon =
       pin->in_table["problem"]["params"]["epsilon"].value_or( 1.0 );
-  const double rho0 = pin->in_table["problem"]["params"]["rho0"].value_or( 10.0 );
+  const double rho0 =
+      pin->in_table["problem"]["params"]["rho0"].value_or( 10.0 );
   const double T0 =
       pin->in_table["problem"]["params"]["T0"].value_or( 1.0e4 ); // K
 

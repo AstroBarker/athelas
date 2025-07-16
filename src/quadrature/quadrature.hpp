@@ -9,7 +9,6 @@
  * @details Computes Gauss-legendre nodes and weights
  */
 
-#include "abstractions.hpp"
 #include <vector>
 
 namespace quadrature {

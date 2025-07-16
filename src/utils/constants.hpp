@@ -11,13 +11,11 @@
  * unit systems
  */
 
-#include <math.h> /* atan */
-
-#include "abstractions.hpp"
+#include <numbers>
 
 namespace constants {
 
-constexpr auto PI( ) -> double { return std::atan( 1 ) * 4; }
+constexpr double PI       = std::numbers::pi;
 constexpr double G_GRAV   = 6.674299999999999e-8; // cgs
 constexpr double L_sun    = 3.828e33; // cgs
 constexpr double M_sun    = 1.98840987e+33; // cgs

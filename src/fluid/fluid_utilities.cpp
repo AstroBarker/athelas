@@ -10,15 +10,12 @@
 
 #include <algorithm> // std::min, std::max
 #include <cstdlib> /* abs */
-#include <iostream>
-#include <vector>
 
 #include "constants.hpp"
 #include "eos.hpp"
 #include "error.hpp"
 #include "fluid_utilities.hpp"
 #include "grid.hpp"
-#include "polynomial_basis.hpp"
 #include "rad_utilities.hpp"
 #include "utils/utilities.hpp"
 
@@ -27,21 +24,24 @@ using utilities::pos_part;
 namespace fluid {
 /**
  * Return a component iCF of the flux vector.
- * TODO: flux_fluid needs streamlining
  **/
 auto flux_fluid( const double V, const double P, const int iCF ) -> double {
   assert( iCF == 0 || iCF == 1 || iCF == 2 );
   assert( P > 0.0 && "Flux_Flux :: negative pressure" );
-  if ( iCF == 0 ) {
+  assert( iCF >= 0 && iCF <= 2 );
+  assert( P > 0.0 && "Flux_Flux :: negative pressure" );
+
+  switch ( iCF ) {
+  case 0:
     return -V;
-  }
-  if ( iCF == 1 ) {
-    return +P;
-  } else if ( iCF == 2 ) {
-    return +P * V;
-  } else { // Error case. Shouldn't ever trigger.
-    THROW_ATHELAS_ERROR( " ! Please input a valid iCF! (0,1,2). " );
-    return -1.0; // just a formality.
+  case 1:
+    return P;
+  case 2:
+    return P * V;
+  default:
+    // Should never reach here due to assert, but added for completeness
+    THROW_ATHELAS_ERROR( "! Please input a valid iCF! (0,1,2)." );
+    return AthelasExitCodes::FAILURE;
   }
 }
 
@@ -49,8 +49,9 @@ auto flux_fluid( const double V, const double P, const int iCF ) -> double {
  * Fluid radiation sources. Kind of redundant with Rad_sources.
  **/
 auto source_fluid_rad( const double D, const double V, const double T,
-                       const double kappa_r, const double kappa_p, const double E,
-                       const double F, const double Pr, const int iCF ) -> double {
+                       const double kappa_r, const double kappa_p,
+                       const double E, const double F, const double Pr,
+                       const int iCF ) -> double {
   assert( iCF == 1 || iCF == 2 );
 
   constexpr static double c = constants::c_cgs;
@@ -120,8 +121,9 @@ auto numerical_flux_gudonov( const double vL, const double vR, const double pL,
 /**
  * Gudonov style numerical flux. Constructs v* and p* states.
  **/
-void numerical_flux_hllc( double vL, double vR, double pL, double pR, double cL, double cR,
-                          double rhoL, double rhoR, double& Flux_U, double& Flux_P ) {
+void numerical_flux_hllc( double vL, double vR, double pL, double pR, double cL,
+                          double cR, double rhoL, double rhoR, double& Flux_U,
+                          double& Flux_P ) {
   double const aL = vL - cL; // left wave speed estimate
   double const aR = vR + cR; // right wave speed estimate
   Flux_U = ( rhoR * vR * ( aR - vR ) - rhoL * vL * ( aL - vL ) + pL - pR ) /
@@ -164,7 +166,7 @@ auto compute_timestep_fluid( const View3D<double> U, const GridStructure* grid,
 
         double dt_old = std::abs( dr ) / std::abs( eigval );
 
-        if ( dt_old < lmin ) lmin = dt_old;
+        lmin = std::min( dt_old, lmin );
       },
       Kokkos::Min<double>( dt ) );
 

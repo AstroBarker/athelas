@@ -16,17 +16,9 @@
  *          ihi = nElements - nGhost + 1
  */
 
-#include <algorithm> // std::copy
-#include <iostream>
-#include <vector>
-
-#include "Kokkos_Core.hpp"
-
 #include "abstractions.hpp"
-#include "error.hpp"
 #include "geometry.hpp"
 #include "problem_in.hpp"
-#include "quadrature.hpp"
 
 class GridStructure {
  public:

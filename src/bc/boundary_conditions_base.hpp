@@ -14,7 +14,7 @@
 #include <array>
 #include <cassert>
 
-#include "utils/error.hpp"
+#include "Kokkos_Core.hpp"
 
 namespace bc {
 
@@ -27,20 +27,20 @@ enum class BcType : int {
   Null // don't go here
 };
 
-BcType parse_bc_type( const std::string& name );
+auto parse_bc_type( const std::string& name ) -> BcType;
 
 template <int N>
 struct BoundaryConditionsData {
   BcType type;
-  double dirichlet_values[N] = { }; // Only used if type == Dirichlet
-  double time; // placeholder for now
+  std::array<double, N> dirichlet_values;
+  //  double time; // placeholder for now
 
   // necessary
   KOKKOS_INLINE_FUNCTION
   BoundaryConditionsData( ) : type( BcType::Outflow ) {}
 
   KOKKOS_INLINE_FUNCTION
-  BoundaryConditionsData( BcType type_ ) : type( type_ ) {}
+  explicit BoundaryConditionsData( BcType type_ ) : type( type_ ) {}
 
   KOKKOS_INLINE_FUNCTION
   BoundaryConditionsData( BcType type_, const std::array<double, N> vals )
@@ -53,8 +53,9 @@ struct BoundaryConditionsData {
     }
   }
 
-  KOKKOS_INLINE_FUNCTION
-  auto get_dirichlet_value( int i ) const -> double {
+  // TODO(astrobarker) overload ()?
+  [[nodiscard]]
+  KOKKOS_INLINE_FUNCTION auto get_dirichlet_value( int i ) const -> double {
     return dirichlet_values[i];
   }
 };
@@ -86,8 +87,7 @@ KOKKOS_INLINE_FUNCTION auto get_bc_data<2>( BoundaryConditions* bc )
   return bc->rad_bc;
 }
 
-
-BoundaryConditions make_boundary_conditions(
+auto make_boundary_conditions(
     bool do_rad,
 
     const std::string& fluid_bc_i, const std::string& fluid_bc_o,
@@ -96,6 +96,6 @@ BoundaryConditions make_boundary_conditions(
 
     const std::string& rad_bc_i, const std::string& rad_bc_o,
     const std::array<double, 2>& rad_i_dirichlet_values,
-    const std::array<double, 2>& rad_o_dirichlet_values );
+    const std::array<double, 2>& rad_o_dirichlet_values ) -> BoundaryConditions;
 
 } // namespace bc

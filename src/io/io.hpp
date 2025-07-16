@@ -9,10 +9,6 @@
  * @details Collection of functions for IO
  */
 
-#include "Kokkos_Core.hpp"
-
-#include "abstractions.hpp"
-#include "build_info.hpp"
 #include "grid.hpp"
 #include "polynomial_basis.hpp"
 #include "problem_in.hpp"

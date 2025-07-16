@@ -14,26 +14,26 @@
  *          - compute_timestep_fluid
  */
 
-#include "Kokkos_Core.hpp"
-
 #include "abstractions.hpp"
 #include "eos.hpp"
+#include "grid.hpp"
 
 namespace fluid {
 
 auto flux_fluid( double V, double P, int iCF ) -> double;
-auto source_fluid_rad( double D, double V, double T, double kappa_r, double kappa_p,
-                       double E, double F, double Pr, int iCF ) -> double;
-auto numerical_flux_gudonov( const double vL, const double vR, const double pL,
-                             const double pR, const double zL, const double zR )
+auto source_fluid_rad( double D, double V, double T, double kappa_r,
+                       double kappa_p, double E, double F, double Pr, int iCF )
+    -> double;
+auto numerical_flux_gudonov( double vL, double vR, double pL, double pR,
+                             double zL, double zR )
     -> std::tuple<double, double>;
-auto numerical_flux_gudonov_positivity( const double tauL, const double tauR,
-                                        const double vL, const double vR,
-                                        const double pL, const double pR,
-                                        const double csL, const double csR )
+auto numerical_flux_gudonov_positivity( double tauL, double tauR, double vL,
+                                        double vR, double pL, double pR,
+                                        double csL, double csR )
     -> std::tuple<double, double>;
-void numerical_flux_hllc( double vL, double vR, double pL, double pR, double cL, double cR,
-                          double rhoL, double rhoR, double& Flux_U, double& Flux_P );
+void numerical_flux_hllc( double vL, double vR, double pL, double pR, double cL,
+                          double cR, double rhoL, double rhoR, double& Flux_U,
+                          double& Flux_P );
 auto compute_timestep_fluid( View3D<double> U, const GridStructure* grid,
                              EOS* eos, double CFL ) -> double;
 

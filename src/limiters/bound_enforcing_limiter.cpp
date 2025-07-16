@@ -24,16 +24,10 @@
 #include <algorithm> // std::min, std::max
 #include <cmath>
 #include <cstdlib> /* abs */
-#include <iostream>
-
-#include "Kokkos_Core.hpp"
 
 #include "bound_enforcing_limiter.hpp"
-
 #include "eos.hpp"
-#include "error.hpp"
 #include "polynomial_basis.hpp"
-#include "solvers/root_finders.hpp"
 #include "utilities.hpp"
 
 namespace bel {
@@ -158,7 +152,8 @@ void apply_bound_enforcing_limiter( View3D<double> U, const ModalBasis* basis,
 }
 
 // TODO(astrobarker): much more here.
-void apply_bound_enforcing_limiter_rad( View3D<double> U, const ModalBasis* basis,
+void apply_bound_enforcing_limiter_rad( View3D<double> U,
+                                        const ModalBasis* basis,
                                         const EOS* eos ) {
   if ( basis->get_order( ) == 1 ) {
     return;
@@ -184,7 +179,7 @@ void limit_rad_energy( View3D<double> U, const ModalBasis* basis,
           nodal = basis->basis_eval( U, iX, 0, iN );
 
           if ( nodal >
-               EPSILON + 0*std::abs( U( 1, iX, 0 ) ) / constants::c_cgs ) {
+               EPSILON + 0 * std::abs( U( 1, iX, 0 ) ) / constants::c_cgs ) {
             temp = 1.0;
           } else {
             // temp = backtrace( U, target_func, basis, eos, iX, iN );

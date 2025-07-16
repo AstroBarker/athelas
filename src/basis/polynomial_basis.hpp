@@ -11,13 +11,7 @@
  *            - taylor
  */
 
-#include <algorithm> // std::copy
-#include <vector>
-
-#include "Kokkos_Core.hpp"
-
 #include "abstractions.hpp"
-#include "problem_in.hpp"
 #include "grid.hpp"
 
 using BasisFuncType = double( int, double, double );
@@ -57,7 +51,8 @@ class ModalBasis {
   static auto d_legendre( int order, double x ) -> double;
   static auto legendre( int n, double x, double x_c ) -> double;
   static auto d_legendre( int n, double x, double x_c ) -> double;
-  static auto d_legendre_n( int poly_order, int deriv_order, double x ) -> double;
+  static auto d_legendre_n( int poly_order, int deriv_order, double x )
+      -> double;
 
  private:
   int nX_;

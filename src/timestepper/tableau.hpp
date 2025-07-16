@@ -9,13 +9,11 @@
  * @details TODO: describe tableaus.
  */
 
-#include "Kokkos_Core.hpp"
-
 #include "abstractions.hpp"
-#include "error.hpp"
 
 enum class TableauType { Implicit, Explicit };
-enum class MethodType {EX, IM, IMEX};
+enum class MethodType { EX, IM, IMEX };
+enum class MethodData { DIRK, ESDIRK }; // Where to put this info?
 
 /**
  * @enum MethodID
@@ -24,69 +22,69 @@ enum class MethodType {EX, IM, IMEX};
  * Naming convention:
  * - [TYPE]_[METHODNAME]_[EXT]
  *
- * For fully explicit methods, [TYPE] is EX and [METHODNAME] is generally 
- * SSPRK[stages][order], e.g., SSPRK(5,2) would be EX_SSPRK52. 
+ * For fully explicit methods, [TYPE] is EX and [METHODNAME] is generally
+ * SSPRK[stages][order], e.g., SSPRK(5,2) would be EX_SSPRK52.
  * For now, [EXT] is unused here.
  *
- * For IMEX methods, [TYPE] is IMEX and [METHODNAME] should also 
- * include the implicit order and [EXT] notes the form of the implicit 
+ * For IMEX methods, [TYPE] is IMEX and [METHODNAME] should also
+ * include the implicit order and [EXT] notes the form of the implicit
  * tableau \in {DIRK, SDIRK, ESDIRK}, e.g., IMEX_SSPRK222_ESDIRK
  **/
 enum class MethodID {
-    EX_SSPRK11, // Forward Euler
-    EX_SSPRK22, // 2 stage, 2nd order SSP
-    EX_SSPRK33, 
-    EX_SSPRK54,
-    EX_SSPRK52,
-    EX_SSPRK53,
-    IMEX_SSPRK11, // Forward Euler + Backward Euler
-    IMEX_SSPRK22_DIRK,
-    IMEX_SSPRK33_DIRK,
-    IMEX_ARK32_ESDIRK,
-    IMEX_PDARS_ESDIRK // Chu 2019 PD-ARS
+  EX_SSPRK11, // Forward Euler
+  EX_SSPRK22, // 2 stage, 2nd order SSP
+  EX_SSPRK33,
+  EX_SSPRK54,
+  EX_SSPRK52,
+  EX_SSPRK53,
+  IMEX_SSPRK11, // Forward Euler + Backward Euler
+  IMEX_SSPRK22_DIRK,
+  IMEX_SSPRK33_DIRK,
+  IMEX_ARK32_ESDIRK,
+  IMEX_PDARS_ESDIRK // Chu 2019 PD-ARS
 };
 
-MethodID string_to_id( const std::string& method_name );
+auto string_to_id( const std::string& method_name ) -> MethodID;
 
 /**
  * @brief Butcher tableau class.
  **/
 struct RKTableau {
-    TableauType type; // explicit or implicit
-    int order;
-    int num_stages;
-    View2D<double> a_ij;
-    View1D<double> b_i;
-    View1D<double> c_i;
+  TableauType type; // explicit or implicit
+  int order;
+  int num_stages;
+  View2D<double> a_ij;
+  View1D<double> b_i;
+  View1D<double> c_i;
 
-    // Constructor
-    RKTableau(TableauType t, int num_stages_, int order_, View2D<double> a_ij_, 
-            View1D<double> b_i_, View1D<double> c_i_) : 
-        type(t), order(order_), num_stages(num_stages_), a_ij(a_ij_), 
-        b_i(b_i_), c_i(c_i_) {}
+  // Constructor
+  RKTableau( TableauType t, int num_stages_, int order_, View2D<double> a_ij_,
+             View1D<double> b_i_, View1D<double> c_i_ )
+      : type( t ), order( order_ ), num_stages( num_stages_ ), a_ij( a_ij_ ),
+        b_i( b_i_ ), c_i( c_i_ ) {}
 };
 
 /**
  * @brief IMEX double tableau class.
  **/
 struct RKIntegrator {
-    MethodID name;
-    MethodType method; // EX, IM, IMEX
-    int explicit_order;
-    int implicit_order;
-    int num_stages; // duplicate
-    
-    RKTableau explicit_tableau;
-    RKTableau implicit_tableau;
+  MethodID name;
+  MethodType method; // EX, IM, IMEX
+  int explicit_order;
+  int implicit_order;
+  int num_stages; // duplicate
 
-    RKIntegrator(MethodID id, MethodType t, int ex_order, int im_order, 
-            int num_stages_, RKTableau ex, RKTableau im) 
-        : name(id), method(t), explicit_order(ex_order), 
-        implicit_order(im_order), num_stages(num_stages_), 
-        explicit_tableau(ex), implicit_tableau(im) {}
+  RKTableau explicit_tableau;
+  RKTableau implicit_tableau;
+
+  RKIntegrator( MethodID id, MethodType t, int ex_order, int im_order,
+                int num_stages_, RKTableau ex, RKTableau im )
+      : name( id ), method( t ), explicit_order( ex_order ),
+        implicit_order( im_order ), num_stages( num_stages_ ),
+        explicit_tableau( ex ), implicit_tableau( im ) {}
 };
 
-RKIntegrator create_tableau(MethodID method_id);
+auto create_tableau( MethodID method_id ) -> RKIntegrator;
 
 /**
  * @brief Butcher tableau class.

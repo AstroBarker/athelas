@@ -8,10 +8,7 @@
 
 #include <cmath>
 
-#include "abstractions.hpp"
-#include "constants.hpp"
 #include "opac.hpp"
-#include "opac_base.hpp"
 
 auto PowerlawRho::planck_mean( const double rho, const double /*T*/,
                                const double /*X*/, const double /*Y*/,

@@ -13,8 +13,6 @@
  *          - uCR
  */
 
-#include "Kokkos_Core.hpp"
-
 #include "abstractions.hpp"
 
 class State {
@@ -40,8 +38,8 @@ class State {
   int nAF_;
   int pOrder_;
 
-  View3D<double> uCF_{ }; // Conserved fluid
-  View3D<double> uPF_{ }; // primitive fluid
-  View3D<double> uAF_{ }; // auxiliary fluid
-  View3D<double> uCR_{ }; // conserved radiation
+  View3D<double> uCF_; // Conserved fluid
+  View3D<double> uPF_; // primitive fluid
+  View3D<double> uAF_; // auxiliary fluid
+  View3D<double> uCR_; // conserved radiation
 };

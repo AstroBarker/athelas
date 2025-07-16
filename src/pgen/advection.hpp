@@ -7,14 +7,12 @@
  * @brief Fluid advection test
  */
 
-#include <iostream>
-#include <math.h> /* sin */
-#include <string>
+#include <cmath> /* sin */
 
 #include "abstractions.hpp"
 #include "constants.hpp"
-#include "error.hpp"
 #include "grid.hpp"
+#include "state.hpp"
 
 /**
  * Initialize advection test
@@ -23,7 +21,7 @@ void advection_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
   // Smooth advection problem
   View3D<double> uCF = state->get_u_cf( );
   View3D<double> uPF = state->get_u_pf( );
-  const int pOrder = state->get_p_order( );
+  const int pOrder   = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
   const int ihi    = grid->get_ihi( );
@@ -51,13 +49,13 @@ void advection_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
           uCF( iCF_E, iX, k )   = 0.0;
         } else {
           uCF( iCF_Tau, iX, k ) =
-              1.0 / ( 2.0 + Amp * sin( 2.0 * constants::PI( ) * X1 ) );
+              1.0 / ( 2.0 + Amp * sin( 2.0 * constants::PI * X1 ) );
           uCF( iCF_V, iX, k ) = V0;
           uCF( iCF_E, iX, k ) =
               ( P0 / 0.4 ) * uCF( iCF_Tau, iX, k ) + 0.5 * V0 * V0;
         }
         uPF( iPF_D, iX, iNodeX ) =
-            ( 2.0 + Amp * sin( 2.0 * constants::PI( ) * X1 ) );
+            ( 2.0 + Amp * sin( 2.0 * constants::PI * X1 ) );
       }
     }
   }

@@ -12,21 +12,11 @@
  *          while preventing oscillations.
  */
 
-#include <algorithm> /* std::min, std::max */
-#include <cmath>
-#include <cstdlib> /* abs */
-#include <iostream>
-#include <limits>
-
-#include "Kokkos_Core.hpp"
-
 #include "characteristic_decomposition.hpp"
-#include "error.hpp"
 #include "grid.hpp"
 #include "linear_algebra.hpp"
 #include "polynomial_basis.hpp"
 #include "slope_limiter.hpp"
-#include "slope_limiter_base.hpp"
 #include "slope_limiter_utilities.hpp"
 
 using namespace limiter_utilities;
@@ -116,9 +106,9 @@ void WENO::apply_slope_limiter( View3D<double> U, const GridStructure* grid,
 
             // nonlinear weights w
             const double dx_i = 0.1 * grid->get_widths( iX );
-            double w_l        = non_linear_weight( gamma_l_, beta_l, tau, dx_i );
-            double w_i        = non_linear_weight( gamma_i_, beta_i, tau, dx_i );
-            double w_r        = non_linear_weight( gamma_r_, beta_r, tau, dx_i );
+            double w_l = non_linear_weight( gamma_l_, beta_l, tau, dx_i );
+            double w_i = non_linear_weight( gamma_i_, beta_i, tau, dx_i );
+            double w_r = non_linear_weight( gamma_r_, beta_r, tau, dx_i );
 
             const double sum_w = w_l + w_i + w_r;
             w_l /= sum_w;

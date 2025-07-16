@@ -10,14 +10,13 @@
 
 #include <array>
 #include <cstddef>
-#include <iostream>
-#include <memory>
 #include <print>
 #include <string>
 #include <vector>
 
 #include "H5Cpp.h"
 
+#include "build_info.hpp"
 #include "grid.hpp"
 #include "io.hpp"
 #include "limiters/slope_limiter.hpp"
@@ -74,8 +73,8 @@ void print_simulation_parameters( GridStructure grid, ProblemIn* pin,
   std::println( "" );
 
   std::println( " ~ --- Other --- " );
-  std::cout << " ~ problem_name    : " << pin->problem_name << std::endl;
-  std::println( " ~ CFL            : {}", CFL );
+  std::println( " ~ Problem Name    : {}", pin->problem_name );
+  std::println( " ~ CFL             : {}", CFL );
   std::println( "" );
 }
 

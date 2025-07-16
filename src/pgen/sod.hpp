@@ -7,14 +7,9 @@
  * @brief Sod shock tube
  */
 
-#include <iostream>
-#include <math.h> /* sin */
-#include <string>
-
 #include "abstractions.hpp"
-#include "constants.hpp"
-#include "error.hpp"
 #include "grid.hpp"
+#include "state.hpp"
 
 /**
  * @brief Initialize Sod shock tube
@@ -23,7 +18,7 @@ void sod_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   View3D<double> uCF = state->get_u_cf( );
   View3D<double> uPF = state->get_u_pf( );
-  const int pOrder = state->get_p_order( );
+  const int pOrder   = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
   const int ihi    = grid->get_ihi( );
@@ -38,7 +33,8 @@ void sod_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
   const double V_L = pin->in_table["problem"]["params"]["vL"].value_or( 0.0 );
   const double V_R = pin->in_table["problem"]["params"]["vR"].value_or( 0.0 );
   const double D_L = pin->in_table["problem"]["params"]["rhoL"].value_or( 1.0 );
-  const double D_R = pin->in_table["problem"]["params"]["rhoR"].value_or( 0.125 );
+  const double D_R =
+      pin->in_table["problem"]["params"]["rhoR"].value_or( 0.125 );
   const double P_L = pin->in_table["problem"]["params"]["pL"].value_or( 1.0 );
   const double P_R = pin->in_table["problem"]["params"]["pR"].value_or( 0.1 );
   const double x_d = pin->in_table["problem"]["params"]["x_d"].value_or( 0.5 );

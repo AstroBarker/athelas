@@ -15,11 +15,10 @@
  *          ihi = nElements_ - nGhost_ + 1
  */
 
-#include <cmath> /* atan */
 #include <vector>
 
-#include "constants.hpp"
 #include "grid.hpp"
+#include "quadrature.hpp"
 
 GridStructure::GridStructure( const ProblemIn* pin )
     : nElements_( pin->nElements ), nNodes_( pin->nNodes ),
@@ -78,7 +77,9 @@ auto GridStructure::get_centers( int iC ) const -> double {
 }
 
 // Return cell width
-auto GridStructure::get_widths( int iC ) const -> double { return widths_( iC ); }
+auto GridStructure::get_widths( int iC ) const -> double {
+  return widths_( iC );
+}
 
 // Return cell mass
 auto GridStructure::get_mass( int iX ) const -> double { return mass_( iX ); }

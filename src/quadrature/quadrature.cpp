@@ -9,10 +9,8 @@
  */
 
 #include <cmath>
-#include <iostream>
 #include <vector>
 
-#include "constants.hpp"
 #include "linear_algebra.hpp"
 #include "quadrature.hpp"
 

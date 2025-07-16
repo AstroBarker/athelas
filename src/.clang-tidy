@@ -1,5 +1,4 @@
 Checks: >
-  -*,
   clang-analyzer-*,
   bugprone-*,
   -bugprone-easily-swappable-parameters,
@@ -7,10 +6,11 @@ Checks: >
   -cppcoreguidelines-avoid-magic-numbers,
   -cppcoreguidelines-pro-type-const-cast,
   -cppcoreguidelines-owning-memory,
-  -cppcoreguidelines-init-variables, # false positives
-  -cppcoreguidelines-misleading-capture-default-by-value, # kokkos
+  -cppcoreguidelines-init-variables,
   -cppcoreguidelines-misleading-capture-default-by-value,
+  -cppcoreguidelines-por-type-member-init,
   hicpp-*,
+  -hicpp-member-init,
   modernize-*,
   -modernize-avoid-c-arrays,
   modernize-use-trailing-return-type,
@@ -23,6 +23,7 @@ Checks: >
   -readability-make-member-functions-const,
   -readability-suspicious-call-argument,
   -readability-function-cognitive-complexity,
+  -readability-math-missing-parentheses,
   misc-unused-parameters,
   misc-unused-alias-decls,
   -misc-const-correctness

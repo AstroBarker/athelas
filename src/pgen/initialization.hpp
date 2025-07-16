@@ -9,13 +9,9 @@
  * @details Calls specific problem pgen functions.
  */
 
-#include <iostream>
-#include <math.h> /* sin */
 #include <string>
 
-#include "abstractions.hpp"
 #include "advection.hpp"
-#include "constants.hpp"
 #include "error.hpp"
 #include "grid.hpp"
 #include "pgen/marshak.hpp"

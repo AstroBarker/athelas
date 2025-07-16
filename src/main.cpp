@@ -1,14 +1,12 @@
+#include <csignal>
 #include <expected>
 #include <print>
 #include <string>
 
 #include "Kokkos_Core.hpp"
 
-//#include "bc/boundary_conditions.hpp"
-#include "main.hpp"
-#include "basis/polynomial_basis.hpp"
 #include "driver.hpp"
-#include "io/io.hpp"
+#include "main.hpp"
 #include "utils/error.hpp"
 
 namespace {
@@ -33,7 +31,6 @@ auto main( int argc, char** argv ) -> int {
   if ( !input_result ) {
     std::println( "Error: {}", input_result.error( ) );
     return AthelasExitCodes::FAILURE;
-    ;
   }
 
   std::string input_path = *input_result;
@@ -42,7 +39,7 @@ auto main( int argc, char** argv ) -> int {
   auto sig2 = signal( SIGABRT, segfault_handler );
 
   // create span of args
-  auto args = std::span( argv, static_cast<size_t>( argc ) );
+  // auto args = std::span( argv, static_cast<size_t>( argc ) );
 
   Kokkos::initialize( argc, argv );
   {

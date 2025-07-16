@@ -10,23 +10,16 @@
 #include "driver.hpp"
 #include "abstractions.hpp"
 #include "basis/polynomial_basis.hpp"
-#include "build_info.hpp"
 #include "eos.hpp"
 #include "error.hpp"
-#include "fluid_discretization.hpp"
 #include "fluid_utilities.hpp"
-#include "problem_in.hpp"
 #include "grid.hpp"
 #include "initialization.hpp"
 #include "io/io.hpp"
-#include "main.hpp"
-#include "opacity/opac.hpp"
-#include "opacity/opac_base.hpp"
 #include "opacity/opac_variant.hpp"
-#include "rad_discretization.hpp"
+#include "problem_in.hpp"
 #include "rad_utilities.hpp"
 #include "slope_limiter.hpp"
-#include "slope_limiter_base.hpp"
 #include "slope_limiter_utilities.hpp"
 #include "state.hpp"
 #include "timestepper.hpp"
@@ -63,7 +56,8 @@ auto compute_cfl( const double CFL, const int order, const int nStages,
  * Compute timestep
  **/
 auto compute_timestep( const View3D<double> U, const GridStructure* grid,
-                       EOS* eos, const double CFL, const Options* opts ) -> double {
+                       EOS* eos, const double CFL, const Options* opts )
+    -> double {
   double dt = 0.0;
   if ( !opts->do_rad ) {
     dt = fluid::compute_timestep_fluid( U, grid, eos, CFL );
@@ -80,26 +74,26 @@ void Driver::initialize( const ProblemIn* pin ) { // NOLINT
     // --- Initialize fields ---
     initialize_fields( &state_, &grid_, &eos_, pin );
 
-    //fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin->pOrder, bcs_.get( ) );
-    //if ( opts_.do_rad ) {
-    //  bc::fill_ghost_zones<2>( state_.get_u_cr( ), &grid_, pin->pOrder,
-    //                           bcs_.get( ) );
-    //}
+    // fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin->pOrder, bcs_.get( )
+    // ); if ( opts_.do_rad ) {
+    //   bc::fill_ghost_zones<2>( state_.get_u_cr( ), &grid_, pin->pOrder,
+    //                            bcs_.get( ) );
+    // }
   }
 
   // --- Datastructure for modal basis ---
-  fluid_basis_ = std::make_unique<ModalBasis>( pin->basis, state_.get_u_pf( ), &grid_,
-                                         pin->pOrder, pin->nNodes,
-                                         pin->nElements, pin->nGhost, true );
-  if (opts_.do_rad) {
-  radiation_basis_ = std::make_unique<ModalBasis>( pin->basis, state_.get_u_pf( ), &grid_,
-                                         pin->pOrder, pin->nNodes,
-                                         pin->nElements, pin->nGhost, false );
+  fluid_basis_ = std::make_unique<ModalBasis>(
+      pin->basis, state_.get_u_pf( ), &grid_, pin->pOrder, pin->nNodes,
+      pin->nElements, pin->nGhost, true );
+  if ( opts_.do_rad ) {
+    radiation_basis_ = std::make_unique<ModalBasis>(
+        pin->basis, state_.get_u_pf( ), &grid_, pin->pOrder, pin->nNodes,
+        pin->nElements, pin->nGhost, false );
   }
 
   // --- slope limiter to initial condition ---
-  apply_slope_limiter( &sl_hydro_, state_.get_u_cf( ), &grid_, fluid_basis_.get( ),
-                       &eos_ );
+  apply_slope_limiter( &sl_hydro_, state_.get_u_cf( ), &grid_,
+                       fluid_basis_.get( ), &eos_ );
 }
 
 using limiter_utilities::initialize_slope_limiter;
@@ -143,13 +137,12 @@ auto Driver::execute( ) -> int {
 
   // initial timestep TODO(astrobarker) make input param
   double const dt_init = 1.0e-16;
-  dt_                = dt_init;
+  dt_                  = dt_init;
 
   // --- Evolution loop ---
   int iStep = 0;
   int i_out = 1; // output label, start 1
-  std::cout << " ~ Step    t       dt       zone_cycles / wall_second\n"
-            << std::endl;
+  std::println( " # Step    t       dt       zone_cycles / wall_second" );
   while ( time_ < t_end_ && iStep <= nlim_ ) {
     timer_zone_cycles.reset( );
 
@@ -165,14 +158,14 @@ auto Driver::execute( ) -> int {
                            &sl_hydro_, &opts_, bcs_.get( ) );
     } else {
       try {
-        ssprk_.update_rad_hydro( dt_, &state_, grid_, fluid_basis_.get( ), 
-                                 radiation_basis_.get(), &eos_, &opac_, 
+        ssprk_.update_rad_hydro( dt_, &state_, grid_, fluid_basis_.get( ),
+                                 radiation_basis_.get( ), &eos_, &opac_,
                                  &sl_hydro_, &opts_, bcs_.get( ) );
       } catch ( const AthelasError& e ) {
-        std::cerr << e.what( ) << std::endl;
+        std::cerr << e.what( ) << "\n";
         return AthelasExitCodes::FAILURE;
       } catch ( const std::exception& e ) {
-        std::cerr << "Library Error: " << e.what( ) << std::endl;
+        std::cerr << "Library Error: " << e.what( ) << "\n";
         return AthelasExitCodes::FAILURE;
       }
     }
@@ -200,8 +193,10 @@ auto Driver::execute( ) -> int {
 
     // timer
     if ( iStep % i_print_ == 0 ) {
-      zc_ws =
-          static_cast<double>( i_print_ ) * nX_ / timer_zone_cycles.seconds( );
+      // zc_ws =
+      //     static_cast<double>( i_print_ ) * nX_ / timer_zone_cycles.seconds(
+      //     );
+      zc_ws = nX_ / timer_zone_cycles.seconds( );
       std::println( " ~ {} {:.5e} {:.5e} {:.5e} ", iStep, time_, dt_, zc_ws );
       timer_zone_cycles.reset( );
     }
@@ -210,7 +205,7 @@ auto Driver::execute( ) -> int {
   }
 
   // --- Apply bc and write final output ---
-  //bc::fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, fluid_basis_.get(),
+  // bc::fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, fluid_basis_.get(),
   //                         bcs_.get( ) );
   write_state( &state_, grid_, &sl_hydro_, problem_name_, time_, pin_.pOrder,
                -1, opts_.do_rad );

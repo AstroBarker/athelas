@@ -7,14 +7,11 @@
  * @brief Sedov blast wave
  */
 
-#include <iostream>
-#include <math.h> /* sin */
-#include <string>
+#include <cmath>
 
 #include "abstractions.hpp"
-#include "constants.hpp"
-#include "error.hpp"
 #include "grid.hpp"
+#include "state.hpp"
 
 /**
  * @brief Initialize sedov blast wave
@@ -23,7 +20,7 @@ void sedov_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   View3D<double> uCF = state->get_u_cf( );
   View3D<double> uPF = state->get_u_pf( );
-  const int pOrder = state->get_p_order( );
+  const int pOrder   = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
   const int ihi    = grid->get_ihi( );
@@ -43,7 +40,7 @@ void sedov_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   // TODO(astrobarker): geometry aware volume for energy
   const double volume = ( 4.0 * M_PI / 3.0 ) *
-                      std::pow( grid->get_left_interface( origin + 1 ), 3.0 );
+                        std::pow( grid->get_left_interface( origin + 1 ), 3.0 );
   const double gamma = 5.0 / 3.0;
   const double P0    = ( gamma - 1.0 ) * E0 / volume;
 

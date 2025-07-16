@@ -7,14 +7,9 @@
  * @brief Shockless Noh collapse
  */
 
-#include <iostream>
-#include <math.h> /* sin */
-#include <string>
-
 #include "abstractions.hpp"
-#include "constants.hpp"
-#include "error.hpp"
 #include "grid.hpp"
+#include "state.hpp"
 
 /**
  * @brief Initialize shockless Noh problem
@@ -24,7 +19,7 @@ void shockless_noh_init( State* state, GridStructure* grid,
 
   View3D<double> uCF = state->get_u_cf( );
   View3D<double> uPF = state->get_u_pf( );
-  const int pOrder = state->get_p_order( );
+  const int pOrder   = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
   const int ihi    = grid->get_ihi( );

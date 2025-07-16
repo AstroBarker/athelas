@@ -9,7 +9,6 @@
 #include <algorithm> // std::min, std::max
 #include <cmath>
 #include <cstdlib> /* abs */
-#include <iostream>
 #include <limits>
 
 #include "slope_limiter.hpp"
@@ -180,12 +179,13 @@ auto cell_average( View3D<double> U, const GridStructure* grid,
  * H. Zhu et al 2020, simple and high-order
  * compact WENO RKDG slope limiter
  **/
-void modify_polynomial( const View3D<double> U, View2D<double> modified_polynomial,
+void modify_polynomial( const View3D<double> U,
+                        View2D<double> modified_polynomial,
                         const double gamma_i, const double gamma_l,
                         const double gamma_r, const int iX, const int iCQ ) {
   const double Ubar_i = U( iCQ, iX, 0 );
   const double fac    = 1.0;
-  const int order   = U.extent( 2 );
+  const int order     = U.extent( 2 );
 
   const double modified_p_slope_mag =
       fac *

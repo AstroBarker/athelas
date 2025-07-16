@@ -13,10 +13,8 @@
 
 #include <variant>
 
-#include "abstractions.hpp"
-#include "error.hpp"
 #include "opac.hpp"
-#include "opac_base.hpp"
+#include "problem_in.hpp"
 
 using Opacity = std::variant<Constant, PowerlawRho>;
 
@@ -31,10 +29,10 @@ KOKKOS_INLINE_FUNCTION auto planck_mean( const Opacity* opac, const double rho,
       *opac );
 }
 
-KOKKOS_INLINE_FUNCTION auto rosseland_mean( const Opacity* opac, const double rho,
-                                            const double T, const double X,
-                                            const double Y, const double Z,
-                                            double* lambda ) -> double {
+KOKKOS_INLINE_FUNCTION auto
+rosseland_mean( const Opacity* opac, const double rho, const double T,
+                const double X, const double Y, const double Z, double* lambda )
+    -> double {
   return std::visit(
       [&rho, &T, &X, &Y, &Z, &lambda]( auto& opac ) {
         return opac.rosseland_mean( rho, T, X, Y, Z, lambda );

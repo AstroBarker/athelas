@@ -6,15 +6,9 @@
  * @brief Primary time marching routine
  */
 
-#include <iostream>
 #include <vector>
 
-#include "error.hpp"
-#include "fluid_discretization.hpp"
 #include "grid.hpp"
-#include "polynomial_basis.hpp"
-#include "slope_limiter.hpp"
-#include "slope_limiter_base.hpp"
 #include "tableau.hpp"
 #include "timestepper.hpp"
 
@@ -34,9 +28,6 @@ TimeStepper::TimeStepper( const ProblemIn* pin, GridStructure* grid )
       SumVar_U_r_( "SumVar_U_r", 2, mSize_ + 1, pin->pOrder ),
       grid_s_( nStages_ + 1, GridStructure( pin ) ),
       stage_data_( "StageData", nStages_ + 1, mSize_ + 1 ),
-      scratch_( "scratch", 3, pin->pOrder ), // scratch for root finders
-      flux_q_( "flux_q_", 3, mSize_ + 1, grid->get_n_nodes( ) ),
       dFlux_num_( "Numerical Flux", 3, mSize_ + 1 ),
       uCF_F_L_( "Face L", 3, mSize_ ), uCF_F_R_( "Face R", 3, mSize_ ),
-      flux_u_( "flux_u_", nStages_ + 1, mSize_ + 1 ),
-      flux_p_( "flux_p_", mSize_ + 1 ) {}
+      flux_u_( "flux_u_", nStages_ + 1, mSize_ + 1 ) {}

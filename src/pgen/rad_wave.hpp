@@ -7,14 +7,9 @@
  * @brief Radiation shock test
  */
 
-#include <iostream>
-#include <math.h> /* sin */
-#include <string>
-
 #include "abstractions.hpp"
-#include "constants.hpp"
-#include "error.hpp"
 #include "grid.hpp"
+#include "state.hpp"
 
 /**
  * @brief Initialize radiating shock
@@ -23,7 +18,7 @@ void rad_shock_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
   View3D<double> uCF = state->get_u_cf( );
   View3D<double> uPF = state->get_u_pf( );
   View3D<double> uCR = state->get_u_cr( );
-  const int pOrder = state->get_p_order( );
+  const int pOrder   = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
   const int ihi    = grid->get_ihi( );
@@ -43,7 +38,8 @@ void rad_shock_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
       pin->in_table["problem"]["params"]["kappa"].value_or( 1.0 );
   const double epsilon =
       pin->in_table["problem"]["params"]["epsilon"].value_or( 1.0e-6 );
-  const double rho0 = pin->in_table["problem"]["params"]["rho0"].value_or( 1.0 );
+  const double rho0 =
+      pin->in_table["problem"]["params"]["rho0"].value_or( 1.0 );
   const double P0 =
       pin->in_table["problem"]["params"]["p0"].value_or( 1.0e-6 ); // K
 
@@ -54,7 +50,7 @@ void rad_shock_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
   for ( int iX = 0; iX <= ihi + 1; iX++ ) {
     for ( int k = 0; k < pOrder; k++ ) {
       for ( int iNodeX = 0; iNodeX < nNodes; iNodeX++ ) {
-        double X1               = grid->get_centers( iX );
+        double X1             = grid->get_centers( iX );
         uCF( iCF_Tau, iX, k ) = 0.0;
         uCF( iCF_V, iX, k )   = 0.0;
         uCF( iCF_E, iX, k )   = 0.0;

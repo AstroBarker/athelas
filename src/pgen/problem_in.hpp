@@ -11,12 +11,8 @@
  */
 
 #include <iostream>
-#include <vector>
-
-#include "Kokkos_Core.hpp"
 
 #include "abstractions.hpp"
-#include "bc/boundary_conditions_base.hpp"
 #include "error.hpp"
 #include "geometry.hpp"
 #include "timestepper/tableau.hpp"
@@ -95,7 +91,7 @@ class ProblemIn {
 };
 
 // TODO(astrobarker) move into class
-bool check_bc( std::string& bc );
+auto check_bc( std::string& bc ) -> bool;
 template <typename T, typename G>
 void read_toml_array( T toml_array, G& out_array ) {
   long unsigned int index = 0;

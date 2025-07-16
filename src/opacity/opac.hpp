@@ -17,8 +17,6 @@
  *
  */
 
-#include "abstractions.hpp"
-#include "error.hpp"
 #include "opac_base.hpp"
 
 class Constant : public OpacBase<Constant> {

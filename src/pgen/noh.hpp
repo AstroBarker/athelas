@@ -7,14 +7,9 @@
  * @brief Noh test
  */
 
-#include <iostream>
-#include <math.h> /* sin */
-#include <string>
-
 #include "abstractions.hpp"
-#include "constants.hpp"
-#include "error.hpp"
 #include "grid.hpp"
+#include "state.hpp"
 
 /**
  * @brief Initialize Noh problem
@@ -23,7 +18,7 @@ void noh_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   View3D<double> uCF = state->get_u_cf( );
   View3D<double> uPF = state->get_u_pf( );
-  const int pOrder = state->get_p_order( );
+  const int pOrder   = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
   const int ihi    = grid->get_ihi( );
@@ -37,7 +32,8 @@ void noh_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   const double V0 = pin->in_table["problem"]["params"]["v0"].value_or( -1.0 );
   const double D0 = pin->in_table["problem"]["params"]["rho0"].value_or( 1.0 );
-  const double P0 = pin->in_table["problem"]["params"]["p0"].value_or( 0.000001 );
+  const double P0 =
+      pin->in_table["problem"]["params"]["p0"].value_or( 0.000001 );
 
   const double GAMMA = 5.0 / 3.0;
 

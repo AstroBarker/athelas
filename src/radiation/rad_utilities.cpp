@@ -18,15 +18,9 @@
 
 #include <algorithm> // std::min, std::max
 #include <cmath> // pow, abs, sqrt
-#include <iostream>
-#include <vector>
-
-#include "Kokkos_Core.hpp"
 
 #include "constants.hpp"
-#include "eos.hpp"
-#include "error.hpp"
-#include "polynomial_basis.hpp"
+#include "grid.hpp"
 #include "rad_utilities.hpp"
 #include "riemann.hpp"
 #include "utilities.hpp"
@@ -49,7 +43,8 @@ auto flux_factor( const double E, const double F ) -> double {
  * The radiation fluxes
  * Here E and F are per unit volume
  **/
-auto flux_rad( const double E, const double F, const double P, const double V, const int iCR ) -> double {
+auto flux_rad( const double E, const double F, const double P, const double V,
+               const int iCR ) -> double {
   assert( ( iCR == 0 || iCR == 1 ) && "Radiation :: flux_factor :: bad iCR." );
   assert( E > 0.0 &&
           "Radiation :: flux_rad :: non positive definite energy density." );
@@ -99,7 +94,6 @@ auto flux_rad( const double E, const double F, const double P, const double V, c
   */
 
   // Krumholz et al. 2007 O(b^2)
-  /*
   const double G0 =
       D *
       ( kappa_p * term1 + ( kappa_r - 2.0 * kappa_p ) * b * Fc +
@@ -107,24 +101,24 @@ auto flux_rad( const double E, const double F, const double P, const double V, c
         ( kappa_p - kappa_r ) * b * b * Pr );
 
   const double G = D * ( kappa_r * Fc + kappa_p * term1 * b -
-                       kappa_r * b * ( E + Pr ) + 0.5 * kappa_r * Fc * b * b +
-                       2.0 * ( kappa_r - kappa_p ) * b * b * Fc );
-  */
+                         kappa_r * b * ( E + Pr ) + 0.5 * kappa_r * Fc * b * b +
+                         2.0 * ( kappa_r - kappa_p ) * b * b * Fc );
 
   // ala Skinner & Ostriker, simpler.
+  /*
   const double kappa = kappa_r;
   const double G0 = D * kappa * ( term1 - b * Fc );
   const double G  = D * kappa * ( Fc - b * E + b * Pr );
+  */
   return { G0, G };
 }
 
 /**
  * factor of c scaling terms for radiation-matter sources
- * TODO: total opacity X
  **/
-[[nodiscard]] auto source_factor_rad() -> std::tuple<double, double> {
+[[nodiscard]] auto source_factor_rad( ) -> std::tuple<double, double> {
   constexpr static double c = constants::c_cgs;
-  return {c, c*c};
+  return { c, c * c };
 }
 
 /* pressure tensor closure */
@@ -135,7 +129,7 @@ auto flux_rad( const double E, const double F, const double P, const double V, c
   constexpr static double one_third = 1.0 / 3.0;
   const double f   = utilities::make_bounded( flux_factor( E, F ), 0.0, 1.0 );
   const double chi = ( 3.0 + 4.0 * f * f ) /
-                   ( 5.0 + 2.0 * std::sqrt( 4.0 - ( 3.0 * f * f ) ) );
+                     ( 5.0 + 2.0 * std::sqrt( 4.0 - ( 3.0 * f * f ) ) );
   const double T = utilities::make_bounded(
       ( ( 1.0 - chi ) / 2.0 ) +
           ( ( 3.0 * chi - 1.0 ) * 1.0 / // utilities::SGN(F)
@@ -144,8 +138,8 @@ auto flux_rad( const double E, const double F, const double P, const double V, c
   return E * T;
 }
 
-auto llf_flux( const double Fp, const double Fm, const double Up, const double Um,
-               const double alpha ) -> double {
+auto llf_flux( const double Fp, const double Fm, const double Up,
+               const double Um, const double alpha ) -> double {
   return 0.5 * ( Fp - alpha * Up + Fm + alpha * Um );
 }
 
@@ -170,22 +164,22 @@ auto lambda_hll( const double f, const int sign ) -> double {
  * HLL Riemann solver for radiation
  * see 2013ApJS..206...21S (Skinner & Ostriker 2013) Eq 39
  * and references & discussion therein
- *
- * Note: pass in Eulerian variables ( _ / cm^3 )
  **/
-auto numerical_flux_hll_rad( const double E_L, const double E_R, const double F_L,
-                             const double F_R, const double P_L, const double P_R,
-                             const double vstar, const double tau ) -> std::tuple<double, double> {
+auto numerical_flux_hll_rad( const double E_L, const double E_R,
+                             const double F_L, const double F_R,
+                             const double P_L, const double P_R,
+                             const double vstar )
+    -> std::tuple<double, double> {
   // flux factors
   const double f_L = flux_factor( E_L, F_L );
   const double f_R = flux_factor( E_R, F_R );
 
   // TODO(astrobarker) - vstar?
   constexpr static double c2 = constants::c_cgs * constants::c_cgs;
-  const double lambda1_L     = lambda_hll( f_L, -1.0 ) - 0*vstar;
-  const double lambda1_R     = lambda_hll( f_R, -1.0 ) - 0*vstar;
-  const double lambda3_L     = lambda_hll( f_L, 1.0 ) - 0*vstar;
-  const double lambda3_R     = lambda_hll( f_R, 1.0 ) - 0*vstar;
+  const double lambda1_L     = lambda_hll( f_L, -1.0 );
+  const double lambda1_R     = lambda_hll( f_R, -1.0 );
+  const double lambda3_L     = lambda_hll( f_L, 1.0 );
+  const double lambda3_R     = lambda_hll( f_R, 1.0 );
   const double lambda_min_L  = lambda1_L;
   const double lambda_min_R  = lambda1_R;
   const double lambda_max_L  = lambda3_L;
@@ -199,15 +193,14 @@ auto numerical_flux_hll_rad( const double E_L, const double E_R, const double F_
 
   const double flux_e = hll( E_L, E_R, F_L, F_R, s_l_m, s_r_p );
   const double flux_f = hll( F_L, F_R, c2 * P_L, c2 * P_R, s_l_m, s_r_p );
-  //const double Flux_E = hll( E_L, E_R, F_L - vstar * E_L, F_R - vstar * E_R, s_l_m, s_r_p );
-  //const double Flux_F = hll( F_L, F_R, c2 * P_L - vstar * F_L, c2 * P_R - vstar * F_R, s_l_m, s_r_p );
-  return { flux_e, flux_f };
+  return { flux_e, flux_f }; // test flux_f
 }
 
 /**
  * Compute the rad timestep.
  **/
-auto compute_timestep_rad( const GridStructure* grid, const double CFL ) -> double {
+auto compute_timestep_rad( const GridStructure* grid, const double CFL )
+    -> double {
 
   const double MIN_DT = 1.0e-18;
   const double MAX_DT = 100.0;
@@ -225,7 +218,7 @@ auto compute_timestep_rad( const GridStructure* grid, const double CFL ) -> doub
 
         const double dt_old = std::abs( dr ) / std::abs( eigval );
 
-        if ( dt_old < lmin ) lmin = dt_old;
+        lmin = std::min( dt_old, lmin );
       },
       Kokkos::Min<double>( dt ) );
 

@@ -7,14 +7,11 @@
  * @brief Shu Osher shock tube
  */
 
-#include <iostream>
-#include <math.h> /* sin */
-#include <string>
+#include <cmath>
 
 #include "abstractions.hpp"
-#include "constants.hpp"
-#include "error.hpp"
 #include "grid.hpp"
+#include "state.hpp"
 
 /**
  * @brief Initialize Shu Osher hydro test
@@ -23,7 +20,7 @@ void shu_osher_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   View3D<double> uCF = state->get_u_cf( );
   View3D<double> uPF = state->get_u_pf( );
-  const int pOrder = state->get_p_order( );
+  const int pOrder   = state->get_p_order( );
 
   const int ilo    = grid->get_ilo( );
   const int ihi    = grid->get_ihi( );
@@ -35,7 +32,8 @@ void shu_osher_init( State* state, GridStructure* grid, const ProblemIn* pin ) {
 
   constexpr static int iPF_D = 0;
 
-  const double V0 = pin->in_table["problem"]["params"]["v0"].value_or( 2.629369 );
+  const double V0 =
+      pin->in_table["problem"]["params"]["v0"].value_or( 2.629369 );
   const double D_L =
       pin->in_table["problem"]["params"]["rhoL"].value_or( 3.857143 );
   const double P_L =

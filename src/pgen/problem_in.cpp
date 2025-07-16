@@ -25,7 +25,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
     THROW_ATHELAS_ERROR( " ! Issue reading input deck!" );
   }
 
-  std::printf( " ~ Loading Input Deck ...\n" );
+  std::println( " ~ Loading Input Deck ..." );
 
   /* Grab as std::optional<type> */
 
@@ -72,12 +72,13 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   // time
   std::optional<int> tO = in_table["time"]["torder"].value<int>( );
   std::optional<int> nS = in_table["time"]["nstages"].value<int>( );
-  std::optional<std::string> integrator_ = in_table["time"]["integrator"].value<std::string>();
-  if (integrator_) {
-    integrator = utilities::to_lower(integrator_.value());
-    method_id = string_to_id(integrator);
+  std::optional<std::string> integrator_ =
+      in_table["time"]["integrator"].value<std::string>( );
+  if ( integrator_ ) {
+    integrator = utilities::to_lower( integrator_.value( ) );
+    method_id  = string_to_id( integrator );
   } else {
-    THROW_ATHELAS_ERROR("You must list an integrator in the input deck!");
+    THROW_ATHELAS_ERROR( "You must list an integrator in the input deck!" );
   }
 
   // eos
@@ -98,19 +99,23 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   // limiters
   do_limiter = in_table["limiters"]["do_limiter"].value_or( true );
   std::optional<bool> tci_opt = in_table["limiters"]["tci_opt"].value<bool>( );
-  std::optional<double> tci_val = in_table["limiters"]["tci_val"].value<double>( );
+  std::optional<double> tci_val =
+      in_table["limiters"]["tci_val"].value<double>( );
   std::optional<bool> characteristic =
       in_table["limiters"]["characteristic"].value<bool>( );
-  std::optional<double> gamma1 = in_table["limiters"]["gamma_l"].value<double>( );
-  std::optional<double> gamma2 = in_table["limiters"]["gamma_i"].value<double>( );
-  std::optional<double> gamma3 = in_table["limiters"]["gamma_r"].value<double>( );
-  std::optional<double> wenor  = in_table["limiters"]["weno_r"].value<double>( );
-  b_tvd                      = in_table["limiters"]["b_tvd"].value_or( 1.0 );
-  m_tvb                      = in_table["limiters"]["m_tvb"].value_or( 1.0 );
+  std::optional<double> gamma1 =
+      in_table["limiters"]["gamma_l"].value<double>( );
+  std::optional<double> gamma2 =
+      in_table["limiters"]["gamma_i"].value<double>( );
+  std::optional<double> gamma3 =
+      in_table["limiters"]["gamma_r"].value<double>( );
+  std::optional<double> wenor = in_table["limiters"]["weno_r"].value<double>( );
+  b_tvd                       = in_table["limiters"]["b_tvd"].value_or( 1.0 );
+  m_tvb                       = in_table["limiters"]["m_tvb"].value_or( 1.0 );
   limiter_type = in_table["limiters"]["type"].value_or( "minmod" );
-  //if ( b_tvd < 1.0 || b_tvd > 2.0 ) {
-  //  THROW_ATHELAS_ERROR( "b_tvd must be in [1.0, 2.0]." );
-  //}
+  // if ( b_tvd < 1.0 || b_tvd > 2.0 ) {
+  //   THROW_ATHELAS_ERROR( "b_tvd must be in [1.0, 2.0]." );
+  // }
   if ( utilities::to_lower( limiter_type ) != "minmod" &&
        utilities::to_lower( limiter_type ) != "weno" ) {
     THROW_ATHELAS_ERROR( "Please choose a valid limiter! Current options: \n"
@@ -148,7 +153,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   fluid_i_dirichlet_values = { 0.0, 0.0, 0.0 };
   fluid_o_dirichlet_values = { 0.0, 0.0, 0.0 };
   // --- testing ---
-  auto array = in_table["bc"]["fluid"]["dirichlet_values_i"].as_array( );
+  auto* array = in_table["bc"]["fluid"]["dirichlet_values_i"].as_array( );
   if ( array && fluid_bc_i == "dirichlet" ) {
     read_toml_array( array, fluid_i_dirichlet_values );
   } else if ( !array && fluid_bc_i == "dirichlet" ) {
@@ -212,7 +217,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
                    ? geometry::Spherical
                    : geometry::Planar;
   } else {
-    std::printf( "   - Defaulting to planar geometry!\n" );
+    std::println( "   - Defaulting to planar geometry!" );
     Geometry = geometry::Planar; // default
   }
   if ( basis_ ) {
@@ -221,7 +226,7 @@ ProblemIn::ProblemIn( const std::string& fn ) {
                 : poly_basis::taylor;
   } else {
     basis = poly_basis::legendre;
-    std::printf( "   - Defaulting to legendre polynomial basis!\n" );
+    std::println( "   - Defaulting to legendre polynomial basis!" );
   }
 
   if ( x1 ) {
@@ -311,10 +316,10 @@ ProblemIn::ProblemIn( const std::string& fn ) {
   }
   weno_r = wenor.value_or( 2.0 );
 
-  std::printf( " ~ Configuration ... Complete\n\n" );
+  std::println( " ~ Configuration ... Complete\n" );
 }
 
-bool check_bc( std::string& bc ) {
+auto check_bc( std::string& bc ) -> bool {
   if ( bc != "outflow" && bc != "reflecting" && bc != "dirichlet" &&
        bc != "periodic" && bc != "marshak" ) {
     THROW_ATHELAS_ERROR(
@@ -324,5 +329,5 @@ bool check_bc( std::string& bc ) {
         " - periodic \n"
         " - dirichlet" );
   }
-  return AthelasExitCodes::FAILURE; // should not reach
+  return false; // should not reach
 }

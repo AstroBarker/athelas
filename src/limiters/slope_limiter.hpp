@@ -23,7 +23,6 @@
 
 #include "abstractions.hpp"
 #include "eos/eos.hpp"
-#include "error.hpp"
 #include "slope_limiter_base.hpp"
 
 class WENO : public SlopeLimiterBase<WENO> {

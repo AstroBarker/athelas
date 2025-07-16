@@ -8,553 +8,572 @@
  * @details TODO: describe tableaus.
  */
 
-#include <iterator>
 #include <unordered_map>
 
-#include "constants.hpp"
 #include "error.hpp"
 #include "tableau.hpp"
 
 // converts an input string to its associated MethodID
 MethodID string_to_id( const std::string& method_name ) {
   static const std::unordered_map<std::string, MethodID> method_map = {
-    {"ex_ssprk11", MethodID::EX_SSPRK11},
-    {"ex_ssprk22", MethodID::EX_SSPRK22},
-    {"ex_ssprk33", MethodID::EX_SSPRK33},
-    {"ex_ssprk54", MethodID::EX_SSPRK54},
-    {"ex_ssprk52", MethodID::EX_SSPRK52},
-    {"ex_ssprk53", MethodID::EX_SSPRK53},
-    {"imex_ssprk11", MethodID::IMEX_SSPRK11},
-    {"imex_ssprk22_dirk", MethodID::IMEX_SSPRK22_DIRK},
-    {"imex_ark32_esdirk", MethodID::IMEX_ARK32_ESDIRK},
-    {"imex_ssprk33_dirk", MethodID::IMEX_SSPRK33_DIRK},
-    {"imex_pdars_esdirk", MethodID::IMEX_PDARS_ESDIRK},
+      { "ex_ssprk11", MethodID::EX_SSPRK11 },
+      { "ex_ssprk22", MethodID::EX_SSPRK22 },
+      { "ex_ssprk33", MethodID::EX_SSPRK33 },
+      { "ex_ssprk54", MethodID::EX_SSPRK54 },
+      { "ex_ssprk52", MethodID::EX_SSPRK52 },
+      { "ex_ssprk53", MethodID::EX_SSPRK53 },
+      { "imex_ssprk11", MethodID::IMEX_SSPRK11 },
+      { "imex_ssprk22_dirk", MethodID::IMEX_SSPRK22_DIRK },
+      { "imex_ark32_esdirk", MethodID::IMEX_ARK32_ESDIRK },
+      { "imex_ssprk33_dirk", MethodID::IMEX_SSPRK33_DIRK },
+      { "imex_pdars_esdirk", MethodID::IMEX_PDARS_ESDIRK },
   };
 
-  auto it = method_map.find(method_name);
-  if (it != method_map.end()) {
+  auto it = method_map.find( method_name );
+  if ( it != method_map.end( ) ) {
     return it->second;
   } else {
-    THROW_ATHELAS_ERROR((std::string("Unknown method: ") + method_name).c_str());
+    THROW_ATHELAS_ERROR(
+        ( std::string( "Unknown method: " ) + method_name ).c_str( ) );
   }
 }
 
-RKIntegrator create_tableau(MethodID method_id) {
-  switch(method_id) {
-    case MethodID::EX_SSPRK11: {
-      // --- Forward Euler --- //
-      constexpr static MethodType type = MethodType::EX;
-      constexpr static int stages = 1;
-      constexpr static int explicit_order = 1;
-      constexpr static int implicit_order = 0; // dummy
-      View2D<double> a_ex("a_ij_ex", stages, stages);
-      View1D<double> b_ex("b_i_ex", stages);
-      View1D<double> c_ex("c_i_ex", stages);
-      
-      // host copies
-      auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-      auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-      auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-      a_ex_host( 0, 0 ) = 0.0;
-      b_ex_host( 0 )    = 1.0;
-      c_ex_host( 0 )    = 1.0;
-
-      // copy to device
-      Kokkos::deep_copy(a_ex, a_ex_host);
-      Kokkos::deep_copy(b_ex, b_ex_host);
-      Kokkos::deep_copy(c_ex, c_ex_host);
-
-      auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order, stages, a_ex, b_ex, c_ex);
-
-      // dummy implicit tableau
-      View2D<double> a_im("a_ij_im", 1, 1);
-      View1D<double> b_im("b_i_im", 1);
-      View1D<double> c_im("c_i_im", 1);
-
-      auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order, stages, a_im, b_im, c_im);
-
-      return RKIntegrator(method_id, type, explicit_order, implicit_order, 
-          stages, explicit_tableau, implicit_tableau);
-    } // end EX_SSPRK11
-    case MethodID::EX_SSPRK22: {
-      // --- Heun's method SSPRK(2,2) --- //
-      constexpr static MethodType type = MethodType::EX;
-      constexpr static int stages = 2;
-      constexpr static int explicit_order = 2;
-      constexpr static int implicit_order = 0; // dummy
-      View2D<double> a_ex("a_ij_ex", stages, stages);
-      View1D<double> b_ex("b_i_ex", stages);
-      View1D<double> c_ex("c_i_ex", stages);
-      
-      // host copies
-      auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-      auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-      auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-      a_ex_host( 1, 0 ) = 1.0;
-      b_ex_host( 0 )    = 0.5;
-      b_ex_host( 1 )    = 0.5;
-      c_ex_host( 0 )    = 0.0;
-      c_ex_host( 1 )    = 1.0;
-
-      // copy to device
-      Kokkos::deep_copy(a_ex, a_ex_host);
-      Kokkos::deep_copy(b_ex, b_ex_host);
-      Kokkos::deep_copy(c_ex, c_ex_host);
-
-      auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order, stages, a_ex, b_ex, c_ex);
-
-      // dummy implicit tableau
-      View2D<double> a_im("a_ij_im", 1, 1);
-      View1D<double> b_im("b_i_im", 1);
-      View1D<double> c_im("c_i_im", 1);
-
-      auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order, stages, a_im, b_im, c_im);
-
-      return RKIntegrator(method_id, type, explicit_order, implicit_order, 
-          stages, explicit_tableau, implicit_tableau);
-    } // end EX_SSPRK22
-    case MethodID::EX_SSPRK33: {
-      // --- classic SSPRK(3,3) --- //
-      constexpr static MethodType type = MethodType::EX;
-      constexpr static int stages = 3;
-      constexpr static int explicit_order = 3;
-      constexpr static int implicit_order = 0; // dummy
-      View2D<double> a_ex("a_ij_ex", stages, stages);
-      View1D<double> b_ex("b_i_ex", stages);
-      View1D<double> c_ex("c_i_ex", stages);
-      
-      // host copies
-      auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-      auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-      auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-      a_ex_host( 1, 0 ) = 1.0;
-      a_ex_host( 2, 0 ) = 0.25;
-      a_ex_host( 2, 1 ) = 0.25;
-      b_ex_host( 0 )     = 1.0 / 6.0;
-      b_ex_host( 1 )     = 1.0 / 6.0;
-      b_ex_host( 2 )     = 2.0 / 3.0;
-      c_ex_host( 0 )    = 0.0;
-      c_ex_host( 1 )    = 1.0;
-      c_ex_host( 2 )    = 0.5;
-
-      // copy to device
-      Kokkos::deep_copy(a_ex, a_ex_host);
-      Kokkos::deep_copy(b_ex, b_ex_host);
-      Kokkos::deep_copy(c_ex, c_ex_host);
-
-      auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order, stages, a_ex, b_ex, c_ex);
-
-      // dummy implicit tableau
-      View2D<double> a_im("a_ij_im", 1, 1);
-      View1D<double> b_im("b_i_im", 1);
-      View1D<double> c_im("c_i_im", 1);
-
-      auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order, stages, a_im, b_im, c_im);
-
-      return RKIntegrator(method_id, type, explicit_order, implicit_order, 
-          stages, explicit_tableau, implicit_tableau);
-    } // end EX_SSPRK33
-    case MethodID::EX_SSPRK54: {
-      // --- SSPRK(5,4) of Spiteri and Ruuth 2002 --- //
-      // TODO(astrobarker) if I want to test other SSPRK(5,4), use _EXT in name
-      constexpr static MethodType type = MethodType::EX;
-      constexpr static int stages = 5;
-      constexpr static int explicit_order = 4;
-      constexpr static int implicit_order = 0; // dummy
-      View2D<double> a_ex("a_ij_ex", stages, stages);
-      View1D<double> b_ex("b_i_ex", stages);
-      View1D<double> c_ex("c_i_ex", stages);
-      
-      // host copies
-      auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-      auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-      auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-      a_ex_host(1, 0) = 0.39175222700392;
-      a_ex_host(2, 0) = 0.21766909633821;
-      a_ex_host(2, 1) = 0.36841059262959;
-      a_ex_host(3, 0) = 0.08269208670950;
-      a_ex_host(3, 1) = 0.13995850206999;
-      a_ex_host(3, 2) = 0.25189177424738;
-      a_ex_host(4, 0) = 0.06796628370320;
-      a_ex_host(4, 1) = 0.11503469844438;
-      a_ex_host(4, 2) = 0.20703489864929;
-      a_ex_host(4, 3) = 0.54497475021237;
-
-      b_ex_host(0) = 0.14681187618661;
-      b_ex_host(1) = 0.24848290924556;
-      b_ex_host(2) = 0.10425883036650;
-      b_ex_host(3) = 0.27443890091960;
-      b_ex_host(4) = 0.22600748319395;
-
-      c_ex_host(0) = 0.0;
-      c_ex_host(1) = 0.39175222700392;
-      c_ex_host(2) = 0.58607968896779;
-      c_ex_host(3) = 0.47454236302687;
-      c_ex_host(4) = 0.93501063100924;
-
-      // copy to device
-      Kokkos::deep_copy(a_ex, a_ex_host);
-      Kokkos::deep_copy(b_ex, b_ex_host);
-      Kokkos::deep_copy(c_ex, c_ex_host);
-
-      auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order, stages, a_ex, b_ex, c_ex);
-
-      // dummy implicit tableau
-      View2D<double> a_im("a_ij_im", 1, 1);
-      View1D<double> b_im("b_i_im", 1);
-      View1D<double> c_im("c_i_im", 1);
-
-      auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order, stages, a_im, b_im, c_im);
-
-      return RKIntegrator(method_id, type, explicit_order, implicit_order, 
-          stages, explicit_tableau, implicit_tableau);
-    } // end EX_SSPRK54
-    case MethodID::EX_SSPRK52: {
-      // --- SSPRK(5,2) --- //
-      // radius of absolute monotonicity 4.0
-      constexpr static MethodType type = MethodType::EX;
-      constexpr static int stages = 5;
-      constexpr static int explicit_order = 2;
-      constexpr static int implicit_order = 0; // dummy
-      View2D<double> a_ex("a_ij_ex", stages, stages);
-      View1D<double> b_ex("b_i_ex", stages);
-      View1D<double> c_ex("c_i_ex", stages);
-      
-      // host copies
-      auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-      auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-      auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-      a_ex_host( 1, 0 ) = 0.25;
-      a_ex_host( 2, 0 ) = 0.25;
-      a_ex_host( 3, 0 ) = 0.25;
-      a_ex_host( 4, 0 ) = 0.25;
-      a_ex_host( 2, 1 ) = 0.25;
-      a_ex_host( 3, 1 ) = 0.25;
-      a_ex_host( 4, 1 ) = 0.25;
-      a_ex_host( 3, 2 ) = 0.25;
-      a_ex_host( 4, 2 ) = 0.25;
-      a_ex_host( 4, 3 ) = 0.25;
-
-      b_ex_host( 0 )     = 1.0 / 5.0;
-      b_ex_host( 1 )     = 1.0 / 5.0;
-      b_ex_host( 2 )     = 1.0 / 5.0;
-      b_ex_host( 3 )     = 1.0 / 5.0;
-      b_ex_host( 4 )     = 1.0 / 5.0;
-
-      c_ex_host( 0 )    = 0.0;
-      c_ex_host( 1 )    = 0.25;
-      c_ex_host( 2 )    = 0.5;
-      c_ex_host( 3 )    = 0.75;
-      c_ex_host( 4 )    = 1.0;
-
-      // copy to device
-      Kokkos::deep_copy(a_ex, a_ex_host);
-      Kokkos::deep_copy(b_ex, b_ex_host);
-      Kokkos::deep_copy(c_ex, c_ex_host);
-
-      auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order, stages, a_ex, b_ex, c_ex);
-
-      // dummy implicit tableau
-      View2D<double> a_im("a_ij_im", 1, 1);
-      View1D<double> b_im("b_i_im", 1);
-      View1D<double> c_im("c_i_im", 1);
-
-      auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order, stages, a_im, b_im, c_im);
-
-      return RKIntegrator(method_id, type, explicit_order, implicit_order, 
-          stages, explicit_tableau, implicit_tableau);
-    } // end EX_SSPRK52
-    case MethodID::EX_SSPRK53: {
-      // --- SSPRK(5,3) --- //
-      // radius of absolute monotonicity 2.65
-      constexpr static MethodType type = MethodType::EX;
-      constexpr static int stages = 5;
-      constexpr static int explicit_order = 3;
-      constexpr static int implicit_order = 0; // dummy
-      View2D<double> a_ex("a_ij_ex", stages, stages);
-      View1D<double> b_ex("b_i_ex", stages);
-      View1D<double> c_ex("c_i_ex", stages);
-      
-      // host copies
-      auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-      auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-      auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-      a_ex_host( 1, 0 ) = 0.377;
-      a_ex_host( 2, 0 ) = 0.377;
-      a_ex_host( 3, 0 ) = 0.164;
-      a_ex_host( 4, 0 ) = 0.149;
-      a_ex_host( 2, 1 ) = 0.377;
-      a_ex_host( 3, 1 ) = 0.164;
-      a_ex_host( 4, 1 ) = 0.148;
-      a_ex_host( 3, 2 ) = 0.164;
-      a_ex_host( 4, 2 ) = 0.148;
-      a_ex_host( 4, 3 ) = 0.342;
-
-      b_ex_host( 0 )     = 0.197;
-      b_ex_host( 1 )     = 0.118;
-      b_ex_host( 2 )     = 0.117;
-      b_ex_host( 3 )     = 0.270;
-      b_ex_host( 4 )     = 0.298;
-
-      c_ex_host( 0 )    = 0.0;
-      c_ex_host( 1 )    = 0.377;
-      c_ex_host( 2 )    = 0.755;
-      c_ex_host( 3 )    = 0.491;
-      c_ex_host( 4 )    = 0.788;
-
-      // copy to device
-      Kokkos::deep_copy(a_ex, a_ex_host);
-      Kokkos::deep_copy(b_ex, b_ex_host);
-      Kokkos::deep_copy(c_ex, c_ex_host);
-
-      auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order, stages, a_ex, b_ex, c_ex);
-
-      // dummy implicit tableau
-      View2D<double> a_im("a_ij_im", 1, 1);
-      View1D<double> b_im("b_i_im", 1);
-      View1D<double> c_im("c_i_im", 1);
-
-      auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order, stages, a_im, b_im, c_im);
-
-      return RKIntegrator(method_id, type, explicit_order, implicit_order, 
-          stages, explicit_tableau, implicit_tableau);
-    } // end EX_SSPRK52
-    case MethodID::IMEX_SSPRK11: {
-      // --- Forward Euler + Backward Euler --- //
-      constexpr static MethodType type = MethodType::IMEX;
-      constexpr static int stages = 1;
-      constexpr static int explicit_order = 1;
-      constexpr static int implicit_order = 1;
-      View2D<double> a_ex("a_ij_ex", stages, stages);
-      View1D<double> b_ex("b_i_ex", stages);
-      View1D<double> c_ex("c_i_ex", stages);
-      
-      // host copies
-      auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-      auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-      auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-      a_ex_host( 0, 0 ) = 0.0;
-      b_ex_host( 0 )    = 1.0;
-      c_ex_host( 0 )    = 1.0;
-
-      // copy to device
-      Kokkos::deep_copy(a_ex, a_ex_host);
-      Kokkos::deep_copy(b_ex, b_ex_host);
-      Kokkos::deep_copy(c_ex, c_ex_host);
-
-      auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order, stages, a_ex, b_ex, c_ex);
-
-      // implicit tableau
-      View2D<double> a_im("a_ij_im", stages, stages);
-      View1D<double> b_im("b_i_im", stages);
-      View1D<double> c_im("c_i_im", stages);
-
-      auto a_im_host = Kokkos::create_mirror_view(a_im);
-      auto b_im_host = Kokkos::create_mirror_view(b_im);
-      auto c_im_host = Kokkos::create_mirror_view(c_im);
-
-      a_im_host( 0, 0 ) = 1.0;
-      b_im_host( 0 )    = 1.0;
-      c_im_host( 0 )    = 1.0;
-
-      Kokkos::deep_copy(a_im, a_im_host);
-      Kokkos::deep_copy(b_im, b_im_host);
-      Kokkos::deep_copy(c_im, c_im_host);
-
-      auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order, stages, a_im, b_im, c_im);
-
-      return RKIntegrator(method_id, type, explicit_order, implicit_order, 
-          stages, explicit_tableau, implicit_tableau);
-    } // end IMEX_SSPRK11
-    case MethodID::IMEX_SSPRK22_DIRK: {
-      // --- Heun's method SSPRK(2,2) with Pareschi & Russo DIRK(2,2) --- //
-      constexpr static MethodType type = MethodType::IMEX;
-      constexpr static int stages = 2;
-      constexpr static int explicit_order = 2;
-      constexpr static int implicit_order = 2;
-      View2D<double> a_ex("a_ij_ex", stages, stages);
-      View1D<double> b_ex("b_i_ex", stages);
-      View1D<double> c_ex("c_i_ex", stages);
-      
-      // host copies
-      auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-      auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-      auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-      a_ex_host( 1, 0 ) = 1.0;
-      b_ex_host( 0 )    = 0.5;
-      b_ex_host( 1 )    = 0.5;
-      c_ex_host( 0 )    = 0.0;
-      c_ex_host( 1 )    = 1.0;
-
-      // copy to device
-      Kokkos::deep_copy(a_ex, a_ex_host);
-      Kokkos::deep_copy(b_ex, b_ex_host);
-      Kokkos::deep_copy(c_ex, c_ex_host);
-
-      auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order, stages, a_ex, b_ex, c_ex);
-
-      // dummy implicit tableau
-      View2D<double> a_im("a_ij_im", stages, stages);
-      View1D<double> b_im("b_i_im", stages);
-      View1D<double> c_im("c_i_im", stages);
-
-      auto a_im_host = Kokkos::create_mirror_view(a_im);
-      auto b_im_host = Kokkos::create_mirror_view(b_im);
-      auto c_im_host = Kokkos::create_mirror_view(c_im);
-
-      constexpr static double gam = 1.0 + ( std::sqrt( 2 ) / 2.0 );
-      a_im_host( 0, 0 ) = gam;
-      a_im_host( 1, 0 ) = 1.0 - 2.0 * gam;
-      a_im_host( 1, 1 ) = gam;
-      b_im_host( 0 )    = 0.5;
-      b_im_host( 1 )    = 0.5;
-      c_im_host( 0 )    = gam;
-      c_im_host( 1 )    = 1.0 - gam;
-
-      Kokkos::deep_copy(a_im, a_im_host);
-      Kokkos::deep_copy(b_im, b_im_host);
-      Kokkos::deep_copy(c_im, c_im_host);
-
-      auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order, stages, a_im, b_im, c_im);
-
-      return RKIntegrator(method_id, type, explicit_order, implicit_order, 
-          stages, explicit_tableau, implicit_tableau);
-    } // end IMEX_SSPRK22_DIRK
-    case MethodID::IMEX_ARK32_ESDIRK: {
-      // --- Giraldo et al 2013 ARK32 ESDIRK --- //
-      constexpr static MethodType type = MethodType::IMEX;
-      constexpr static int stages = 3;
-      constexpr static int explicit_order = 2;
-      constexpr static int implicit_order = 2;
-      View2D<double> a_ex("a_ij_ex", stages, stages);
-      View1D<double> b_ex("b_i_ex", stages);
-      View1D<double> c_ex("c_i_ex", stages);
-      
-      // host copies
-      auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-      auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-      auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-      constexpr static double a32 = (3.0 + 2.0 * std::sqrt(2.0)) / 6.0;
-      a_ex_host( 1, 0 ) = 2.0 - std::sqrt(2.0);
-      a_ex_host( 2, 0 ) = 1.0 - a32;
-      a_ex_host( 2, 1 ) = a32;
-      b_ex_host( 0 )    = + 1.0 / (2.0 * std::sqrt(2.0));
-      b_ex_host( 1 )    = + 1.0 / (2.0 * std::sqrt(2.0));
-      b_ex_host( 2 )    = 1.0 - 1.0 / std::sqrt(2.0);
-      c_ex_host( 0 )    = 0.0;
-      c_ex_host( 1 )    = 2.0 - std::sqrt(2.0);
-      c_ex_host( 2 )    = 1.0;
-
-      // copy to device
-      Kokkos::deep_copy(a_ex, a_ex_host);
-      Kokkos::deep_copy(b_ex, b_ex_host);
-      Kokkos::deep_copy(c_ex, c_ex_host);
-
-      auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order, stages, a_ex, b_ex, c_ex);
-
-      // dummy implicit tableau
-      View2D<double> a_im("a_ij_im", stages, stages);
-      View1D<double> b_im("b_i_im", stages);
-      View1D<double> c_im("c_i_im", stages);
-
-      auto a_im_host = Kokkos::create_mirror_view(a_im);
-      auto b_im_host = Kokkos::create_mirror_view(b_im);
-      auto c_im_host = Kokkos::create_mirror_view(c_im);
-
-      a_im_host( 1, 0 ) = 1.0 - 1.0 / std::sqrt(2.0);
-      a_im_host( 2, 0 ) = + 1.0 / (2.0 * std::sqrt(2.0));
-      a_im_host( 1, 1 ) = 1.0 - 1.0 / std::sqrt(2.0);
-      a_im_host( 2, 1 ) = + 1.0 / (2.0 * std::sqrt(2.0));
-      a_im_host( 2, 2 ) = 1.0 - 1.0 / std::sqrt(2.0);
-      b_im_host( 0 )    = + 1.0 / (2.0 * std::sqrt(2.0));
-      b_im_host( 1 )    = + 1.0 / (2.0 * std::sqrt(2.0));
-      b_im_host( 2 )    = 1.0 - 1.0 / std::sqrt(2.0);
-      c_im_host( 0 )    = 0.0;
-      c_im_host( 1 )    = 2.0 - std::sqrt(2.0);
-      c_im_host( 2 )    = 1.0;
-
-      Kokkos::deep_copy(a_im, a_im_host);
-      Kokkos::deep_copy(b_im, b_im_host);
-      Kokkos::deep_copy(c_im, c_im_host);
-
-      auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order, stages, a_im, b_im, c_im);
-
-      return RKIntegrator(method_id, type, explicit_order, implicit_order, 
-          stages, explicit_tableau, implicit_tableau);
-    } // end IMEX_SSPRK22_DIRK
-    case MethodID::IMEX_PDARS_ESDIRK: {
-      // --- Ran Chu et al 2019 PD-ARS ESDIRK --- //
-      constexpr static MethodType type = MethodType::IMEX;
-      constexpr static int stages = 3;
-      constexpr static int explicit_order = 2;
-      constexpr static int implicit_order = 2;
-      View2D<double> a_ex("a_ij_ex", stages, stages);
-      View1D<double> b_ex("b_i_ex", stages);
-      View1D<double> c_ex("c_i_ex", stages);
-      
-      // host copies
-      auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-      auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-      auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-      a_ex_host( 1, 0 ) = 1.0;
-      a_ex_host( 2, 0 ) = 0.5;
-      a_ex_host( 2, 1 ) = 0.5;
-      b_ex_host( 0 )    = + 0.5;
-      b_ex_host( 1 )    = + 0.5;
-      b_ex_host( 2 )    = 0.0;
-      c_ex_host( 0 )    = 0.0;
-      c_ex_host( 1 )    = 1.0;
-      c_ex_host( 2 )    = 1.0;
-
-      // copy to device
-      Kokkos::deep_copy(a_ex, a_ex_host);
-      Kokkos::deep_copy(b_ex, b_ex_host);
-      Kokkos::deep_copy(c_ex, c_ex_host);
-
-      auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order, stages, a_ex, b_ex, c_ex);
-
-      // dummy implicit tableau
-      View2D<double> a_im("a_ij_im", stages, stages);
-      View1D<double> b_im("b_i_im", stages);
-      View1D<double> c_im("c_i_im", stages);
-
-      auto a_im_host = Kokkos::create_mirror_view(a_im);
-      auto b_im_host = Kokkos::create_mirror_view(b_im);
-      auto c_im_host = Kokkos::create_mirror_view(c_im);
-
-      constexpr static double eps = 0.0;
-      a_im_host( 1, 1 ) = 1.0;
-      a_im_host( 2, 1 ) = 0.5 - eps;
-      a_im_host( 2, 2 ) = 0.5 + eps;
-      b_im_host( 0 )    = 0.0;
-      b_im_host( 1 )    = 0.5 - eps;
-      b_im_host( 2 )    = 0.5 + eps;
-      c_im_host( 0 )    = 0.0;
-      c_im_host( 1 )    = 1.0;
-      c_im_host( 2 )    = 1.0;
-
-      Kokkos::deep_copy(a_im, a_im_host);
-      Kokkos::deep_copy(b_im, b_im_host);
-      Kokkos::deep_copy(c_im, c_im_host);
-
-      auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order, stages, a_im, b_im, c_im);
-
-      return RKIntegrator(method_id, type, explicit_order, implicit_order, 
-          stages, explicit_tableau, implicit_tableau);
-    } // end IMEX_PDARS_ESDIRK
-    // TODO(astrobarker) fill out implicit tableaus
-    default:
-      THROW_ATHELAS_ERROR("Unknown tableau!"); // Shouldn't reach
+RKIntegrator create_tableau( MethodID method_id ) {
+  switch ( method_id ) {
+  case MethodID::EX_SSPRK11: {
+    // --- Forward Euler --- //
+    constexpr static MethodType type    = MethodType::EX;
+    constexpr static int stages         = 1;
+    constexpr static int explicit_order = 1;
+    constexpr static int implicit_order = 0; // dummy
+    View2D<double> a_ex( "a_ij_ex", stages, stages );
+    View1D<double> b_ex( "b_i_ex", stages );
+    View1D<double> c_ex( "c_i_ex", stages );
+
+    // host copies
+    auto a_ex_host = Kokkos::create_mirror_view( a_ex );
+    auto b_ex_host = Kokkos::create_mirror_view( b_ex );
+    auto c_ex_host = Kokkos::create_mirror_view( c_ex );
+
+    a_ex_host( 0, 0 ) = 0.0;
+    b_ex_host( 0 )    = 1.0;
+    c_ex_host( 0 )    = 1.0;
+
+    // copy to device
+    Kokkos::deep_copy( a_ex, a_ex_host );
+    Kokkos::deep_copy( b_ex, b_ex_host );
+    Kokkos::deep_copy( c_ex, c_ex_host );
+
+    auto explicit_tableau = RKTableau( TableauType::Explicit, explicit_order,
+                                       stages, a_ex, b_ex, c_ex );
+
+    // dummy implicit tableau
+    View2D<double> a_im( "a_ij_im", 1, 1 );
+    View1D<double> b_im( "b_i_im", 1 );
+    View1D<double> c_im( "c_i_im", 1 );
+
+    auto implicit_tableau = RKTableau( TableauType::Implicit, implicit_order,
+                                       stages, a_im, b_im, c_im );
+
+    return RKIntegrator( method_id, type, explicit_order, implicit_order,
+                         stages, explicit_tableau, implicit_tableau );
+  } // end EX_SSPRK11
+  case MethodID::EX_SSPRK22: {
+    // --- Heun's method SSPRK(2,2) --- //
+    constexpr static MethodType type    = MethodType::EX;
+    constexpr static int stages         = 2;
+    constexpr static int explicit_order = 2;
+    constexpr static int implicit_order = 0; // dummy
+    View2D<double> a_ex( "a_ij_ex", stages, stages );
+    View1D<double> b_ex( "b_i_ex", stages );
+    View1D<double> c_ex( "c_i_ex", stages );
+
+    // host copies
+    auto a_ex_host = Kokkos::create_mirror_view( a_ex );
+    auto b_ex_host = Kokkos::create_mirror_view( b_ex );
+    auto c_ex_host = Kokkos::create_mirror_view( c_ex );
+
+    a_ex_host( 1, 0 ) = 1.0;
+    b_ex_host( 0 )    = 0.5;
+    b_ex_host( 1 )    = 0.5;
+    c_ex_host( 0 )    = 0.0;
+    c_ex_host( 1 )    = 1.0;
+
+    // copy to device
+    Kokkos::deep_copy( a_ex, a_ex_host );
+    Kokkos::deep_copy( b_ex, b_ex_host );
+    Kokkos::deep_copy( c_ex, c_ex_host );
+
+    auto explicit_tableau = RKTableau( TableauType::Explicit, explicit_order,
+                                       stages, a_ex, b_ex, c_ex );
+
+    // dummy implicit tableau
+    View2D<double> a_im( "a_ij_im", 1, 1 );
+    View1D<double> b_im( "b_i_im", 1 );
+    View1D<double> c_im( "c_i_im", 1 );
+
+    auto implicit_tableau = RKTableau( TableauType::Implicit, implicit_order,
+                                       stages, a_im, b_im, c_im );
+
+    return RKIntegrator( method_id, type, explicit_order, implicit_order,
+                         stages, explicit_tableau, implicit_tableau );
+  } // end EX_SSPRK22
+  case MethodID::EX_SSPRK33: {
+    // --- classic SSPRK(3,3) --- //
+    constexpr static MethodType type    = MethodType::EX;
+    constexpr static int stages         = 3;
+    constexpr static int explicit_order = 3;
+    constexpr static int implicit_order = 0; // dummy
+    View2D<double> a_ex( "a_ij_ex", stages, stages );
+    View1D<double> b_ex( "b_i_ex", stages );
+    View1D<double> c_ex( "c_i_ex", stages );
+
+    // host copies
+    auto a_ex_host = Kokkos::create_mirror_view( a_ex );
+    auto b_ex_host = Kokkos::create_mirror_view( b_ex );
+    auto c_ex_host = Kokkos::create_mirror_view( c_ex );
+
+    a_ex_host( 1, 0 ) = 1.0;
+    a_ex_host( 2, 0 ) = 0.25;
+    a_ex_host( 2, 1 ) = 0.25;
+    b_ex_host( 0 )    = 1.0 / 6.0;
+    b_ex_host( 1 )    = 1.0 / 6.0;
+    b_ex_host( 2 )    = 2.0 / 3.0;
+    c_ex_host( 0 )    = 0.0;
+    c_ex_host( 1 )    = 1.0;
+    c_ex_host( 2 )    = 0.5;
+
+    // copy to device
+    Kokkos::deep_copy( a_ex, a_ex_host );
+    Kokkos::deep_copy( b_ex, b_ex_host );
+    Kokkos::deep_copy( c_ex, c_ex_host );
+
+    auto explicit_tableau = RKTableau( TableauType::Explicit, explicit_order,
+                                       stages, a_ex, b_ex, c_ex );
+
+    // dummy implicit tableau
+    View2D<double> a_im( "a_ij_im", 1, 1 );
+    View1D<double> b_im( "b_i_im", 1 );
+    View1D<double> c_im( "c_i_im", 1 );
+
+    auto implicit_tableau = RKTableau( TableauType::Implicit, implicit_order,
+                                       stages, a_im, b_im, c_im );
+
+    return RKIntegrator( method_id, type, explicit_order, implicit_order,
+                         stages, explicit_tableau, implicit_tableau );
+  } // end EX_SSPRK33
+  case MethodID::EX_SSPRK54: {
+    // --- SSPRK(5,4) of Spiteri and Ruuth 2002 --- //
+    // TODO(astrobarker) if I want to test other SSPRK(5,4), use _EXT in name
+    constexpr static MethodType type    = MethodType::EX;
+    constexpr static int stages         = 5;
+    constexpr static int explicit_order = 4;
+    constexpr static int implicit_order = 0; // dummy
+    View2D<double> a_ex( "a_ij_ex", stages, stages );
+    View1D<double> b_ex( "b_i_ex", stages );
+    View1D<double> c_ex( "c_i_ex", stages );
+
+    // host copies
+    auto a_ex_host = Kokkos::create_mirror_view( a_ex );
+    auto b_ex_host = Kokkos::create_mirror_view( b_ex );
+    auto c_ex_host = Kokkos::create_mirror_view( c_ex );
+
+    a_ex_host( 1, 0 ) = 0.39175222700392;
+    a_ex_host( 2, 0 ) = 0.21766909633821;
+    a_ex_host( 2, 1 ) = 0.36841059262959;
+    a_ex_host( 3, 0 ) = 0.08269208670950;
+    a_ex_host( 3, 1 ) = 0.13995850206999;
+    a_ex_host( 3, 2 ) = 0.25189177424738;
+    a_ex_host( 4, 0 ) = 0.06796628370320;
+    a_ex_host( 4, 1 ) = 0.11503469844438;
+    a_ex_host( 4, 2 ) = 0.20703489864929;
+    a_ex_host( 4, 3 ) = 0.54497475021237;
+
+    b_ex_host( 0 ) = 0.14681187618661;
+    b_ex_host( 1 ) = 0.24848290924556;
+    b_ex_host( 2 ) = 0.10425883036650;
+    b_ex_host( 3 ) = 0.27443890091960;
+    b_ex_host( 4 ) = 0.22600748319395;
+
+    c_ex_host( 0 ) = 0.0;
+    c_ex_host( 1 ) = 0.39175222700392;
+    c_ex_host( 2 ) = 0.58607968896779;
+    c_ex_host( 3 ) = 0.47454236302687;
+    c_ex_host( 4 ) = 0.93501063100924;
+
+    // copy to device
+    Kokkos::deep_copy( a_ex, a_ex_host );
+    Kokkos::deep_copy( b_ex, b_ex_host );
+    Kokkos::deep_copy( c_ex, c_ex_host );
+
+    auto explicit_tableau = RKTableau( TableauType::Explicit, explicit_order,
+                                       stages, a_ex, b_ex, c_ex );
+
+    // dummy implicit tableau
+    View2D<double> a_im( "a_ij_im", 1, 1 );
+    View1D<double> b_im( "b_i_im", 1 );
+    View1D<double> c_im( "c_i_im", 1 );
+
+    auto implicit_tableau = RKTableau( TableauType::Implicit, implicit_order,
+                                       stages, a_im, b_im, c_im );
+
+    return RKIntegrator( method_id, type, explicit_order, implicit_order,
+                         stages, explicit_tableau, implicit_tableau );
+  } // end EX_SSPRK54
+  case MethodID::EX_SSPRK52: {
+    // --- SSPRK(5,2) --- //
+    // radius of absolute monotonicity 4.0
+    constexpr static MethodType type    = MethodType::EX;
+    constexpr static int stages         = 5;
+    constexpr static int explicit_order = 2;
+    constexpr static int implicit_order = 0; // dummy
+    View2D<double> a_ex( "a_ij_ex", stages, stages );
+    View1D<double> b_ex( "b_i_ex", stages );
+    View1D<double> c_ex( "c_i_ex", stages );
+
+    // host copies
+    auto a_ex_host = Kokkos::create_mirror_view( a_ex );
+    auto b_ex_host = Kokkos::create_mirror_view( b_ex );
+    auto c_ex_host = Kokkos::create_mirror_view( c_ex );
+
+    a_ex_host( 1, 0 ) = 0.25;
+    a_ex_host( 2, 0 ) = 0.25;
+    a_ex_host( 3, 0 ) = 0.25;
+    a_ex_host( 4, 0 ) = 0.25;
+    a_ex_host( 2, 1 ) = 0.25;
+    a_ex_host( 3, 1 ) = 0.25;
+    a_ex_host( 4, 1 ) = 0.25;
+    a_ex_host( 3, 2 ) = 0.25;
+    a_ex_host( 4, 2 ) = 0.25;
+    a_ex_host( 4, 3 ) = 0.25;
+
+    b_ex_host( 0 ) = 1.0 / 5.0;
+    b_ex_host( 1 ) = 1.0 / 5.0;
+    b_ex_host( 2 ) = 1.0 / 5.0;
+    b_ex_host( 3 ) = 1.0 / 5.0;
+    b_ex_host( 4 ) = 1.0 / 5.0;
+
+    c_ex_host( 0 ) = 0.0;
+    c_ex_host( 1 ) = 0.25;
+    c_ex_host( 2 ) = 0.5;
+    c_ex_host( 3 ) = 0.75;
+    c_ex_host( 4 ) = 1.0;
+
+    // copy to device
+    Kokkos::deep_copy( a_ex, a_ex_host );
+    Kokkos::deep_copy( b_ex, b_ex_host );
+    Kokkos::deep_copy( c_ex, c_ex_host );
+
+    auto explicit_tableau = RKTableau( TableauType::Explicit, explicit_order,
+                                       stages, a_ex, b_ex, c_ex );
+
+    // dummy implicit tableau
+    View2D<double> a_im( "a_ij_im", 1, 1 );
+    View1D<double> b_im( "b_i_im", 1 );
+    View1D<double> c_im( "c_i_im", 1 );
+
+    auto implicit_tableau = RKTableau( TableauType::Implicit, implicit_order,
+                                       stages, a_im, b_im, c_im );
+
+    return RKIntegrator( method_id, type, explicit_order, implicit_order,
+                         stages, explicit_tableau, implicit_tableau );
+  } // end EX_SSPRK52
+  case MethodID::EX_SSPRK53: {
+    // --- SSPRK(5,3) --- //
+    // radius of absolute monotonicity 2.65
+    constexpr static MethodType type    = MethodType::EX;
+    constexpr static int stages         = 5;
+    constexpr static int explicit_order = 3;
+    constexpr static int implicit_order = 0; // dummy
+    View2D<double> a_ex( "a_ij_ex", stages, stages );
+    View1D<double> b_ex( "b_i_ex", stages );
+    View1D<double> c_ex( "c_i_ex", stages );
+
+    // host copies
+    auto a_ex_host = Kokkos::create_mirror_view( a_ex );
+    auto b_ex_host = Kokkos::create_mirror_view( b_ex );
+    auto c_ex_host = Kokkos::create_mirror_view( c_ex );
+
+    a_ex_host( 1, 0 ) = 0.377;
+    a_ex_host( 2, 0 ) = 0.377;
+    a_ex_host( 3, 0 ) = 0.164;
+    a_ex_host( 4, 0 ) = 0.149;
+    a_ex_host( 2, 1 ) = 0.377;
+    a_ex_host( 3, 1 ) = 0.164;
+    a_ex_host( 4, 1 ) = 0.148;
+    a_ex_host( 3, 2 ) = 0.164;
+    a_ex_host( 4, 2 ) = 0.148;
+    a_ex_host( 4, 3 ) = 0.342;
+
+    b_ex_host( 0 ) = 0.197;
+    b_ex_host( 1 ) = 0.118;
+    b_ex_host( 2 ) = 0.117;
+    b_ex_host( 3 ) = 0.270;
+    b_ex_host( 4 ) = 0.298;
+
+    c_ex_host( 0 ) = 0.0;
+    c_ex_host( 1 ) = 0.377;
+    c_ex_host( 2 ) = 0.755;
+    c_ex_host( 3 ) = 0.491;
+    c_ex_host( 4 ) = 0.788;
+
+    // copy to device
+    Kokkos::deep_copy( a_ex, a_ex_host );
+    Kokkos::deep_copy( b_ex, b_ex_host );
+    Kokkos::deep_copy( c_ex, c_ex_host );
+
+    auto explicit_tableau = RKTableau( TableauType::Explicit, explicit_order,
+                                       stages, a_ex, b_ex, c_ex );
+
+    // dummy implicit tableau
+    View2D<double> a_im( "a_ij_im", 1, 1 );
+    View1D<double> b_im( "b_i_im", 1 );
+    View1D<double> c_im( "c_i_im", 1 );
+
+    auto implicit_tableau = RKTableau( TableauType::Implicit, implicit_order,
+                                       stages, a_im, b_im, c_im );
+
+    return RKIntegrator( method_id, type, explicit_order, implicit_order,
+                         stages, explicit_tableau, implicit_tableau );
+  } // end EX_SSPRK52
+  case MethodID::IMEX_SSPRK11: {
+    // --- Forward Euler + Backward Euler --- //
+    constexpr static MethodType type    = MethodType::IMEX;
+    constexpr static int stages         = 1;
+    constexpr static int explicit_order = 1;
+    constexpr static int implicit_order = 1;
+    View2D<double> a_ex( "a_ij_ex", stages, stages );
+    View1D<double> b_ex( "b_i_ex", stages );
+    View1D<double> c_ex( "c_i_ex", stages );
+
+    // host copies
+    auto a_ex_host = Kokkos::create_mirror_view( a_ex );
+    auto b_ex_host = Kokkos::create_mirror_view( b_ex );
+    auto c_ex_host = Kokkos::create_mirror_view( c_ex );
+
+    a_ex_host( 0, 0 ) = 0.0;
+    b_ex_host( 0 )    = 1.0;
+    c_ex_host( 0 )    = 1.0;
+
+    // copy to device
+    Kokkos::deep_copy( a_ex, a_ex_host );
+    Kokkos::deep_copy( b_ex, b_ex_host );
+    Kokkos::deep_copy( c_ex, c_ex_host );
+
+    auto explicit_tableau = RKTableau( TableauType::Explicit, explicit_order,
+                                       stages, a_ex, b_ex, c_ex );
+
+    // implicit tableau
+    View2D<double> a_im( "a_ij_im", stages, stages );
+    View1D<double> b_im( "b_i_im", stages );
+    View1D<double> c_im( "c_i_im", stages );
+
+    auto a_im_host = Kokkos::create_mirror_view( a_im );
+    auto b_im_host = Kokkos::create_mirror_view( b_im );
+    auto c_im_host = Kokkos::create_mirror_view( c_im );
+
+    a_im_host( 0, 0 ) = 1.0;
+    b_im_host( 0 )    = 1.0;
+    c_im_host( 0 )    = 1.0;
+
+    Kokkos::deep_copy( a_im, a_im_host );
+    Kokkos::deep_copy( b_im, b_im_host );
+    Kokkos::deep_copy( c_im, c_im_host );
+
+    auto implicit_tableau = RKTableau( TableauType::Implicit, implicit_order,
+                                       stages, a_im, b_im, c_im );
+
+    return RKIntegrator( method_id, type, explicit_order, implicit_order,
+                         stages, explicit_tableau, implicit_tableau );
+  } // end IMEX_SSPRK11
+  case MethodID::IMEX_SSPRK22_DIRK: {
+    // --- Heun's method SSPRK(2,2) with Pareschi & Russo DIRK(2,2) --- //
+    constexpr static MethodType type    = MethodType::IMEX;
+    constexpr static int stages         = 2;
+    constexpr static int explicit_order = 2;
+    constexpr static int implicit_order = 2;
+    View2D<double> a_ex( "a_ij_ex", stages, stages );
+    View1D<double> b_ex( "b_i_ex", stages );
+    View1D<double> c_ex( "c_i_ex", stages );
+
+    // host copies
+    auto a_ex_host = Kokkos::create_mirror_view( a_ex );
+    auto b_ex_host = Kokkos::create_mirror_view( b_ex );
+    auto c_ex_host = Kokkos::create_mirror_view( c_ex );
+
+    a_ex_host( 1, 0 ) = 1.0;
+    b_ex_host( 0 )    = 0.5;
+    b_ex_host( 1 )    = 0.5;
+    c_ex_host( 0 )    = 0.0;
+    c_ex_host( 1 )    = 1.0;
+
+    // copy to device
+    Kokkos::deep_copy( a_ex, a_ex_host );
+    Kokkos::deep_copy( b_ex, b_ex_host );
+    Kokkos::deep_copy( c_ex, c_ex_host );
+
+    auto explicit_tableau = RKTableau( TableauType::Explicit, explicit_order,
+                                       stages, a_ex, b_ex, c_ex );
+
+    // dummy implicit tableau
+    View2D<double> a_im( "a_ij_im", stages, stages );
+    View1D<double> b_im( "b_i_im", stages );
+    View1D<double> c_im( "c_i_im", stages );
+
+    auto a_im_host = Kokkos::create_mirror_view( a_im );
+    auto b_im_host = Kokkos::create_mirror_view( b_im );
+    auto c_im_host = Kokkos::create_mirror_view( c_im );
+
+    constexpr static double gam = 1.0 + ( std::sqrt( 2 ) / 2.0 );
+    a_im_host( 0, 0 )           = gam;
+    a_im_host( 1, 0 )           = 1.0 - 2.0 * gam;
+    a_im_host( 1, 1 )           = gam;
+    b_im_host( 0 )              = 0.5;
+    b_im_host( 1 )              = 0.5;
+    c_im_host( 0 )              = gam;
+    c_im_host( 1 )              = 1.0 - gam;
+
+    Kokkos::deep_copy( a_im, a_im_host );
+    Kokkos::deep_copy( b_im, b_im_host );
+    Kokkos::deep_copy( c_im, c_im_host );
+
+    auto implicit_tableau = RKTableau( TableauType::Implicit, implicit_order,
+                                       stages, a_im, b_im, c_im );
+
+    return RKIntegrator( method_id, type, explicit_order, implicit_order,
+                         stages, explicit_tableau, implicit_tableau );
+  } // end IMEX_SSPRK22_DIRK
+  case MethodID::IMEX_ARK32_ESDIRK: {
+    // --- Giraldo et al 2013 ARK32 ESDIRK --- //
+    constexpr static MethodType type    = MethodType::IMEX;
+    constexpr static int stages         = 3;
+    constexpr static int explicit_order = 2;
+    constexpr static int implicit_order = 2;
+    View2D<double> a_ex( "a_ij_ex", stages, stages );
+    View1D<double> b_ex( "b_i_ex", stages );
+    View1D<double> c_ex( "c_i_ex", stages );
+
+    // host copies
+    auto a_ex_host = Kokkos::create_mirror_view( a_ex );
+    auto b_ex_host = Kokkos::create_mirror_view( b_ex );
+    auto c_ex_host = Kokkos::create_mirror_view( c_ex );
+
+    constexpr static double a32 = ( 3.0 + 2.0 * std::numbers::sqrt2 ) / 6.0;
+    a_ex_host( 1, 0 )           = 2.0 - std::numbers::sqrt2;
+    a_ex_host( 2, 0 )           = 1.0 - a32;
+    a_ex_host( 2, 1 )           = a32;
+    b_ex_host( 0 )              = +1.0 / ( 2.0 * std::numbers::sqrt2 );
+    b_ex_host( 1 )              = +1.0 / ( 2.0 * std::numbers::sqrt2 );
+    b_ex_host( 2 )              = 1.0 - 1.0 / std::numbers::sqrt2;
+    c_ex_host( 0 )              = 0.0;
+    c_ex_host( 1 )              = 2.0 - std::numbers::sqrt2;
+    c_ex_host( 2 )              = 1.0;
+
+    // copy to device
+    Kokkos::deep_copy( a_ex, a_ex_host );
+    Kokkos::deep_copy( b_ex, b_ex_host );
+    Kokkos::deep_copy( c_ex, c_ex_host );
+
+    auto explicit_tableau = RKTableau( TableauType::Explicit, explicit_order,
+                                       stages, a_ex, b_ex, c_ex );
+
+    // dummy implicit tableau
+    View2D<double> a_im( "a_ij_im", stages, stages );
+    View1D<double> b_im( "b_i_im", stages );
+    View1D<double> c_im( "c_i_im", stages );
+
+    auto a_im_host = Kokkos::create_mirror_view( a_im );
+    auto b_im_host = Kokkos::create_mirror_view( b_im );
+    auto c_im_host = Kokkos::create_mirror_view( c_im );
+
+    a_im_host( 1, 0 ) = 1.0 - 1.0 / std::numbers::sqrt2;
+    a_im_host( 2, 0 ) = +1.0 / ( 2.0 * std::numbers::sqrt2 );
+    a_im_host( 1, 1 ) = 1.0 - 1.0 / std::numbers::sqrt2;
+    a_im_host( 2, 1 ) = +1.0 / ( 2.0 * std::numbers::sqrt2 );
+    a_im_host( 2, 2 ) = 1.0 - 1.0 / std::numbers::sqrt2;
+    b_im_host( 0 )    = +1.0 / ( 2.0 * std::numbers::sqrt2 );
+    b_im_host( 1 )    = +1.0 / ( 2.0 * std::numbers::sqrt2 );
+    b_im_host( 2 )    = 1.0 - 1.0 / std::numbers::sqrt2;
+    c_im_host( 0 )    = 0.0;
+    c_im_host( 1 )    = 2.0 - std::numbers::sqrt2;
+    c_im_host( 2 )    = 1.0;
+
+    Kokkos::deep_copy( a_im, a_im_host );
+    Kokkos::deep_copy( b_im, b_im_host );
+    Kokkos::deep_copy( c_im, c_im_host );
+
+    auto implicit_tableau = RKTableau( TableauType::Implicit, implicit_order,
+                                       stages, a_im, b_im, c_im );
+
+    return RKIntegrator( method_id, type, explicit_order, implicit_order,
+                         stages, explicit_tableau, implicit_tableau );
+  } // end IMEX_SSPRK22_DIRK
+  case MethodID::IMEX_PDARS_ESDIRK: {
+    // --- Ran Chu et al 2019 PD-ARS ESDIRK --- //
+    constexpr static MethodType type    = MethodType::IMEX;
+    constexpr static int stages         = 3;
+    constexpr static int explicit_order = 2;
+    constexpr static int implicit_order = 2;
+    View2D<double> a_ex( "a_ij_ex", stages, stages );
+    View1D<double> b_ex( "b_i_ex", stages );
+    View1D<double> c_ex( "c_i_ex", stages );
+
+    // host copies
+    auto a_ex_host = Kokkos::create_mirror_view( a_ex );
+    auto b_ex_host = Kokkos::create_mirror_view( b_ex );
+    auto c_ex_host = Kokkos::create_mirror_view( c_ex );
+
+    a_ex_host( 1, 0 ) = 1.0;
+    a_ex_host( 2, 0 ) = 0.5;
+    a_ex_host( 2, 1 ) = 0.5;
+    b_ex_host( 0 )    = 0.5;
+    b_ex_host( 1 )    = 0.5;
+    b_ex_host( 2 )    = 0.0;
+    c_ex_host( 0 )    = 0.0;
+    c_ex_host( 1 )    = 1.0;
+    c_ex_host( 2 )    = 1.0;
+
+    // copy to device
+    Kokkos::deep_copy( a_ex, a_ex_host );
+    Kokkos::deep_copy( b_ex, b_ex_host );
+    Kokkos::deep_copy( c_ex, c_ex_host );
+
+    auto explicit_tableau = RKTableau( TableauType::Explicit, explicit_order,
+                                       stages, a_ex, b_ex, c_ex );
+
+    // dummy implicit tableau
+    View2D<double> a_im( "a_ij_im", stages, stages );
+    View1D<double> b_im( "b_i_im", stages );
+    View1D<double> c_im( "c_i_im", stages );
+
+    auto a_im_host = Kokkos::create_mirror_view( a_im );
+    auto b_im_host = Kokkos::create_mirror_view( b_im );
+    auto c_im_host = Kokkos::create_mirror_view( c_im );
+
+    constexpr static double eps = 0.0;
+    a_im_host( 1, 1 )           = 1.0;
+    a_im_host( 2, 1 )           = 0.5 - eps;
+    a_im_host( 2, 2 )           = 0.5 + eps;
+    b_im_host( 0 )              = 0.0;
+    b_im_host( 1 )              = 0.5 - eps;
+    b_im_host( 2 )              = 0.5 + eps;
+    c_im_host( 0 )              = 0.0;
+    c_im_host( 1 )              = 1.0;
+    c_im_host( 2 )              = 1.0;
+
+    Kokkos::deep_copy( a_im, a_im_host );
+    Kokkos::deep_copy( b_im, b_im_host );
+    Kokkos::deep_copy( c_im, c_im_host );
+
+    auto implicit_tableau = RKTableau( TableauType::Implicit, implicit_order,
+                                       stages, a_im, b_im, c_im );
+
+    return RKIntegrator( method_id, type, explicit_order, implicit_order,
+                         stages, explicit_tableau, implicit_tableau );
+  } // end IMEX_PDARS_ESDIRK
+  // TODO(astrobarker) fill out implicit tableaus
+  default:
+    THROW_ATHELAS_ERROR( "Unknown tableau!" ); // Shouldn't reach
   }
 }
 
@@ -690,12 +709,12 @@ void ButcherTableau::initialize_tableau( ) {
       // L-stable
       */
     } else if ( nStages == 2 && tOrder == 2 ) {
-      //const static double gam = 1.0 - ( 1.0 / std::sqrt( 2 ) );
-      a_ij( 0, 0 )          = 0.25;
-      a_ij( 1, 0 )          = 0.5;
-      a_ij( 1, 1 )          = 0.25;
-      b_i( 0 )              = 0.5;
-      b_i( 1 )              = 0.5;
+      // const static double gam = 1.0 - ( 1.0 / std::sqrt( 2 ) );
+      a_ij( 0, 0 ) = 0.25;
+      a_ij( 1, 0 ) = 0.5;
+      a_ij( 1, 1 ) = 0.25;
+      b_i( 0 )     = 0.5;
+      b_i( 1 )     = 0.5;
     } else if ( nStages == 3 && tOrder == 3 ) {
       a_ij( 2, 0 ) = 1.0 / 6.0;
       a_ij( 1, 1 ) = 1.0;

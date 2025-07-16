@@ -14,19 +14,14 @@
  * TODO(astrobarker): derivative matrix
  */
 
-#include <algorithm> /* std::sort */
-#include <cmath> /* pow */
-#include <cstdlib> /* abs */
-#include <iostream>
+#include <cmath>
+#include <cstdlib>
 #include <print>
 
 #include "abstractions.hpp"
 #include "error.hpp"
-#include "fluid_utilities.hpp"
 #include "grid.hpp"
-#include "linear_algebra.hpp"
 #include "polynomial_basis.hpp"
-#include "quadrature.hpp"
 
 /**
  * Constructor creates necessary matrices and bases, etc.
@@ -34,13 +29,14 @@
  **/
 ModalBasis::ModalBasis( poly_basis::poly_basis basis, const View3D<double> uPF,
                         GridStructure* grid, const int pOrder, const int nN,
-                        const int nElements, const int nGuard, const bool density_weight )
+                        const int nElements, const int nGuard,
+                        const bool density_weight )
     : nX_( nElements ), order_( pOrder ), nNodes_( nN ),
       mSize_( ( nN ) * ( nN + 2 ) * ( nElements + 2 * nGuard ) ),
-      density_weight_(density_weight),
+      density_weight_( density_weight ),
       mass_matrix_( "MassMatrix", nElements + 2 * nGuard, pOrder ),
       phi_( "phi_", nElements + 2 * nGuard, 3 * nN + 2, pOrder ),
-      dphi_( "dphi_", nElements + 2 * nGuard, 3 * nN + 2, pOrder ){
+      dphi_( "dphi_", nElements + 2 * nGuard, 3 * nN + 2, pOrder ) {
   // --- Compute grid quantities ---
   grid->compute_mass( uPF );
   grid->compute_center_of_mass( uPF );
@@ -97,8 +93,8 @@ auto ModalBasis::taylor( const int order, const double eta, const double eta_c )
  * eta : coordinate
  * eta_c: center of mass
  **/
-auto ModalBasis::d_taylor( const int order, const double eta, const double eta_c )
-    -> double {
+auto ModalBasis::d_taylor( const int order, const double eta,
+                           const double eta_c ) -> double {
 
   if ( order < 0 ) {
     THROW_ATHELAS_ERROR(
@@ -124,11 +120,13 @@ auto ModalBasis::d_taylor( const int order, const double eta, const double eta_c
 /* --- legendre Methods --- */
 /* TODO: Make sure that x_c offset for legendre works with COM != 0 */
 
-auto ModalBasis::legendre( const int n, const double x, const double x_c ) -> double {
+auto ModalBasis::legendre( const int n, const double x, const double x_c )
+    -> double {
   return legendre( n, x - x_c );
 }
 
-auto ModalBasis::d_legendre( const int n, double x, const double x_c ) -> double {
+auto ModalBasis::d_legendre( const int n, double x, const double x_c )
+    -> double {
   return d_legendre( n, x - x_c );
 }
 
@@ -183,12 +181,12 @@ auto ModalBasis::inner_product( const int m, const int n, const int iX,
   double result = 0.0;
   for ( int iN = 0; iN < nNodes_; iN++ ) {
     // include rho in integrand if necessary
-    const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
+    const double rho   = density_weight_ ? uPF( 0, iX, iN ) : 1.0;
     const double eta_q = grid->get_nodes( iN );
     const double X     = grid->node_coordinate( iX, iN );
     result += func_( n, eta_q, eta_c ) * phi_( iX, iN + 1, m ) *
-              grid->get_weights( iN ) * rho *
-              grid->get_widths( iX ) * grid->get_sqrt_gm( X );
+              grid->get_weights( iN ) * rho * grid->get_widths( iX ) *
+              grid->get_sqrt_gm( X );
   }
 
   return result;
@@ -200,17 +198,18 @@ auto ModalBasis::inner_product( const int m, const int n, const int iX,
  * Computes < phi__m, phi__n >
  * <f,g> = \sum_q \rho_q f_q g_q j^0 w_q
  **/
-auto ModalBasis::inner_product( const int n, const int iX, const double /*eta_c*/,
+auto ModalBasis::inner_product( const int n, const int iX,
+                                const double /*eta_c*/,
                                 const View3D<double> uPF,
                                 GridStructure* grid ) const -> double {
   double result = 0.0;
   for ( int iN = 0; iN < nNodes_; iN++ ) {
     // include rho in integrand if necessary
-    const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
-    const double X = grid->node_coordinate( iX, iN );
+    const double rho = density_weight_ ? uPF( 0, iX, iN ) : 1.0;
+    const double X   = grid->node_coordinate( iX, iN );
     result += phi_( iX, iN + 1, n ) * phi_( iX, iN + 1, n ) *
-              grid->get_weights( iN ) * rho *
-              grid->get_widths( iX ) * grid->get_sqrt_gm( X );
+              grid->get_weights( iN ) * rho * grid->get_widths( iX ) *
+              grid->get_sqrt_gm( X );
   }
 
   return result;
@@ -334,12 +333,12 @@ void ModalBasis::check_orthogonality( const Kokkos::View<double***> uPF,
         for ( int i_eta = 1; i_eta <= nNodes_;
               i_eta++ ) // loop over quadratures
         {
-          const double rho = density_weight_ ? uPF(0, iX, i_eta - 1) : 1.0;
-          const double X = grid->node_coordinate( iX, i_eta - 1 );
+          const double rho = density_weight_ ? uPF( 0, iX, i_eta - 1 ) : 1.0;
+          const double X   = grid->node_coordinate( iX, i_eta - 1 );
           // Not using an inner_product function because their API is odd..
-          result += phi_( iX, i_eta, k1 ) * phi_( iX, i_eta, k2 ) *
-                    rho * grid->get_weights( i_eta - 1 ) *
-                    grid->get_widths( iX ) * grid->get_sqrt_gm( X );
+          result += phi_( iX, i_eta, k1 ) * phi_( iX, i_eta, k2 ) * rho *
+                    grid->get_weights( i_eta - 1 ) * grid->get_widths( iX ) *
+                    grid->get_sqrt_gm( X );
         }
 
         if ( k1 == k2 && result == 0.0 ) {
@@ -374,8 +373,8 @@ void ModalBasis::compute_mass_matrix( const View3D<double> uPF,
       double result = 0.0;
       for ( int iN = 0; iN < nNodes_; iN++ ) {
         // include rho in integrand if necessary
-        const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
-        const double X = grid->node_coordinate( iX, iN );
+        const double rho = density_weight_ ? uPF( 0, iX, iN ) : 1.0;
+        const double X   = grid->node_coordinate( iX, iN );
         result += phi_( iX, iN + 1, k ) * phi_( iX, iN + 1, k ) *
                   grid->get_weights( iN ) * grid->get_widths( iX ) *
                   grid->get_sqrt_gm( X ) * rho;

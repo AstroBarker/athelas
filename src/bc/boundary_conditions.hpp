@@ -27,6 +27,7 @@ namespace bc {
  *  reflecting
  *  periodic
  *  dirichlet
+ *  marshak
  **/
 template <int N> // N = 3 for fluid, N = 2 for rad...
 void fill_ghost_zones( View3D<double> U, const GridStructure* grid,
@@ -34,16 +35,15 @@ void fill_ghost_zones( View3D<double> U, const GridStructure* grid,
 
   const int nvars = U.extent( 0 );
   const int nX    = grid->get_n_elements( );
-  const int order = basis->get_order();
 
   auto this_bc = get_bc_data<N>( bcs );
 
   Kokkos::parallel_for(
       "Fill ghost zones", nvars, KOKKOS_LAMBDA( const int q ) {
         const int ghost_L    = 0;
-        const int interior_L = (this_bc[0].type != BcType::Periodic) ? 1 :nX;
+        const int interior_L = ( this_bc[0].type != BcType::Periodic ) ? 1 : nX;
         const int ghost_R    = nX + 1;
-        const int interior_R = (this_bc[1].type != BcType::Periodic) ? nX : 1;
+        const int interior_R = ( this_bc[1].type != BcType::Periodic ) ? nX : 1;
 
         apply_bc<N>( this_bc[0], U, q, ghost_L, interior_L, basis );
         apply_bc<N>( this_bc[1], U, q, ghost_R, interior_R, basis );
@@ -54,8 +54,9 @@ void fill_ghost_zones( View3D<double> U, const GridStructure* grid,
 template <int N>
 KOKKOS_INLINE_FUNCTION void
 apply_bc( const BoundaryConditionsData<N>& bc, View3D<double> U, const int q,
-          const int ghost_cell, const int interior_cell, const ModalBasis* basis ) {
-  const int num_modes = basis->get_order();
+          const int ghost_cell, const int interior_cell,
+          const ModalBasis* basis ) {
+  const int num_modes = basis->get_order( );
   switch ( bc.type ) {
   case BcType::Outflow:
     for ( int k = 0; k < num_modes; k++ ) {
@@ -67,8 +68,8 @@ apply_bc( const BoundaryConditionsData<N>& bc, View3D<double> U, const int q,
   // use is different. interior_cell should be of the opposite
   // side as ghost_cell. Not ideal, but works.
   case BcType::Periodic:
-    //assert( interior_cell != ghost_cell + 1 && "Bad use of periodic BC!\n" );
-    //assert( interior_cell != ghost_cell - 1 && "Bad use of periodic BC!\n" );
+    // assert( interior_cell != ghost_cell + 1 && "Bad use of periodic BC!\n" );
+    // assert( interior_cell != ghost_cell - 1 && "Bad use of periodic BC!\n" );
     for ( int k = 0; k < num_modes; k++ ) {
       U( q, ghost_cell, k ) = U( q, interior_cell, k );
     }
@@ -105,13 +106,15 @@ apply_bc( const BoundaryConditionsData<N>& bc, View3D<double> U, const int q,
     const double Einc = bc.dirichlet_values[0]; // aT^4
     for ( int k = 0; k < 1; k++ ) {
       if ( q == 0 ) {
-        if (k == 0) U( q, ghost_cell, k ) = (k == 0) ? Einc : 0;
+        if ( k == 0 ) {
+          U( q, ghost_cell, k ) = ( k == 0 ) ? Einc : 0;
+        }
       } else if ( q == 1 ) {
         constexpr static double c = constants::c_cgs;
         const double E0           = U( 0, interior_cell, k );
         const double F0           = U( 1, interior_cell, k );
-        //U( q, ghost_cell, k )   = (k == 0) ? 0.5 * c * Einc : 0.0;
-        U( q, ghost_cell, k )   = (k == 0) ? 0.5 * c * Einc - 0.5 * ( c * E0 + 2.0 * F0 ) : 0.0;
+        U( q, ghost_cell, k ) =
+            ( k == 0 ) ? 0.5 * c * Einc - 0.5 * ( c * E0 + 2.0 * F0 ) : 0.0;
       }
     }
   } // case Marshak

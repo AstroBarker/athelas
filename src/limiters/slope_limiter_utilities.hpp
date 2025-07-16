@@ -58,7 +58,9 @@ auto smoothness_indicator( View3D<double> U, View2D<double> modified_polynomial,
                            const GridStructure* grid, const ModalBasis* basis,
                            int iX, int i, int iCQ ) -> double;
 
-auto non_linear_weight( double gamma, double beta, double tau, double eps ) -> double;
+auto non_linear_weight( double gamma, double beta, double tau, double eps )
+    -> double;
 
-auto weno_tau( double beta_l, double beta_i, double beta_r, double weno_r ) -> double;
+auto weno_tau( double beta_l, double beta_i, double beta_r, double weno_r )
+    -> double;
 } // namespace limiter_utilities
