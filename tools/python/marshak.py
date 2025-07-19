@@ -76,8 +76,8 @@ def plot_marshak(chk):
     ls=" ",
     marker="o",
     color=pre_color,
-    alpha=0.75,
-    markersize=1.0,
+    alpha=0.5,
+    markersize=2.0,
   )
   ax.semilogx(
     x_sol,
@@ -85,8 +85,8 @@ def plot_marshak(chk):
     ls=" ",
     marker="o",
     color=vel_color,
-    alpha=0.75,
-    markersize=1.0,
+    alpha=0.5,
+    markersize=2.0,
   )
 
   ax.semilogx(
@@ -95,9 +95,9 @@ def plot_marshak(chk):
     ls=" ",
     marker="o",
     color=pre_color,
-    alpha=1.0,
+    alpha=0.75,
     fillstyle="none",
-    markersize=1.0,
+    markersize=2.0,
   )
   ax.semilogx(
     x_sol,
@@ -105,9 +105,9 @@ def plot_marshak(chk):
     ls=" ",
     marker="o",
     color=vel_color,
-    alpha=1.0,
+    alpha=0.75,
     fillstyle="none",
-    markersize=1.0,
+    markersize=2.0,
   )
 
   # --- athelas ---
