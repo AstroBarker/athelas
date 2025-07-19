@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 
-import glob
-import sys
-
-from astropy import constants as consts
-from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -23,18 +18,18 @@ def plot_sedov(chk):
   r = a.r
   print(r[0])
   tau = a.uCF[0, :, 0]
-  vel = a.uCF[1, :, 0]
-  emT = a.uCF[2, :, 0]
-  em = emT - 0.5 * vel * vel
+  # vel = a.uCF[1, :, 0]
+  # emT = a.uCF[2, :, 0]
+  # em = emT - 0.5 * vel * vel
   rho = 1.0 / tau
-  gamma = 1.4
-  p = (gamma - 1.0) * em / tau
+  # gamma = 1.4
+  # p = (gamma - 1.0) * em / tau
 
   fig, ax = plt.subplots(figsize=(3.5, 3.5))
   plt.minorticks_on()
-  pre_color = "#94a76f"
-  vel_color = "#d08c60"
-  sie_color = "#b07aa1"
+  #  pre_color = "#94a76f"
+  #  vel_color = "#d08c60"
+  #  sie_color = "#b07aa1"
   rho_color = "#7095b8"
 
   # --- analytic solution ---
@@ -51,8 +46,8 @@ def plot_sedov(chk):
   #  ax.plot(xsol, sol["pressure"], color=pre_color, ls=" ", marker="o", alpha=0.75)
   #  ax.plot(xsol, sol["pressure"], color=pre_color, ls=" ", marker="o", alpha=1.0, fillstyle="none")
   ax.plot(xsol, sol["density"], color=rho_color, ls=" ", marker="o", alpha=0.75)
-  #ax.plot(xsol, sol["velocity"], color=vel_color, ls=" ", marker="o", alpha=0.75)
-  #ax.plot(xsol, sol["pressure"], color=pre_color, ls=" ", marker="o", alpha=0.75)
+  # ax.plot(xsol, sol["velocity"], color=vel_color, ls=" ", marker="o", alpha=0.75)
+  # ax.plot(xsol, sol["pressure"], color=pre_color, ls=" ", marker="o", alpha=0.75)
   ax.plot(
     xsol,
     sol["density"],
@@ -62,7 +57,7 @@ def plot_sedov(chk):
     alpha=1.0,
     fillstyle="none",
   )
-  #ax.plot(
+  # ax.plot(
   #  xsol,
   #  sol["velocity"],
   #  color=vel_color,
@@ -70,8 +65,8 @@ def plot_sedov(chk):
   #  marker="o",
   #  alpha=1.0,
   #  fillstyle="none",
-  #)
-  #ax.plot(
+  # )
+  # ax.plot(
   #  xsol,
   #  sol["pressure"],
   #  color=pre_color,
@@ -79,12 +74,12 @@ def plot_sedov(chk):
   #  marker="o",
   #  alpha=1.0,
   #  fillstyle="none",
-  #)
+  # )
 
   # --- athelas ---
   ax.plot(r, rho, label="Density", color=rho_color)
-  #ax.plot(r, vel, label="Velocity", color=vel_color)
-  #ax.plot(r, p, label="Pressure", color=pre_color)
+  # ax.plot(r, vel, label="Velocity", color=vel_color)
+  # ax.plot(r, p, label="Pressure", color=pre_color)
   #  ax.plot(r, p, label="Pressure", color=pre_color)
 
   ## limiting

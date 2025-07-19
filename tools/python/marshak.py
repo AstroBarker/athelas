@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
-import glob
-import sys
-
 from astropy import constants as consts
-from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -19,12 +15,9 @@ def plot_marshak(chk):
   fn = f"{problem}_{chk}.h5"
   basis_fn = f"{problem}_basis.h5"
 
-  rmax = 3.466205e-3
   kappa = 577
   rho0 = 10.0
   chi = rho0 * kappa
-  Lz = 20.0  # non dim length
-  Lx = Lz / (kappa)
 
   c = consts.c.cgs.value
   sigma = consts.sigma_sb.cgs.value
@@ -40,8 +33,6 @@ def plot_marshak(chk):
   emT = a.uCF[2, :, 0]
   em = emT - 0.5 * vel * vel
   ev = em * rho
-  gamma = 1.4
-  p = (gamma - 1.0) * em / tau
 
   # use Su-Olson form for temperature
   T_g = np.power(4.0 * ev / alpha_so, 0.25)
@@ -54,21 +45,13 @@ def plot_marshak(chk):
   plt.minorticks_on()
   pre_color = "#94a76f"
   vel_color = "#d08c60"
-  sie_color = "#b07aa1"
-  rho_color = "#7095b8"
 
   # --- analytic solution ---
-  EV_TO_K = 1.0 / consts.k_B.to("eV / K").value
-  t_final = a.time
-  rmin = a.r[0]
-  r_sol = np.linspace(rmin, rmax, 1024)
   kappa = 577.0
   t_bndry = 3.481334e6  # K
   x_sol, t_rad_sol, t_fluid_sol = np.loadtxt(
     "marshak.dat", unpack=True, usecols=(1, 4, 5)
   )
-  A = x_sol[0]
-  B = x_sol[-1]
   x_sol = np.sqrt(3) * x_sol / chi
   ax.semilogx(
     x_sol,
@@ -114,8 +97,7 @@ def plot_marshak(chk):
   #  try to buid x vars
   new_r = np.zeros_like(r)
   for i in range(len(r)):
-    x = Lx * ((i + 0.5) / len(r))
-    new_r[i] = np.sqrt(3) * r[i]  # x
+    new_r[i] = np.sqrt(3) * r[i]
   ax.semilogx(new_r, T_g, label="Fluid", color=vel_color)
   ax.semilogx(new_r, T_r, label="Radiation", color=pre_color, ls="--")
 
