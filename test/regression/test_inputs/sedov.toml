@@ -27,7 +27,7 @@ dt_init_frac = 1.05
 
 [fluid]
 basis = "legendre"
-integrator = "SSPRK33"
+integrator = "EX_SSPRK33"
 nx = 128
 ng = 1
 

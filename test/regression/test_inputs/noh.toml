@@ -33,7 +33,7 @@ nx = 128
 ng = 1
 
 [time]
-integrator = "SSPRK22"
+integrator = "EX_SSPRK22"
 
 [eos]
 type = "ideal"
