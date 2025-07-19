@@ -9,16 +9,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from athelas import Athelas
-from exactpack.solvers.suolson.timmes import suolson  # import timmes
-from exactpack.solvers.suolson import SuOlson  # import timmes
 
 plt.style.use("style.mplstyle")
 
 
+# needs a massive cleanup
 def plot_marshak(chk):
   problem = "marshak"
   fn = f"{problem}_{chk}.h5"
   basis_fn = f"{problem}_basis.h5"
+
+  rmax = 3.466205e-3
+  kappa = 577
+  rho0 = 10.0
+  chi = rho0 * kappa
+  Lz = 20.0  # non dim length
+  Lx = Lz / (kappa)
 
   c = consts.c.cgs.value
   sigma = consts.sigma_sb.cgs.value
@@ -53,29 +59,17 @@ def plot_marshak(chk):
 
   # --- analytic solution ---
   EV_TO_K = 1.0 / consts.k_B.to("eV / K").value
-  print("EV TO K", EV_TO_K)
   t_final = a.time
   rmin = a.r[0]
-  rmax = 3.466205e-3
-  print(rmax)
-  print(a.r[-1])
   r_sol = np.linspace(rmin, rmax, 1024)
   kappa = 577.0
-  solver = SuOlson()
   t_bndry = 3.481334e6  # K
-  #soln = solver(r_sol, t_final)
-  # rad_sol, fluid_sol = suolson(t_final, r_sol, t_bndry, kappa, alpha_so)
-  # rad_sol *= EV_TO_K
-  # fluid_sol *= EV_TO_K
-  # ax.plot(r_sol, rad_sol, ls = " ", marker="o", color=pre_color)
-  # ax.plot(r_sol, fluid_sol, ls = " ", marker="o", color=vel_color)
-  #r_sol = soln["position"]
-  x_sol, t_rad_sol, t_fluid_sol = np.loadtxt("marshak.dat", unpack=True, usecols=(1,4,5))
+  x_sol, t_rad_sol, t_fluid_sol = np.loadtxt(
+    "marshak.dat", unpack=True, usecols=(1, 4, 5)
+  )
   A = x_sol[0]
   B = x_sol[-1]
-  x_sol = ((x_sol - A) * (rmax - rmin)/(B - A)) + rmin
-  print(x_sol)
-  print(r)
+  x_sol = np.sqrt(3) * x_sol / chi
   ax.semilogx(
     x_sol,
     t_rad_sol * t_bndry,
@@ -83,6 +77,7 @@ def plot_marshak(chk):
     marker="o",
     color=pre_color,
     alpha=0.75,
+    markersize=1.0,
   )
   ax.semilogx(
     x_sol,
@@ -91,6 +86,7 @@ def plot_marshak(chk):
     marker="o",
     color=vel_color,
     alpha=0.75,
+    markersize=1.0,
   )
 
   ax.semilogx(
@@ -101,6 +97,7 @@ def plot_marshak(chk):
     color=pre_color,
     alpha=1.0,
     fillstyle="none",
+    markersize=1.0,
   )
   ax.semilogx(
     x_sol,
@@ -110,17 +107,17 @@ def plot_marshak(chk):
     color=vel_color,
     alpha=1.0,
     fillstyle="none",
+    markersize=1.0,
   )
 
   # --- athelas ---
-  ax.semilogx(r, T_g, label="Fluid", color=vel_color)
-  ax.semilogx(r, T_r, label="Radiation", color=pre_color, ls="--")
-  #  ax.plot(r, p, label="Pressure", color=pre_color)
-
-  ## limiting
-  # for i in range(len(r)):
-  #  if a.slope_limiter[i] == 1:
-  #    ax.axvline(r[i], color="#7c8c8c", alpha=0.25)
+  #  try to buid x vars
+  new_r = np.zeros_like(r)
+  for i in range(len(r)):
+    x = Lx * ((i + 0.5) / len(r))
+    new_r[i] = np.sqrt(3) * r[i]  # x
+  ax.semilogx(new_r, T_g, label="Fluid", color=vel_color)
+  ax.semilogx(new_r, T_r, label="Radiation", color=pre_color, ls="--")
 
   ax.legend(frameon=False)
   ax.set(ylabel=r"Temperature [K]", xlabel="x [cm]")

@@ -38,8 +38,7 @@ KOKKOS_INLINE_FUNCTION auto residual( const T f, const T x ) -> T {
 
 KOKKOS_INLINE_FUNCTION
 auto alpha_aa( const double r_n, const double r_nm1 ) -> double {
-  return utilities::make_bounded( utilities::ratio( r_n, ( r_n - r_nm1 ) ), 0.0,
-                                  1.0 );
+  return std::clamp( utilities::ratio( r_n, ( r_n - r_nm1 ) ), 0.0, 1.0 );
 }
 
 // physical scales for normalization
@@ -147,7 +146,7 @@ class RadHydroConvergence {
     double max_rad_flux_error   = 0.0;
 
     max_velocity_error = std::max(
-        max_velocity_error, fluid_velocity_error( state_n, state_nm1, 0 ) );
+        max_velocity_error, fluid_velocity_error( state_n, state_nm1, 1 ) );
     max_energy_error     = std::max( max_energy_error,
                                      fluid_energy_error( state_n, state_nm1, 2 ) );
     max_rad_energy_error = std::max(
@@ -155,7 +154,6 @@ class RadHydroConvergence {
     max_rad_flux_error = std::max(
         max_rad_flux_error, radiation_flux_error( state_n, state_nm1, 4 ) );
 
-    // all variables must converge
     bool velocity_converged   = max_velocity_error < rel_tol_;
     bool energy_converged     = max_energy_error < rel_tol_;
     bool rad_energy_converged = max_rad_energy_error < rel_tol_;
@@ -210,7 +208,7 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro( T R, double dt_a_ii,
                                                   T scratch_n, T scratch_nm1,
                                                   T scratch, Args... args ) {
   static_assert( T::rank == 2, "fixed_point_radhydro expects rank-2 views." );
-  constexpr static int nvars = 5;
+  static constexpr int nvars = 5;
 
   const int num_modes = scratch_n.extent( 1 );
 
@@ -235,7 +233,7 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro( T R, double dt_a_ii,
   scales.rad_energy_scale = 1e12; // Typical radiation energy density
   scales.rad_flux_scale   = 1e20; // Typical radiation flux
 
-  static RadHydroConvergence<View2D<double>> convergence_checker(
+  static RadHydroConvergence<T> convergence_checker(
       scales, root_finders::ABSTOL, root_finders::RELTOL, num_modes );
 
   unsigned int n = 0;
@@ -301,7 +299,7 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro_aa( T R, double dt_a_ii,
   scales.rad_energy_scale = 1e12; // Typical radiation energy density
   scales.rad_flux_scale   = 1e20; // Typical radiation flux
 
-  static RadHydroConvergence<View2D<double>> convergence_checker(
+  static RadHydroConvergence<T> convergence_checker(
       scales, root_finders::ABSTOL, root_finders::RELTOL, num_modes );
 
   bool converged =
@@ -344,18 +342,15 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro_aa( T R, double dt_a_ii,
       scratch( 2, k ) = xnp1_2_k; // fluid energy
       scratch( 3, k ) = xnp1_3_k; // rad energy
       scratch( 4, k ) = xnp1_4_k; // rad flux
-    }
 
-    // --- update --- // TODO move up
-    for ( int iC = 1; iC < nvars; ++iC ) {
-      for ( int k = 0; k < num_modes; ++k ) {
+      // --- update ---
+      for ( int iC = 1; iC < nvars; ++iC ) {
         scratch_nm1( iC, k ) = scratch_n( iC, k );
         scratch_n( iC, k )   = scratch( iC, k );
       }
     }
 
-    bool converged =
-        convergence_checker.check_convergence( scratch_n, scratch_nm1 );
+    converged = convergence_checker.check_convergence( scratch_n, scratch_nm1 );
 
     ++n;
   } // while not converged

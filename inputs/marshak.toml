@@ -6,7 +6,7 @@ restart = false
 do_rad = true
 xl = 0.0
 xr = 3.466205e-3
-cfl = 0.4
+cfl = 0.3
 
 [problem.params]
 v0 = 0.0
@@ -25,22 +25,21 @@ dirichlet_values_i = [1.1113063385e12, 0.0]
 
 [output]
 nlim = -1
-ncycle_out = 500
+ncycle_out = 100
 #dt_hdf5 = 1.0e-12 # default: 100 outputs
-dt_init_frac = 1.0001
+dt_init_frac = 1.0005
 
 [fluid]
 basis = "legendre"
-nnodes = 4
-porder = 4
-nx = 256
+nnodes = 2
+porder = 2
+nx = 128
 ng = 1
 
 [time]
 integrator = "IMEX_ARK32_ESDIRK"
 #integrator = "IMEX_PDARS_ESDIRK"
-torder = 2
-nstages = 2
+#integrator = "IMEX_SSPRK11"
 
 [eos]
 type = "marshak"

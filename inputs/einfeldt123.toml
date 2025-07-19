@@ -38,8 +38,6 @@ ng = 1
 
 [time]
 integrator = "EX_SSPRK3"
-torder = 3
-nstages = 3
 
 [eos]
 type = "ideal"

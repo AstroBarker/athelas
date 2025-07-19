@@ -32,14 +32,11 @@ dt_init_frac = 1.1
 basis = "legendre"
 nnodes = 3
 porder = 3
-porder = 3
 nx = 256
 ng = 1
 
 [time]
 integrator = "EX_SSPRK33"
-torder = 1
-nstages = 1
 
 [eos]
 type = "ideal"

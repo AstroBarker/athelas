@@ -86,7 +86,6 @@ void compute_increment_rad_divergence(
         double advective_flux_e = 0.0;
         double advective_flux_f = 0.0;
 
-        // TODO(BLB): move to mask
         advective_flux_e = ( vstar >= 0 ) ? vstar * E_L : vstar * E_R;
         advective_flux_f = ( vstar >= 0 ) ? vstar * F_L : vstar * F_R;
 
@@ -119,7 +118,7 @@ void compute_increment_rad_divergence(
                                                 { nvars, ihi + 1, order } ),
         KOKKOS_LAMBDA( const int iCR, const int iX, const int k ) {
           double local_sum = 0.0;
-          for ( int iN = 0; iN < nNodes; iN++ ) {
+          for ( int iN = 0; iN < nNodes; ++iN ) {
             const auto P =
                 compute_closure( basis->basis_eval( uCR, iX, 0, iN + 1 ),
                                  basis->basis_eval( uCR, iX, 1, iN + 1 ) );
@@ -141,7 +140,7 @@ void compute_increment_rad_divergence(
 /**
  * Compute rad increment from source terms
  **/
-auto compute_increment_rad_source( View2D<double> uCR, const int k,
+auto compute_increment_rad_source( const View2D<double> uCR, const int k,
                                    const int iCR, const View2D<double> uCF,
                                    const GridStructure& grid,
                                    const ModalBasis* fluid_basis,
@@ -152,7 +151,7 @@ auto compute_increment_rad_source( View2D<double> uCR, const int k,
   const int nNodes          = grid.get_n_nodes( );
 
   double local_sum = 0.0;
-  for ( int iN = 0; iN < nNodes; iN++ ) {
+  for ( int iN = 0; iN < nNodes; ++iN ) {
     const double tau  = fluid_basis->basis_eval( uCF, iX, 0, iN + 1 );
     const double rho  = 1.0 / tau;
     const double vel  = fluid_basis->basis_eval( uCF, iX, 1, iN + 1 );
@@ -198,12 +197,12 @@ auto compute_increment_rad_source( View2D<double> uCR, const int k,
  *     3: radiation energy density
  *     4: radiation flux F
  **/
-auto compute_increment_radhydro_source( View2D<double> uCRH, int k,
+auto compute_increment_radhydro_source( const View2D<double> uCRH, const int k,
                                         const GridStructure& grid,
                                         const ModalBasis* fluid_basis,
                                         const ModalBasis* rad_basis,
                                         const EOS* eos, const Opacity* opac,
-                                        int iX )
+                                        const int iX )
     -> std::tuple<double, double, double, double> {
   constexpr static double c  = constants::c_cgs;
   constexpr static double c2 = c * c;
@@ -287,10 +286,10 @@ void compute_increment_rad_explicit(
     View2D<double> dFlux_num, View2D<double> uCR_F_L, View2D<double> uCR_F_R,
     View1D<double> Flux_U, const Options* opts, BoundaryConditions* bcs ) {
 
-  const auto& order = basis->get_order( );
-  const auto& ilo   = grid.get_ilo( );
-  const auto& ihi   = grid.get_ihi( );
-  const int nvars   = 2;
+  const auto& order          = basis->get_order( );
+  const auto& ilo            = grid.get_ilo( );
+  const auto& ihi            = grid.get_ihi( );
+  static constexpr int nvars = 2;
 
   // --- Apply BC ---
   bc::fill_ghost_zones<2>( uCR, &grid, basis, bcs );

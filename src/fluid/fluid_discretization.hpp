@@ -23,17 +23,17 @@ namespace fluid {
 using bc::BoundaryConditions;
 
 void compute_increment_fluid_divergence(
-    View3D<double> U, const GridStructure& grid, const ModalBasis* Basis,
+    const View3D<double> U, const GridStructure& grid, const ModalBasis* Basis,
     const EOS* eos, View3D<double> dU, View2D<double> dFlux_num,
     View2D<double> uCF_F_L, View2D<double> uCF_F_R, View1D<double> Flux_U );
 
-void compute_increment_fluid_geometry( View3D<double> U,
+void compute_increment_fluid_geometry( const View3D<double> U,
                                        const GridStructure& grid,
-                                       ModalBasis* Basis, EOS* eos,
+                                       const ModalBasis* Basis, EOS* eos,
                                        View3D<double> dU );
 
-auto compute_increment_fluid_source( View2D<double> uCF, int k, int iCF,
-                                     View2D<double> uCR,
+auto compute_increment_fluid_source( const View2D<double> uCF, int k, int iCF,
+                                     const View2D<double> uCR,
                                      const GridStructure& grid,
                                      const ModalBasis* fluid_basis,
                                      const ModalBasis* rad_basis,
@@ -41,7 +41,7 @@ auto compute_increment_fluid_source( View2D<double> uCF, int k, int iCF,
                                      int iX ) -> double;
 
 void compute_increment_fluid_explicit(
-    View3D<double> U, const GridStructure& grid, const ModalBasis* Basis,
+    const View3D<double> U, const GridStructure& grid, const ModalBasis* Basis,
     const EOS* eos, View3D<double> dU, View2D<double> dFlux_num,
     View2D<double> uCF_F_L, View2D<double> uCF_F_R, View1D<double> Flux_U,
     const Options* opts, BoundaryConditions* bcs );

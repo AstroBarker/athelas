@@ -15,10 +15,10 @@
 
 namespace root_finders {
 
-constexpr static unsigned int MAX_ITERS = 20;
-constexpr static double ABSTOL          = 1.0e-13;
-constexpr static double RELTOL          = 1.0e-13;
-constexpr static double ZBARTOL         = 1.0e-15;
-constexpr static double ZBARTOLINV      = 1.0e15;
+static constexpr unsigned int MAX_ITERS = 200;
+static constexpr double ABSTOL          = 1.0e-10;
+static constexpr double RELTOL          = 1.0e-10;
+static constexpr double ZBARTOL         = 1.0e-15;
+static constexpr double ZBARTOLINV      = 1.0e15;
 
 } // namespace root_finders

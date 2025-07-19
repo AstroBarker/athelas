@@ -215,7 +215,7 @@ class TimeStepper {
 
       // --- Inner update loop ---
 
-      for ( int j = 0; j < iS; j++ ) {
+      for ( int j = 0; j < iS; ++j ) {
         const double dt_a    = dt * integrator_.explicit_tableau.a_ij( iS, j );
         const double dt_a_im = dt * integrator_.implicit_tableau.a_ij( iS, j );
         auto Us_j_h =
@@ -304,8 +304,13 @@ class TimeStepper {
           Kokkos::subview( U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
       auto Us_j_r =
           Kokkos::subview( U_s_r_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL );
+      // limiting madness
       apply_slope_limiter( S_Limiter, Us_j_h, &grid_s_[iS], fluid_basis, eos );
       apply_slope_limiter( S_Limiter, Us_j_r, &grid_s_[iS], rad_basis, eos );
+      apply_slope_limiter( S_Limiter, SumVar_U_r_, &grid_s_[iS], rad_basis,
+                           eos );
+      apply_slope_limiter( S_Limiter, SumVar_U_, &grid_s_[iS], fluid_basis,
+                           eos );
       bel::apply_bound_enforcing_limiter( Us_j_h, fluid_basis, eos );
       bel::apply_bound_enforcing_limiter_rad( Us_j_r, rad_basis, eos );
       bel::apply_bound_enforcing_limiter_rad( SumVar_U_r_, rad_basis, eos );
@@ -398,6 +403,7 @@ class TimeStepper {
       compute_increment_fluid_explicit( Us_i_h, grid_s_[iS], fluid_basis, eos,
                                         dUs_i_h, dFlux_num_, uCF_F_L_, uCF_F_R_,
                                         flux_u_i, opts, bcs );
+      // TODO(astrobarker) can we optimize this? use the coupled source terms
       Kokkos::parallel_for(
           "Timestepper :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>( { 0, 0 },

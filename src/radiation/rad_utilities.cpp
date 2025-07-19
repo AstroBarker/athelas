@@ -127,14 +127,13 @@ auto flux_rad( const double E, const double F, const double P, const double V,
   assert( E > 0.0 && "Radiation :: compute_closure :: Non positive definite "
                      "radiation energy density." );
   constexpr static double one_third = 1.0 / 3.0;
-  const double f   = utilities::make_bounded( flux_factor( E, F ), 0.0, 1.0 );
-  const double chi = ( 3.0 + 4.0 * f * f ) /
-                     ( 5.0 + 2.0 * std::sqrt( 4.0 - ( 3.0 * f * f ) ) );
-  const double T = utilities::make_bounded(
-      ( ( 1.0 - chi ) / 2.0 ) +
-          ( ( 3.0 * chi - 1.0 ) * 1.0 / // utilities::SGN(F)
-            2.0 ),
-      one_third, 1.0 ); // TODO(astrobarker): Is this right?
+  const double f  = std::clamp( flux_factor( E, F ), 0.0, 1.0 );
+  const double f2 = f * f;
+  const double chi =
+      ( 3.0 + 4.0 * f2 ) / ( 5.0 + 2.0 * std::sqrt( 4.0 - ( 3.0 * f2 ) ) );
+  const double T =
+      std::clamp( ( ( 1.0 - chi ) / 2.0 ) + ( ( 3.0 * chi - 1.0 ) * 1.0 / 2.0 ),
+                  one_third, 1.0 );
   return E * T;
 }
 
@@ -154,10 +153,12 @@ auto lambda_hll( const double f, const int sign ) -> double {
 
   const double f2       = f * f;
   const double sqrtterm = std::sqrt( 4.0 - ( 3.0 * f2 ) );
-  return c *
-         ( f + sign * std::sqrt( ( twothird * ( 4.0 - 3.0 * f2 - sqrtterm ) ) +
-                                 ( 2.0 * ( 2.0 - f2 - sqrtterm ) ) ) ) /
-         sqrtterm;
+  auto res =
+      c *
+      ( f + sign * std::sqrt( ( twothird * ( 4.0 - 3.0 * f2 - sqrtterm ) ) +
+                              ( 2.0 * ( 2.0 - f2 - sqrtterm ) ) ) ) /
+      sqrtterm;
+  return res;
 }
 
 /**
@@ -193,7 +194,7 @@ auto numerical_flux_hll_rad( const double E_L, const double E_R,
 
   const double flux_e = hll( E_L, E_R, F_L, F_R, s_l_m, s_r_p );
   const double flux_f = hll( F_L, F_R, c2 * P_L, c2 * P_R, s_l_m, s_r_p );
-  return { flux_e, flux_f }; // test flux_f
+  return { flux_e, flux_f };
 }
 
 /**
@@ -202,8 +203,8 @@ auto numerical_flux_hll_rad( const double E_L, const double E_R,
 auto compute_timestep_rad( const GridStructure* grid, const double CFL )
     -> double {
 
-  const double MIN_DT = 1.0e-18;
-  const double MAX_DT = 100.0;
+  constexpr static double MIN_DT = 1.0e-18;
+  constexpr static double MAX_DT = 100.0;
 
   const int& ilo = grid->get_ilo( );
   const int& ihi = grid->get_ihi( );

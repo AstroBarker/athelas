@@ -112,7 +112,7 @@ void compute_increment_fluid_divergence(
                                                 { nvars, ihi + 1, order } ),
         KOKKOS_LAMBDA( const int iCF, const int iX, const int k ) {
           double local_sum = 0.0;
-          for ( int iN = 0; iN < nNodes; iN++ ) {
+          for ( int iN = 0; iN < nNodes; ++iN ) {
             auto lambda    = nullptr;
             const double P = pressure_from_conserved(
                 eos, basis->basis_eval( U, iX, 0, iN + 1 ),
@@ -150,7 +150,7 @@ void compute_increment_fluid_geometry( const View3D<double> U,
       KOKKOS_LAMBDA( const int iX, const int k ) {
         double local_sum = 0.0;
         auto lambda      = nullptr;
-        for ( int iN = 0; iN < nNodes; iN++ ) {
+        for ( int iN = 0; iN < nNodes; ++iN ) {
           const double P = pressure_from_conserved(
               eos, basis->basis_eval( U, iX, 0, iN + 1 ),
               basis->basis_eval( U, iX, 1, iN + 1 ),
@@ -171,7 +171,7 @@ void compute_increment_fluid_geometry( const View3D<double> U,
  * Compute fluid increment from radiation sources
  * TODO: Modify inputs?
  **/
-auto compute_increment_fluid_source( View2D<double> uCF, const int k,
+auto compute_increment_fluid_source( const View2D<double> uCF, const int k,
                                      const int iCF, const View2D<double> uCR,
                                      const GridStructure& grid,
                                      const ModalBasis* fluid_basis,
@@ -181,7 +181,7 @@ auto compute_increment_fluid_source( View2D<double> uCF, const int k,
   const int nNodes = grid.get_n_nodes( );
 
   double local_sum = 0.0;
-  for ( int iN = 0; iN < nNodes; iN++ ) {
+  for ( int iN = 0; iN < nNodes; ++iN ) {
     const double tau = fluid_basis->basis_eval( uCF, iX, 0, iN + 1 );
     const double D   = 1.0 / tau;
     const double Vel = fluid_basis->basis_eval( uCF, iX, 1, iN + 1 );

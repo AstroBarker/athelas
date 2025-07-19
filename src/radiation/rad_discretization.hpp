@@ -36,14 +36,14 @@ void compute_increment_rad_explicit(
     View2D<double> dFlux_num, View2D<double> uCR_F_L, View2D<double> uCR_F_R,
     View1D<double> Flux_U, const Options* opts, BoundaryConditions* bcs );
 
-auto compute_increment_rad_source( View2D<double> uCR, int k, int iCR,
-                                   View2D<double> uCF,
+auto compute_increment_rad_source( const View2D<double> uCR, int k, int iCR,
+                                   const View2D<double> uCF,
                                    const GridStructure& grid,
                                    const ModalBasis* fluid_basis,
                                    const ModalBasis* rad_basis, const EOS* eos,
                                    const Opacity* opac, int iX ) -> double;
 auto compute_increment_radhydro_source(
-    View2D<double> uCRH, int k, const GridStructure& grid,
+    const View2D<double> uCRH, int k, const GridStructure& grid,
     const ModalBasis* fluid_basis, const ModalBasis* rad_basis, const EOS* eos,
     const Opacity* opac, int iX ) -> std::tuple<double, double, double, double>;
 } // namespace radiation
