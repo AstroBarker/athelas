@@ -59,9 +59,7 @@ class ThermalEquilibrium:
     TODO: don't hardcode gamma, mu, rho
     """
     k = consts.k_B.cgs.value
-    N_A = consts.N_A.cgs.value
     gamma = 5.0 / 3.0
-    p = (gamma - 1.0) * e_gas
     rho = 1.0e-7
     sie = e_gas / rho
     mu = 1.0 + consts.m_e.cgs.value / consts.m_p.cgs.value
@@ -91,7 +89,6 @@ def main():
   te.evolve()
 
   files = sorted(glob.glob("rad_eq*.h5"))[1:]
-  basis_fn = "rad_equilibrium_basis.h5"
   athelas_time = np.zeros(len(files))
   athelas_ener = np.zeros(len(files))
 
