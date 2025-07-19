@@ -31,13 +31,11 @@ dt_init_frac = 1.5
 
 [fluid]
 basis = "legendre"
-integrator = "EX_SSPRK33"
 nx = 512
 ng = 1
 
 [time]
-torder = 4
-nstages = 5
+integrator = "EX_SSPRK33"
 
 [eos]
 type = "ideal"
