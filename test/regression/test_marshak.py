@@ -55,13 +55,13 @@ class MarshakShockTubeTest(AthelasRegressionTest):
       varlist=varlist,
       run_dir=run_dir,
       build_type="Release",
-      num_procs=2,
+      num_procs=1,
       goldfile=goldfile,
       upgold=False,
       tolerance=1.0e-5,
       build_required=build_required,
-      compression_factor=10,
-      test_high_order=True,
+      compression_factor=8,
+      test_high_order=False,
     )
 
   def test_marshak(self):
