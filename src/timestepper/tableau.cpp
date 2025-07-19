@@ -424,7 +424,7 @@ RKIntegrator create_tableau(MethodID method_id) {
     auto b_im_host = Kokkos::create_mirror_view(b_im);
     auto c_im_host = Kokkos::create_mirror_view(c_im);
 
-    constexpr static double gam = 1.0 + (std::sqrt(2) / 2.0);
+    constexpr static double gam = 1.0 + (std::numbers::sqrt2 / 2.0);
     a_im_host(0, 0)             = gam;
     a_im_host(1, 0)             = 1.0 - 2.0 * gam;
     a_im_host(1, 1)             = gam;
