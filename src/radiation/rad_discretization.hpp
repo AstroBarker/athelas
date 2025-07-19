@@ -11,12 +11,11 @@
  *          - compute_increment_rad_source (coupling source term)
  */
 
-#include "Kokkos_Core.hpp"
-
 #include "abstractions.hpp"
+#include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
-#include "eos.hpp"
-#include "opacity/opac.hpp"
+#include "eos/eos_variant.hpp"
+#include "geometry/grid.hpp"
 #include "opacity/opac_variant.hpp"
 
 namespace radiation {
@@ -24,20 +23,27 @@ namespace radiation {
 using bc::BoundaryConditions;
 
 void compute_increment_rad_divergence(
-    View3D<Real> uCR, View3D<Real> uCF, const GridStructure& rid,
-    const ModalBasis* basis, const EOS* eos, View3D<Real> dU,
-    View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
-    View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P );
+    const View3D<double> uCR, const View3D<double> uCF,
+    const GridStructure& grid, const ModalBasis* basis,
+    const ModalBasis* fluid_basis, const EOS* eos, View3D<double> dU,
+    View2D<double> dFlux_num, View2D<double> uCF_F_L, View2D<double> uCF_F_R,
+    View1D<double> Flux_U);
 
 void compute_increment_rad_explicit(
-    View3D<Real> uCR, View3D<Real> uCF, const GridStructure& grid,
-    const ModalBasis* basis, const EOS* eos, View3D<Real> dU,
-    View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCR_F_L,
-    View2D<Real> uCR_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
-    const Options* opts, BoundaryConditions* bcs );
+    const View3D<double> uCR, const View3D<double> uCF,
+    const GridStructure& grid, const ModalBasis* basis,
+    const ModalBasis* fluid_basis, const EOS* eos, View3D<double> dU,
+    View2D<double> dFlux_num, View2D<double> uCR_F_L, View2D<double> uCR_F_R,
+    View1D<double> Flux_U, const Options* opts, BoundaryConditions* bcs);
 
-auto compute_increment_rad_source( View2D<Real> uCR, int k, int iCR,
-                                   View2D<Real> uCF, const GridStructure& grid,
-                                   const ModalBasis* basis, const EOS* eos,
-                                   const Opacity* opac, int iX ) -> Real;
+auto compute_increment_rad_source(const View2D<double> uCR, int k, int iCR,
+                                  const View2D<double> uCF,
+                                  const GridStructure& grid,
+                                  const ModalBasis* fluid_basis,
+                                  const ModalBasis* rad_basis, const EOS* eos,
+                                  const Opacity* opac, int iX) -> double;
+auto compute_increment_radhydro_source(
+    const View2D<double> uCRH, int k, const GridStructure& grid,
+    const ModalBasis* fluid_basis, const ModalBasis* rad_basis, const EOS* eos,
+    const Opacity* opac, int iX) -> std::tuple<double, double, double, double>;
 } // namespace radiation

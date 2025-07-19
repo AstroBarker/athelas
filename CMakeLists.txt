@@ -79,6 +79,7 @@ else()
 endif()
 
 include_directories(src)
+include_directories("src/concepts")
 include_directories("src/geometry")
 include_directories("src/quadrature")
 include_directories("src/utils")
@@ -108,6 +109,7 @@ set( ATHELAS_SOURCES
   "src/basis/polynomial_basis.cpp"
   "src/bc/boundary_conditions.cpp"
   "src/eos/eos_ideal.cpp"
+  "src/eos/eos_marshak.cpp"
   "src/fluid/fluid_utilities.cpp"
   "src/radiation/rad_utilities.cpp"
   "src/radiation/rad_discretization.cpp"

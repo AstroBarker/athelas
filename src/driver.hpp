@@ -16,26 +16,22 @@
 #include <string>
 
 #include "basis/polynomial_basis.hpp"
-#include "bc/boundary_conditions_base.hpp"
-#include "eos/eos.hpp"
+#include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
-#include "opacity/opac.hpp"
 #include "pgen/problem_in.hpp"
 #include "timestepper/timestepper.hpp"
-#include "utils/abstractions.hpp"
-#include "utils/error.hpp"
 
 using bc::BoundaryConditions;
 
 class Driver {
  public:
-  explicit Driver( const ProblemIn* pin );
+  explicit Driver(const ProblemIn* pin);
 
-  auto execute( ) -> int;
+  auto execute() -> int;
 
  private:
   // init
-  void initialize( const ProblemIn* pin );
+  void initialize(const ProblemIn* pin);
 
   ProblemIn pin_;
 
@@ -46,18 +42,18 @@ class Driver {
 
   std::unique_ptr<BoundaryConditions> bcs_;
 
-  Real time_;
-  Real dt_;
-  Real t_end_;
-  Real cfl_;
+  double time_;
+  double dt_;
+  double t_end_;
+  double cfl_;
   int i_print_;
-  Real nlim_;
-  Real dt_hdf5_;
-  Real dt_init_frac_;
+  double nlim_;
+  double dt_hdf5_;
+  double dt_init_frac_;
 
   // core bits
-  EOS eos_;
-  Opacity opac_;
+  std::unique_ptr<EOS> eos_;
+  std::unique_ptr<Opacity> opac_;
   GridStructure grid_;
   Options opts_;
   State state_;
@@ -69,5 +65,6 @@ class Driver {
   // timestepper
   TimeStepper ssprk_;
 
-  std::unique_ptr<ModalBasis> basis_; // init in constr body
+  std::unique_ptr<ModalBasis> fluid_basis_; // init in constr body
+  std::unique_ptr<ModalBasis> radiation_basis_; // init in constr body
 }; // class Driver

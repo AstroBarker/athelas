@@ -6,13 +6,12 @@
  * @brief Riemann solvers
  */
 
-#include "abstractions.hpp"
+#include <algorithm>
 
 namespace riemann {
-auto hll( const Real u_l, const Real u_r, const Real f_l, const Real f_r,
-          const Real s_l_m, const Real s_r_p ) -> Real {
-  constexpr static Real eps = 1.0; // TODO(astrobarker) need?
-  return ( s_r_p * f_l - s_l_m * f_r + eps * s_r_p * s_l_m * ( u_r - u_l ) ) /
-         ( s_r_p - s_l_m );
+auto hll(const double u_l, const double u_r, const double f_l, const double f_r,
+         const double s_l, const double s_r, const double tau = 1.0) -> double {
+  const double eps = std::min(1.0, 1.0 / tau); // TODO(astrobarker) need?
+  return (s_r * f_l - s_l * f_r + eps * s_r * s_l * (u_r - u_l)) / (s_r - s_l);
 }
 } // namespace riemann

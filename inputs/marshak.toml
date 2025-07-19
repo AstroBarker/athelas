@@ -6,7 +6,7 @@ restart = false
 do_rad = true
 xl = 0.0
 xr = 3.466205e-3
-cfl = 0.5
+cfl = 0.3
 
 [problem.params]
 v0 = 0.0
@@ -19,29 +19,30 @@ epsilon = 1.0
 bc_i = "outflow"
 bc_o = "outflow"
 [bc.rad]
-bc_i = "dirichlet"
+bc_i = "marshak"
 bc_o = "outflow"
-dirichlet_values_i = [1.111045879098685e11, 0.0]
+dirichlet_values_i = [1.1113063385e12, 0.0]
 
 [output]
 nlim = -1
-ncycle_out = 250
+ncycle_out = 100
 #dt_hdf5 = 1.0e-12 # default: 100 outputs
-dt_init_frac = 1.00001
+dt_init_frac = 1.0005
 
 [fluid]
 basis = "legendre"
-nnodes = 1
-porder = 1
+nnodes = 2
+porder = 2
 nx = 128
 ng = 1
 
 [time]
-torder = 1
-nstages = 1
+integrator = "IMEX_ARK32_ESDIRK"
+#integrator = "IMEX_PDARS_ESDIRK"
+#integrator = "IMEX_SSPRK11"
 
 [eos]
-type = "ideal"
+type = "marshak"
 ideal_gamma = 1.66666666666667 # default: 1.4
 
 [opacity]
@@ -50,6 +51,7 @@ kP = 577.0 # cm^2 / g
 kR = 577.0 # cm^2 / g
 
 [limiters]
+do_limiter = true
 type = "minmod"
 m_tvb = 0.0
 b_tvd = 1.0

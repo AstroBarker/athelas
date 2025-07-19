@@ -12,11 +12,10 @@
  *            - compute_increment_fluid_rad (radiation source term)
  */
 
-#include "Kokkos_Core.hpp"
-
 #include "abstractions.hpp"
+#include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
-#include "eos.hpp"
+#include "eos_variant.hpp"
 #include "opacity/opac_variant.hpp"
 
 namespace fluid {
@@ -24,27 +23,26 @@ namespace fluid {
 using bc::BoundaryConditions;
 
 void compute_increment_fluid_divergence(
-    View3D<Real> U, const GridStructure& grid, const ModalBasis* Basis,
-    const EOS* eos, View3D<Real> dU, View3D<Real> Flux_q,
-    View2D<Real> dFlux_num, View2D<Real> uCF_F_L, View2D<Real> uCF_F_R,
-    View1D<Real> Flux_U, View1D<Real> Flux_P );
+    const View3D<double> U, const GridStructure& grid, const ModalBasis* Basis,
+    const EOS* eos, View3D<double> dU, View2D<double> dFlux_num,
+    View2D<double> uCF_F_L, View2D<double> uCF_F_R, View1D<double> Flux_U);
 
-void compute_increment_fluid_geometry( View3D<Real> U,
-                                       const GridStructure& grid,
-                                       ModalBasis* Basis, EOS* eos,
-                                       View3D<Real> dU );
+void compute_increment_fluid_geometry(const View3D<double> U,
+                                      const GridStructure& grid,
+                                      const ModalBasis* Basis, EOS* eos,
+                                      View3D<double> dU);
 
-auto compute_increment_fluid_source( View2D<Real> uCF, int k, int iCF,
-                                     View2D<Real> uCR,
-                                     const GridStructure& grid,
-                                     const ModalBasis* Basis, const EOS* eos,
-                                     const Opacity* opac, int iX ) -> Real;
+auto compute_increment_fluid_source(const View2D<double> uCF, int k, int iCF,
+                                    const View2D<double> uCR,
+                                    const GridStructure& grid,
+                                    const ModalBasis* fluid_basis,
+                                    const ModalBasis* rad_basis, const EOS* eos,
+                                    const Opacity* opac, int iX) -> double;
 
 void compute_increment_fluid_explicit(
-    View3D<Real> U, View3D<Real> uCR, const GridStructure& grid,
-    const ModalBasis* Basis, const EOS* eos, View3D<Real> dU,
-    View3D<Real> Flux_q, View2D<Real> dFlux_num, View2D<Real> uCF_F_L,
-    View2D<Real> uCF_F_R, View1D<Real> Flux_U, View1D<Real> Flux_P,
-    const Options* opts, BoundaryConditions* bcs );
+    const View3D<double> U, const GridStructure& grid, const ModalBasis* Basis,
+    const EOS* eos, View3D<double> dU, View2D<double> dFlux_num,
+    View2D<double> uCF_F_L, View2D<double> uCF_F_R, View1D<double> Flux_U,
+    const Options* opts, BoundaryConditions* bcs);
 
 } // namespace fluid

@@ -6,23 +6,18 @@
  * @brief Constant opacity model
  */
 
-#include <cmath>
-
-#include "abstractions.hpp"
-#include "constants.hpp"
 #include "opac.hpp"
-#include "opac_base.hpp"
-#include "opac_variant.hpp"
 
-auto Constant::planck_mean( const Real /*rho*/, const Real /*T*/,
-                            const Real /*X*/, const Real /*Y*/,
-                            const Real /*Z*/, Real* /*lambda*/ ) const -> Real {
+auto Constant::planck_mean(const double /*rho*/, const double /*T*/,
+                           const double /*X*/, const double /*Y*/,
+                           const double /*Z*/, double* /*lambda*/) const
+    -> double {
   return kP_;
 }
 
-auto Constant::rosseland_mean( const Real /*rho*/, const Real /*T*/,
-                               const Real /*X*/, const Real /*Y*/,
-                               const Real /*Z*/, Real* /*lambda*/ ) const
-    -> Real {
+auto Constant::rosseland_mean(const double /*rho*/, const double /*T*/,
+                              const double /*X*/, const double /*Y*/,
+                              const double /*Z*/, double* /*lambda*/) const
+    -> double {
   return kR_;
 }

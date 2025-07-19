@@ -53,8 +53,7 @@ nx = 128
 ng = 1
 
 [time]
-torder = 2
-nstages = 2
+integrator = "IMEX_SSPRK22_DIRK"
 
 [eos]
 type = "ideal"

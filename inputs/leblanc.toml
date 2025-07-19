@@ -36,8 +36,7 @@ nx = 2048
 ng = 1
 
 [time]
-torder = 2
-nstages = 2
+integrator = "EX_SSPRK22"
 
 [eos]
 type = "ideal"

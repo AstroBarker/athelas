@@ -13,14 +13,12 @@
  *          TODO: these should be runtime..
  */
 
-#include "abstractions.hpp"
-
 namespace root_finders {
 
-constexpr static unsigned int MAX_ITERS = 200;
-constexpr static Real FPTOL             = 1.0e-10;
-constexpr static Real RELTOL            = 1.0e-14;
-constexpr static Real ZBARTOL           = 1.0e-15;
-constexpr static Real ZBARTOLINV        = 1.0e15;
+static constexpr unsigned int MAX_ITERS = 200;
+static constexpr double ABSTOL          = 1.0e-10;
+static constexpr double RELTOL          = 1.0e-10;
+static constexpr double ZBARTOL         = 1.0e-15;
+static constexpr double ZBARTOLINV      = 1.0e15;
 
 } // namespace root_finders

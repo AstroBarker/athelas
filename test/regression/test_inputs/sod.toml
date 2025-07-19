@@ -37,8 +37,7 @@ nx = 512
 ng = 1
 
 [time]
-torder = 4
-nstages = 5
+integrator = "EX_SSPRK33"
 
 [eos]
 type = "ideal"
@@ -49,5 +48,5 @@ do_limiter = true
 type = "weno"
 tci_opt = false
 tci_val = 1.0
-characteristic = true
+characteristic = false
 gamma_i = 0.998

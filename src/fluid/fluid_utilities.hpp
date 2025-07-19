@@ -14,27 +14,26 @@
  *          - compute_timestep_fluid
  */
 
-#include "Kokkos_Core.hpp"
-
 #include "abstractions.hpp"
-#include "eos.hpp"
+#include "eos_variant.hpp"
+#include "grid.hpp"
 
 namespace fluid {
 
-auto flux_fluid( Real V, Real P, int iCF ) -> Real;
-auto source_fluid_rad( Real D, Real V, Real T, Real kappa_r, Real kappa_p,
-                       Real E, Real F, Real Pr, int iCF ) -> Real;
-auto numerical_flux_gudonov( const Real vL, const Real vR, const Real pL,
-                             const Real pR, const Real zL, const Real zR )
-    -> std::tuple<Real, Real>;
-auto numerical_flux_gudonov_positivity( const Real tauL, const Real tauR,
-                                        const Real vL, const Real vR,
-                                        const Real pL, const Real pR,
-                                        const Real csL, const Real csR )
-    -> std::tuple<Real, Real>;
-void numerical_flux_hllc( Real vL, Real vR, Real pL, Real pR, Real cL, Real cR,
-                          Real rhoL, Real rhoR, Real& Flux_U, Real& Flux_P );
-auto compute_timestep_fluid( View3D<Real> U, const GridStructure* grid,
-                             EOS* eos, Real CFL ) -> Real;
+auto flux_fluid(double V, double P, int iCF) -> double;
+auto source_fluid_rad(double D, double V, double T, double kappa_r,
+                      double kappa_p, double E, double F, double Pr, int iCF)
+    -> double;
+auto numerical_flux_gudonov(double vL, double vR, double pL, double pR,
+                            double zL, double zR) -> std::tuple<double, double>;
+auto numerical_flux_gudonov_positivity(double tauL, double tauR, double vL,
+                                       double vR, double pL, double pR,
+                                       double csL, double csR)
+    -> std::tuple<double, double>;
+void numerical_flux_hllc(double vL, double vR, double pL, double pR, double cL,
+                         double cR, double rhoL, double rhoR, double& Flux_U,
+                         double& Flux_P);
+auto compute_timestep_fluid(View3D<double> U, const GridStructure* grid,
+                            EOS* eos, double CFL) -> double;
 
 } // namespace fluid

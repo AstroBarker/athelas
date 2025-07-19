@@ -1,15 +1,15 @@
 [problem]
 problem = "rad_advection"
-t_end = 1.0e-7
+t_end = 1.0e-10
 geometry = "planar"
 restart = false
 do_rad = true
 xl = 0.0
 xr = 1.0
-cfl = 0.5
+cfl = 0.85
 
 [problem.params]
-v0 = 0.5
+v0 = 0.0
 rho = 1.0
 amp = 1.0
 width = 0.05
@@ -25,18 +25,18 @@ bc_o = "outflow"
 [output]
 nlim = -1
 ncycle_out = 100
+dt_init_frac = 1.001
 #dt_hdf5 = 1.0e-2 # default: 100 outputs
 
 [fluid]
 basis = "legendre"
 nnodes = 1
 porder = 1
-nx = 256
+nx = 128
 ng = 1
 
 [time]
-torder = 1
-nstages = 1
+integrator = "IMEX_SSPRK22_DIRK"
 
 [eos]
 type = "ideal"

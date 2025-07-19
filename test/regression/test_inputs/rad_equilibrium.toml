@@ -37,8 +37,7 @@ nx = 1
 ng = 1
 
 [time]
-torder = 2
-nstages = 2
+integrator = "IMEX_ARK32_ESDIRK"
 
 [eos]
 type = "ideal"

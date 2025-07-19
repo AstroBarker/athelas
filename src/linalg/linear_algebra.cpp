@@ -11,7 +11,6 @@
  */
 
 #include <cstddef>
-#include <iostream>
 #include <vector>
 
 #include <Kokkos_Core.hpp>
@@ -38,8 +37,8 @@
  *
  * @note This function is used in quadrature initialization.
  */
-void tri_sym_diag( int n, std::vector<Real>& d, std::vector<Real>& e,
-                   std::vector<Real>& array ) {
+void tri_sym_diag(int n, std::vector<double>& d, std::vector<double>& e,
+                  std::vector<double>& array) {
 
   // Parameters for LaPack
   lapack_int m = 0, ldz = 0, info = 0, work_dim = 0;
@@ -47,27 +46,27 @@ void tri_sym_diag( int n, std::vector<Real>& d, std::vector<Real>& e,
   char const job = 'V';
   ldz            = n;
 
-  if ( n == 1 ) {
+  if (n == 1) {
     work_dim = 1;
   } else {
     work_dim = 2 * n - 2;
   }
 
-  std::vector<Real> ev( n * n );
-  std::vector<Real> work( work_dim );
+  std::vector<double> ev(n * n);
+  std::vector<double> work(work_dim);
 
-  info = LAPACKE_dstev( LAPACK_COL_MAJOR, job, m, d.data( ), e.data( ),
-                        ev.data( ), ldz );
+  info = LAPACKE_dstev(LAPACK_COL_MAJOR, job, m, d.data(), e.data(), ev.data(),
+                       ldz);
 
-  if ( info != 0 ) {
+  if (info != 0) {
     THROW_ATHELAS_ERROR(
-        " ! Issue occurred in initializing quadrature in tri_sym_diag." );
+        " ! Issue occurred in initializing quadrature in tri_sym_diag.");
   }
 
   // Matrix multiply ev' * array. Only Array[0] is nonzero.
-  Real const k = array[0];
-  for ( int i = 0; i < n; i++ ) {
-    array[i] = k * ev[static_cast<ptrdiff_t>( n * i )];
+  double const k = array[0];
+  for (int i = 0; i < n; i++) {
+    array[i] = k * ev[static_cast<ptrdiff_t>(n * i)];
   }
 
   // Update the input vectors with the results
@@ -76,15 +75,15 @@ void tri_sym_diag( int n, std::vector<Real>& d, std::vector<Real>& e,
 /**
  * @brief Use LAPACKE to invert a matrix M using LU factorization.
  **/
-void invert_matrix( std::vector<Real>& M, int n ) {
+void invert_matrix(std::vector<double>& M, int n) {
   lapack_int info1 = 0, info2 = 0;
 
-  std::vector<int> IPIV( n );
+  std::vector<int> IPIV(n);
 
-  info1 = LAPACKE_dgetrf( LAPACK_COL_MAJOR, n, n, M.data( ), n, IPIV.data( ) );
-  info2 = LAPACKE_dgetri( LAPACK_COL_MAJOR, n, M.data( ), n, IPIV.data( ) );
+  info1 = LAPACKE_dgetrf(LAPACK_COL_MAJOR, n, n, M.data(), n, IPIV.data());
+  info2 = LAPACKE_dgetri(LAPACK_COL_MAJOR, n, M.data(), n, IPIV.data());
 
-  if ( info1 != 0 || info2 != 0 ) {
-    THROW_ATHELAS_ERROR( " ! Issue occurred in matrix inversion." );
+  if (info1 != 0 || info2 != 0) {
+    THROW_ATHELAS_ERROR(" ! Issue occurred in matrix inversion.");
   }
 }

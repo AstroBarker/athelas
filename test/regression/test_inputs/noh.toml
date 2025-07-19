@@ -33,8 +33,7 @@ nx = 128
 ng = 1
 
 [time]
-torder = 2
-nstages = 2
+integrator = "EX_SSPRK22"
 
 [eos]
 type = "ideal"
@@ -47,5 +46,5 @@ b_tvd = 2.0
 m_tvb = 0.0
 tci_opt = false
 tci_val = 0.1
-characteristic = true
+characteristic = false
 gamma_i = 0.8
