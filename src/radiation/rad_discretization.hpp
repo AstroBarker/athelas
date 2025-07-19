@@ -27,23 +27,23 @@ void compute_increment_rad_divergence(
     const GridStructure& grid, const ModalBasis* basis,
     const ModalBasis* fluid_basis, const EOS* eos, View3D<double> dU,
     View2D<double> dFlux_num, View2D<double> uCF_F_L, View2D<double> uCF_F_R,
-    View1D<double> Flux_U );
+    View1D<double> Flux_U);
 
 void compute_increment_rad_explicit(
     const View3D<double> uCR, const View3D<double> uCF,
     const GridStructure& grid, const ModalBasis* basis,
     const ModalBasis* fluid_basis, const EOS* eos, View3D<double> dU,
     View2D<double> dFlux_num, View2D<double> uCR_F_L, View2D<double> uCR_F_R,
-    View1D<double> Flux_U, const Options* opts, BoundaryConditions* bcs );
+    View1D<double> Flux_U, const Options* opts, BoundaryConditions* bcs);
 
-auto compute_increment_rad_source( const View2D<double> uCR, int k, int iCR,
-                                   const View2D<double> uCF,
-                                   const GridStructure& grid,
-                                   const ModalBasis* fluid_basis,
-                                   const ModalBasis* rad_basis, const EOS* eos,
-                                   const Opacity* opac, int iX ) -> double;
+auto compute_increment_rad_source(const View2D<double> uCR, int k, int iCR,
+                                  const View2D<double> uCF,
+                                  const GridStructure& grid,
+                                  const ModalBasis* fluid_basis,
+                                  const ModalBasis* rad_basis, const EOS* eos,
+                                  const Opacity* opac, int iX) -> double;
 auto compute_increment_radhydro_source(
     const View2D<double> uCRH, int k, const GridStructure& grid,
     const ModalBasis* fluid_basis, const ModalBasis* rad_basis, const EOS* eos,
-    const Opacity* opac, int iX ) -> std::tuple<double, double, double, double>;
+    const Opacity* opac, int iX) -> std::tuple<double, double, double, double>;
 } // namespace radiation

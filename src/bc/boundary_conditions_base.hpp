@@ -27,7 +27,7 @@ enum class BcType : int {
   Null // don't go here
 };
 
-auto parse_bc_type( const std::string& name ) -> BcType;
+auto parse_bc_type(const std::string& name) -> BcType;
 
 template <int N>
 struct BoundaryConditionsData {
@@ -37,25 +37,25 @@ struct BoundaryConditionsData {
 
   // necessary
   KOKKOS_INLINE_FUNCTION
-  BoundaryConditionsData( ) : type( BcType::Outflow ) {}
+  BoundaryConditionsData() : type(BcType::Outflow) {}
 
   KOKKOS_INLINE_FUNCTION
-  explicit BoundaryConditionsData( BcType type_ ) : type( type_ ) {}
+  explicit BoundaryConditionsData(BcType type_) : type(type_) {}
 
   KOKKOS_INLINE_FUNCTION
-  BoundaryConditionsData( BcType type_, const std::array<double, N> vals )
-      : type( type_ ) {
-    assert( ( type_ == BcType::Dirichlet || type_ == BcType::Marshak ) &&
-            "This constructor is for Dirichlet and Marshak boundary "
-            "conditions!\n" );
-    for ( int i = 0; i < N; ++i ) {
+  BoundaryConditionsData(BcType type_, const std::array<double, N> vals)
+      : type(type_) {
+    assert((type_ == BcType::Dirichlet || type_ == BcType::Marshak) &&
+           "This constructor is for Dirichlet and Marshak boundary "
+           "conditions!\n");
+    for (int i = 0; i < N; ++i) {
       dirichlet_values[i] = vals[i];
     }
   }
 
   // TODO(astrobarker) overload ()?
   [[nodiscard]]
-  KOKKOS_INLINE_FUNCTION auto get_dirichlet_value( int i ) const -> double {
+  KOKKOS_INLINE_FUNCTION auto get_dirichlet_value(int i) const -> double {
     return dirichlet_values[i];
   }
 };
@@ -71,19 +71,19 @@ struct BoundaryConditions {
 
 // --- helper functions to pull out bc ---
 template <int N>
-KOKKOS_INLINE_FUNCTION auto get_bc_data( BoundaryConditions* bc )
+KOKKOS_INLINE_FUNCTION auto get_bc_data(BoundaryConditions* bc)
     -> std::array<BoundaryConditionsData<N>, 2>;
 
 template <>
-KOKKOS_INLINE_FUNCTION auto get_bc_data<3>( BoundaryConditions* bc )
+KOKKOS_INLINE_FUNCTION auto get_bc_data<3>(BoundaryConditions* bc)
     -> std::array<BoundaryConditionsData<3>, 2> {
   return bc->fluid_bc;
 }
 
 template <>
-KOKKOS_INLINE_FUNCTION auto get_bc_data<2>( BoundaryConditions* bc )
+KOKKOS_INLINE_FUNCTION auto get_bc_data<2>(BoundaryConditions* bc)
     -> std::array<BoundaryConditionsData<2>, 2> {
-  assert( bc->do_rad && "Need radiation enabled to get radiation bcs!\n" );
+  assert(bc->do_rad && "Need radiation enabled to get radiation bcs!\n");
   return bc->rad_bc;
 }
 
@@ -96,6 +96,6 @@ auto make_boundary_conditions(
 
     const std::string& rad_bc_i, const std::string& rad_bc_o,
     const std::array<double, 2>& rad_i_dirichlet_values,
-    const std::array<double, 2>& rad_o_dirichlet_values ) -> BoundaryConditions;
+    const std::array<double, 2>& rad_o_dirichlet_values) -> BoundaryConditions;
 
 } // namespace bc

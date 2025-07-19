@@ -16,20 +16,20 @@
 #include "state.hpp"
 
 struct GridType {
-  double r{ };
+  double r{};
 };
 
 struct DataType {
-  double x{ };
+  double x{};
 };
 
-void write_state( State* state, GridStructure grid, SlopeLimiter* SL,
-                  const std::string& problem_name, double time, int order,
-                  int i_write, bool do_rad );
+void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
+                 const std::string& problem_name, double time, int order,
+                 int i_write, bool do_rad);
 
-void print_simulation_parameters( GridStructure grid, ProblemIn* pin,
-                                  double CFL );
+void print_simulation_parameters(GridStructure grid, ProblemIn* pin,
+                                 double CFL);
 
-void write_basis( ModalBasis* basis, unsigned int ilo, unsigned int ihi,
-                  unsigned int nNodes, unsigned int order,
-                  const std::string& problem_name );
+void write_basis(ModalBasis* basis, unsigned int ilo, unsigned int ihi,
+                 unsigned int nNodes, unsigned int order,
+                 const std::string& problem_name);

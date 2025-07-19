@@ -27,7 +27,7 @@ namespace quadrature {
  * @param bj Output array for matrix subdiagonal elements
  * @return double The zero-th moment (zemu) needed for weight computation
  */
-auto jacobi_matrix( int m, std::vector<double>& aj, std::vector<double>& bj )
+auto jacobi_matrix(int m, std::vector<double>& aj, std::vector<double>& bj)
     -> double {
 
   double ab   = NAN;
@@ -36,15 +36,15 @@ auto jacobi_matrix( int m, std::vector<double>& aj, std::vector<double>& bj )
   double abj  = NAN;
 
   ab   = 0.0;
-  zemu = 2.0 / ( ab + 1.0 );
-  for ( int i = 0; i < m; i++ ) {
+  zemu = 2.0 / (ab + 1.0);
+  for (int i = 0; i < m; i++) {
     aj[i] = 0.0;
   }
 
-  for ( int i = 1; i <= m; i++ ) {
-    abi       = i + ab * ( i % 2 );
+  for (int i = 1; i <= m; i++) {
+    abi       = i + ab * (i % 2);
     abj       = 2 * i + ab;
-    bj[i - 1] = sqrt( abi * abi / ( abj * abj - 1.0 ) );
+    bj[i - 1] = sqrt(abi * abi / (abj * abj - 1.0));
   }
 
   return zemu;
@@ -65,30 +65,30 @@ auto jacobi_matrix( int m, std::vector<double>& aj, std::vector<double>& bj )
  * @param nodes Output array for quadrature nodes (abscissas)
  * @param weights Output array for quadrature weights
  */
-void lg_quadrature( int m, std::vector<double>& nodes,
-                    std::vector<double>& weights ) {
-  std::vector<double> aj( m );
-  std::vector<double> bj( m );
+void lg_quadrature(int m, std::vector<double>& nodes,
+                   std::vector<double>& weights) {
+  std::vector<double> aj(m);
+  std::vector<double> bj(m);
 
   double zemu = NAN;
 
   //  Get the Jacobi matrix and zero-th moment.
-  zemu = jacobi_matrix( m, aj, bj );
+  zemu = jacobi_matrix(m, aj, bj);
 
   // Nodes and Weights
-  for ( int i = 0; i < m; i++ ) {
+  for (int i = 0; i < m; i++) {
     nodes[i] = aj[i];
   }
 
-  weights[0] = sqrt( zemu );
-  for ( int i = 1; i < m; i++ ) {
+  weights[0] = sqrt(zemu);
+  for (int i = 1; i < m; i++) {
     weights[i] = 0.0;
   }
 
   // --- Diagonalize the Jacobi matrix. ---
-  tri_sym_diag( m, nodes, bj, weights ); // imtqlx
+  tri_sym_diag(m, nodes, bj, weights); // imtqlx
 
-  for ( int i = 0; i < m; i++ ) {
+  for (int i = 0; i < m; i++) {
     weights[i] = weights[i] * weights[i];
 
     // Shift to interval [-0.5, 0.5]

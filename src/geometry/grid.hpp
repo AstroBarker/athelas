@@ -22,35 +22,35 @@
 
 class GridStructure {
  public:
-  explicit GridStructure( const ProblemIn* pin );
-  [[nodiscard]] auto node_coordinate( int iC, int iN ) const -> double;
-  [[nodiscard]] auto get_centers( int iC ) const -> double;
-  [[nodiscard]] auto get_widths( int iC ) const -> double;
-  [[nodiscard]] auto get_nodes( int nN ) const -> double;
-  [[nodiscard]] auto get_weights( int nN ) const -> double;
-  [[nodiscard]] auto get_mass( int iX ) const -> double;
-  [[nodiscard]] auto get_center_of_mass( int iX ) const -> double;
-  [[nodiscard]] auto get_x_l( ) const noexcept -> double;
-  [[nodiscard]] auto get_x_r( ) const noexcept -> double;
-  [[nodiscard]] auto get_sqrt_gm( double X ) const -> double;
-  [[nodiscard]] auto get_left_interface( int iX ) const -> double;
+  explicit GridStructure(const ProblemIn* pin);
+  [[nodiscard]] auto node_coordinate(int iC, int iN) const -> double;
+  [[nodiscard]] auto get_centers(int iC) const -> double;
+  [[nodiscard]] auto get_widths(int iC) const -> double;
+  [[nodiscard]] auto get_nodes(int nN) const -> double;
+  [[nodiscard]] auto get_weights(int nN) const -> double;
+  [[nodiscard]] auto get_mass(int iX) const -> double;
+  [[nodiscard]] auto get_center_of_mass(int iX) const -> double;
+  [[nodiscard]] auto get_x_l() const noexcept -> double;
+  [[nodiscard]] auto get_x_r() const noexcept -> double;
+  [[nodiscard]] auto get_sqrt_gm(double X) const -> double;
+  [[nodiscard]] auto get_left_interface(int iX) const -> double;
 
-  [[nodiscard]] auto do_geometry( ) const noexcept -> bool;
+  [[nodiscard]] auto do_geometry() const noexcept -> bool;
 
-  [[nodiscard]] auto get_guard( ) const noexcept -> int;
-  [[nodiscard]] auto get_ilo( ) const noexcept -> int;
-  [[nodiscard]] auto get_ihi( ) const noexcept -> int;
-  [[nodiscard]] auto get_n_nodes( ) const noexcept -> int;
-  [[nodiscard]] auto get_n_elements( ) const noexcept -> int;
+  [[nodiscard]] auto get_guard() const noexcept -> int;
+  [[nodiscard]] auto get_ilo() const noexcept -> int;
+  [[nodiscard]] auto get_ihi() const noexcept -> int;
+  [[nodiscard]] auto get_n_nodes() const noexcept -> int;
+  [[nodiscard]] auto get_n_elements() const noexcept -> int;
 
-  void create_grid( );
-  void update_grid( View1D<double> SData );
-  void compute_mass( View3D<double> uPF );
-  void compute_center_of_mass( View3D<double> uPF );
-  void compute_center_of_mass_radius( View3D<double> uPF );
+  void create_grid();
+  void update_grid(View1D<double> SData);
+  void compute_mass(View3D<double> uPF);
+  void compute_center_of_mass(View3D<double> uPF);
+  void compute_center_of_mass_radius(View3D<double> uPF);
 
-  auto operator( )( int i, int j ) -> double&;
-  auto operator( )( int i, int j ) const -> double;
+  auto operator()(int i, int j) -> double&;
+  auto operator()(int i, int j) const -> double;
 
  private:
   int nElements_;
@@ -63,15 +63,15 @@ class GridStructure {
 
   geometry::Geometry geometry_;
 
-  View1D<double> nodes_{ };
-  View1D<double> weights_{ };
+  View1D<double> nodes_{};
+  View1D<double> weights_{};
 
-  View1D<double> centers_{ };
-  View1D<double> widths_{ };
-  View1D<double> x_l_{ }; // left interface coordinate
+  View1D<double> centers_{};
+  View1D<double> widths_{};
+  View1D<double> x_l_{}; // left interface coordinate
 
-  View1D<double> mass_{ };
-  View1D<double> center_of_mass_{ };
+  View1D<double> mass_{};
+  View1D<double> center_of_mass_{};
 
-  View2D<double> grid_{ };
+  View2D<double> grid_{};
 };

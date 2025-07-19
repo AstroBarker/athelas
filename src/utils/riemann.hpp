@@ -8,6 +8,6 @@
  */
 
 namespace riemann {
-auto hll( double u_l, double u_r, double f_l, double f_r, double s_l,
-          double s_r, double tau = 1.0 ) -> double;
+auto hll(double u_l, double u_r, double f_l, double f_r, double s_l, double s_r,
+         double tau = 1.0) -> double;
 } // namespace riemann

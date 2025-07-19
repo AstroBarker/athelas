@@ -7,4 +7,4 @@
  * @brief main
  */
 
-auto main( int argc, char** argv ) -> int;
+auto main(int argc, char** argv) -> int;

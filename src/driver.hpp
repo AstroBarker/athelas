@@ -25,13 +25,13 @@ using bc::BoundaryConditions;
 
 class Driver {
  public:
-  explicit Driver( const ProblemIn* pin );
+  explicit Driver(const ProblemIn* pin);
 
-  auto execute( ) -> int;
+  auto execute() -> int;
 
  private:
   // init
-  void initialize( const ProblemIn* pin );
+  void initialize(const ProblemIn* pin);
 
   ProblemIn pin_;
 

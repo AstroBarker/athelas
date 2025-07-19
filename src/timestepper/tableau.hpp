@@ -44,7 +44,7 @@ enum class MethodID {
   IMEX_PDARS_ESDIRK // Chu 2019 PD-ARS
 };
 
-auto string_to_id( const std::string& method_name ) -> MethodID;
+auto string_to_id(const std::string& method_name) -> MethodID;
 
 /**
  * @brief Butcher tableau class.
@@ -58,10 +58,10 @@ struct RKTableau {
   View1D<double> c_i;
 
   // Constructor
-  RKTableau( TableauType t, int num_stages_, int order_, View2D<double> a_ij_,
-             View1D<double> b_i_, View1D<double> c_i_ )
-      : type( t ), order( order_ ), num_stages( num_stages_ ), a_ij( a_ij_ ),
-        b_i( b_i_ ), c_i( c_i_ ) {}
+  RKTableau(TableauType t, int num_stages_, int order_, View2D<double> a_ij_,
+            View1D<double> b_i_, View1D<double> c_i_)
+      : type(t), order(order_), num_stages(num_stages_), a_ij(a_ij_), b_i(b_i_),
+        c_i(c_i_) {}
 };
 
 /**
@@ -77,33 +77,32 @@ struct RKIntegrator {
   RKTableau explicit_tableau;
   RKTableau implicit_tableau;
 
-  RKIntegrator( MethodID id, MethodType t, int ex_order, int im_order,
-                int num_stages_, RKTableau ex, RKTableau im )
-      : name( id ), method( t ), explicit_order( ex_order ),
-        implicit_order( im_order ), num_stages( num_stages_ ),
-        explicit_tableau( ex ), implicit_tableau( im ) {}
+  RKIntegrator(MethodID id, MethodType t, int ex_order, int im_order,
+               int num_stages_, RKTableau ex, RKTableau im)
+      : name(id), method(t), explicit_order(ex_order), implicit_order(im_order),
+        num_stages(num_stages_), explicit_tableau(ex), implicit_tableau(im) {}
 };
 
-auto create_tableau( MethodID method_id ) -> RKIntegrator;
+auto create_tableau(MethodID method_id) -> RKIntegrator;
 
 /**
  * @brief Butcher tableau class.
  **/
 class ButcherTableau {
  public:
-  ButcherTableau( int nStages_, int tOrder_, TableauType type );
+  ButcherTableau(int nStages_, int tOrder_, TableauType type);
 
   int nStages;
   int tOrder;
 
-  View2D<double> a_ij{ };
-  View1D<double> b_i{ };
+  View2D<double> a_ij{};
+  View1D<double> b_i{};
 
  private:
   TableauType type_;
-  int c_effective_{ };
+  int c_effective_{};
 
-  void initialize_tableau( );
+  void initialize_tableau();
 };
 
 /**
@@ -111,17 +110,17 @@ class ButcherTableau {
  **/
 class ShuOsherTableau {
  public:
-  ShuOsherTableau( int nStages, int tOrder, TableauType type );
+  ShuOsherTableau(int nStages, int tOrder, TableauType type);
 
   int nStages;
   int tOrder;
 
-  View2D<double> a_ij{ };
-  View2D<double> b_ij{ };
+  View2D<double> a_ij{};
+  View2D<double> b_ij{};
 
  private:
   TableauType type_;
-  int c_effective_{ };
+  int c_effective_{};
 
-  void initialize_tableau( );
+  void initialize_tableau();
 };

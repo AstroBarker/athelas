@@ -10,9 +10,6 @@ AlwaysBreakTemplateDeclarations: true
 BinPackArguments: true
 BinPackParameters: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
-SpaceInEmptyParentheses: true
-SpacesInConditionalStatement: true
-SpacesInParentheses: true
 AlignConsecutiveAssignments: true
 AlignTrailingComments:
   Kind: Never

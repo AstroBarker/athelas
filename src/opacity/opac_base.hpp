@@ -19,17 +19,16 @@
 template <class OPAC>
 class OpacBase {
  public:
-  auto planck_mean( const double rho, const double T, const double X,
-                    const double Y, const double Z, double* lambda ) const
+  auto planck_mean(const double rho, const double T, const double X,
+                   const double Y, const double Z, double* lambda) const
       -> double {
-    return static_cast<OPAC const*>( this )->planck_mean( rho, T, X, Y, Z,
-                                                          lambda );
+    return static_cast<OPAC const*>(this)->planck_mean(rho, T, X, Y, Z, lambda);
   }
 
-  auto rosseland_mean( const double rho, const double T, const double X,
-                       const double Y, const double Z, double* lambda ) const
+  auto rosseland_mean(const double rho, const double T, const double X,
+                      const double Y, const double Z, double* lambda) const
       -> double {
-    return static_cast<OPAC const*>( this )->rosseland_mean( rho, T, X, Y, Z,
-                                                             lambda );
+    return static_cast<OPAC const*>(this)->rosseland_mean(rho, T, X, Y, Z,
+                                                          lambda);
   }
 };

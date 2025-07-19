@@ -21,34 +21,33 @@
 
 class Constant : public OpacBase<Constant> {
  public:
-  Constant( ) = default;
-  explicit Constant( double kP, double kR ) : kP_( kP ), kR_( kR ) {}
+  Constant() = default;
+  explicit Constant(double kP, double kR) : kP_(kP), kR_(kR) {}
 
-  auto planck_mean( double rho, double T, double X, double Y, double Z,
-                    double* lambda ) const -> double;
+  auto planck_mean(double rho, double T, double X, double Y, double Z,
+                   double* lambda) const -> double;
 
-  auto rosseland_mean( double rho, double T, double X, double Y, double Z,
-                       double* lambda ) const -> double;
+  auto rosseland_mean(double rho, double T, double X, double Y, double Z,
+                      double* lambda) const -> double;
 
  private:
-  double kP_{ };
-  double kR_{ };
+  double kP_{};
+  double kR_{};
 };
 
 class PowerlawRho : public OpacBase<PowerlawRho> {
  public:
-  PowerlawRho( ) = default;
-  PowerlawRho( double kP, double kR, double exp )
-      : kP_( kP ), kR_( kR ), exp_( exp ) {}
+  PowerlawRho() = default;
+  PowerlawRho(double kP, double kR, double exp) : kP_(kP), kR_(kR), exp_(exp) {}
 
-  auto planck_mean( double rho, double T, double X, double Y, double Z,
-                    double* lambda ) const -> double;
+  auto planck_mean(double rho, double T, double X, double Y, double Z,
+                   double* lambda) const -> double;
 
-  auto rosseland_mean( double rho, double T, double X, double Y, double Z,
-                       double* lambda ) const -> double;
+  auto rosseland_mean(double rho, double T, double X, double Y, double Z,
+                      double* lambda) const -> double;
 
  private:
-  double kP_{ };
-  double kR_{ };
-  double exp_{ };
+  double kP_{};
+  double kR_{};
+  double exp_{};
 };

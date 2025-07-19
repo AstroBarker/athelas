@@ -31,7 +31,7 @@ struct Options {
 class ProblemIn {
 
  public:
-  explicit ProblemIn( const std::string& fn );
+  explicit ProblemIn(const std::string& fn);
 
   std::string problem_name;
   std::string fluid_bc_i;
@@ -43,10 +43,10 @@ class ProblemIn {
   std::array<double, 2> rad_i_dirichlet_values;
   std::array<double, 2> rad_o_dirichlet_values;
 
-  int nlim{ }; // number of cycles
-  int ncycle_out{ }; // std output
-  double dt_hdf5{ }; // hdf5 output
-  double dt_init_frac{ }; // ramp up dt
+  int nlim{}; // number of cycles
+  int ncycle_out{}; // std output
+  double dt_hdf5{}; // hdf5 output
+  double dt_init_frac{}; // ramp up dt
 
   std::string eos_type;
 
@@ -78,10 +78,10 @@ class ProblemIn {
   double gamma_i;
   double gamma_r;
   double weno_r;
-  double b_tvd{ };
-  double m_tvb{ };
+  double b_tvd{};
+  double m_tvb{};
   std::string limiter_type;
-  bool do_limiter{ };
+  bool do_limiter{};
 
   // opac
   std::string opac_type;
@@ -90,23 +90,22 @@ class ProblemIn {
 };
 
 // TODO(astrobarker) move into class
-auto check_bc( std::string& bc ) -> bool;
+auto check_bc(std::string& bc) -> bool;
 template <typename T, typename G>
-void read_toml_array( T toml_array, G& out_array ) {
+void read_toml_array(T toml_array, G& out_array) {
   long unsigned int index = 0;
-  for ( const auto& element : *toml_array ) {
-    if ( index < out_array.size( ) ) {
-      if ( auto elem = element.as_floating_point( ) ) {
-        out_array[index] = static_cast<double>( *elem );
+  for (const auto& element : *toml_array) {
+    if (index < out_array.size()) {
+      if (auto elem = element.as_floating_point()) {
+        out_array[index] = static_cast<double>(*elem);
       } else {
         std::cerr << "Type mismatch at index " << index << std::endl;
-        THROW_ATHELAS_ERROR(
-            " ! Error reading dirichlet boundary conditions." );
+        THROW_ATHELAS_ERROR(" ! Error reading dirichlet boundary conditions.");
       }
       index++;
     } else {
       std::cerr << "TOML array is larger than C++ array." << std::endl;
-      THROW_ATHELAS_ERROR( " ! Error reading dirichlet boundary conditions." );
+      THROW_ATHELAS_ERROR(" ! Error reading dirichlet boundary conditions.");
     }
   }
 }
