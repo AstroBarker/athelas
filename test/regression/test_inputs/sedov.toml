@@ -27,6 +27,8 @@ dt_init_frac = 1.05
 
 [fluid]
 basis = "legendre"
+nnodes = 3
+porder = 3
 nx = 128
 ng = 1
 
@@ -44,7 +46,7 @@ b_tvd = 2.0
 m_tvb = 0.001
 tci_opt = true
 tci_val = 0.1
-characteristic = true
+characteristic = false
 gamma_i = 0.998
 #gamma_r = 0.005
 #gamma_l = 0.005

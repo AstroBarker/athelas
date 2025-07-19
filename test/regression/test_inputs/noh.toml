@@ -46,5 +46,5 @@ b_tvd = 2.0
 m_tvb = 0.0
 tci_opt = false
 tci_val = 0.1
-characteristic = true
+characteristic = false
 gamma_i = 0.8

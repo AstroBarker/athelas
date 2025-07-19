@@ -31,6 +31,8 @@ dt_init_frac = 1.5
 
 [fluid]
 basis = "legendre"
+nnodes = 3
+porder = 3
 nx = 512
 ng = 1
 
@@ -46,5 +48,5 @@ do_limiter = true
 type = "weno"
 tci_opt = false
 tci_val = 1.0
-characteristic = true
+characteristic = false
 gamma_i = 0.998
