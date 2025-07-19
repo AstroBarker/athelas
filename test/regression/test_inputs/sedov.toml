@@ -41,9 +41,9 @@ gamma_ideal = 1.6666666667
 
 [limiters]
 do_limiter = true
-type = "weno"
-b_tvd = 2.0
-m_tvb = 0.001
+type = "minmod"
+b_tvd = 1.0
+m_tvb = 0.0
 tci_opt = true
 tci_val = 0.1
 characteristic = false
