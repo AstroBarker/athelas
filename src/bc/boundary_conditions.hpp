@@ -92,9 +92,8 @@ apply_bc(const BoundaryConditionsData<N>& bc, View3D<double> U, const int q,
 
   // TODO(astrobarker): could need extending. FIX
   case BcType::Dirichlet:
-    // U(q, ghost_cell, 0) = 2.0 * bc.dirichlet_values[q] - U(q, interior_cell,
-    // 0);
-    U(q, ghost_cell, 0) = bc.dirichlet_values[q];
+    U(q, ghost_cell, 0) = 2.0 * bc.dirichlet_values[q] - U(q, interior_cell, 0);
+    //U(q, ghost_cell, 0) = bc.dirichlet_values[q];
     for (int k = 1; k < num_modes; k++) {
       U(q, ghost_cell, k) = 0.0; // slopes++ set to 0
     }

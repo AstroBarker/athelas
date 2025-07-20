@@ -91,17 +91,18 @@ class Athelas:
         )
         try:
           self.uCR[0] = self._load_variable(
-            f, "rad_energy", (self.nX, self.sOrder)
+            f, "conserved/rad_energy", (self.nX, self.sOrder)
           )
           self.uCR[1] = self._load_variable(
-            f, "rad_momentum", (self.nX, self.sOrder)
+            f, "conserved/rad_momentum", (self.nX, self.sOrder)
           )
         except KeyError:
+          print(f"KeyError: {e}")
           self.uCR = np.zeros_like(self.uCR[0])
     except (OSError, KeyError) as e:
       raise RuntimeError(f"Failed to load file '{fn}': {e}")
 
-    self.slope_limiter = f["diagnostic/limiter"][:]
+#    self.slope_limiter = f["diagnostic/limiter"][:]
 
     # TODO:
     # uPF, uAF, uCR
