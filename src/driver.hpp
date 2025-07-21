@@ -18,6 +18,7 @@
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
+#include "packages/packages_base.hpp"
 #include "pgen/problem_in.hpp"
 #include "timestepper/timestepper.hpp"
 
@@ -34,6 +35,8 @@ class Driver {
   void initialize(const ProblemIn* pin);
 
   ProblemIn pin_;
+
+  std::unique_ptr<PackageManager> manager_;
 
   // std::string run_id_;
   int nX_;

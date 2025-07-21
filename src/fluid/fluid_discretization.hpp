@@ -15,7 +15,8 @@
 #include "abstractions.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
-#include "eos_variant.hpp"
+#include "eos/eos_variant.hpp"
+#include "fluid/hydro_package.hpp"
 #include "opacity/opac_variant.hpp"
 
 namespace fluid {

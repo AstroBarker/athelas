@@ -99,10 +99,8 @@ void limit_density(View3D<double> U, const ModalBasis* basis) {
  *
  * @param U The solution array containing conserved variables
  * @param basis The modal basis used for the solution representation
- * @param eos The equation of state object used for thermodynamic calculations
  */
-void limit_internal_energy(View3D<double> U, const ModalBasis* basis,
-                           const EOS* eos) {
+void limit_internal_energy(View3D<double> U, const ModalBasis* basis) {
   constexpr static double EPSILON = 1.0e-10; // maybe make this smarter
 
   const int order = basis->get_order();
@@ -124,11 +122,11 @@ void limit_internal_energy(View3D<double> U, const ModalBasis* basis,
           if (nodal > EPSILON) {
             temp = 1.0;
           } else {
-            // temp = backtrace( U, target_func, basis, eos, iX, iN );
+            // temp = backtrace( U, target_func, basis, iX, iN );
             // const double theta_guess = 0.9; // needed for fixed point
             // temp = root_finders::fixed_point_aa_root(target_func,
-            // theta_guess, U, basis, eos, iX, iN) - 1.0e-3;
-            temp = bisection(U, target_func, basis, eos, iX, iN);
+            // theta_guess, U, basis, iX, iN) - 1.0e-3;
+            temp = bisection(U, target_func, basis, iX, iN);
           }
           theta2 = std::min(theta2, temp);
         }
@@ -141,27 +139,24 @@ void limit_internal_energy(View3D<double> U, const ModalBasis* basis,
       });
 }
 
-void apply_bound_enforcing_limiter(View3D<double> U, const ModalBasis* basis,
-                                   const EOS* eos)
+void apply_bound_enforcing_limiter(View3D<double> U, const ModalBasis* basis)
 
 {
   limit_density(U, basis);
-  limit_internal_energy(U, basis, eos);
+  limit_internal_energy(U, basis);
 }
 
 // TODO(astrobarker): much more here.
 void apply_bound_enforcing_limiter_rad(View3D<double> U,
-                                       const ModalBasis* basis,
-                                       const EOS* eos) {
+                                       const ModalBasis* basis) {
   if (basis->get_order() == 1) {
     return;
   }
-  limit_rad_energy(U, basis, eos);
-  limit_rad_momentum(U, basis, eos);
+  limit_rad_energy(U, basis);
+  limit_rad_momentum(U, basis);
 }
 
-void limit_rad_energy(View3D<double> U, const ModalBasis* basis,
-                      const EOS* eos) {
+void limit_rad_energy(View3D<double> U, const ModalBasis* basis) {
   constexpr static double EPSILON = 1.0e-4; // maybe make this smarter
 
   const int order = basis->get_order();
@@ -179,11 +174,11 @@ void limit_rad_energy(View3D<double> U, const ModalBasis* basis,
           if (nodal > EPSILON + 0 * std::abs(U(1, iX, 0)) / constants::c_cgs) {
             temp = 1.0;
           } else {
-            // temp = backtrace( U, target_func, basis, eos, iX, iN );
+            // temp = backtrace( U, target_func, basis, iX, iN );
             // const double theta_guess = 0.9; // needed for fixed point
             // temp = root_finders::fixed_point_aa_root(target_func,
-            // theta_guess, U, basis, eos, iX, iN) - 1.0e-3;
-            temp = bisection(U, target_func_rad_energy, basis, eos, iX, iN);
+            // theta_guess, U, basis, iX, iN) - 1.0e-3;
+            temp = bisection(U, target_func_rad_energy, basis, iX, iN);
           }
           theta2 = std::abs(std::min(theta2, temp));
         }
@@ -195,8 +190,7 @@ void limit_rad_energy(View3D<double> U, const ModalBasis* basis,
       });
 }
 
-void limit_rad_momentum(View3D<double> U, const ModalBasis* basis,
-                        const EOS* eos) {
+void limit_rad_momentum(View3D<double> U, const ModalBasis* basis) {
   const int order = basis->get_order();
 
   Kokkos::parallel_for(
@@ -216,9 +210,9 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis* basis,
           } else {
             // TODO(astrobarker): Backtracing may be working okay...
             // const double theta_guess = 0.9;
-            // temp = backtrace( target_func_rad, theta_guess, U, basis, eos,
+            // temp = backtrace( target_func_rad, theta_guess, U, basis,
             // iX, iN );
-            temp = bisection(U, target_func_rad_flux, basis, eos, iX, iN);
+            temp = bisection(U, target_func_rad_flux, basis, iX, iN);
           }
           theta2 = std::abs(std::min(theta2, temp));
         }
@@ -243,7 +237,7 @@ auto compute_theta_state(const View3D<double> U, const ModalBasis* basis,
 }
 
 auto target_func(const double theta, const View3D<double> U,
-                 const ModalBasis* basis, const EOS* /*eos*/, const int iX,
+                 const ModalBasis* basis, const int iX,
                  const int iN) -> double {
   const double w = std::min(1.0e-10, utilities::compute_internal_energy(U, iX));
   const double s1 = compute_theta_state(U, basis, theta, 1, iX, iN);
@@ -256,7 +250,7 @@ auto target_func(const double theta, const View3D<double> U,
 
 // TODO(astrobarker) some redundancy below
 auto target_func_rad_flux(const double theta, const View3D<double> U,
-                          const ModalBasis* basis, const EOS* /*eos*/,
+                          const ModalBasis* basis,
                           const int iX, const int iN) -> double {
   const double w  = std::min(1.0e-13, U(1, iX, 0));
   const double s1 = compute_theta_state(U, basis, theta, 1, iX, iN);
@@ -267,7 +261,7 @@ auto target_func_rad_flux(const double theta, const View3D<double> U,
 }
 
 auto target_func_rad_energy(const double theta, const View3D<double> U,
-                            const ModalBasis* basis, const EOS* /*eos*/,
+                            const ModalBasis* basis,
                             const int iX, const int iN) -> double {
   const double w  = std::min(1.0e-13, U(0, iX, 0));
   const double s1 = compute_theta_state(U, basis, theta, 0, iX, iN);

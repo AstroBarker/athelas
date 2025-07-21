@@ -12,7 +12,8 @@
 #include "basis/polynomial_basis.hpp"
 #include "eos_variant.hpp"
 #include "error.hpp"
-#include "fluid_utilities.hpp"
+#include "fluid/fluid_utilities.hpp"
+#include "fluid/hydro_package.hpp"
 #include "grid.hpp"
 #include "initialization.hpp"
 #include "io/io.hpp"
@@ -70,6 +71,7 @@ auto compute_timestep(const View3D<double> U, const GridStructure* grid,
 } // namespace
 
 void Driver::initialize(const ProblemIn* pin) { // NOLINT
+  using fluid::HydroPackage;
   if (!restart_) {
     // --- Initialize fields ---
     initialize_fields(&state_, &grid_, eos_.get(), pin);
@@ -91,6 +93,12 @@ void Driver::initialize(const ProblemIn* pin) { // NOLINT
         pin->nElements, pin->nGhost, false);
   }
 
+  // --- Init physics package manager ---
+  // TODO(astrobarker) package logic
+  manager_->add_package(HydroPackage{pin, ssprk_.get_n_stages(), eos_.get(),
+                                     fluid_basis_.get(), bcs_.get(), cfl_, nX_,
+                                     true});
+
   // --- slope limiter to initial condition ---
   apply_slope_limiter(&sl_hydro_, state_.get_u_cf(), &grid_, fluid_basis_.get(),
                       eos_.get());
@@ -99,7 +107,8 @@ void Driver::initialize(const ProblemIn* pin) { // NOLINT
 using limiter_utilities::initialize_slope_limiter;
 // Driver
 Driver::Driver(const ProblemIn* pin) // NOLINT
-    : pin_(*pin), nX_(pin->nElements), problem_name_(pin->problem_name),
+    : pin_(*pin), manager_(std::make_unique<PackageManager>()),
+      nX_(pin->nElements), problem_name_(pin->problem_name),
       restart_(pin->Restart),
       bcs_(std::make_unique<BoundaryConditions>(bc::make_boundary_conditions(
           pin->do_rad, pin->fluid_bc_i, pin->fluid_bc_o,
@@ -152,8 +161,8 @@ auto Driver::execute() -> int {
     }
 
     if (!opts_.do_rad) {
-      ssprk_.update_fluid(dt_, &state_, grid_, fluid_basis_.get(), eos_.get(),
-                          &sl_hydro_, &opts_, bcs_.get());
+      ssprk_.step(manager_.get(), &state_, grid_, dt_,
+                          &sl_hydro_, &opts_);
     } else {
       try {
         ssprk_.update_rad_hydro(dt_, &state_, grid_, fluid_basis_.get(),

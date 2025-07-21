@@ -18,10 +18,11 @@
 #include "eos_variant.hpp"
 #include "fluid/fluid_discretization.hpp"
 #include "opacity/opac_variant.hpp"
+#include "packages/packages_base.hpp"
 #include "polynomial_basis.hpp"
 #include "problem_in.hpp"
 #include "radiation/rad_discretization.hpp"
-#include "slope_limiter.hpp"
+#include "limiters/slope_limiter.hpp"
 #include "solvers/root_finders.hpp"
 #include "state.hpp"
 #include "tableau.hpp"
@@ -43,23 +44,18 @@ class TimeStepper {
   /**
    * Update fluid solution with SSPRK methods
    **/
-  void update_fluid(const double dt, State* state, GridStructure& grid,
-                    const ModalBasis* fluid_basis, const EOS* eos,
-                    SlopeLimiter* S_Limiter, const Options* opts,
-                    BoundaryConditions* bcs) {
+  void step(PackageManager* pkgs, State* state, GridStructure& grid, const double dt,
+                    SlopeLimiter* S_Limiter, const Options* opts) {
 
     // hydro explicit update
-    update_fluid_explicit(dt, state, grid, fluid_basis, eos, S_Limiter, opts,
-                          bcs);
+    update_fluid_explicit(pkgs, state, grid, dt, S_Limiter, opts);
   }
 
   /**
    * Explicit fluid update with SSPRK methods
    **/
-  void update_fluid_explicit(const double dt, State* state, GridStructure& grid,
-                             const ModalBasis* fluid_basis, const EOS* eos,
-                             SlopeLimiter* S_Limiter, const Options* opts,
-                             BoundaryConditions* bcs) {
+  void update_fluid_explicit(PackageManager* pkgs, State* state, GridStructure& grid, const double dt,
+                             SlopeLimiter* S_Limiter, const Options* opts) {
 
     const auto& order = fluid_basis->get_order();
     const auto& ihi   = grid.get_ihi();
@@ -70,7 +66,10 @@ class TimeStepper {
 
     grid_s_[0] = grid;
 
+    TimeStepInfo dt_info{0.0, dt, 0};
+
     for (int iS = 0; iS < nStages_; ++iS) {
+      dt_info.stage = iS;
       // re-zero the summation variables `SumVar`
       Kokkos::parallel_for(
           "Timestepper 3",
@@ -84,15 +83,16 @@ class TimeStepper {
 
       // --- Inner update loop ---
 
-      for (int j = 0; j < iS; j++) {
+      for (int j = 0; j < iS; ++j) {
         auto Us_j =
             Kokkos::subview(U_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
         auto dUs_j =
             Kokkos::subview(dU_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
         auto flux_u_j = Kokkos::subview(flux_u_, j, Kokkos::ALL);
-        compute_increment_fluid_explicit(Us_j, grid_s_[j], fluid_basis, eos,
-                                         dUs_j, dFlux_num_, uCF_F_L_, uCF_F_R_,
-                                         flux_u_j, opts, bcs);
+        pkgs->update_explicit(Us_j, dUs_j, grid_s_[j], dt_info);
+        // compute_increment_fluid_explicit(Us_j, grid_s_[j], fluid_basis, eos,
+        //                                  dUs_j, dFlux_num_, uCF_F_L_, uCF_F_R_,
+        //                                  flux_u_j, opts, bcs);
 
         // inner sum
         Kokkos::parallel_for(
@@ -441,6 +441,8 @@ class TimeStepper {
     bel::apply_bound_enforcing_limiter(uCF, fluid_basis, eos);
     bel::apply_bound_enforcing_limiter_rad(uCR, rad_basis, eos);
   }
+
+  [[nodiscard]] auto get_n_stages() const noexcept -> int;
 
  private:
   int mSize_;

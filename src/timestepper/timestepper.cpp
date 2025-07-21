@@ -31,3 +31,7 @@ TimeStepper::TimeStepper(const ProblemIn* pin, GridStructure* grid)
       dFlux_num_("Numerical Flux", 3, mSize_ + 1),
       uCF_F_L_("Face L", 3, mSize_), uCF_F_R_("Face R", 3, mSize_),
       flux_u_("flux_u_", nStages_ + 1, mSize_ + 1) {}
+
+[[nodiscard]] auto TimeStepper::get_n_stages() const noexcept -> int {
+  return integrator_.num_stages;
+}
