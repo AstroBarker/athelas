@@ -8,15 +8,25 @@
 #include "concepts/packages.hpp"
 #include "geometry/grid.hpp"
 #include "state/state.hpp"
-#include "timestepper.hpp"
 
 // Package wrapper that erases types while maintaining performance
+// TODO(astrobarker) move to a CRTP pattern
 class PackageWrapper {
  public:
   template <PhysicsPackage T>
   explicit PackageWrapper(T&& package)
       : package_(std::make_unique<PackageModel<std::decay_t<T>>>(
             std::forward<T>(package))) {}
+
+  // virtual destructor...
+  virtual ~PackageWrapper() = default;
+
+  // get original type
+  template <typename T>
+  T* get_base_package() {
+    auto* model = dynamic_cast<PackageModel<T>*>(package_.get());
+    return model ? &model->get_package() : nullptr;
+  }
 
   void update_explicit(View3D<double> state, View3D<double> dU,
                        const GridStructure& grid, const TimeStepInfo& dt_info) {
@@ -32,7 +42,8 @@ class PackageWrapper {
     }
   }
 
-  [[nodiscard]] auto min_timestep(View3D<double> state, const GridStructure& grid,
+  [[nodiscard]] auto min_timestep(View3D<double> state,
+                                  const GridStructure& grid,
                                   const TimeStepInfo& dt_info) const -> double {
     if (package_->is_active()) {
       return package_->min_timestep(state, grid, dt_info);
@@ -55,14 +66,15 @@ class PackageWrapper {
 
  private:
   struct PackageConcept {
-    virtual ~PackageConcept()                   = default;
-    virtual void update_explicit(View3D<double>, View3D<double>, const GridStructure&,
-                                 const TimeStepInfo&) = 0;
-    virtual void update_implicit(View3D<double>, View3D<double>, const GridStructure&,
-                                 const TimeStepInfo&) = 0;
+    virtual ~PackageConcept() = default;
+    virtual void update_explicit(View3D<double>, View3D<double>,
+                                 const GridStructure&, const TimeStepInfo&) = 0;
+    virtual void update_implicit(View3D<double>, View3D<double>,
+                                 const GridStructure&, const TimeStepInfo&) = 0;
     [[nodiscard]] virtual auto min_timestep(View3D<double> state,
                                             const GridStructure& grid,
-                                            const TimeStepInfo& dt_info) const -> double = 0;
+                                            const TimeStepInfo& dt_info) const
+        -> double = 0;
 
     [[nodiscard]] virtual auto name() const noexcept -> std::string_view = 0;
     [[nodiscard]] virtual auto is_active() const noexcept -> bool        = 0;
@@ -74,22 +86,29 @@ class PackageWrapper {
   struct PackageModel final : PackageConcept {
     explicit PackageModel(T package) : package_(std::move(package)) {}
 
+    // Get original package
+    T& get_package() { return package_; }
+
     void update_explicit(View3D<double> state, View3D<double> dU,
-                         const GridStructure& grid, const TimeStepInfo& dt_info) override {
+                         const GridStructure& grid,
+                         const TimeStepInfo& dt_info) override {
       if constexpr (has_explicit_update_v<T>) {
         package_.update_explicit(state, dU, grid, dt_info);
       }
     }
 
     void update_implicit(View3D<double> state, View3D<double> dU,
-                         const GridStructure& grid, const TimeStepInfo& dt_info) override {
+                         const GridStructure& grid,
+                         const TimeStepInfo& dt_info) override {
       if constexpr (has_implicit_update_v<T>) {
         package_.update_implicit(state, dU, grid, dt_info);
       }
     }
 
-    [[nodiscard]] auto min_timestep(View3D<double> state, const GridStructure& grid,
-                                    const TimeStepInfo& dt_info) const -> double override {
+    [[nodiscard]] auto min_timestep(View3D<double> state,
+                                    const GridStructure& grid,
+                                    const TimeStepInfo& dt_info) const
+        -> double override {
       return package_.min_timestep(state, grid, dt_info);
     }
 
@@ -118,15 +137,11 @@ class PackageManager {
  public:
   template <PhysicsPackage T>
   void add_package(T&& package) {
-  std::cout << "this = " << static_cast<void*>(this) << "\n";
-  std::cout << "explicit_packages_ address = " << &explicit_packages_ << "\n";
-  std::cout << "explicit_packages_ size = " << explicit_packages_.size() << "\n";
     auto wrapper = std::make_unique<PackageWrapper>(std::forward<T>(package));
 
     // TODO(astrobarker): emplace back
     explicit_packages_ = {};
     if (wrapper->has_explicit()) {
-      std::println("explicit size {}", explicit_packages_.size());
       explicit_packages_.push_back(wrapper.get());
     }
     if (wrapper->has_implicit()) {
@@ -159,20 +174,19 @@ class PackageManager {
 
   auto min_timestep(View3D<double> state, const GridStructure& grid,
                     const TimeStepInfo& dt_info) const -> double {
-    double min_dt_info = std::numeric_limits<double>::max();
+    double min_dt = std::numeric_limits<double>::max();
     // TODO(astrobarker): loop over all_packages_
-    // TODO(astrobarker): CFL
     for (auto* pkg : explicit_packages_) {
       if (pkg->is_active()) {
-        min_dt_info = std::min(min_dt_info, pkg->min_timestep(state, grid, dt_info));
+        min_dt = std::min(min_dt, pkg->min_timestep(state, grid, dt_info));
       }
     }
     for (auto* pkg : implicit_packages_) {
       if (pkg->is_active()) {
-        min_dt_info = std::min(min_dt_info, pkg->min_timestep(state, grid, dt_info));
+        min_dt = std::min(min_dt, pkg->min_timestep(state, grid, dt_info));
       }
     }
-    return min_dt_info;
+    return min_dt;
   }
 
   void clear() {
@@ -190,6 +204,20 @@ class PackageManager {
       names.push_back(pkg->name());
     }
     return names;
+  }
+
+  template <typename T = PackageWrapper>
+  [[nodiscard]] auto get_package(std::string_view name) const -> T* {
+    for (const auto& pkg : all_packages_) {
+      if (pkg->name() == name) {
+        if constexpr (std::is_same_v<T, PackageWrapper>) {
+          return pkg.get();
+        } else {
+          return pkg->get_base_package<T>();
+        }
+      }
+    }
+    return nullptr;
   }
 
  private:

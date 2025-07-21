@@ -13,23 +13,25 @@
  */
 
 #include "abstractions.hpp"
+#include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
-#include "bound_enforcing_limiter.hpp"
-#include "eos_variant.hpp"
+#include "eos/eos_variant.hpp"
 #include "fluid/fluid_discretization.hpp"
+#include "fluid/hydro_package.hpp"
+#include "limiters/bound_enforcing_limiter.hpp"
+#include "limiters/slope_limiter.hpp"
 #include "opacity/opac_variant.hpp"
 #include "packages/packages_base.hpp"
-#include "polynomial_basis.hpp"
 #include "problem_in.hpp"
 #include "radiation/rad_discretization.hpp"
-#include "limiters/slope_limiter.hpp"
 #include "solvers/root_finders.hpp"
-#include "state.hpp"
-#include "tableau.hpp"
+#include "state/state.hpp"
+#include "timestepper/tableau.hpp"
 
 using bc::BoundaryConditions;
 using fluid::compute_increment_fluid_explicit;
 using fluid::compute_increment_fluid_source;
+using fluid::HydroPackage;
 using radiation::compute_increment_rad_explicit;
 using radiation::compute_increment_rad_source;
 
@@ -37,15 +39,15 @@ class TimeStepper {
 
  public:
   // TODO(astrobarker): Is it possible to initialize grid_s_ from grid directly?
-  TimeStepper(const ProblemIn* pin, GridStructure* grid);
+  TimeStepper(const ProblemIn* pin, GridStructure* grid, EOS* eos);
 
   void initialize_timestepper();
 
   /**
    * Update fluid solution with SSPRK methods
    **/
-  void step(PackageManager* pkgs, State* state, GridStructure& grid, const double dt,
-                    SlopeLimiter* S_Limiter, const Options* opts) {
+  void step(PackageManager* pkgs, State* state, GridStructure& grid,
+            const double dt, SlopeLimiter* S_Limiter, const Options* opts) {
 
     // hydro explicit update
     update_fluid_explicit(pkgs, state, grid, dt, S_Limiter, opts);
@@ -54,10 +56,11 @@ class TimeStepper {
   /**
    * Explicit fluid update with SSPRK methods
    **/
-  void update_fluid_explicit(PackageManager* pkgs, State* state, GridStructure& grid, const double dt,
+  void update_fluid_explicit(PackageManager* pkgs, State* state,
+                             GridStructure& grid, const double dt,
                              SlopeLimiter* S_Limiter, const Options* opts) {
 
-    const auto& order = fluid_basis->get_order();
+    const auto& order = opts->max_order;
     const auto& ihi   = grid.get_ihi();
 
     auto U = state->get_u_cf();
@@ -84,6 +87,7 @@ class TimeStepper {
       // --- Inner update loop ---
 
       for (int j = 0; j < iS; ++j) {
+        dt_info.stage = j;
         auto Us_j =
             Kokkos::subview(U_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
         auto dUs_j =
@@ -91,8 +95,8 @@ class TimeStepper {
         auto flux_u_j = Kokkos::subview(flux_u_, j, Kokkos::ALL);
         pkgs->update_explicit(Us_j, dUs_j, grid_s_[j], dt_info);
         // compute_increment_fluid_explicit(Us_j, grid_s_[j], fluid_basis, eos,
-        //                                  dUs_j, dFlux_num_, uCF_F_L_, uCF_F_R_,
-        //                                  flux_u_j, opts, bcs);
+        //                                  dUs_j, dFlux_num_, uCF_F_L_,
+        //                                  uCF_F_R_, flux_u_j, opts, bcs);
 
         // inner sum
         Kokkos::parallel_for(
@@ -109,7 +113,8 @@ class TimeStepper {
             "Timestepper::stage_data_", ihi + 2,
             KOKKOS_CLASS_LAMBDA(const int iX) {
               stage_data_(iS, iX) +=
-                  dt * integrator_.explicit_tableau.a_ij(iS, j) * flux_u_j(iX);
+                  dt * integrator_.explicit_tableau.a_ij(iS, j) *
+                  pkgs->get_package<HydroPackage>("Hydro")->get_flux_u(j, iX);
             });
       } // End inner loop
 
@@ -127,20 +132,25 @@ class TimeStepper {
 
       auto Us_j =
           Kokkos::subview(U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
-      // apply_slope_limiter( S_Limiter, Us_j, &grid_s_[iS], fluid_basis, eos );
-      bel::apply_bound_enforcing_limiter(Us_j, fluid_basis, eos);
+      apply_slope_limiter(S_Limiter, SumVar_U_, &grid_s_[iS],
+                          pkgs->get_package<HydroPackage>("Hydro")->get_basis(),
+                          eos_);
+      bel::apply_bound_enforcing_limiter(
+          Us_j, pkgs->get_package<HydroPackage>("Hydro")->get_basis());
     } // end outer loop
 
     for (int iS = 0; iS < nStages_; ++iS) {
+      dt_info.stage = iS;
       auto Us_j =
           Kokkos::subview(U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
       auto dUs_j =
           Kokkos::subview(dU_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
       auto flux_u_j = Kokkos::subview(flux_u_, iS, Kokkos::ALL);
 
-      compute_increment_fluid_explicit(Us_j, grid_s_[iS], fluid_basis, eos,
-                                       dUs_j, dFlux_num_, uCF_F_L_, uCF_F_R_,
-                                       flux_u_j, opts, bcs);
+      pkgs->update_explicit(Us_j, dUs_j, grid_s_[iS], dt_info);
+      // compute_increment_fluid_explicit(Us_j, grid_s_[iS], fluid_basis, eos,
+      //                                  dUs_j, dFlux_num_, uCF_F_L_, uCF_F_R_,
+      //                                  flux_u_j, opts, bcs);
       Kokkos::parallel_for(
           "Timestepper :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
@@ -154,15 +164,20 @@ class TimeStepper {
           "Timestepper::stage_data_::final", ihi + 2,
           KOKKOS_CLASS_LAMBDA(const int iX) {
             stage_data_(0, iX) +=
-                dt * flux_u_j(iX) * integrator_.explicit_tableau.b_i(iS);
+                dt *
+                pkgs->get_package<HydroPackage>("Hydro")->get_flux_u(iS, iX) *
+                integrator_.explicit_tableau.b_i(iS);
           });
       auto stage_data_j = Kokkos::subview(stage_data_, 0, Kokkos::ALL);
       grid_s_[iS].update_grid(stage_data_j);
     }
 
     grid = grid_s_[nStages_ - 1];
-    apply_slope_limiter(S_Limiter, U, &grid, fluid_basis, eos);
-    bel::apply_bound_enforcing_limiter(U, fluid_basis, eos);
+    apply_slope_limiter(S_Limiter, U, &grid,
+                        pkgs->get_package<HydroPackage>("Hydro")->get_basis(),
+                        eos_);
+    bel::apply_bound_enforcing_limiter(
+        U, pkgs->get_package<HydroPackage>("Hydro")->get_basis());
   }
 
   /**
@@ -300,10 +315,10 @@ class TimeStepper {
       apply_slope_limiter(S_Limiter, Us_j_r, &grid_s_[iS], rad_basis, eos);
       apply_slope_limiter(S_Limiter, SumVar_U_r_, &grid_s_[iS], rad_basis, eos);
       apply_slope_limiter(S_Limiter, SumVar_U_, &grid_s_[iS], fluid_basis, eos);
-      bel::apply_bound_enforcing_limiter(Us_j_h, fluid_basis, eos);
-      bel::apply_bound_enforcing_limiter_rad(Us_j_r, rad_basis, eos);
-      bel::apply_bound_enforcing_limiter_rad(SumVar_U_r_, rad_basis, eos);
-      bel::apply_bound_enforcing_limiter(SumVar_U_, rad_basis, eos);
+      bel::apply_bound_enforcing_limiter(Us_j_h, fluid_basis);
+      bel::apply_bound_enforcing_limiter_rad(Us_j_r, rad_basis);
+      bel::apply_bound_enforcing_limiter_rad(SumVar_U_r_, rad_basis);
+      bel::apply_bound_enforcing_limiter(SumVar_U_, rad_basis);
 
       // implicit update
       // TODO(astrobarker) cleanup scratch mess
@@ -368,8 +383,8 @@ class TimeStepper {
       // TODO(astrobarker): slope limit rad
       apply_slope_limiter(S_Limiter, Us_j_h, &grid_s_[iS], fluid_basis, eos);
       apply_slope_limiter(S_Limiter, Us_j_r, &grid_s_[iS], rad_basis, eos);
-      bel::apply_bound_enforcing_limiter(Us_j_h, fluid_basis, eos);
-      bel::apply_bound_enforcing_limiter_rad(Us_j_r, rad_basis, eos);
+      bel::apply_bound_enforcing_limiter(Us_j_h, fluid_basis);
+      bel::apply_bound_enforcing_limiter_rad(Us_j_r, rad_basis);
     } // end outer loop
 
     for (int iS = 0; iS < nStages_; ++iS) {
@@ -438,8 +453,8 @@ class TimeStepper {
     grid = grid_s_[nStages_ - 1];
     apply_slope_limiter(S_Limiter, uCF, &grid, fluid_basis, eos);
     apply_slope_limiter(S_Limiter, uCR, &grid, rad_basis, eos);
-    bel::apply_bound_enforcing_limiter(uCF, fluid_basis, eos);
-    bel::apply_bound_enforcing_limiter_rad(uCR, rad_basis, eos);
+    bel::apply_bound_enforcing_limiter(uCF, fluid_basis);
+    bel::apply_bound_enforcing_limiter_rad(uCR, rad_basis);
   }
 
   [[nodiscard]] auto get_n_stages() const noexcept -> int;
@@ -471,4 +486,7 @@ class TimeStepper {
   View2D<double> uCF_F_L_{};
   View2D<double> uCF_F_R_{};
   View2D<double> flux_u_{};
+
+  // hold EOS ptr for convenience
+  EOS* eos_;
 };

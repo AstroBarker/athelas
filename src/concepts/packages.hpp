@@ -27,8 +27,9 @@ concept ImplicitPackage =
 };
 
 template <typename T>
-concept IMEXPackage = requires(T & pkg, View3D<double> state, View3D<double> dU,
-                               const GridStructure& grid, const TimeStepInfo& dt_info) {
+concept IMEXPackage =
+    requires(T & pkg, View3D<double> state, View3D<double> dU,
+             const GridStructure& grid, const TimeStepInfo& dt_info) {
   {pkg.update_explicit(state, dU, grid, dt_info)}->std::same_as<void>;
   {pkg.update_implicit(state, dU, grid, dt_info)}->std::same_as<void>;
   {pkg.min_timestep(state, grid, dt_info)}->std::convertible_to<double>;

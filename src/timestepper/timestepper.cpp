@@ -8,15 +8,16 @@
 
 #include <vector>
 
-#include "grid.hpp"
-#include "tableau.hpp"
-#include "timestepper.hpp"
+#include "eos/eos_variant.hpp"
+#include "geometry/grid.hpp"
+#include "timestepper/tableau.hpp"
+#include "timestepper/timestepper.hpp"
 
 /**
  * The constructor creates the necessary data structures for time evolution.
  * Lots of structures used in discretizations live here.
  **/
-TimeStepper::TimeStepper(const ProblemIn* pin, GridStructure* grid)
+TimeStepper::TimeStepper(const ProblemIn* pin, GridStructure* grid, EOS* eos)
     : mSize_(grid->get_n_elements() + (2 * grid->get_guard())),
       integrator_(create_tableau(pin->method_id)),
       nStages_(integrator_.num_stages), tOrder_(integrator_.explicit_order),
@@ -30,7 +31,7 @@ TimeStepper::TimeStepper(const ProblemIn* pin, GridStructure* grid)
       stage_data_("StageData", nStages_ + 1, mSize_ + 1),
       dFlux_num_("Numerical Flux", 3, mSize_ + 1),
       uCF_F_L_("Face L", 3, mSize_), uCF_F_R_("Face R", 3, mSize_),
-      flux_u_("flux_u_", nStages_ + 1, mSize_ + 1) {}
+      flux_u_("flux_u_", nStages_ + 1, mSize_ + 1), eos_(eos) {}
 
 [[nodiscard]] auto TimeStepper::get_n_stages() const noexcept -> int {
   return integrator_.num_stages;

@@ -18,6 +18,7 @@
 #include "initialization.hpp"
 #include "io/io.hpp"
 #include "opacity/opac_variant.hpp"
+#include "packages/packages_base.hpp"
 #include "problem_in.hpp"
 #include "rad_utilities.hpp"
 #include "slope_limiter.hpp"
@@ -123,11 +124,12 @@ Driver::Driver(const ProblemIn* pin) // NOLINT
       dt_hdf5_(pin->dt_hdf5), dt_init_frac_(pin->dt_init_frac),
       eos_(std::make_unique<EOS>(initialize_eos(pin))),
       opac_(std::make_unique<Opacity>(initialize_opacity(pin))), grid_(pin),
-      opts_(pin->do_rad, false, restart_, pin->Geometry, pin->basis),
+      opts_(pin->do_rad, false, restart_, pin->Geometry, pin->basis,
+            pin->pOrder),
       state_(3, 2, 3, 1, pin->nElements, pin->nGhost, pin->nNodes, pin->pOrder),
       sl_hydro_(initialize_slope_limiter(&grid_, pin, 3)),
       sl_rad_(initialize_slope_limiter(&grid_, pin, 2)), // update
-      ssprk_(pin, &grid_) {
+      ssprk_(pin, &grid_, eos_.get()) {
   initialize(pin);
 }
 
@@ -161,8 +163,7 @@ auto Driver::execute() -> int {
     }
 
     if (!opts_.do_rad) {
-      ssprk_.step(manager_.get(), &state_, grid_, dt_,
-                          &sl_hydro_, &opts_);
+      ssprk_.step(manager_.get(), &state_, grid_, dt_, &sl_hydro_, &opts_);
     } else {
       try {
         ssprk_.update_rad_hydro(dt_, &state_, grid_, fluid_basis_.get(),

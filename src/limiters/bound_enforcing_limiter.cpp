@@ -237,8 +237,8 @@ auto compute_theta_state(const View3D<double> U, const ModalBasis* basis,
 }
 
 auto target_func(const double theta, const View3D<double> U,
-                 const ModalBasis* basis, const int iX,
-                 const int iN) -> double {
+                 const ModalBasis* basis, const int iX, const int iN)
+    -> double {
   const double w = std::min(1.0e-10, utilities::compute_internal_energy(U, iX));
   const double s1 = compute_theta_state(U, basis, theta, 1, iX, iN);
   const double s2 = compute_theta_state(U, basis, theta, 2, iX, iN);
@@ -250,8 +250,8 @@ auto target_func(const double theta, const View3D<double> U,
 
 // TODO(astrobarker) some redundancy below
 auto target_func_rad_flux(const double theta, const View3D<double> U,
-                          const ModalBasis* basis,
-                          const int iX, const int iN) -> double {
+                          const ModalBasis* basis, const int iX, const int iN)
+    -> double {
   const double w  = std::min(1.0e-13, U(1, iX, 0));
   const double s1 = compute_theta_state(U, basis, theta, 1, iX, iN);
 
@@ -261,8 +261,8 @@ auto target_func_rad_flux(const double theta, const View3D<double> U,
 }
 
 auto target_func_rad_energy(const double theta, const View3D<double> U,
-                            const ModalBasis* basis,
-                            const int iX, const int iN) -> double {
+                            const ModalBasis* basis, const int iX, const int iN)
+    -> double {
   const double w  = std::min(1.0e-13, U(0, iX, 0));
   const double s1 = compute_theta_state(U, basis, theta, 0, iX, iN);
 

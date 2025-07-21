@@ -40,10 +40,12 @@ class HydroPackage {
   KOKKOS_FUNCTION
   void set_active(bool active);
 
-  [[nodiscard]] auto get_flux_u(int stage, int ix) const -> double;
+  [[nodiscard]] KOKKOS_FUNCTION auto get_flux_u(int stage, int ix) const
+      -> double;
+  [[nodiscard]] KOKKOS_FUNCTION auto get_basis() const -> const ModalBasis*;
 
   [[nodiscard]] static constexpr auto num_vars() noexcept -> int {
-      return NUM_VARS_;
+    return NUM_VARS_;
   }
 
  private:
