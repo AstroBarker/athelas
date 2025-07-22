@@ -106,24 +106,32 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
     // --- Volume Term ---
     Kokkos::parallel_for(
         "Hydro :: Volume Term",
-        Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, ilo, 0},
-                                               {NUM_VARS_, ihi + 1, order}),
-        KOKKOS_CLASS_LAMBDA(const int iCF, const int iX, const int k) {
-          double local_sum = 0.0;
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0},
+                                               {ihi + 1, order}),
+        KOKKOS_CLASS_LAMBDA(const int iX, const int k) {
+          double local_sum1 = 0.0;
+          double local_sum2 = 0.0;
+          double local_sum3 = 0.0;
           for (int iN = 0; iN < nNodes; ++iN) {
             auto lambda    = nullptr;
+            const double vel = basis_->basis_eval(state, iX, 1, iN + 1);
             const double P = pressure_from_conserved(
                 eos_, basis_->basis_eval(state, iX, 0, iN + 1),
-                basis_->basis_eval(state, iX, 1, iN + 1),
+                vel,
                 basis_->basis_eval(state, iX, 2, iN + 1), lambda);
-            const double flux =
-                flux_fluid(basis_->basis_eval(state, iX, 1, iN + 1), P, iCF);
+            const auto [flux1, flux2, flux3] = flux_fluid(vel, P);
             auto X = grid.node_coordinate(iX, iN);
-            local_sum += grid.get_weights(iN) * flux *
+            local_sum1 += grid.get_weights(iN) * flux1 *
+                         basis_->get_d_phi(iX, iN + 1, k) * grid.get_sqrt_gm(X);
+            local_sum2 += grid.get_weights(iN) * flux2 *
+                         basis_->get_d_phi(iX, iN + 1, k) * grid.get_sqrt_gm(X);
+            local_sum3 += grid.get_weights(iN) * flux3 *
                          basis_->get_d_phi(iX, iN + 1, k) * grid.get_sqrt_gm(X);
           }
 
-          dU(iCF, iX, k) += local_sum;
+          dU(0, iX, k) += local_sum1;
+          dU(1, iX, k) += local_sum2;
+          dU(2, iX, k) += local_sum3;
         });
   }
 }
