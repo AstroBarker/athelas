@@ -54,22 +54,6 @@ auto compute_cfl(const double CFL, const int order, const int nStages,
   const double max_cfl = 0.95;
   return std::min(c * CFL / ((2.0 * (order)-1.0)), max_cfl);
 }
-
-/**
- * Compute timestep
- **/
-auto compute_timestep(const View3D<double> U, const GridStructure* grid,
-                      EOS* eos, const double CFL, const Options* opts)
-    -> double {
-  double dt = 0.0;
-  if (!opts->do_rad) {
-    dt = fluid::compute_timestep_fluid(U, grid, eos, CFL);
-  } else {
-    dt = radiation::compute_timestep_rad(grid, CFL);
-  }
-  return dt;
-}
-
 } // namespace
 
 void Driver::initialize(const ProblemIn* pin) { // NOLINT
@@ -157,7 +141,10 @@ auto Driver::execute() -> int {
   while (time_ < t_end_ && iStep <= nlim_) {
 
     // TODO(astrobarker) use manager_->min_timestep
-    dt_ = std::min(manager_->min_timestep(state_.get_u_cf(), grid_, {.t=time_, .dt=dt_, .dt_a = 0.0, .stage=0}), dt_ * dt_init_frac_);
+    dt_ = std::min(manager_->min_timestep(
+                       state_.get_u_cf(), grid_,
+                       {.t = time_, .dt = dt_, .dt_a = 0.0, .stage = 0}),
+                   dt_ * dt_init_frac_);
     if (time_ + dt_ > t_end_) {
       dt_ = t_end_ - time_;
     }
