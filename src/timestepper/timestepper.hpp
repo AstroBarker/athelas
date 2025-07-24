@@ -273,6 +273,8 @@ class TimeStepper {
             U_s_(iS, 4, iX, k) = SumVar_U_(4, iX, k);
           });
 
+      // NOTE: The limiting strategies in this function will fail if 
+      // the pkg does not have access to a rad_basis and fluid_basis
       auto Us_j =
           Kokkos::subview(U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
       // limiting madness
