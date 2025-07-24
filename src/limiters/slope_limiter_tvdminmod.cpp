@@ -38,9 +38,10 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
       1.0e-10; // TODO(astrobarker): move to input deck
   constexpr static double EPS = 1.0e-10;
 
-  const int& ilo  = grid->get_ilo();
-  const int& ihi  = grid->get_ihi();
-  const int nvars = U.extent(0);
+  const int& ilo = grid->get_ilo();
+  const int& ihi = grid->get_ihi();
+
+  const int nvars = nvars_;
 
   Kokkos::parallel_for(
       "SlopeLimiter :: Minmod :: Reset limiter indicator",
@@ -49,11 +50,11 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
 
   // --- Apply troubled cell indicator ---
   if (tci_opt_) {
-    detect_troubled_cells(U, D_, grid, basis);
+    detect_troubled_cells(U, D_, grid, basis, vars_);
   }
 
   // TODO(astrobarker): this is repeated code: clean up somehow
-  /* map to characteristic vars */
+  // --- map to characteristic vars ---
   if (characteristic_) {
     Kokkos::parallel_for(
         "SlopeLimiter :: Minmod :: ToCharacteristic",
@@ -85,14 +86,15 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
         }); // par iX
   } // end map to characteristics
 
-  for (int iC = 0; iC < nvars; ++iC) {
+  for (int iC : vars_) {
     Kokkos::parallel_for(
         "SlopeLimiter :: Minmod", Kokkos::RangePolicy<>(ilo, ihi + 1),
         KOKKOS_CLASS_LAMBDA(const int iX) {
           limited_cell_(iX) = 0;
 
           // Do nothing we don't need to limit slopes
-          if ((D_(0, iX) > tci_val_ || D_(2, iX) > tci_val_) || !tci_opt_) {
+          if ((D_(0, iX) > tci_val_ || D_(iC % nvars, iX) > tci_val_) ||
+              !tci_opt_) {
 
             // --- Begin TVD Minmod Limiter --- //
             const double s_i = U(iC, iX, 1); // target cell slope
@@ -105,16 +107,8 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
 
             // check limited slope difference vs threshold
             if (std::abs(new_slope - s_i) >
-                0 * sl_threshold_ * std::max(std::abs(s_i), EPS)) {
+                sl_threshold_ * std::max(std::abs(s_i), EPS)) {
               // limit
-              if (std::abs(new_slope) > std::abs(U(iC, iX, 1))) {
-                new_slope = 0.0;
-                std::println("FUCK!!!!!!!!!");
-                std::println("si, cp-ci, ci-cm, min {} {} {} {}", s_i,
-                             c_p - c_i, c_m - c_i,
-                             std::min({s_i, c_p - c_i, c_m - c_i}));
-                std::println("new, old {} {}", new_slope, U(iC, iX, 1));
-              }
               U(iC, iX, 1) = new_slope;
               // remove any higher order contributions
               for (int k = 2; k < order_; ++k) {

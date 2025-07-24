@@ -85,7 +85,6 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
                  const std::string& problem_name, double time, int order,
                  int i_write, bool do_rad) {
   View3D<double> uCF = state->get_u_cf();
-  View3D<double> uCR = state->get_u_cr();
   View3D<double> uPF = state->get_u_pf();
 
   // Construct filename
@@ -137,8 +136,8 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
       vel[(iX - ilo) + (k * nX)].x  = uCF(1, iX, k);
       eint[(iX - ilo) + (k * nX)].x = uCF(2, iX, k);
       if (do_rad) {
-        erad[(iX - ilo) + (k * nX)].x = uCR(0, iX, k);
-        frad[(iX - ilo) + (k * nX)].x = uCR(1, iX, k);
+        erad[(iX - ilo) + (k * nX)].x = uCF(3, iX, k);
+        frad[(iX - ilo) + (k * nX)].x = uCF(4, iX, k);
       }
     }
   }

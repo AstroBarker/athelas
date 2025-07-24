@@ -31,7 +31,7 @@ void HydroPackage::update_explicit(const View3D<double> state,
   const auto stage = dt_info.stage;
 
   // --- Apply BC ---
-  bc::fill_ghost_zones<3>(state, &grid, basis_, bcs_);
+  bc::fill_ghost_zones<3>(state, &grid, basis_, bcs_, {0, 2});
 
   // --- Zero out dU  ---
   Kokkos::parallel_for(
@@ -51,7 +51,7 @@ void HydroPackage::update_explicit(const View3D<double> state,
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, ilo, 0},
                                              {NUM_VARS_, ihi + 1, order}),
       KOKKOS_CLASS_LAMBDA(const int icf, const int ix, const int k) {
-        dU(icf, ix, k) /= (basis_->get_mass_matrix(ix, k));
+        dU(icf, ix, k) /= basis_->get_mass_matrix(ix, k);
       });
 
   // --- Increment from Geometry ---

@@ -20,7 +20,8 @@
 #include "opacity/opac_variant.hpp"
 #include "packages/packages_base.hpp"
 #include "problem_in.hpp"
-#include "rad_utilities.hpp"
+#include "radiation/rad_utilities.hpp"
+#include "radiation/radhydro_package.hpp"
 #include "slope_limiter.hpp"
 #include "slope_limiter_utilities.hpp"
 #include "state.hpp"
@@ -76,12 +77,6 @@ void Driver::initialize(const ProblemIn* pin) { // NOLINT
   if (!restart_) {
     // --- Initialize fields ---
     initialize_fields(&state_, &grid_, eos_.get(), pin);
-
-    // fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, pin->pOrder, bcs_.get( )
-    // ); if ( opts_.do_rad ) {
-    //   bc::fill_ghost_zones<2>( state_.get_u_cr( ), &grid_, pin->pOrder,
-    //                            bcs_.get( ) );
-    // }
   }
 
   // --- Datastructure for modal basis ---
@@ -95,10 +90,15 @@ void Driver::initialize(const ProblemIn* pin) { // NOLINT
   }
 
   // --- Init physics package manager ---
-  // TODO(astrobarker) package logic
-  manager_->add_package(HydroPackage{pin, ssprk_.get_n_stages(), eos_.get(),
-                                     fluid_basis_.get(), bcs_.get(), cfl_, nX_,
-                                     true});
+  if (!pin->do_rad) {
+    manager_->add_package(HydroPackage{pin, ssprk_.get_n_stages(), eos_.get(),
+                                       fluid_basis_.get(), bcs_.get(), cfl_,
+                                       nX_, true});
+  } else {
+    manager_->add_package(RadHydroPackage{
+        pin, ssprk_.get_n_stages(), eos_.get(), opac_.get(), fluid_basis_.get(),
+        radiation_basis_.get(), bcs_.get(), cfl_, nX_, true});
+  }
 
   // --- slope limiter to initial condition ---
   apply_slope_limiter(&sl_hydro_, state_.get_u_cf(), &grid_, fluid_basis_.get(),
@@ -126,9 +126,10 @@ Driver::Driver(const ProblemIn* pin) // NOLINT
       opac_(std::make_unique<Opacity>(initialize_opacity(pin))), grid_(pin),
       opts_(pin->do_rad, false, restart_, pin->Geometry, pin->basis,
             pin->pOrder),
-      state_(3, 2, 3, 1, pin->nElements, pin->nGhost, pin->nNodes, pin->pOrder),
-      sl_hydro_(initialize_slope_limiter(&grid_, pin, 3)),
-      sl_rad_(initialize_slope_limiter(&grid_, pin, 2)), // update
+      state_(3 + 2 * (pin->do_rad), 3, 1, pin->nElements, pin->nGhost,
+             pin->nNodes, pin->pOrder),
+      sl_hydro_(initialize_slope_limiter(&grid_, pin, {0, 1, 2}, 3)),
+      sl_rad_(initialize_slope_limiter(&grid_, pin, {3, 4}, 2)), // update
       ssprk_(pin, &grid_, eos_.get()) {
   initialize(pin);
 }
@@ -155,9 +156,8 @@ auto Driver::execute() -> int {
   std::println("# Step    t       dt       zone_cycles / wall_second");
   while (time_ < t_end_ && iStep <= nlim_) {
 
-    dt_ = std::min(
-        compute_timestep(state_.get_u_cf(), &grid_, eos_.get(), cfl_, &opts_),
-        dt_ * dt_init_frac_);
+    // TODO(astrobarker) use manager_->min_timestep
+    dt_ = std::min(manager_->min_timestep(state_.get_u_cf(), grid_, {.t=time_, .dt=dt_, .dt_a = 0.0, .stage=0}), dt_ * dt_init_frac_);
     if (time_ + dt_ > t_end_) {
       dt_ = t_end_ - time_;
     }
@@ -166,9 +166,8 @@ auto Driver::execute() -> int {
       ssprk_.step(manager_.get(), &state_, grid_, dt_, &sl_hydro_, &opts_);
     } else {
       try {
-        ssprk_.update_rad_hydro(dt_, &state_, grid_, fluid_basis_.get(),
-                                radiation_basis_.get(), eos_.get(), opac_.get(),
-                                &sl_hydro_, &opts_, bcs_.get());
+        ssprk_.step_imex(manager_.get(), &state_, grid_, dt_, &sl_hydro_,
+                         &sl_rad_, &opts_);
       } catch (const AthelasError& e) {
         std::cerr << e.what() << "\n";
         return AthelasExitCodes::FAILURE;
@@ -209,9 +208,6 @@ auto Driver::execute() -> int {
     iStep++;
   }
 
-  // --- Apply bc and write final output ---
-  // bc::fill_ghost_zones<3>( state_.get_u_cf( ), &grid_, fluid_basis_.get(),
-  //                         bcs_.get( ) );
   write_state(&state_, grid_, &sl_hydro_, problem_name_, time_, pin_.pOrder, -1,
               opts_.do_rad);
 

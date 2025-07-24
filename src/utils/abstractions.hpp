@@ -42,5 +42,6 @@ enum poly_basis { legendre, taylor };
 struct TimeStepInfo {
   double t;
   double dt;
+  double dt_a; // dt * tableau coefficient
   int stage;
 };

@@ -20,7 +20,6 @@ void rad_equilibrium_init(State* state, GridStructure* grid,
                           const ProblemIn* pin) {
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
-  View3D<double> uCR = state->get_u_cr();
   const int pOrder   = state->get_p_order();
 
   const int ilo    = grid->get_ilo();
@@ -33,7 +32,7 @@ void rad_equilibrium_init(State* state, GridStructure* grid,
 
   const int iPF_D = 0;
 
-  const int iCR_E = 0;
+  const int iCR_E = 3;
 
   const double V0 = pin->in_table["problem"]["params"]["v0"].value_or(0.0);
   const double logD =
@@ -54,15 +53,15 @@ void rad_equilibrium_init(State* state, GridStructure* grid,
         uCF(iCF_Tau, iX, k) = 0.0;
         uCF(iCF_V, iX, k)   = 0.0;
         uCF(iCF_E, iX, k)   = 0.0;
-        uCR(0, iX, k)       = 0.0;
-        uCR(1, iX, k)       = 0.0;
+        uCF(3, iX, k)       = 0.0;
+        uCF(4, iX, k)       = 0.0;
 
         if (k == 0) {
           uCF(iCF_Tau, iX, 0) = 1.0 / D;
           uCF(iCF_V, iX, 0)   = V0;
           uCF(iCF_E, iX, 0)   = Ev_gas / D;
 
-          uCR(iCR_E, iX, 0) = Ev_rad;
+          uCF(iCR_E, iX, 0) = Ev_rad;
         }
 
         uPF(iPF_D, iX, iNodeX) = D;

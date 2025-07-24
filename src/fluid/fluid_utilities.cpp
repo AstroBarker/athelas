@@ -45,7 +45,8 @@ auto flux_fluid(const double V, const double P, const int iCF) -> double {
   }
 }
 
-auto flux_fluid(const double V, const double P) -> std::tuple<double, double, double> {
+auto flux_fluid(const double V, const double P)
+    -> std::tuple<double, double, double> {
   return {-V, P, P * V};
 }
 

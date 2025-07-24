@@ -32,6 +32,7 @@ concept IMEXPackage =
              const GridStructure& grid, const TimeStepInfo& dt_info) {
   {pkg.update_explicit(state, dU, grid, dt_info)}->std::same_as<void>;
   {pkg.update_implicit(state, dU, grid, dt_info)}->std::same_as<void>;
+  {pkg.update_implicit_iterative(state, dU, grid, dt_info)}->std::same_as<void>;
   {pkg.min_timestep(state, grid, dt_info)}->std::convertible_to<double>;
   {pkg.name()}->std::convertible_to<std::string_view>;
   {pkg.is_active()}->std::convertible_to<bool>;

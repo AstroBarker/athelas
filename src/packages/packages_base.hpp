@@ -28,6 +28,7 @@ class PackageWrapper {
     return model ? &model->get_package() : nullptr;
   }
 
+  // Explicit update
   void update_explicit(View3D<double> state, View3D<double> dU,
                        const GridStructure& grid, const TimeStepInfo& dt_info) {
     if (package_->has_explicit()) {
@@ -35,10 +36,24 @@ class PackageWrapper {
     }
   }
 
+  // Implicit update
   void update_implicit(View3D<double> state, View3D<double> dU,
                        const GridStructure& grid, const TimeStepInfo& dt_info) {
     if (package_->has_implicit()) {
       package_->update_implicit(state, dU, grid, dt_info);
+    }
+  }
+
+  /**
+   * @brief Iterative solve of implicit physics
+   * Solves:
+   * u^i = R^i + dt a_ii S(u^i)
+   **/
+  void update_implicit_iterative(View3D<double> state, View3D<double> dU,
+                                 const GridStructure& grid,
+                                 const TimeStepInfo& dt_info) {
+    if (package_->has_implicit()) {
+      package_->update_implicit_iterative(state, dU, grid, dt_info);
     }
   }
 
@@ -71,6 +86,9 @@ class PackageWrapper {
                                  const GridStructure&, const TimeStepInfo&) = 0;
     virtual void update_implicit(View3D<double>, View3D<double>,
                                  const GridStructure&, const TimeStepInfo&) = 0;
+    virtual void update_implicit_iterative(View3D<double>, View3D<double>,
+                                           const GridStructure&,
+                                           const TimeStepInfo&)             = 0;
     [[nodiscard]] virtual auto min_timestep(View3D<double> state,
                                             const GridStructure& grid,
                                             const TimeStepInfo& dt_info) const
@@ -87,7 +105,7 @@ class PackageWrapper {
     explicit PackageModel(T package) : package_(std::move(package)) {}
 
     // Get original package
-    T& get_package() { return package_; }
+    auto get_package() -> T& { return package_; }
 
     void update_explicit(View3D<double> state, View3D<double> dU,
                          const GridStructure& grid,
@@ -102,6 +120,14 @@ class PackageWrapper {
                          const TimeStepInfo& dt_info) override {
       if constexpr (has_implicit_update_v<T>) {
         package_.update_implicit(state, dU, grid, dt_info);
+      }
+    }
+
+    void update_implicit_iterative(View3D<double> state, View3D<double> dU,
+                                   const GridStructure& grid,
+                                   const TimeStepInfo& dt_info) override {
+      if constexpr (has_implicit_update_v<T>) {
+        package_.update_implicit_iterative(state, dU, grid, dt_info);
       }
     }
 
@@ -172,6 +198,16 @@ class PackageManager {
     }
   }
 
+  void update_implicit_iterative(View3D<double> state, View3D<double> dU,
+                                 const GridStructure& grid,
+                                 const TimeStepInfo& dt_info) {
+    for (auto* pkg : implicit_packages_) {
+      if (pkg->is_active()) {
+        pkg->update_implicit_iterative(state, dU, grid, dt_info);
+      }
+    }
+  }
+
   auto min_timestep(View3D<double> state, const GridStructure& grid,
                     const TimeStepInfo& dt_info) const -> double {
     double min_dt = std::numeric_limits<double>::max();
@@ -206,6 +242,11 @@ class PackageManager {
     return names;
   }
 
+  /**
+   * @brief used to get a particular package to access its unique features
+   * Usage: auto pkg = pkgs->get_package<PackageType>("package_name");
+   * The templating on PackageType is necessary for pull out the correct type.
+   */
   template <typename T = PackageWrapper>
   [[nodiscard]] auto get_package(std::string_view name) const -> T* {
     for (const auto& pkg : all_packages_) {

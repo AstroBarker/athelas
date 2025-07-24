@@ -18,7 +18,8 @@ using namespace utilities;
 namespace limiter_utilities {
 
 auto initialize_slope_limiter(const GridStructure* grid, const ProblemIn* pin,
-                              int nvars) -> SlopeLimiter;
+                              const std::vector<int>& vars, int nvars)
+    -> SlopeLimiter;
 
 // Standard MINMOD function
 template <typename T>
@@ -42,7 +43,8 @@ auto barth_jespersen(double U_v_L, double U_v_R, double U_c_L, double U_c_T,
                      double U_c_R, double alpha) -> double;
 
 void detect_troubled_cells(View3D<double> U, View2D<double> D,
-                           const GridStructure* grid, const ModalBasis* basis);
+                           const GridStructure* grid, const ModalBasis* basis,
+                           const std::vector<int>& vars);
 
 auto cell_average(View3D<double> U, const GridStructure* grid,
                   const ModalBasis* basis, int iCF, int iX, int extrapolate)

@@ -28,18 +28,24 @@ namespace bc {
  *  periodic
  *  dirichlet
  *  marshak
+ *
+ * TODO(astrobarker): Some generalizing
+ * between rad and fluid bcs is needed.
  **/
 template <int N> // N = 3 for fluid, N = 2 for rad...
 void fill_ghost_zones(View3D<double> U, const GridStructure* grid,
-                      const ModalBasis* basis, BoundaryConditions* bcs) {
+                      const ModalBasis* basis, BoundaryConditions* bcs,
+                      const std::tuple<int, int>& vars) {
 
-  const int nvars = U.extent(0);
-  const int nX    = grid->get_n_elements();
+  const int nX = grid->get_n_elements();
 
   auto this_bc = get_bc_data<N>(bcs);
 
+  auto [start, stop] = vars;
+
   Kokkos::parallel_for(
-      "Fill ghost zones", nvars, KOKKOS_LAMBDA(const int q) {
+      "Fill ghost zones", Kokkos::RangePolicy<>(start, stop + 1),
+      KOKKOS_LAMBDA(const int q) {
         const int ghost_L    = 0;
         const int interior_L = (this_bc[0].type != BcType::Periodic) ? 1 : nX;
         const int ghost_R    = nX + 1;
@@ -104,14 +110,14 @@ apply_bc(const BoundaryConditionsData<N>& bc, View3D<double> U, const int q,
     // Marshak uses dirichlet_values
     const double Einc = bc.dirichlet_values[0]; // aT^4
     for (int k = 0; k < 1; k++) {
-      if (q == 0) {
+      if (q == 3) {
         if (k == 0) {
           U(q, ghost_cell, k) = (k == 0) ? Einc : 0;
         }
-      } else if (q == 1) {
+      } else if (q == 4) {
         constexpr static double c = constants::c_cgs;
-        const double E0           = U(0, interior_cell, k);
-        const double F0           = U(1, interior_cell, k);
+        const double E0           = U(3, interior_cell, k);
+        const double F0           = U(4, interior_cell, k);
         U(q, ghost_cell, k) =
             (k == 0) ? 0.5 * c * Einc - 0.5 * (c * E0 + 2.0 * F0) : 0.0;
       }

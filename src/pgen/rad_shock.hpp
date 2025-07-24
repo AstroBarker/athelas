@@ -20,7 +20,6 @@
 void rad_shock_init(State* state, GridStructure* grid, const ProblemIn* pin) {
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
-  View3D<double> uCR = state->get_u_cr();
   const int pOrder   = state->get_p_order();
 
   const int ilo    = grid->get_ilo();
@@ -33,7 +32,7 @@ void rad_shock_init(State* state, GridStructure* grid, const ProblemIn* pin) {
 
   constexpr static int iPF_D = 0;
 
-  constexpr static int iCR_E = 0;
+  constexpr static int iCR_E = 3;
 
   const double V_L  = pin->in_table["problem"]["params"]["vL"].value_or(5.19e7);
   const double V_R  = pin->in_table["problem"]["params"]["vR"].value_or(1.73e7);
@@ -61,8 +60,8 @@ void rad_shock_init(State* state, GridStructure* grid, const ProblemIn* pin) {
         uCF(iCF_Tau, iX, k) = 0.0;
         uCF(iCF_V, iX, k)   = 0.0;
         uCF(iCF_E, iX, k)   = 0.0;
-        uCR(0, iX, k)       = 0.0;
-        uCR(1, iX, k)       = 0.0;
+        uCF(3, iX, k)       = 0.0;
+        uCF(4, iX, k)       = 0.0;
 
         if (X1 <= x_d) {
           if (k == 0) {
@@ -70,7 +69,7 @@ void rad_shock_init(State* state, GridStructure* grid, const ProblemIn* pin) {
             uCF(iCF_V, iX, 0)   = V_L;
             uCF(iCF_E, iX, 0)   = em_gas_L + 0.5 * V_L * V_L;
 
-            uCR(iCR_E, iX, 0) = e_rad_L;
+            uCF(iCR_E, iX, 0) = e_rad_L;
           }
           uPF(iPF_D, iX, iNodeX) = rhoL;
         } else {
@@ -79,7 +78,7 @@ void rad_shock_init(State* state, GridStructure* grid, const ProblemIn* pin) {
             uCF(iCF_V, iX, 0)   = V_R;
             uCF(iCF_E, iX, 0)   = em_gas_R + 0.5 * V_R * V_R;
 
-            uCR(iCR_E, iX, 0) = e_rad_R;
+            uCF(iCR_E, iX, 0) = e_rad_R;
           }
           uPF(iPF_D, iX, iNodeX) = rhoR;
         }

@@ -169,9 +169,9 @@ void limit_rad_energy(View3D<double> U, const ModalBasis* basis) {
         double temp   = 0.0;
 
         for (int iN = 0; iN <= order + 1; iN++) {
-          nodal = basis->basis_eval(U, iX, 0, iN);
+          nodal = basis->basis_eval(U, iX, 3, iN);
 
-          if (nodal > EPSILON + 0 * std::abs(U(1, iX, 0)) / constants::c_cgs) {
+          if (nodal > EPSILON + 0 * std::abs(U(4, iX, 0)) / constants::c_cgs) {
             temp = 1.0;
           } else {
             // temp = backtrace( U, target_func, basis, iX, iN );
@@ -184,8 +184,8 @@ void limit_rad_energy(View3D<double> U, const ModalBasis* basis) {
         }
 
         for (int k = 1; k < order; k++) {
-          U(0, iX, k) *= theta2;
-          U(1, iX, k) *= theta2;
+          U(3, iX, k) *= theta2;
+          U(4, iX, k) *= theta2;
         }
       });
 }
@@ -203,9 +203,9 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis* basis) {
         constexpr static double c = constants::c_cgs;
 
         for (int iN = 0; iN <= order + 1; iN++) {
-          nodal = basis->basis_eval(U, iX, 1, iN);
+          nodal = basis->basis_eval(U, iX, 4, iN);
 
-          if (std::abs(nodal) <= c * U(0, iX, 0)) {
+          if (std::abs(nodal) <= c * U(3, iX, 0)) {
             temp = 1.0;
           } else {
             // TODO(astrobarker): Backtracing may be working okay...
@@ -218,7 +218,7 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis* basis) {
         }
 
         for (int k = 1; k < order; k++) {
-          U(1, iX, k) *= theta2;
+          U(4, iX, k) *= theta2;
         }
       });
 }
@@ -252,8 +252,8 @@ auto target_func(const double theta, const View3D<double> U,
 auto target_func_rad_flux(const double theta, const View3D<double> U,
                           const ModalBasis* basis, const int iX, const int iN)
     -> double {
-  const double w  = std::min(1.0e-13, U(1, iX, 0));
-  const double s1 = compute_theta_state(U, basis, theta, 1, iX, iN);
+  const double w  = std::min(1.0e-13, U(4, iX, 0));
+  const double s1 = compute_theta_state(U, basis, theta, 4, iX, iN);
 
   const double e = s1;
 
@@ -263,8 +263,8 @@ auto target_func_rad_flux(const double theta, const View3D<double> U,
 auto target_func_rad_energy(const double theta, const View3D<double> U,
                             const ModalBasis* basis, const int iX, const int iN)
     -> double {
-  const double w  = std::min(1.0e-13, U(0, iX, 0));
-  const double s1 = compute_theta_state(U, basis, theta, 0, iX, iN);
+  const double w  = std::min(1.0e-13, U(3, iX, 0));
+  const double s1 = compute_theta_state(U, basis, theta, 3, iX, iN);
 
   const double e = s1;
 
