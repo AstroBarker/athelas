@@ -10,6 +10,7 @@
  *          - compute_increment_rad_source (coupling source term)
  */
 
+#include "radiation/rad_discretization.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
 #include "fluid/fluid_utilities.hpp"
@@ -198,64 +199,8 @@ auto RadHydroPackage::radhydro_source(const View2D<double> state,
                                       const GridStructure& grid, const int iX,
                                       const int k) const
     -> std::tuple<double, double, double, double> {
-  static constexpr double c  = constants::c_cgs;
-  static constexpr double c2 = c * c;
-
-  const int nNodes = grid.get_n_nodes();
-
-  double local_sum_e_r = 0.0; // radiation energy source
-  double local_sum_m_r = 0.0; // radiation momentum (flux) source
-  double local_sum_e_g = 0.0; // gas energy source
-  double local_sum_m_g = 0.0; // gas momentum (velocity) source
-  for (int iN = 0; iN < nNodes; ++iN) {
-    // Note: basis evaluations are awkward here.
-    // must be sure to use the correct basis functions.
-    const double tau  = fluid_basis_->basis_eval(state, iX, 0, iN + 1);
-    const double rho  = 1.0 / tau;
-    const double vel  = fluid_basis_->basis_eval(state, iX, 1, iN + 1);
-    const double em_t = fluid_basis_->basis_eval(state, iX, 2, iN + 1);
-
-    auto lambda      = nullptr;
-    const double t_g = temperature_from_conserved(eos_, tau, vel, em_t, lambda);
-
-    // TODO(astrobarker): composition
-    const double X = 1.0;
-    const double Y = 1.0;
-    const double Z = 1.0;
-
-    const double kappa_r = rosseland_mean(opac_, rho, t_g, X, Y, Z, lambda);
-    const double kappa_p = planck_mean(opac_, rho, t_g, X, Y, Z, lambda);
-
-    const double E_r = rad_basis_->basis_eval(state, iX, 3, iN + 1);
-    const double F_r = rad_basis_->basis_eval(state, iX, 4, iN + 1);
-    const double P_r = compute_closure(E_r, F_r);
-
-    // 4 force
-    const auto [G0, G] =
-        radiation_four_force(rho, vel, t_g, kappa_r, kappa_p, E_r, F_r, P_r);
-
-    const double source_e_r = -c * G0;
-    const double source_m_r = -c2 * G;
-    const double source_e_g = c * G0;
-    const double source_m_g = G;
-
-    local_sum_e_r +=
-        grid.get_weights(iN) * rad_basis_->get_phi(iX, iN + 1, k) * source_e_r;
-    local_sum_m_r +=
-        grid.get_weights(iN) * rad_basis_->get_phi(iX, iN + 1, k) * source_m_r;
-    local_sum_e_g += grid.get_weights(iN) *
-                     fluid_basis_->get_phi(iX, iN + 1, k) * source_e_g;
-    local_sum_m_g += grid.get_weights(iN) *
-                     fluid_basis_->get_phi(iX, iN + 1, k) * source_m_g;
-  }
-  // \Delta x / M_kk
-  const double dx_o_mkk_fluid =
-      grid.get_widths(iX) / fluid_basis_->get_mass_matrix(iX, k);
-  const double dx_o_mkk_rad =
-      grid.get_widths(iX) / rad_basis_->get_mass_matrix(iX, k);
-
-  return {local_sum_m_g * dx_o_mkk_fluid, local_sum_e_g * dx_o_mkk_fluid,
-          local_sum_e_r * dx_o_mkk_rad, local_sum_m_r * dx_o_mkk_rad};
+  return compute_increment_radhydro_source(state, k, grid, fluid_basis_,
+                                           rad_basis_, eos_, opac_, iX);
 }
 
 // This is duplicate of above but used differently, in the root finder

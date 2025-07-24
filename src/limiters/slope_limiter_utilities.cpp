@@ -92,7 +92,6 @@ void detect_troubled_cells(View3D<double> U, View2D<double> D,
   // Cell averages by extrapolating L and R neighbors into current cell
 
   for (int iC : vars) {
-    std::println("iC = {}", iC);
     if (iC == 1 || iC == 4) {
       continue; /* skip momenta */
     }
