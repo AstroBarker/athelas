@@ -42,6 +42,9 @@ void rad_advection_init(State* state, GridStructure* grid,
   const double amp = pin->in_table["problem"]["params"]["amp"].value_or(1.0);
   const double width =
       pin->in_table["problem"]["params"]["width"].value_or(0.05);
+  const double gamma = 5.0 / 3.0;
+  const double gm1   = gamma - 1.0;
+  const double mu    = 1.0 + constants::m_e / constants::m_p;
 
   for (int iX = 0; iX <= ihi + 1; iX++) {
     for (int k = 0; k < pOrder; k++) {
@@ -61,7 +64,7 @@ void rad_advection_init(State* state, GridStructure* grid,
 
           const double Trad = std::pow(uCF(iCR_E, iX, k) / constants::a, 0.25);
           const double sie_fluid =
-              0.1; // constants::k_B * Trad / ( gm1 * mu * constants::m_p );
+              constants::k_B * Trad / (gm1 * mu * constants::m_p);
           uCF(iCF_Tau, iX, 0) = 1.0 / D;
           uCF(iCF_V, iX, 0)   = V0;
           uCF(iCF_E, iX, 0) =
