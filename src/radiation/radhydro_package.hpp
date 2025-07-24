@@ -87,4 +87,11 @@ class RadHydroPackage {
   static constexpr int NUM_VARS_ = 5;
 };
 
+auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
+                                       const GridStructure& grid,
+                                       const ModalBasis* fluid_basis,
+                                       const ModalBasis* rad_basis,
+                                       const EOS* eos, const Opacity* opac,
+                                       const int iX)
+    -> std::tuple<double, double, double, double>;
 } // namespace radiation

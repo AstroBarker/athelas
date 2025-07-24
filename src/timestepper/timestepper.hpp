@@ -16,25 +16,19 @@
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
 #include "eos/eos_variant.hpp"
-#include "fluid/fluid_discretization.hpp"
 #include "fluid/hydro_package.hpp"
 #include "limiters/bound_enforcing_limiter.hpp"
 #include "limiters/slope_limiter.hpp"
 #include "opacity/opac_variant.hpp"
 #include "packages/packages_base.hpp"
 #include "problem_in.hpp"
-#include "radiation/rad_discretization.hpp"
 #include "radiation/radhydro_package.hpp"
 #include "solvers/root_finders.hpp"
 #include "state/state.hpp"
 #include "timestepper/tableau.hpp"
 
 using bc::BoundaryConditions;
-using fluid::compute_increment_fluid_explicit;
-using fluid::compute_increment_fluid_source;
 using fluid::HydroPackage;
-using radiation::compute_increment_rad_explicit;
-using radiation::compute_increment_rad_source;
 using radiation::RadHydroPackage;
 
 class TimeStepper {

@@ -115,8 +115,6 @@ set( ATHELAS_SOURCES
   "src/fluid/hydro_package.cpp"
   "src/radiation/radhydro_package.cpp"
   "src/radiation/rad_utilities.cpp"
-  "src/radiation/rad_discretization.cpp"
-  "src/fluid/fluid_discretization.cpp"
   "src/geometry/grid.cpp"
   "src/io/io.cpp"
   "src/linalg/linear_algebra.cpp"
