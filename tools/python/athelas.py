@@ -96,7 +96,7 @@ class Athelas:
           self.uCR[1] = self._load_variable(
             f, "conserved/rad_momentum", (self.nX, self.sOrder)
           )
-        except KeyError:
+        except KeyError as e:
           print(f"KeyError: {e}")
           self.uCR = np.zeros_like(self.uCR[0])
     except (OSError, KeyError) as e:
