@@ -51,10 +51,11 @@ void GravityPackage::gravity_update(const View3D<double> state,
           double local_sum_e = 0.0;
           for (int iN = 0; iN < nNodes; ++iN) {
             const double X = grid.node_coordinate(iX, iN);
-
-            local_sum_v +=
-                grid.get_weights(iN) * basis_->get_phi(iX, iN + 1, k) * gval_ /
-                basis_->basis_eval(state, iX, 0, iN + 1) * grid.get_sqrt_gm(X);
+            local_sum_v += constants::G_GRAV * grid.get_weights(iN) *
+                           basis_->get_phi(iX, iN + 1, k) /
+                           basis_->basis_eval(state, iX, 0, iN + 1) *
+                           grid.enclosed_mass(iX, iN) * grid.get_sqrt_gm(X) /
+                           (X * X);
             local_sum_e +=
                 local_sum_v * basis_->basis_eval(state, iX, 1, iN + 1);
           }
