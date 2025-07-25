@@ -53,6 +53,26 @@ ProblemIn::ProblemIn(const std::string& fn) {
       in_table["bc"]["rad"]["bc_o"].value<std::string>();
   std::optional<double> cfl = in_table["problem"]["cfl"].value<double>();
 
+  // Is this a good pattern?
+  do_gravity = in_table["problem"]["do_gravity"].value_or(false);
+  if (do_gravity) {
+    if (!in_table["gravity"].is_table()) {
+      THROW_ATHELAS_ERROR(
+          "Gravity is enabled but not gravity block exists in input deck!");
+    } else {
+      gval = in_table["gravity"]["gval"].value_or(0.0);
+      const std::string gmodel =
+          in_table["gravity"]["model"].value_or("constant");
+      grav_model = (utilities::to_lower(gmodel) == "spherical")
+                       ? GravityModel::Spherical
+                       : GravityModel::Constant;
+      if (grav_model == GravityModel::Constant && gval <= 0.0) {
+        THROW_ATHELAS_ERROR(
+            "Constant gravitational potential requested but g <= 0.0!");
+      }
+    }
+  }
+
   // output
   nlim            = in_table["output"]["nlim"].value_or(-1);
   ncycle_out      = in_table["output"]["ncycle_out"].value_or(1);

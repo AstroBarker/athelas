@@ -14,6 +14,7 @@
 #include "error.hpp"
 #include "fluid/hydro_package.hpp"
 #include "geometry/grid.hpp"
+#include "gravity/gravity_package.hpp"
 #include "history/quantities.hpp"
 #include "initialization.hpp"
 #include "io/io.hpp"
@@ -118,6 +119,7 @@ auto Driver::execute() -> int {
 
 void Driver::initialize(const ProblemIn* pin) { // NOLINT
   using fluid::HydroPackage;
+  using gravity::GravityPackage;
   if (!restart_) {
     // --- Initialize fields ---
     initialize_fields(&state_, &grid_, eos_.get(), pin);
@@ -142,6 +144,14 @@ void Driver::initialize(const ProblemIn* pin) { // NOLINT
     manager_->add_package(RadHydroPackage{
         pin, ssprk_.get_n_stages(), eos_.get(), opac_.get(), fluid_basis_.get(),
         radiation_basis_.get(), bcs_.get(), cfl_, nX_, true});
+  }
+  if (pin->do_gravity) {
+    manager_->add_package(GravityPackage{pin, pin->grav_model, pin->gval,
+                                         fluid_basis_.get(), cfl_, true});
+  }
+  auto registered_pkgs = manager_->get_package_names();
+  for (auto name : registered_pkgs) {
+    std::println("Package Registered:: {}", name);
   }
 
   // --- slope limiter to initial condition ---

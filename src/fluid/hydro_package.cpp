@@ -29,7 +29,7 @@ HydroPackage::HydroPackage(const ProblemIn* /*pin*/, int n_stages, EOS* eos,
 KOKKOS_FUNCTION
 void HydroPackage::update_explicit(const View3D<double> state,
                                    View3D<double> dU, const GridStructure& grid,
-                                   const TimeStepInfo& dt_info) {
+                                   const TimeStepInfo& dt_info) const {
   const auto& order = basis_->get_order();
   const auto& ilo   = grid.get_ilo();
   const auto& ihi   = grid.get_ihi();
@@ -72,7 +72,7 @@ KOKKOS_FUNCTION
 void HydroPackage::fluid_divergence(const View3D<double> state,
                                     View3D<double> dU,
                                     const GridStructure& grid,
-                                    const int stage) {
+                                    const int stage) const {
   const auto& nNodes = grid.get_n_nodes();
   const auto& order  = basis_->get_order();
   const auto& ilo    = grid.get_ilo();
@@ -184,7 +184,7 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
 
 KOKKOS_FUNCTION
 void HydroPackage::fluid_geometry(const View3D<double> state, View3D<double> dU,
-                                  const GridStructure& grid) {
+                                  const GridStructure& grid) const {
   const int& nNodes = grid.get_n_nodes();
   const int& order  = basis_->get_order();
   const int& ilo    = grid.get_ilo();

@@ -45,3 +45,4 @@ struct TimeStepInfo {
   double dt_a; // dt * tableau coefficient
   int stage;
 };
+enum class GravityModel { Constant, Spherical };

@@ -25,13 +25,14 @@ class RadHydroPackage {
                   BoundaryConditions* bcs, double cfl, int nx,
                   bool active = true);
 
-  // TODO(astrobarker): mark const
   KOKKOS_FUNCTION
   void update_explicit(View3D<double> state, View3D<double> dU,
-                       const GridStructure& grid, const TimeStepInfo& dt_info);
+                       const GridStructure& grid,
+                       const TimeStepInfo& dt_info) const;
   KOKKOS_FUNCTION
   void update_implicit(View3D<double> state, View3D<double> dU,
-                       const GridStructure& grid, const TimeStepInfo& dt_info);
+                       const GridStructure& grid,
+                       const TimeStepInfo& dt_info) const;
   KOKKOS_FUNCTION
   void update_implicit_iterative(View3D<double> state, View3D<double> dU,
                                  const GridStructure& grid,
@@ -43,7 +44,7 @@ class RadHydroPackage {
 
   KOKKOS_FUNCTION
   void radhydro_divergence(const View3D<double> state, View3D<double> dU,
-                           const GridStructure& grid, int stage);
+                           const GridStructure& grid, int stage) const;
 
   [[nodiscard]] KOKKOS_FUNCTION auto
   min_timestep(const View3D<double> state, const GridStructure& grid,
@@ -93,11 +94,8 @@ class RadHydroPackage {
   static constexpr int NUM_VARS_ = 5;
 };
 
-auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
-                                       const GridStructure& grid,
-                                       const ModalBasis* fluid_basis,
-                                       const ModalBasis* rad_basis,
-                                       const EOS* eos, const Opacity* opac,
-                                       const int iX)
-    -> std::tuple<double, double, double, double>;
+auto compute_increment_radhydro_source(
+    const View2D<double> uCRH, int k, const GridStructure& grid,
+    const ModalBasis* fluid_basis, const ModalBasis* rad_basis, const EOS* eos,
+    const Opacity* opac, int iX) -> std::tuple<double, double, double, double>;
 } // namespace radiation

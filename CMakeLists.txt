@@ -118,6 +118,7 @@ set( ATHELAS_SOURCES
   "src/radiation/radhydro_package.cpp"
   "src/radiation/rad_utilities.cpp"
   "src/geometry/grid.cpp"
+  "src/gravity/gravity_package.cpp"
   "src/io/io.cpp"
   "src/linalg/linear_algebra.cpp"
   "src/quadrature/quadrature.cpp"
