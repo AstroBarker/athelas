@@ -228,12 +228,14 @@ void GridStructure::compute_mass_r(View3D<double> uPF) {
   double mass = 0.0;
   double X    = 0.0;
 
+  const double geom_fac = (do_geometry()) ? 4.0 * constants::PI : 1.0;
+
   mass = 0.0;
   for (int iX = ilo; iX <= ihi; ++iX) {
     for (int iN = 0; iN < nNodes_; ++iN) {
       X = node_coordinate(iX, iN);
       mass += weights_(iN) * get_sqrt_gm(X) * uPF(0, iX, iN);
-      mass_r_(iX, iN) = mass * widths_(iX);
+      mass_r_(iX, iN) = mass * widths_(iX) * geom_fac;
     }
   }
 }
