@@ -49,8 +49,14 @@ auto flux_rad(const double E, const double F, const double P, const double V,
   assert(E > 0.0 &&
          "Radiation :: flux_rad :: non positive definite energy density.");
 
-  constexpr static double c = constants::c_cgs;
-  return (iCR == 0) ? F - V * E : c * c * P - V * F;
+  static constexpr double c  = constants::c_cgs;
+  static constexpr double c2 = c * c;
+  return (iCR == 0) ? F - V * E : c2 * P - V * F;
+}
+
+auto flux_rad(const double E, const double F, const double P, const double V)
+    -> std::tuple<double, double> {
+  return {F - V * E, constants::c_cgs * constants::c_cgs * P - V * F};
 }
 
 /**

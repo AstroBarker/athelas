@@ -25,6 +25,8 @@ namespace radiation {
 
 auto flux_factor(double E, double F) -> double;
 auto flux_rad(double E, double F, double P, double vstar, int iCR) -> double;
+auto flux_rad(double E, double F, double P, double V)
+    -> std::tuple<double, double>;
 auto radiation_four_force(double D, double V, double T, double kappa_r,
                           double kappa_p, double E, double F, double Pr)
     -> std::tuple<double, double>;

@@ -87,6 +87,7 @@ include_directories("src/limiters")
 include_directories("src/basis")
 include_directories("src/fluid")
 include_directories("src/radiation")
+include_directories("src/packages")
 include_directories("src/pgen")
 include_directories("src/linalg")
 include_directories("src/eos")
@@ -111,9 +112,9 @@ set( ATHELAS_SOURCES
   "src/eos/eos_ideal.cpp"
   "src/eos/eos_marshak.cpp"
   "src/fluid/fluid_utilities.cpp"
+  "src/fluid/hydro_package.cpp"
+  "src/radiation/radhydro_package.cpp"
   "src/radiation/rad_utilities.cpp"
-  "src/radiation/rad_discretization.cpp"
-  "src/fluid/fluid_discretization.cpp"
   "src/geometry/grid.cpp"
   "src/io/io.cpp"
   "src/linalg/linear_algebra.cpp"

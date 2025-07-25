@@ -21,6 +21,8 @@
 namespace fluid {
 
 auto flux_fluid(double V, double P, int iCF) -> double;
+auto flux_fluid(const double V, const double P)
+    -> std::tuple<double, double, double>;
 auto source_fluid_rad(double D, double V, double T, double kappa_r,
                       double kappa_p, double E, double F, double Pr, int iCF)
     -> double;

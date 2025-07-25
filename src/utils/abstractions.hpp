@@ -38,3 +38,10 @@ using View1D = Kokkos::View<T*>;
 namespace poly_basis {
 enum poly_basis { legendre, taylor };
 } // namespace poly_basis
+//
+struct TimeStepInfo {
+  double t;
+  double dt;
+  double dt_a; // dt * tableau coefficient
+  int stage;
+};

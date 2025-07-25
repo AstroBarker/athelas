@@ -18,12 +18,13 @@
 namespace limiter_utilities {
 
 auto initialize_slope_limiter(const GridStructure* grid, const ProblemIn* pin,
-                              const int nvars) -> SlopeLimiter {
+                              const std::vector<int>& vars, const int nvars)
+    -> SlopeLimiter {
   SlopeLimiter S_Limiter;
   if (utilities::to_lower(pin->limiter_type) == "minmod") {
-    S_Limiter = TVDMinmod(grid, pin, nvars);
+    S_Limiter = TVDMinmod(grid, pin, vars, nvars);
   } else {
-    S_Limiter = WENO(grid, pin, nvars);
+    S_Limiter = WENO(grid, pin, vars, nvars);
   }
   return S_Limiter;
 }
@@ -83,15 +84,15 @@ auto barth_jespersen(double U_v_L, double U_v_R, double U_c_L, double U_c_T,
  * to flag cells for limiting
  **/
 void detect_troubled_cells(View3D<double> U, View2D<double> D,
-                           const GridStructure* grid, const ModalBasis* basis) {
-  const int nvars = U.extent(0);
-  const int ilo   = grid->get_ilo();
-  const int ihi   = grid->get_ihi();
+                           const GridStructure* grid, const ModalBasis* basis,
+                           const std::vector<int>& vars) {
+  const int ilo = grid->get_ilo();
+  const int ihi = grid->get_ihi();
 
   // Cell averages by extrapolating L and R neighbors into current cell
 
-  for (int iC = 0; iC < nvars; iC++) {
-    if (iC == 1) {
+  for (int iC : vars) {
+    if (iC == 1 || iC == 4) {
       continue; /* skip momenta */
     }
     Kokkos::parallel_for(

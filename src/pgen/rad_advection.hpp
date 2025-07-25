@@ -22,7 +22,6 @@ void rad_advection_init(State* state, GridStructure* grid,
                         const ProblemIn* pin) {
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
-  View3D<double> uCR = state->get_u_cr();
   const int pOrder   = state->get_p_order();
 
   const int ilo    = grid->get_ilo();
@@ -35,14 +34,17 @@ void rad_advection_init(State* state, GridStructure* grid,
 
   const int iPF_D = 0;
 
-  const int iCR_E = 0;
-  const int iCR_F = 1;
+  const int iCR_E = 3;
+  const int iCR_F = 4;
 
   const double V0  = pin->in_table["problem"]["params"]["v0"].value_or(0.1);
   const double D   = pin->in_table["problem"]["params"]["rho"].value_or(1.0);
   const double amp = pin->in_table["problem"]["params"]["amp"].value_or(1.0);
   const double width =
       pin->in_table["problem"]["params"]["width"].value_or(0.05);
+  const double gamma = 5.0 / 3.0;
+  const double gm1   = gamma - 1.0;
+  const double mu    = 1.0 + constants::m_e / constants::m_p;
 
   for (int iX = 0; iX <= ihi + 1; iX++) {
     for (int k = 0; k < pOrder; k++) {
@@ -51,26 +53,23 @@ void rad_advection_init(State* state, GridStructure* grid,
         uCF(iCF_Tau, iX, k) = 0.0;
         uCF(iCF_V, iX, k)   = 0.0;
         uCF(iCF_E, iX, k)   = 0.0;
-        uCR(0, iX, k)       = 0.0;
-        uCR(1, iX, k)       = 0.0;
+        uCF(3, iX, k)       = 0.0;
+        uCF(4, iX, k)       = 0.0;
 
         if (k == 0) {
-          uCR(iCR_E, iX, k) =
+          uCF(iCR_E, iX, k) =
               amp * std::max(std::exp(-std::pow((X1 - 0.5) / width, 2.0) / 2.0),
                              1.0e-8);
-          uCR(iCR_F, iX, k) = 1.0 * constants::c_cgs * uCR(iCR_E, iX, k);
+          uCF(iCR_F, iX, k) = 1.0 * constants::c_cgs * uCF(iCR_E, iX, k);
 
-          const double Trad = std::pow(uCR(iCR_E, iX, k) / constants::a, 0.25);
+          const double Trad = std::pow(uCF(iCR_E, iX, k) / constants::a, 0.25);
           const double sie_fluid =
-              0.1; // constants::k_B * Trad / ( gm1 * mu * constants::m_p );
-          std::println("T erad egad {} {} {}", Trad, uCR(iCR_E, iX, k),
-                       sie_fluid);
+              constants::k_B * Trad / (gm1 * mu * constants::m_p);
           uCF(iCF_Tau, iX, 0) = 1.0 / D;
           uCF(iCF_V, iX, 0)   = V0;
           uCF(iCF_E, iX, 0) =
               sie_fluid +
               0.5 * V0 * V0; // p0 / (gamma - 1.0) / D + 0.5 * V0 * V0;
-          // uCR( iCR_F, iX, k ) = -1.0e-12;
         }
 
         uPF(iPF_D, iX, iNodeX) = D;

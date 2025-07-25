@@ -39,7 +39,7 @@ BcType parse_bc_type(const std::string& name) {
   return BcType::Null;
 }
 
-BoundaryConditions make_boundary_conditions(
+auto make_boundary_conditions(
     bool do_rad,
 
     const std::string& fluid_bc_i, const std::string& fluid_bc_o,
@@ -48,7 +48,7 @@ BoundaryConditions make_boundary_conditions(
 
     const std::string& rad_bc_i, const std::string& rad_bc_o,
     const std::array<double, 2>& rad_i_dirichlet_values,
-    const std::array<double, 2>& rad_o_dirichlet_values) {
+    const std::array<double, 2>& rad_o_dirichlet_values) -> BoundaryConditions {
   BoundaryConditions my_bc;
 
   // --- Fluid BCs ---

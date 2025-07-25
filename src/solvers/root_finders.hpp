@@ -18,7 +18,7 @@
 #include <cmath>
 
 #include "concepts/arithmetic.hpp"
-#include "radiation/rad_discretization.hpp"
+#include "radiation/radhydro_package.hpp"
 #include "root_finder_opts.hpp"
 #include "utils/utilities.hpp"
 

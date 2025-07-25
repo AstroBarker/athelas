@@ -82,26 +82,21 @@ template <typename... Args>
 
 template <typename T>
 void check_state(T state, const int ihi, const bool do_rad) {
-  auto uCR       = state->get_u_cr();
   auto uCF       = state->get_u_cf();
   const double c = constants::c_cgs;
 
   // Create host mirrors of the views
-  auto uCR_h = Kokkos::create_mirror_view(uCR);
   auto uCF_h = Kokkos::create_mirror_view(uCF);
 
   // Copy data to host
-  Kokkos::deep_copy(uCR_h, uCR);
   Kokkos::deep_copy(uCF_h, uCF);
 
   // Check state on host
   for (int iX = 1; iX <= ihi; iX++) {
 
-    const double tau   = uCF_h(0, iX, 0); // cell averages checked
-    const double vel   = uCF_h(1, iX, 0);
-    const double e_m   = uCF_h(2, iX, 0);
-    const double e_rad = uCR_h(0, iX, 0);
-    const double f_rad = uCR_h(1, iX, 0);
+    const double tau = uCF_h(0, iX, 0); // cell averages checked
+    const double vel = uCF_h(1, iX, 0);
+    const double e_m = uCF_h(2, iX, 0);
 
     if (tau <= 0.0) {
       std::println("Error on cell {}", iX);
@@ -131,6 +126,9 @@ void check_state(T state, const int ihi, const bool do_rad) {
     }
 
     if (do_rad) {
+      const double e_rad = uCF_h(3, iX, 0);
+      const double f_rad = uCF_h(4, iX, 0);
+
       if (std::isnan(e_rad)) {
         std::println("Error on cell {}", iX);
         THROW_ATHELAS_ERROR("Radiation energy NaN!");

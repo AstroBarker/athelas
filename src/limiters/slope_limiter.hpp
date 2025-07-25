@@ -17,6 +17,8 @@
  *          Both limiters support:
  *          - Characteristic decomposition
  *          - Troubled Cell Indicator (TCI)
+ *
+ * TODO(astrobarker): clean up nvars / vars business
  */
 
 #include <variant>
@@ -28,19 +30,20 @@
 class WENO : public SlopeLimiterBase<WENO> {
  public:
   WENO() = default;
-  WENO(const GridStructure* grid, const ProblemIn* pin, const int nvars_)
-      : do_limiter_(pin->do_limiter), order_(pin->pOrder), nvars_(nvars_),
+  WENO(const GridStructure* grid, const ProblemIn* pin,
+       const std::vector<int>& vars, const int nvars)
+      : do_limiter_(pin->do_limiter), order_(pin->pOrder), nvars_(nvars),
         gamma_i_(pin->gamma_i), gamma_l_(pin->gamma_l), gamma_r_(pin->gamma_r),
         weno_r_(pin->weno_r), characteristic_(pin->Characteristic),
-        tci_opt_(pin->TCI_Option), tci_val_(pin->TCI_Threshold),
+        tci_opt_(pin->TCI_Option), tci_val_(pin->TCI_Threshold), vars_(vars),
         modified_polynomial_("modified_polynomial", grid->get_n_elements() + 2,
-                             3, pin->pOrder),
-        R_("R Matrix", 3, 3, grid->get_n_elements() + 2),
-        R_inv_("invR Matrix", 3, 3, grid->get_n_elements() + 2),
-        U_c_T_("U_c_T", 3, grid->get_n_elements() + 2),
-        w_c_T_("w_c_T", 3, grid->get_n_elements() + 2),
-        mult_("Mult", 3, grid->get_n_elements() + 2),
-        D_("TCI", 3, grid->get_n_elements() + 2),
+                             nvars, pin->pOrder),
+        R_("R Matrix", nvars, nvars, grid->get_n_elements() + 2),
+        R_inv_("invR Matrix", nvars, nvars, grid->get_n_elements() + 2),
+        U_c_T_("U_c_T", nvars, grid->get_n_elements() + 2),
+        w_c_T_("w_c_T", nvars, grid->get_n_elements() + 2),
+        mult_("Mult", nvars, grid->get_n_elements() + 2),
+        D_("TCI", nvars, grid->get_n_elements() + 2),
         limited_cell_("LimitedCell", grid->get_n_elements() + 2) {}
 
   void apply_slope_limiter(View3D<double> U, const GridStructure* grid,
@@ -58,6 +61,7 @@ class WENO : public SlopeLimiterBase<WENO> {
   bool characteristic_{};
   bool tci_opt_{};
   double tci_val_{};
+  std::vector<int> vars_;
 
   View3D<double> modified_polynomial_{};
 
@@ -81,18 +85,20 @@ class WENO : public SlopeLimiterBase<WENO> {
 class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
  public:
   TVDMinmod() = default;
-  TVDMinmod(const GridStructure* grid, const ProblemIn* pin, const int nvars_)
-      : do_limiter_(pin->do_limiter), order_(pin->pOrder), nvars_(nvars_),
+  TVDMinmod(const GridStructure* grid, const ProblemIn* pin,
+            const std::vector<int>& vars, const int nvars)
+      : do_limiter_(pin->do_limiter), order_(pin->pOrder), nvars_(nvars),
         b_tvd_(pin->b_tvd), m_tvb_(pin->m_tvb),
         characteristic_(pin->Characteristic), tci_opt_(pin->TCI_Option),
-        tci_val_(pin->TCI_Threshold),
-        R_("R Matrix", 3, 3, grid->get_n_elements() + 2 * grid->get_guard()),
-        R_inv_("invR Matrix", 3, 3,
+        tci_val_(pin->TCI_Threshold), vars_(vars),
+        R_("R Matrix", nvars, nvars,
+           grid->get_n_elements() + 2 * grid->get_guard()),
+        R_inv_("invR Matrix", nvars, nvars,
                grid->get_n_elements() + 2 * grid->get_guard()),
-        U_c_T_("U_c_T", 3, grid->get_n_elements() + 2),
-        w_c_T_("w_c_T", 3, grid->get_n_elements() + 2),
-        mult_("Mult", 3, grid->get_n_elements() + 2),
-        D_("TCI", 3, grid->get_n_elements() + 2 * grid->get_guard()),
+        U_c_T_("U_c_T", nvars, grid->get_n_elements() + 2),
+        w_c_T_("w_c_T", nvars, grid->get_n_elements() + 2),
+        mult_("Mult", nvars, grid->get_n_elements() + 2),
+        D_("TCI", nvars, grid->get_n_elements() + 2 * grid->get_guard()),
         limited_cell_("LimitedCell",
                       grid->get_n_elements() + 2 * grid->get_guard()) {}
   void apply_slope_limiter(View3D<double> U, const GridStructure* grid,
@@ -108,6 +114,7 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
   bool characteristic_{};
   bool tci_opt_{};
   double tci_val_{};
+  std::vector<int> vars_;
 
   View3D<double> R_{};
   View3D<double> R_inv_{};

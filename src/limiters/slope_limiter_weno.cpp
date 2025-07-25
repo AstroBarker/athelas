@@ -33,12 +33,15 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
     return;
   }
 
-  const int& ilo  = grid->get_ilo();
-  const int& ihi  = grid->get_ihi();
-  const int nvars = U.extent(0);
+  const int& ilo = grid->get_ilo();
+  const int& ihi = grid->get_ihi();
+
+  const auto nvars = nvars_;
 
   // --- Apply troubled cell indicator ---
-  if (tci_opt_) detect_troubled_cells(U, D_, grid, basis);
+  if (tci_opt_) {
+    detect_troubled_cells(U, D_, grid, basis, vars_);
+  }
 
   /* map to characteristic vars */
   if (characteristic_) {
@@ -72,7 +75,7 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
         }); // par iX
   } // end map to characteristics
 
-  for (int iC = 0; iC < nvars; iC++) {
+  for (int iC : vars_) {
     Kokkos::parallel_for(
         "SlopeLimiter :: WENO", Kokkos::RangePolicy<>(ilo, ihi + 1),
         KOKKOS_CLASS_LAMBDA(const int iX) {

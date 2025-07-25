@@ -26,6 +26,8 @@ struct Options {
 
   geometry::Geometry geom      = geometry::Planar;
   poly_basis::poly_basis basis = poly_basis::legendre;
+
+  int max_order;
 };
 
 class ProblemIn {
