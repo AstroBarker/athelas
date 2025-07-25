@@ -23,33 +23,62 @@
 class GridStructure {
  public:
   explicit GridStructure(const ProblemIn* pin);
+  GridStructure() = default;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto node_coordinate(int iC, int iN) const -> double;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_centers(int iC) const -> double;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_widths(int iC) const -> double;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_nodes(int nN) const -> double;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_weights(int nN) const -> double;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_mass(int iX) const -> double;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_center_of_mass(int iX) const -> double;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_x_l() const noexcept -> double;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_x_r() const noexcept -> double;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_sqrt_gm(double X) const -> double;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_left_interface(int iX) const -> double;
 
+  KOKKOS_FUNCTION
   [[nodiscard]] auto do_geometry() const noexcept -> bool;
 
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_guard() const noexcept -> int;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_ilo() const noexcept -> int;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_ihi() const noexcept -> int;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_n_nodes() const noexcept -> int;
+  KOKKOS_FUNCTION
   [[nodiscard]] auto get_n_elements() const noexcept -> int;
 
+  KOKKOS_FUNCTION
   void create_grid();
+  KOKKOS_FUNCTION
   void update_grid(View1D<double> SData);
+  KOKKOS_FUNCTION
   void compute_mass(View3D<double> uPF);
+  KOKKOS_FUNCTION
+  void compute_mass_r(View3D<double> uPF);
+  KOKKOS_FUNCTION
+  auto enclosed_mass(const int iX, const int iN) const noexcept -> double;
+  KOKKOS_FUNCTION
   void compute_center_of_mass(View3D<double> uPF);
+  KOKKOS_FUNCTION
   void compute_center_of_mass_radius(View3D<double> uPF);
 
+  KOKKOS_FUNCTION
   auto operator()(int i, int j) -> double&;
+  KOKKOS_FUNCTION
   auto operator()(int i, int j) const -> double;
 
  private:
@@ -70,7 +99,8 @@ class GridStructure {
   View1D<double> widths_{};
   View1D<double> x_l_{}; // left interface coordinate
 
-  View1D<double> mass_{};
+  View1D<double> mass_{}; // cell mass
+  View2D<double> mass_r_{}; // enclosed mass
   View1D<double> center_of_mass_{};
 
   View2D<double> grid_{};
