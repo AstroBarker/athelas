@@ -7,10 +7,14 @@
  *
  * @details Loads input deck in TOML format.
  *          See: https://github.com/marzer/tomlplusplus
+ *
+ *  Horrible stuff here.
  */
 
-#include "problem_in.hpp"
+#include <limits>
+
 #include "error.hpp"
+#include "problem_in.hpp"
 #include "utilities.hpp"
 
 ProblemIn::ProblemIn(const std::string& fn) {
@@ -50,12 +54,21 @@ ProblemIn::ProblemIn(const std::string& fn) {
   std::optional<double> cfl = in_table["problem"]["cfl"].value<double>();
 
   // output
-  nlim         = in_table["output"]["nlim"].value_or(-1);
-  ncycle_out   = in_table["output"]["ncycle_out"].value_or(1);
-  dt_hdf5      = in_table["output"]["dt_hdf5"].value_or(tf.value() / 100.0);
-  dt_init_frac = in_table["output"]["dt_init_frac"].value_or(2.0);
+  nlim            = in_table["output"]["nlim"].value_or(-1);
+  ncycle_out      = in_table["output"]["ncycle_out"].value_or(1);
+  dt_hdf5         = in_table["output"]["dt_hdf5"].value_or(tf.value() / 100.0);
+  dt_init_frac    = in_table["output"]["dt_init_frac"].value_or(2.0);
+  history_enabled = in_table["output"]["history"].is_table();
+  hist_fn         = in_table["output"]["history"]["fn"].value_or("athelas.hst");
+  hist_dt         = in_table["output"]["history"]["dt"].value_or(dt_hdf5 / 10);
   if (dt_init_frac <= 1.0) {
     THROW_ATHELAS_ERROR("dt_init_frac must be strictly > 1.0\n");
+  }
+  if (dt_hdf5 <= 0.0) {
+    THROW_ATHELAS_ERROR("dt_hdf5 must be strictly > 0.0\n");
+  }
+  if (hist_dt <= 0.0) {
+    THROW_ATHELAS_ERROR("hist_dt must be strictly > 0.0\n");
   }
 
   // fluid

@@ -56,7 +56,7 @@ auto main(int argc, char** argv) -> int {
 
     // --- Finalize timer ---
     double const time = timer_total.seconds();
-    std::println(" ~ Done! Elapsed time: {} seconds.", time);
+    std::println("# Done! Elapsed time: {} seconds.", time);
   }
   Kokkos::finalize();
 

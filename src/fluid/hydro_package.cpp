@@ -1,3 +1,9 @@
+/**
+ * @file hydro_package.cpp
+ * --------------
+ *
+ * @brief Pure hydrodynamics package
+ */
 #include <limits>
 
 #include "basis/polynomial_basis.hpp"

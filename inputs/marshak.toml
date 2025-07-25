@@ -29,11 +29,15 @@ ncycle_out = 100
 #dt_hdf5 = 1.0e-12 # default: 100 outputs
 dt_init_frac = 1.0005
 
+[output.history]
+fn = "marshak.hst"
+dt = 1.0e-16
+
 [fluid]
 basis = "legendre"
 nnodes = 2
 porder = 2
-nx = 128
+nx = 256
 ng = 1
 
 [time]

@@ -24,6 +24,10 @@ ncycle_out = 100
 dt_hdf5 = 0.001
 dt_init_frac = 1.05
 
+[output.history]
+fn = "sedov.hst"
+#dt = 0.001 # default: dt_hdf5 / 10
+
 [fluid]
 basis = "legendre"
 nnodes = 3
@@ -40,12 +44,12 @@ gamma_ideal = 1.4
 
 [limiters]
 do_limiter = true
-type = "weno"
-b_tvd = 2.0
-m_tvb = 0.001
+type = "minmod"
+b_tvd = 0.0
+m_tvb = 0.0
 tci_opt = true
 tci_val = 0.25
-characteristic = true
+characteristic = false
 gamma_i = 0.9
 #gamma_r = 0.005
 #gamma_l = 0.005

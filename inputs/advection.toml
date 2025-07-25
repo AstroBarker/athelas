@@ -23,6 +23,10 @@ nlim = -1
 ncycle_out = 100
 dt_hdf5 = 0.1
 
+[output.history]
+fn = "athelas.hst"
+dt = 0.001
+
 [fluid]
 basis = "legendre"
 nnodes = 3
@@ -31,7 +35,7 @@ nx = 128
 ng = 1
 
 [time]
-integrator = "EX_SSPRK22"
+integrator = "EX_SSPRK33"
 
 [eos]
 type = "ideal"

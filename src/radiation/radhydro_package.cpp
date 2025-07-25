@@ -1,3 +1,9 @@
+/**
+ * @file radhydro_package.cpp
+ * --------------
+ *
+ * @brief Radiation hydrodynamics package
+ */
 #include <limits>
 
 #include "basis/polynomial_basis.hpp"

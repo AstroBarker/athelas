@@ -1,4 +1,10 @@
 #pragma once
+/**
+ * @file hydro_package.hpp
+ * --------------
+ *
+ * @brief Pure hydrodynamics package
+ */
 
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"

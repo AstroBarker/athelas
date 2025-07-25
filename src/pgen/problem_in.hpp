@@ -27,9 +27,11 @@ struct Options {
   geometry::Geometry geom      = geometry::Planar;
   poly_basis::poly_basis basis = poly_basis::legendre;
 
-  int max_order;
+  int max_order = 1;
 };
 
+// TODO(astrobarker): Long term solution for this thing.
+// "Params" style wrapper over in_table with GetOrAdd?
 class ProblemIn {
 
  public:
@@ -88,6 +90,10 @@ class ProblemIn {
   // opac
   std::string opac_type;
 
+  bool history_enabled;
+  std::string hist_fn;
+  double hist_dt;
+
   toml::table in_table;
 };
 
@@ -101,12 +107,12 @@ void read_toml_array(T toml_array, G& out_array) {
       if (auto elem = element.as_floating_point()) {
         out_array[index] = static_cast<double>(*elem);
       } else {
-        std::cerr << "Type mismatch at index " << index << std::endl;
+        std::cerr << "Type mismatch at index " << index << "\n";
         THROW_ATHELAS_ERROR(" ! Error reading dirichlet boundary conditions.");
       }
       index++;
     } else {
-      std::cerr << "TOML array is larger than C++ array." << std::endl;
+      std::cerr << "TOML array is larger than C++ array." << "\n";
       THROW_ATHELAS_ERROR(" ! Error reading dirichlet boundary conditions.");
     }
   }
