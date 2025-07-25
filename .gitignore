@@ -49,6 +49,7 @@ compile_commands.json
 
 # lsp
 .ccls-cache/
+*.cache
 
 # analysis
 matplotlibrc
