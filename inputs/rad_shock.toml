@@ -46,6 +46,10 @@ ncycle_out = 250
 #dt_hdf5 = 1.0e-15 # default: 100 outputs
 dt_init_frac = 1.001
 
+[output.history]
+fn = "rad_shock.hst"
+#dt = 0.001 # default: dt_hdf5 / 10
+
 [fluid]
 basis = "legendre"
 nnodes = 2

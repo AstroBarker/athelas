@@ -28,16 +28,20 @@ ncycle_out = 100
 #dt_hdf5 = 1.0e-10 # default: 100 outputs
 dt_init_frac = 1.05
 
+[output.history]
+fn = "rad_equilibrium.hst"
+#dt = 0.001 # default: dt_hdf5 / 10
+
 [fluid]
 basis = "legendre"
-nnodes = 2
-porder = 2
+nnodes = 1
+porder = 1
 nx = 1
 ng = 1
 
 [time]
-#integrator = "IMEX_SSPRK11"
-integrator = "IMEX_SSPRK22_DIRK"
+integrator = "IMEX_SSPRK11"
+#integrator = "IMEX_SSPRK22_DIRK"
 
 [eos]
 type = "ideal"

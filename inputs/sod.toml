@@ -28,6 +28,10 @@ ncycle_out = 100
 #dt_hdf5 = 2.5e-2
 dt_init_frac = 1.1
 
+[output.history]
+fn = "sod.hst"
+dt = 0.001
+
 [fluid]
 basis = "legendre"
 nnodes = 3

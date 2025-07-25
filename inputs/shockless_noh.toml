@@ -22,6 +22,10 @@ nlim = -1
 ncycle_out = 100
 dt_hdf5 = 0.05
 
+[output.history]
+fn = "shockless_noh.hst"
+#dt = 0.001 # default: dt_hdf5 / 10
+
 [fluid]
 basis = "legendre"
 nnodes = 2

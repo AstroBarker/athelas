@@ -28,6 +28,10 @@ ncycle_out = 100
 dt_init_frac = 1.001
 #dt_hdf5 = 1.0e-2 # default: 100 outputs
 
+[output.history]
+fn = "rad_advection.hst"
+#dt = 0.001 # default: dt_hdf5 / 10
+
 [fluid]
 basis = "legendre"
 nnodes = 1

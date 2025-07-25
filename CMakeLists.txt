@@ -81,6 +81,7 @@ endif()
 include_directories(src)
 include_directories("src/concepts")
 include_directories("src/geometry")
+include_directories("src/history")
 include_directories("src/quadrature")
 include_directories("src/utils")
 include_directories("src/limiters")
@@ -113,6 +114,7 @@ set( ATHELAS_SOURCES
   "src/eos/eos_marshak.cpp"
   "src/fluid/fluid_utilities.cpp"
   "src/fluid/hydro_package.cpp"
+  "src/history/history.cpp"
   "src/radiation/radhydro_package.cpp"
   "src/radiation/rad_utilities.cpp"
   "src/geometry/grid.cpp"

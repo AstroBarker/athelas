@@ -1,4 +1,10 @@
 #pragma once
+/**
+ * @file radhydro_package.hpp
+ * --------------
+ *
+ * @brief Radiation hydrodynamics package
+ */
 
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"

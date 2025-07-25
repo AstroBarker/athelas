@@ -1,4 +1,10 @@
 #pragma once
+/**
+ * @file packages_base.hpp
+ * --------------
+ *
+ * @brief Implement package manager
+ */
 
 #include <algorithm>
 #include <limits>

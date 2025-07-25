@@ -24,6 +24,10 @@ nlim = -1
 ncycle_out = 100
 dt_hdf5 = 1.0e-2
 
+[output.history]
+fn = "shu_osher.hst"
+#dt = 0.001 # default: dt_hdf5 / 10
+
 [fluid]
 basis = "legendre"
 nnodes = 1
