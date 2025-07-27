@@ -49,20 +49,14 @@ GridStructure::GridStructure(const ProblemIn* pin)
 
 // linear shape function on the reference element
 KOKKOS_INLINE_FUNCTION
-const double shape_function(const int interface, const double eta) {
-  double mult = 1.0;
-
+auto shape_function(const int interface, const double eta) -> const double {
   if (interface == 0) {
-    mult = -1.0;
+    return 1.0 * (0.5 - eta);
   }
   if (interface == 1) {
-    mult = +1.0;
+    return 1.0 * (0.5 + eta);
   }
-  if (interface != 0 && interface != 1) {
-    THROW_ATHELAS_ERROR(" ! Invalid shape func params");
-  }
-
-  return 0.5 + (mult * eta);
+  return 0.0; // unreachable, but silences warnings
 }
 
 // Give physical grid coordinate from a node.
@@ -110,7 +104,7 @@ auto GridStructure::get_x_r() const noexcept -> double { return xR_; }
 KOKKOS_FUNCTION
 auto GridStructure::get_sqrt_gm(double X) const -> double {
   if (geometry_ == geometry::Spherical) {
-    return X * X;
+    return constants::FOURPI * X * X;
   }
   return 1.0;
 }
