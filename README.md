@@ -7,7 +7,7 @@
 <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL-blue.svg"></a>
 </p>
 
-Currently, `athelas` solves the 1D Lagrangian equation of non-relativistic hydrodynamics using a discontinuous Galerkin scheme. It includes planar geometry and spherical symmetry.
+Currently, `athelas` solves the 1D Lagrangian equation of non-relativistic radiation hydrodynamics using a discontinuous Galerkin scheme. It includes planar geometry and spherical symmetry. Self gravity is included.
 It will be extended to special relativistic hydrodynamics.
 
 # Kokkos
@@ -31,7 +31,7 @@ git clone --recursive git@github.com:AstroBarker/athelas.git
 ```sh
 mkdir build && cd build
 cmake ..
-cmake --build .
+cmake --build . # or make -j
 ```
 
 As a temporary fix for Ubuntu CI, we need to pass a `MACHINE` flag.
@@ -45,7 +45,8 @@ To run `athelas` simply execute `./athelas -i ../inputs/sod.toml`, for instance.
 # Tests
 Regression tests live in `test/regression`. To run all test, run 
 `python run_regression_tests.py`. Pass `-e /path/to/athelas/executable` to 
-avoid rebuilding each test.
+avoid rebuilding each test. To run a specific test, run 
+`python run_regression_tests.py --test test_sod -e /path/to/athelas/executable` etc.
 
 
 ## NOTE: 
