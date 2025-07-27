@@ -39,6 +39,7 @@ ModalBasis::ModalBasis(poly_basis::poly_basis basis, const View3D<double> uPF,
       dphi_("dphi_", nElements + 2 * nGuard, 3 * nN + 2, pOrder) {
   // --- Compute grid quantities ---
   grid->compute_mass(uPF);
+  grid->compute_mass_r(uPF); // Weird place for this to be but works
   grid->compute_center_of_mass(uPF);
 
   if (basis == poly_basis::legendre) {

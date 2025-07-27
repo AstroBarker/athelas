@@ -121,6 +121,7 @@ class TimeStepper {
           });
 
       auto stage_data_j = Kokkos::subview(stage_data_, iS, Kokkos::ALL);
+      grid_s_[iS]       = grid;
       grid_s_[iS].update_grid(stage_data_j);
 
       auto Us_j =
@@ -159,6 +160,7 @@ class TimeStepper {
                 integrator_.explicit_tableau.b_i(iS);
           });
       auto stage_data_j = Kokkos::subview(stage_data_, 0, Kokkos::ALL);
+      grid_s_[iS]       = grid;
       grid_s_[iS].update_grid(stage_data_j);
     }
 
@@ -259,6 +261,7 @@ class TimeStepper {
       } // End inner loop
 
       auto stage_data_j = Kokkos::subview(stage_data_, iS, Kokkos::ALL);
+      grid_s_[iS]       = grid;
       grid_s_[iS].update_grid(stage_data_j);
 
       // set U_s
@@ -376,6 +379,7 @@ class TimeStepper {
             stage_data_(iS, iX) += dt_b * flux_u_i(iX);
           });
       auto stage_data_j = Kokkos::subview(stage_data_, iS, Kokkos::ALL);
+      grid_s_[iS]       = grid;
       grid_s_[iS].update_grid(stage_data_j);
     }
 

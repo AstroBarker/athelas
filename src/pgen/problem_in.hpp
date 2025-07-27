@@ -94,6 +94,11 @@ class ProblemIn {
   std::string hist_fn;
   double hist_dt;
 
+  // gravity
+  bool do_gravity;
+  GravityModel grav_model;
+  double gval;
+
   toml::table in_table;
 };
 

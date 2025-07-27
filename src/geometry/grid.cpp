@@ -26,7 +26,8 @@ GridStructure::GridStructure(const ProblemIn* pin)
       geometry_(pin->Geometry), nodes_("Nodes", pin->nNodes),
       weights_("weights_", pin->nNodes), centers_("Cetners", mSize_),
       widths_("widths_", mSize_), x_l_("Left Interface", mSize_ + 1),
-      mass_("Cell mass_", mSize_), center_of_mass_("Center of mass_", mSize_),
+      mass_("Cell mass_", mSize_), mass_r_("Enclosed mass", mSize_, nNodes_),
+      center_of_mass_("Center of mass_", mSize_),
       grid_("Grid", mSize_, nNodes_) {
   std::vector<double> tmp_nodes(nNodes_);
   std::vector<double> tmp_weights(nNodes_);
@@ -48,55 +49,59 @@ GridStructure::GridStructure(const ProblemIn* pin)
 
 // linear shape function on the reference element
 KOKKOS_INLINE_FUNCTION
-const double shape_function(const int interface, const double eta) {
-  double mult = 1.0;
-
+auto shape_function(const int interface, const double eta) -> const double {
   if (interface == 0) {
-    mult = -1.0;
+    return 1.0 * (0.5 - eta);
   }
   if (interface == 1) {
-    mult = +1.0;
+    return 1.0 * (0.5 + eta);
   }
-  if (interface != 0 && interface != 1) {
-    THROW_ATHELAS_ERROR(" ! Invalid shape func params");
-  }
-
-  return 0.5 + (mult * eta);
+  return 0.0; // unreachable, but silences warnings
 }
 
 // Give physical grid coordinate from a node.
+KOKKOS_FUNCTION
 auto GridStructure::node_coordinate(int iC, int iN) const -> double {
   return x_l_(iC) * shape_function(0, nodes_(iN)) +
          x_l_(iC + 1) * shape_function(1, nodes_(iN));
 }
 
 // Return cell center
+KOKKOS_FUNCTION
 auto GridStructure::get_centers(int iC) const -> double { return centers_(iC); }
 
 // Return cell width
+KOKKOS_FUNCTION
 auto GridStructure::get_widths(int iC) const -> double { return widths_(iC); }
 
 // Return cell mass
+KOKKOS_FUNCTION
 auto GridStructure::get_mass(int iX) const -> double { return mass_(iX); }
 
 // Return cell reference Center of mass_
+KOKKOS_FUNCTION
 auto GridStructure::get_center_of_mass(int iX) const -> double {
   return center_of_mass_(iX);
 }
 
 // Return given quadrature node
+KOKKOS_FUNCTION
 auto GridStructure::get_nodes(int nN) const -> double { return nodes_(nN); }
 
 // Return given quadrature weight
+KOKKOS_FUNCTION
 auto GridStructure::get_weights(int nN) const -> double { return weights_(nN); }
 
 // Accessor for xL
+KOKKOS_FUNCTION
 auto GridStructure::get_x_l() const noexcept -> double { return xL_; }
 
 // Accessor for xR
+KOKKOS_FUNCTION
 auto GridStructure::get_x_r() const noexcept -> double { return xR_; }
 
 // Accessor for SqrtGm
+KOKKOS_FUNCTION
 auto GridStructure::get_sqrt_gm(double X) const -> double {
   if (geometry_ == geometry::Spherical) {
     return X * X;
@@ -105,36 +110,44 @@ auto GridStructure::get_sqrt_gm(double X) const -> double {
 }
 
 // Accessor for x_l_
+KOKKOS_FUNCTION
 auto GridStructure::get_left_interface(int iX) const -> double {
   return x_l_(iX);
 }
 
 // Return nNodes_
+KOKKOS_FUNCTION
 auto GridStructure::get_n_nodes() const noexcept -> int { return nNodes_; }
 
 // Return nElements_
+KOKKOS_FUNCTION
 auto GridStructure::get_n_elements() const noexcept -> int {
   return nElements_;
 }
 
 // Return number of guard zones
+KOKKOS_FUNCTION
 auto GridStructure::get_guard() const noexcept -> int { return nGhost_; }
 
 // Return first physical zone
+KOKKOS_FUNCTION
 auto GridStructure::get_ilo() const noexcept -> int { return nGhost_; }
 
 // Return last physical zone
+KOKKOS_FUNCTION
 auto GridStructure::get_ihi() const noexcept -> int {
   return nElements_ + nGhost_ - 1;
 }
 
 // Return true if in spherical symmetry
+KOKKOS_FUNCTION
 auto GridStructure::do_geometry() const noexcept -> bool {
   return geometry_ == geometry::Spherical;
 }
 
 // Equidistant mesh
 // TODO(astrobarker): We will need to replace centers_ here, right?
+KOKKOS_FUNCTION
 void GridStructure::create_grid() {
 
   const int ilo = nGhost_; // first real zone
@@ -171,6 +184,7 @@ void GridStructure::create_grid() {
 /**
  * Compute cell masses
  **/
+KOKKOS_FUNCTION
 void GridStructure::compute_mass(View3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
   const int ilo     = get_ilo();
@@ -197,8 +211,39 @@ void GridStructure::compute_mass(View3D<double> uPF) {
 }
 
 /**
+ * Compute enclosed masses
+ **/
+KOKKOS_FUNCTION
+void GridStructure::compute_mass_r(View3D<double> uPF) {
+  const int nNodes_ = get_n_nodes();
+  const int ilo     = get_ilo();
+  const int ihi     = get_ihi();
+
+  double mass = 0.0;
+  double X    = 0.0;
+
+  const double geom_fac = (do_geometry()) ? 4.0 * constants::PI : 1.0;
+
+  mass = 0.0;
+  for (int iX = ilo; iX <= ihi; ++iX) {
+    for (int iN = 0; iN < nNodes_; ++iN) {
+      X = node_coordinate(iX, iN);
+      mass += weights_(iN) * get_sqrt_gm(X) * uPF(0, iX, iN);
+      mass_r_(iX, iN) = mass * widths_(iX) * geom_fac;
+    }
+  }
+}
+
+KOKKOS_FUNCTION
+auto GridStructure::enclosed_mass(const int iX, const int iN) const noexcept
+    -> double {
+  return mass_r_(iX, iN);
+}
+
+/**
  * Compute cell centers of masses reference coordinates
  **/
+KOKKOS_FUNCTION
 void GridStructure::compute_center_of_mass(View3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
   const int ilo     = get_ilo();
@@ -227,6 +272,7 @@ void GridStructure::compute_center_of_mass(View3D<double> uPF) {
 /**
  * Update grid coordinates using interface velocities.
  **/
+KOKKOS_FUNCTION
 void GridStructure::update_grid(View1D<double> SData) {
 
   const int ilo = get_ilo();
@@ -250,8 +296,10 @@ void GridStructure::update_grid(View1D<double> SData) {
 }
 
 // Access by (element, node)
+KOKKOS_FUNCTION
 auto GridStructure::operator()(int i, int j) -> double& { return grid_(i, j); }
 
+KOKKOS_FUNCTION
 auto GridStructure::operator()(int i, int j) const -> double {
   return grid_(i, j);
 }

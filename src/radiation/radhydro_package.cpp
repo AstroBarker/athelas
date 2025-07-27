@@ -40,7 +40,7 @@ KOKKOS_FUNCTION
 void RadHydroPackage::update_explicit(const View3D<double> state,
                                       View3D<double> dU,
                                       const GridStructure& grid,
-                                      const TimeStepInfo& dt_info) {
+                                      const TimeStepInfo& dt_info) const {
   // TODO(astrobarker) handle separate fluid and rad orders
   const auto& order = fluid_basis_->get_order();
   const auto& ilo   = grid.get_ilo();
@@ -86,7 +86,7 @@ KOKKOS_FUNCTION
 void RadHydroPackage::update_implicit(const View3D<double> state,
                                       View3D<double> dU,
                                       const GridStructure& grid,
-                                      const TimeStepInfo& dt_info) {
+                                      const TimeStepInfo& dt_info) const {
   // TODO(astrobarker) handle separate fluid and rad orders
   const auto& order = fluid_basis_->get_order();
   const auto& ilo   = grid.get_ilo();
@@ -166,7 +166,7 @@ KOKKOS_FUNCTION
 void RadHydroPackage::radhydro_divergence(const View3D<double> state,
                                           View3D<double> dU,
                                           const GridStructure& grid,
-                                          const int stage) {
+                                          const int stage) const {
   const auto& nNodes = grid.get_n_nodes();
   const auto& order  = rad_basis_->get_order();
   const auto& ilo    = grid.get_ilo();

@@ -172,7 +172,6 @@ class PackageManager {
     auto wrapper = std::make_unique<PackageWrapper>(std::forward<T>(package));
 
     // TODO(astrobarker): emplace back
-    explicit_packages_ = {};
     if (wrapper->has_explicit()) {
       explicit_packages_.push_back(wrapper.get());
     }

@@ -14,6 +14,7 @@
 #include "error.hpp"
 #include "fluid/hydro_package.hpp"
 #include "geometry/grid.hpp"
+#include "gravity/gravity_package.hpp"
 #include "history/quantities.hpp"
 #include "initialization.hpp"
 #include "io/io.hpp"
@@ -118,6 +119,7 @@ auto Driver::execute() -> int {
 
 void Driver::initialize(const ProblemIn* pin) { // NOLINT
   using fluid::HydroPackage;
+  using gravity::GravityPackage;
   if (!restart_) {
     // --- Initialize fields ---
     initialize_fields(&state_, &grid_, eos_.get(), pin);
@@ -134,6 +136,7 @@ void Driver::initialize(const ProblemIn* pin) { // NOLINT
   }
 
   // --- Init physics package manager ---
+  // NOTE: Hydro/RadHydro should be registered first
   if (!pin->do_rad) {
     manager_->add_package(HydroPackage{pin, ssprk_.get_n_stages(), eos_.get(),
                                        fluid_basis_.get(), bcs_.get(), cfl_,
@@ -143,6 +146,16 @@ void Driver::initialize(const ProblemIn* pin) { // NOLINT
         pin, ssprk_.get_n_stages(), eos_.get(), opac_.get(), fluid_basis_.get(),
         radiation_basis_.get(), bcs_.get(), cfl_, nX_, true});
   }
+  if (pin->do_gravity) {
+    manager_->add_package(GravityPackage{pin, pin->grav_model, pin->gval,
+                                         fluid_basis_.get(), cfl_, true});
+  }
+  auto registered_pkgs = manager_->get_package_names();
+  std::print("# Registered Packages ::");
+  for (auto name : registered_pkgs) {
+    std::print(" {}", name);
+  }
+  std::print("\n\n");
 
   // --- slope limiter to initial condition ---
   apply_slope_limiter(&sl_hydro_, state_.get_u_cf(), &grid_, fluid_basis_.get(),
@@ -156,6 +169,10 @@ void Driver::initialize(const ProblemIn* pin) { // NOLINT
                          analysis::total_internal_energy);
   history_->add_quantity("Total Kinetic Energy [erg]",
                          analysis::total_kinetic_energy);
+  if (pin->do_gravity) {
+    history_->add_quantity("Total Gravitational Energy [erg]",
+                           analysis::total_gravitational_energy);
+  }
   if (pin->do_rad) {
     history_->add_quantity("Total Radiation Momentum [g cm / s]",
                            analysis::total_rad_momentum);

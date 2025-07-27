@@ -4,6 +4,7 @@ t_end = 0.05
 geometry = "spherical"
 restart = false
 do_rad = false
+do_gravity = false
 xl = 0.0
 xr = 1.0
 cfl = 0.25
@@ -34,6 +35,10 @@ nnodes = 3
 porder = 3
 nx = 256
 ng = 1
+
+[gravity]
+model = "constant"
+gval = 1.0
 
 [time]
 integrator = "EX_SSPRK54"
