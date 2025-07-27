@@ -43,7 +43,7 @@ void GravityPackage::gravity_update(const View3D<double> state,
 
   // This can probably be simplified.
   Kokkos::parallel_for(
-      "Gravity :: Spherical update",
+      "Gravity :: Update",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
       KOKKOS_CLASS_LAMBDA(const int iX, const int k) {
         double local_sum_v = 0.0;
@@ -51,25 +51,27 @@ void GravityPackage::gravity_update(const View3D<double> state,
         for (int iN = 0; iN < nNodes; ++iN) {
           const double X = grid.node_coordinate(iX, iN);
           if constexpr (Model == GravityModel::Spherical) {
-            local_sum_v += constants::G_GRAV * grid.get_weights(iN) *
+            local_sum_v += grid.get_weights(iN) *
                            basis_->get_phi(iX, iN + 1, k) *
                            grid.enclosed_mass(iX, iN) * grid.get_sqrt_gm(X) /
                            ((X * X) * basis_->basis_eval(state, iX, 0, iN + 1));
             local_sum_e +=
                 local_sum_v * basis_->basis_eval(state, iX, 1, iN + 1);
           } else {
-            local_sum_v +=
-                grid.get_weights(iN) * basis_->get_phi(iX, iN + 1, k) * gval_ /
-                basis_->basis_eval(state, iX, 0, iN + 1) * grid.get_sqrt_gm(X);
+            local_sum_v += grid.get_sqrt_gm(X) * grid.get_weights(iN) *
+                           basis_->get_phi(iX, iN + 1, k) * gval_ /
+                           basis_->basis_eval(state, iX, 0, iN + 1);
             local_sum_e +=
                 local_sum_v * basis_->basis_eval(state, iX, 1, iN + 1);
           }
         }
 
-        dU(1, iX, k) -= (local_sum_v * grid.get_widths(iX)) /
-                        basis_->get_mass_matrix(iX, k);
-        dU(2, iX, k) -= (local_sum_e * grid.get_widths(iX)) /
-                        basis_->get_mass_matrix(iX, k);
+        dU(1, iX, k) -=
+            (constants::G_GRAV * local_sum_v * grid.get_widths(iX)) /
+            basis_->get_mass_matrix(iX, k);
+        dU(2, iX, k) -=
+            (constants::G_GRAV * local_sum_e * grid.get_widths(iX)) /
+            basis_->get_mass_matrix(iX, k);
       });
 }
 
