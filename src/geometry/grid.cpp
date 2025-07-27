@@ -104,7 +104,7 @@ auto GridStructure::get_x_r() const noexcept -> double { return xR_; }
 KOKKOS_FUNCTION
 auto GridStructure::get_sqrt_gm(double X) const -> double {
   if (geometry_ == geometry::Spherical) {
-    return constants::FOURPI * X * X;
+    return X * X;
   }
   return 1.0;
 }
