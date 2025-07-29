@@ -1,9 +1,18 @@
 #pragma once
+/**
+ * @file params.hpp
+ * --------------
+ *
+ * @brief Simple params object
+ * @note Syntactic sugar around
+ */
 
 #include <string>
 #include <unordered_map>
 #include <any>
 #include <stdexcept>
+
+#include "utils/error.hpp"
 
 class Params {
 private:
@@ -12,40 +21,38 @@ private:
 public:
     Params() = default;
 
-    // Generic setter
     template <typename T>
     void add(const std::string& key, const T& value) {
         params_[key] = value;
     }
 
-    // Generic getter
     template <typename T>
-    T Get(const std::string& key) const {
+    T get(const std::string& key) const {
         auto it = params_.find(key);
         if (it == params_.end()) {
-            throw std::runtime_error("Parameter '" + key + "' not found");
+            THROW_ATHELAS_ERROR("Parameter '" + key + "' not found");
         }
         try {
             return std::any_cast<T>(it->second);
         } catch (const std::bad_any_cast&) {
-            throw std::runtime_error("Type mismatch for parameter '" + key + "'");
+            THROW_ATHELAS_ERROR("Type mismatch for parameter '" + key + "'");
         }
     }
 
-    // Getter with default value
     template <typename T>
-    T Get(const std::string& key, const T& default_value) const {
+    T get_or_add(const std::string& key, const T& default_value) {
         auto it = params_.find(key);
         if (it == params_.end()) {
+            add(key, default_value);
             return default_value;
         }
         try {
             return std::any_cast<T>(it->second);
         } catch (const std::bad_any_cast&) {
-            return default_value;
+            THROW_ATHELAS_ERROR("Type mismatch for parameter '" + key + "'");
         }
     }
 
     // Check if a parameter exists
-    bool Has(const std::string& key) const;
+    bool contains(const std::string& key) const;
 };

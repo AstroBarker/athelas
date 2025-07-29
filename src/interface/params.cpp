@@ -2,6 +2,6 @@
 
 #include "params.hpp"
 
-bool Params::Has(const std::string& key) const {
+bool Params::contains(const std::string& key) const {
     return params_.find(key) != params_.end();
 }
