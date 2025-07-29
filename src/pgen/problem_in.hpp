@@ -12,11 +12,13 @@
 
 #include <iostream>
 
-#include "abstractions.hpp"
-#include "error.hpp"
-#include "geometry.hpp"
-#include "timestepper/tableau.hpp"
 #include "toml.hpp"
+
+#include "geometry/geometry.hpp"
+#include "interface/params.hpp"
+#include "timestepper/tableau.hpp"
+#include "utils/abstractions.hpp"
+#include "utils/error.hpp"
 
 /* hold various program options */
 struct Options {
@@ -99,7 +101,14 @@ class ProblemIn {
   GravityModel grav_model;
   double gval;
 
+  // input table
   toml::table in_table;
+
+
+private:
+
+  // params obj
+  Params params_;
 };
 
 // TODO(astrobarker) move into class

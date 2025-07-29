@@ -17,9 +17,9 @@
 #include "gravity/gravity_package.hpp"
 #include "history/quantities.hpp"
 #include "initialization.hpp"
+#include "interface/packages_base.hpp"
 #include "io/io.hpp"
 #include "opacity/opac_variant.hpp"
-#include "packages/packages_base.hpp"
 #include "problem_in.hpp"
 #include "radiation/radhydro_package.hpp"
 #include "slope_limiter.hpp"
@@ -161,7 +161,9 @@ void Driver::initialize(const ProblemIn* pin) { // NOLINT
   apply_slope_limiter(&sl_hydro_, state_.get_u_cf(), &grid_, fluid_basis_.get(),
                       eos_.get());
 
-  // Add history outputs
+  // --- Add history outputs ---
+  // NOTE: Could be nice to have gravitational energy added
+  // to total, conditionally.
   history_->add_quantity("Total Mass [g]", analysis::total_mass);
   history_->add_quantity("Total Fluid Energy [erg]",
                          analysis::total_fluid_energy);

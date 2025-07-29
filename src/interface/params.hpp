@@ -14,7 +14,7 @@ public:
 
     // Generic setter
     template <typename T>
-    void Set(const std::string& key, const T& value) {
+    void add(const std::string& key, const T& value) {
         params_[key] = value;
     }
 

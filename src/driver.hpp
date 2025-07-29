@@ -19,7 +19,7 @@
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
 #include "history/history.hpp"
-#include "packages/packages_base.hpp"
+#include "interface/packages_base.hpp"
 #include "pgen/problem_in.hpp"
 #include "timestepper/timestepper.hpp"
 

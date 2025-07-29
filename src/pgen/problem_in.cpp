@@ -31,27 +31,61 @@ ProblemIn::ProblemIn(const std::string& fn) {
 
   std::println("# Loading Input Deck ...");
 
-  /* Grab as std::optional<type> */
+  // --- problem block ---
+  if (!in_table["problem"].is_table()) {
+    THROW_ATHELAS_ERROR("Input deck must have a [problem] block!");
+  }
 
-  // problem
-  std::optional<std::string> pn =
-      in_table["problem"]["problem"].value<std::string>();
-  std::optional<bool> rest = in_table["problem"]["restart"].value<bool>();
-  std::optional<bool> rad  = in_table["problem"]["do_rad"].value<bool>();
+  std::optional<std::string> pname = in_table["problem"]["problem"].value<std::string>();
+  if (!pname) {
+    THROW_ATHELAS_ERROR("Missing or invalid 'problem' in [problem] block.");
+  }
+  params_.add("problem_name", pname.value());
+
+  std::optional<bool> restart = in_table["problem"]["restart"].value_or(false);
+  params_.add("restart", restart.value_or(false));
+
+  std::optional<double> tf = in_table["problem"]["t_end"].value<double>();
+  if (!tf) {
+    THROW_ATHELAS_ERROR("Missing or invalid 'tf' in [problem] block.");
+  }
+  params_.add("tf", tf.value());
+
+  std::optional<double> xl = in_table["problem"]["xl"].value<double>();
+  if (!xl) {
+    THROW_ATHELAS_ERROR("Missing or invalid 'xl' in [problem] block.");
+  }
+  params_.add("xl", xl.value());
+
+  std::optional<double> xr = in_table["problem"]["xr"].value<double>();
+  if (!xr) {
+    THROW_ATHELAS_ERROR("Missing or invalid 'xr' in [problem] block.");
+  }
+  params_.add("xr", xr.value());
+
+  std::optional<double> cfl = in_table["problem"]["cfl"].value<double>();
+  // NOTE: It may be worthwhile to have cfl be registerd per physics.
+  if (!cfl) {
+    THROW_ATHELAS_ERROR("Missing or invalid 'cfl' in [problem] block.");
+  }
+  params_.add("cfl", cfl.value());
+
   std::optional<std::string> geom =
       in_table["problem"]["geometry"].value<std::string>();
-  std::optional<double> tf = in_table["problem"]["t_end"].value<double>();
-  std::optional<double> x1 = in_table["problem"]["xl"].value<double>();
-  std::optional<double> x2 = in_table["problem"]["xr"].value<double>();
-  std::optional<std::string> fluid_bc_i_ =
-      in_table["bc"]["fluid"]["bc_i"].value<std::string>();
-  std::optional<std::string> fluid_bc_o_ =
-      in_table["bc"]["fluid"]["bc_o"].value<std::string>();
-  std::optional<std::string> rad_bc_i_ =
-      in_table["bc"]["rad"]["bc_i"].value<std::string>();
-  std::optional<std::string> rad_bc_o_ =
-      in_table["bc"]["rad"]["bc_o"].value<std::string>();
-  std::optional<double> cfl = in_table["problem"]["cfl"].value<double>();
+  if (!geom) {
+    THROW_ATHELAS_ERROR("Missing or invalid 'geom' in [problem] block.");
+  }
+  params_.add("geometry", geom.value());
+
+  // --- physics block ---
+  if (!in_table["physics"].is_table()) {
+    THROW_ATHELAS_ERROR("Input deck must have a [physics] block!");
+  }
+  std::optional<bool> rad = in_table["problem"]["radiation"].value<bool>();
+  if (!rad) {
+    THROW_ATHELAS_ERROR("Missing or invalid 'radiation' in [physics] block.");
+  }
+  params_.add("rad_active", rad.value());
 
   // Is this a good pattern?
   do_gravity = in_table["problem"]["do_gravity"].value_or(false);
@@ -147,6 +181,15 @@ ProblemIn::ProblemIn(const std::string& fn) {
                         " - weno \n"
                         " - minmod");
   }
+
+  std::optional<std::string> fluid_bc_i_ =
+      in_table["bc"]["fluid"]["bc_i"].value<std::string>();
+  std::optional<std::string> fluid_bc_o_ =
+      in_table["bc"]["fluid"]["bc_o"].value<std::string>();
+  std::optional<std::string> rad_bc_i_ =
+      in_table["bc"]["rad"]["bc_i"].value<std::string>();
+  std::optional<std::string> rad_bc_o_ =
+      in_table["bc"]["rad"]["bc_o"].value<std::string>();
 
   if (pn) {
     problem_name = pn.value();
