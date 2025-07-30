@@ -37,45 +37,45 @@ ProblemIn::ProblemIn(const std::string& fn) {
   }
 
   std::optional<std::string> pname = in_table["problem"]["problem"].value<std::string>();
-  if (!pname) {
+  if (!pname.has_value()) {
     THROW_ATHELAS_ERROR("Missing or invalid 'problem' in [problem] block.");
   }
-  params_.add("problem_name", pname.value());
+  params_.add("problem.problem_name", pname.value());
 
   std::optional<bool> restart = in_table["problem"]["restart"].value_or(false);
-  params_.add("restart", restart.value_or(false));
+  params_.add("problem.restart", restart.value_or(false));
 
   std::optional<double> tf = in_table["problem"]["t_end"].value<double>();
-  if (!tf) {
+  if (!tf.has_value()) {
     THROW_ATHELAS_ERROR("Missing or invalid 'tf' in [problem] block.");
   }
-  params_.add("tf", tf.value());
+  params_.add("problem.tf", tf.value());
 
   std::optional<double> xl = in_table["problem"]["xl"].value<double>();
-  if (!xl) {
+  if (!xl.has_value()) {
     THROW_ATHELAS_ERROR("Missing or invalid 'xl' in [problem] block.");
   }
-  params_.add("xl", xl.value());
+  params_.add("problem.xl", xl.value());
 
   std::optional<double> xr = in_table["problem"]["xr"].value<double>();
-  if (!xr) {
+  if (!xr.has_value()) {
     THROW_ATHELAS_ERROR("Missing or invalid 'xr' in [problem] block.");
   }
-  params_.add("xr", xr.value());
+  params_.add("problem.xr", xr.value());
 
   std::optional<double> cfl = in_table["problem"]["cfl"].value<double>();
   // NOTE: It may be worthwhile to have cfl be registerd per physics.
-  if (!cfl) {
+  if (!cfl.has_value()) {
     THROW_ATHELAS_ERROR("Missing or invalid 'cfl' in [problem] block.");
   }
-  params_.add("cfl", cfl.value());
+  params_.add("problem.cfl", cfl.value());
 
   std::optional<std::string> geom =
       in_table["problem"]["geometry"].value<std::string>();
-  if (!geom) {
+  if (!geom.has_value()) {
     THROW_ATHELAS_ERROR("Missing or invalid 'geom' in [problem] block.");
   }
-  params_.add("geometry", geom.value());
+  params_.add("problem.geometry", geom.value());
 
   // --- physics block ---
   if (!in_table["physics"].is_table()) {
@@ -85,7 +85,16 @@ ProblemIn::ProblemIn(const std::string& fn) {
   if (!rad) {
     THROW_ATHELAS_ERROR("Missing or invalid 'radiation' in [physics] block.");
   }
-  params_.add("rad_active", rad.value());
+  params_.add("physics.rad_active", rad.value());
+
+  std::optional<bool> grav = in_table["problem"]["gravity"].value<bool>();
+  if (!grav) {
+    THROW_ATHELAS_ERROR("Missing or invalid 'gravity' in [physics] block.");
+  }
+  params_.add("physics.gravity_active", rad.value());
+
+  // parse radiation
+  if (rad.value())
 
   // Is this a good pattern?
   do_gravity = in_table["problem"]["do_gravity"].value_or(false);
