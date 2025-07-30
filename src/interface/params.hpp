@@ -5,7 +5,7 @@
  *
  * @brief Simple params container 
  * @note Provide a convenient wrapper around
- *   std::unordered_map<std::string, std::any>
+ *   std::unordered_map<std::string, std::unique_ptr<std::any>>
  */
 
 #include <string>
@@ -36,7 +36,7 @@ public:
     Params(Params&& other) noexcept = default;
 
     // Copy assignment - deep copy all stored objects
-    Params& operator=(const Params& other) {
+    auto operator=(const Params& other) -> Params&{
         if (this != &other) {
             params_.clear();
             for (const auto& [key, value_ptr] : other.params_) {
@@ -49,7 +49,9 @@ public:
     }
 
     // Move assignment
-    Params& operator=(Params&& other) noexcept = default;
+    auto operator=(Params&& other) noexcept -> Params& = default;
+
+    ~Params() = default;
 
     // Add by copy
     template <typename T>
@@ -65,7 +67,7 @@ public:
 
     // Get value (returns a copy)
     template <typename T>
-    T get(const std::string& key) const {
+    auto get(const std::string& key) const -> T{
         auto it = params_.find(key);
         if (it == params_.end() || !it->second) {
             THROW_ATHELAS_ERROR("Parameter '" + key + "' not found");
@@ -79,7 +81,7 @@ public:
 
     // Get reference to stored value (avoid copy for large objects)
     template <typename T>
-    const T& get_ref(const std::string& key) const {
+    auto get_ref(const std::string& key) const -> const T& {
         auto it = params_.find(key);
         if (it == params_.end() || !it->second) {
             THROW_ATHELAS_ERROR("Parameter '" + key + "' not found");
@@ -93,7 +95,7 @@ public:
 
     // Get mutable reference (for in-place modification)
     template <typename T>
-    T& get_mutable_ref(const std::string& key) {
+    auto get_mutable_ref(const std::string& key) -> T& {
         auto it = params_.find(key);
         if (it == params_.end() || !it->second) {
             THROW_ATHELAS_ERROR("Parameter '" + key + "' not found");
@@ -107,7 +109,7 @@ public:
 
     // Overload get to return value or default as needed.
     template <typename T>
-    T get(const std::string& key, const T& default_value) {
+    auto get(const std::string& key, const T& default_value) -> T {
         auto it = params_.find(key);
         if (it == params_.end() || !it->second) {
             add(key, default_value);
@@ -121,10 +123,10 @@ public:
     }
 
     // Check if a parameter exists
-    bool contains(const std::string& key) const;
+    auto contains(const std::string& key) const -> bool;
     void remove(const std::string& key);
     void clear();
-    std::vector<std::string> keys() const;
+    auto keys() const -> std::vector<std::string>;
 
 private:
     std::unordered_map<std::string, std::unique_ptr<std::any>> params_;

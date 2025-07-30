@@ -74,8 +74,8 @@ class AthelasError : public std::exception {
 };
 
 template <typename... Args>
-[[noreturn]] constexpr void THROW_ATHELAS_ERROR(
-    const char* message, const char* function = __builtin_FUNCTION(),
+[[noreturn]] inline void THROW_ATHELAS_ERROR(
+    const std::string& message, const char* function = __builtin_FUNCTION(),
     const char* file = __builtin_FILE(), int line = __builtin_LINE()) {
   throw AthelasError(message, function, file, line);
 }
