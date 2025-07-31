@@ -17,7 +17,7 @@
 /**
  * @brief Initialize radiating shock
  **/
-void rad_shock_init(State* state, GridStructure* grid, const ProblemIn* pin) {
+void rad_shock_init(State* state, GridStructure* grid, ProblemIn* pin) {
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
   const int pOrder   = state->get_p_order();
@@ -34,15 +34,13 @@ void rad_shock_init(State* state, GridStructure* grid, const ProblemIn* pin) {
 
   constexpr static int iCR_E = 3;
 
-  const double V_L  = pin->in_table["problem"]["params"]["vL"].value_or(5.19e7);
-  const double V_R  = pin->in_table["problem"]["params"]["vR"].value_or(1.73e7);
-  const double rhoL = pin->in_table["problem"]["params"]["rhoL"].value_or(5.69);
-  const double rhoR = pin->in_table["problem"]["params"]["rhoR"].value_or(17.1);
-  const double T_L =
-      pin->in_table["problem"]["params"]["T_L"].value_or(2.18e6); // K
-  const double T_R =
-      pin->in_table["problem"]["params"]["T_R"].value_or(7.98e6); // K
-  const double x_d = pin->in_table["problem"]["params"]["x_d"].value_or(0.013);
+  const auto V_L  = pin->param()->get<double>("problem.params.vL", 5.19e7);
+  const auto V_R  = pin->param()->get<double>("problem.params.vR", 1.73e7);
+  const auto rhoL = pin->param()->get<double>("problem.params.rhoL", 5.69);
+  const auto rhoR = pin->param()->get<double>("problem.params.rhoR", 17.1);
+  const auto T_L = pin->param()->get<double>("problem.params.T_L", 2.18e6); // K
+  const auto T_R = pin->param()->get<double>("problem.params.T_R", 7.98e6); // K
+  const auto x_d = pin->param()->get<double>("problem.params.x_d", 0.013);
 
   // TODO(astrobarker): thread through
   const double mu       = 1.0 + constants::m_e / constants::m_p;

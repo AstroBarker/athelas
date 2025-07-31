@@ -16,8 +16,7 @@
 /**
  * @brief Initialize gas collapse
  **/
-void gas_collapse_init(State* state, GridStructure* grid,
-                       const ProblemIn* pin) {
+void gas_collapse_init(State* state, GridStructure* grid, ProblemIn* pin) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -33,10 +32,10 @@ void gas_collapse_init(State* state, GridStructure* grid,
 
   constexpr static int iPF_D = 0;
 
-  const double V0   = pin->in_table["problem"]["params"]["v0"].value_or(0.0);
-  const double rho0 = pin->in_table["problem"]["params"]["rho0"].value_or(1.0);
-  const double p0   = pin->in_table["problem"]["params"]["p0"].value_or(10.0);
-  const double G    = constants::G_GRAV;
+  const auto V0   = pin->param()->get<double>("problem.params.v0", 0.0);
+  const auto rho0 = pin->param()->get<double>("problem.params.rho0", 1.0);
+  const auto p0   = pin->param()->get<double>("problem.params.p0", 10.0);
+  const double G  = constants::G_GRAV;
 
   const double gamma = 5.0 / 3.0;
 

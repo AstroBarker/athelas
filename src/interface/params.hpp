@@ -3,14 +3,14 @@
  * @file params.hpp
  * --------------
  *
- * @brief Simple params container 
+ * @brief Simple params container
  * @note Provide a convenient wrapper around
  *   std::unordered_map<std::string, std::unique_ptr<std::any>>
  */
 
+#include <any>
 #include <string>
 #include <unordered_map>
-#include <any>
 
 #include "utils/error.hpp"
 
@@ -20,114 +20,114 @@
  **/
 class Params {
 
-public:
-    Params() = default;
+ public:
+  Params() = default;
 
-    // Copy constructor - deep copy all stored objects
-    Params(const Params& other) {
-        for (const auto& [key, value_ptr] : other.params_) {
-            if (value_ptr) {
-                params_[key] = std::make_unique<std::any>(*value_ptr);
-            }
-        }
+  // Copy constructor - deep copy all stored objects
+  Params(const Params& other) {
+    for (const auto& [key, value_ptr] : other.params_) {
+      if (value_ptr) {
+        params_[key] = std::make_unique<std::any>(*value_ptr);
+      }
     }
+  }
 
-    // Move constructor
-    Params(Params&& other) noexcept = default;
+  // Move constructor
+  Params(Params&& other) noexcept = default;
 
-    // Copy assignment - deep copy all stored objects
-    auto operator=(const Params& other) -> Params&{
-        if (this != &other) {
-            params_.clear();
-            for (const auto& [key, value_ptr] : other.params_) {
-                if (value_ptr) {
-                    params_[key] = std::make_unique<std::any>(*value_ptr);
-                }
-            }
+  // Copy assignment - deep copy all stored objects
+  auto operator=(const Params& other) -> Params& {
+    if (this != &other) {
+      params_.clear();
+      for (const auto& [key, value_ptr] : other.params_) {
+        if (value_ptr) {
+          params_[key] = std::make_unique<std::any>(*value_ptr);
         }
-        return *this;
+      }
     }
+    return *this;
+  }
 
-    // Move assignment
-    auto operator=(Params&& other) noexcept -> Params& = default;
+  // Move assignment
+  auto operator=(Params&& other) noexcept -> Params& = default;
 
-    ~Params() = default;
+  ~Params() = default;
 
-    // Add by copy
-    template <typename T>
-    void add(const std::string& key, const T& value) {
-        params_[key] = std::make_unique<std::any>(value);
+  // Add by copy
+  template <typename T>
+  void add(const std::string& key, const T& value) {
+    params_[key] = std::make_unique<std::any>(value);
+  }
+
+  // Add by move
+  template <typename T>
+  void add(const std::string& key, T&& value) {
+    params_[key] = std::make_unique<std::any>(std::forward<T>(value));
+  }
+
+  // Get value (returns a copy)
+  template <typename T>
+  auto get(const std::string& key) const -> T {
+    auto it = params_.find(key);
+    if (it == params_.end() || !it->second) {
+      THROW_ATHELAS_ERROR("Parameter '" + key + "' not found");
     }
-
-    // Add by move
-    template <typename T>
-    void add(const std::string& key, T&& value) {
-        params_[key] = std::make_unique<std::any>(std::forward<T>(value));
+    try {
+      return std::any_cast<T>(*(it->second));
+    } catch (const std::bad_any_cast&) {
+      THROW_ATHELAS_ERROR("Type mismatch for parameter '" + key + "'");
     }
+  }
 
-    // Get value (returns a copy)
-    template <typename T>
-    auto get(const std::string& key) const -> T{
-        auto it = params_.find(key);
-        if (it == params_.end() || !it->second) {
-            THROW_ATHELAS_ERROR("Parameter '" + key + "' not found");
-        }
-        try {
-            return std::any_cast<T>(*(it->second));
-        } catch (const std::bad_any_cast&) {
-            THROW_ATHELAS_ERROR("Type mismatch for parameter '" + key + "'");
-        }
+  // Get reference to stored value (avoid copy for large objects)
+  template <typename T>
+  auto get_ref(const std::string& key) const -> const T& {
+    auto it = params_.find(key);
+    if (it == params_.end() || !it->second) {
+      THROW_ATHELAS_ERROR("Parameter '" + key + "' not found");
     }
-
-    // Get reference to stored value (avoid copy for large objects)
-    template <typename T>
-    auto get_ref(const std::string& key) const -> const T& {
-        auto it = params_.find(key);
-        if (it == params_.end() || !it->second) {
-            THROW_ATHELAS_ERROR("Parameter '" + key + "' not found");
-        }
-        try {
-            return std::any_cast<const T&>(*(it->second));
-        } catch (const std::bad_any_cast&) {
-            THROW_ATHELAS_ERROR("Type mismatch for parameter '" + key + "'");
-        }
+    try {
+      return std::any_cast<const T&>(*(it->second));
+    } catch (const std::bad_any_cast&) {
+      THROW_ATHELAS_ERROR("Type mismatch for parameter '" + key + "'");
     }
+  }
 
-    // Get mutable reference (for in-place modification)
-    template <typename T>
-    auto get_mutable_ref(const std::string& key) -> T& {
-        auto it = params_.find(key);
-        if (it == params_.end() || !it->second) {
-            THROW_ATHELAS_ERROR("Parameter '" + key + "' not found");
-        }
-        try {
-            return std::any_cast<T&>(*(it->second));
-        } catch (const std::bad_any_cast&) {
-            THROW_ATHELAS_ERROR("Type mismatch for parameter '" + key + "'");
-        }
+  // Get mutable reference (for in-place modification)
+  template <typename T>
+  auto get_mutable_ref(const std::string& key) -> T& {
+    auto it = params_.find(key);
+    if (it == params_.end() || !it->second) {
+      THROW_ATHELAS_ERROR("Parameter '" + key + "' not found");
     }
-
-    // Overload get to return value or default as needed.
-    template <typename T>
-    auto get(const std::string& key, const T& default_value) -> T {
-        auto it = params_.find(key);
-        if (it == params_.end() || !it->second) {
-            add(key, default_value);
-            return default_value;
-        }
-        try {
-            return std::any_cast<T>(*(it->second));
-        } catch (const std::bad_any_cast&) {
-            THROW_ATHELAS_ERROR("Type mismatch for parameter '" + key + "'");
-        }
+    try {
+      return std::any_cast<T&>(*(it->second));
+    } catch (const std::bad_any_cast&) {
+      THROW_ATHELAS_ERROR("Type mismatch for parameter '" + key + "'");
     }
+  }
 
-    // Check if a parameter exists
-    auto contains(const std::string& key) const -> bool;
-    void remove(const std::string& key);
-    void clear();
-    auto keys() const -> std::vector<std::string>;
+  // Overload get to return value or default as needed.
+  template <typename T>
+  auto get(const std::string& key, const T& default_value) -> T {
+    auto it = params_.find(key);
+    if (it == params_.end() || !it->second) {
+      add(key, default_value);
+      return default_value;
+    }
+    try {
+      return std::any_cast<T>(*(it->second));
+    } catch (const std::bad_any_cast&) {
+      THROW_ATHELAS_ERROR("Type mismatch for parameter '" + key + "'");
+    }
+  }
 
-private:
-    std::unordered_map<std::string, std::unique_ptr<std::any>> params_;
+  // Check if a parameter exists
+  auto contains(const std::string& key) const -> bool;
+  void remove(const std::string& key);
+  void clear();
+  auto keys() const -> std::vector<std::string>;
+
+ private:
+  std::unordered_map<std::string, std::unique_ptr<std::any>> params_;
 };

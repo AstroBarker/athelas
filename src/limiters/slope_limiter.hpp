@@ -30,9 +30,9 @@
 class WENO : public SlopeLimiterBase<WENO> {
  public:
   WENO() = default;
-  WENO(const GridStructure* grid, const ProblemIn* pin,
+  WENO(const bool enabled, const GridStructure* grid, const ProblemIn* pin,
        const std::vector<int>& vars, const int nvars)
-      : do_limiter_(pin->do_limiter), order_(pin->pOrder), nvars_(nvars),
+      : do_limiter_(enabled), order_(pin->pOrder), nvars_(nvars),
         gamma_i_(pin->gamma_i), gamma_l_(pin->gamma_l), gamma_r_(pin->gamma_r),
         weno_r_(pin->weno_r), characteristic_(pin->Characteristic),
         tci_opt_(pin->TCI_Option), tci_val_(pin->TCI_Threshold), vars_(vars),

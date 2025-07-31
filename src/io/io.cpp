@@ -230,14 +230,15 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
 /**
  * Write Modal basis coefficients and mass matrix
  **/
-void write_basis(ModalBasis* basis, unsigned int ilo, unsigned int ihi,
-                 unsigned int nNodes, unsigned int order,
-                 const std::string& problem_name) {
+void write_basis(ModalBasis* basis, const int ihi, const int nNodes,
+                 const int order, const std::string& problem_name) {
   std::string fn = problem_name;
   fn.append("_basis");
   fn.append(".h5");
 
   const char* fn2 = fn.c_str();
+
+  static constexpr int ilo = 1;
 
   // Calculate total size needed
   const size_t total_size = static_cast<size_t>(ihi) * (nNodes + 2) * order;

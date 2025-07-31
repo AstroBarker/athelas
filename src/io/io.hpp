@@ -30,6 +30,5 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
 void print_simulation_parameters(GridStructure grid, ProblemIn* pin,
                                  double CFL);
 
-void write_basis(ModalBasis* basis, unsigned int ilo, unsigned int ihi,
-                 unsigned int nNodes, unsigned int order,
+void write_basis(ModalBasis* basis, int ihi, int nNodes, int order,
                  const std::string& problem_name);

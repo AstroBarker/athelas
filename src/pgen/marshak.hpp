@@ -17,7 +17,7 @@
 /**
  * @brief Initialize radiating shock
  **/
-void marshak_init(State* state, GridStructure* grid, const ProblemIn* pin) {
+void marshak_init(State* state, GridStructure* grid, ProblemIn* pin) {
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
   const int pOrder   = state->get_p_order();
@@ -40,12 +40,10 @@ void marshak_init(State* state, GridStructure* grid, const ProblemIn* pin) {
     return (alpha / 4.0) * std::pow(T, 4.0);
   };
 
-  const double V0 = pin->in_table["problem"]["params"]["vL"].value_or(0.0);
-  const double epsilon =
-      pin->in_table["problem"]["params"]["epsilon"].value_or(1.0);
-  const double rho0 = pin->in_table["problem"]["params"]["rho0"].value_or(10.0);
-  const double T0 =
-      pin->in_table["problem"]["params"]["T0"].value_or(1.0e4); // K
+  const auto V0      = pin->param()->get<double>("problem.params.v0", 0.0);
+  const auto rho0    = pin->param()->get<double>("problem.params.rho0", 10.0);
+  const auto epsilon = pin->param()->get<double>("problem.params.epsilon", 1.0);
+  const auto T0 = pin->param()->get<double>("problem.params.T0", 1.0e4); // K
 
   const double alpha  = 4.0 * constants::a / epsilon;
   const double em_gas = su_olson_energy(alpha, T0) / rho0;

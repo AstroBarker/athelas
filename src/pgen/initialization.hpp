@@ -11,9 +11,9 @@
 
 #include <string>
 
-#include "advection.hpp"
-#include "error.hpp"
-#include "grid.hpp"
+#include "eos/eos_variant.hpp"
+#include "geometry/grid.hpp"
+#include "pgen/advection.hpp"
 #include "pgen/marshak.hpp"
 #include "pgen/moving_contact.hpp"
 #include "pgen/noh.hpp"
@@ -27,7 +27,8 @@
 #include "pgen/shu_osher.hpp"
 #include "pgen/smooth_flow.hpp"
 #include "pgen/sod.hpp"
-#include "state.hpp"
+#include "state/state.hpp"
+#include "utils/error.hpp"
 
 /**
  * Initialize the conserved Fields for various problems.
@@ -36,9 +37,9 @@
  * or a a device-host copy
  **/
 void initialize_fields(State* state, GridStructure* grid, const EOS* /*eos*/,
-                       const ProblemIn* pin) {
+                       ProblemIn* pin) {
 
-  const std::string problem_name = pin->problem_name;
+  const auto problem_name = pin->param()->get<std::string>("problem.problem");
 
   if (problem_name == "sod") {
     sod_init(state, grid, pin);

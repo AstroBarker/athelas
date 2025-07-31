@@ -17,7 +17,7 @@ using namespace utilities;
 
 namespace limiter_utilities {
 
-auto initialize_slope_limiter(const GridStructure* grid, const ProblemIn* pin,
+auto initialize_slope_limiter(bool enabled, std::string type, const GridStructure* grid, const ProblemIn* pin,
                               const std::vector<int>& vars, int nvars)
     -> SlopeLimiter;
 

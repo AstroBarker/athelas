@@ -80,6 +80,10 @@ template <typename... Args>
   throw AthelasError(message, function, file, line);
 }
 
+inline void WARNING_ATHELAS(const std::string& message) {
+  std::println("!!! Athelas Warning: {}", message);
+}
+
 template <typename T>
 void check_state(T state, const int ihi, const bool do_rad) {
   auto uCF       = state->get_u_cf();

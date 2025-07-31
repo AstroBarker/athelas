@@ -14,7 +14,7 @@
 /**
  * @brief Initialize Noh problem
  **/
-void noh_init(State* state, GridStructure* grid, const ProblemIn* pin) {
+void noh_init(State* state, GridStructure* grid, ProblemIn* pin) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -30,9 +30,9 @@ void noh_init(State* state, GridStructure* grid, const ProblemIn* pin) {
 
   constexpr static int iPF_D = 0;
 
-  const double V0 = pin->in_table["problem"]["params"]["v0"].value_or(-1.0);
-  const double D0 = pin->in_table["problem"]["params"]["rho0"].value_or(1.0);
-  const double P0 = pin->in_table["problem"]["params"]["p0"].value_or(0.000001);
+  const auto P0 = pin->param()->get<double>("problem.params.p0", 0.000001);
+  const auto V0 = pin->param()->get<double>("problem.params.v0", -1.0);
+  const auto D0 = pin->param()->get<double>("problem.params.rho0", 1.0);
 
   const double GAMMA = 5.0 / 3.0;
 

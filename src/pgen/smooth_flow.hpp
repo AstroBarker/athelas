@@ -17,7 +17,7 @@
 /**
  * @brief Initialize smooth flow test problem
  **/
-void smooth_flow_init(State* state, GridStructure* grid, const ProblemIn* pin) {
+void smooth_flow_init(State* state, GridStructure* grid, ProblemIn* pin) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -33,8 +33,8 @@ void smooth_flow_init(State* state, GridStructure* grid, const ProblemIn* pin) {
 
   constexpr static int iPF_D = 0;
 
-  const double amp =
-      pin->in_table["problem"]["params"]["amp"].value_or(0.9999999999999999999);
+  const auto amp =
+      pin->param()->get<double>("problem.params.amp", 0.9999999999999999);
 
   double X1 = 0.0;
   for (int iX = ilo; iX <= ihi; iX++) {

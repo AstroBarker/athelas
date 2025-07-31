@@ -16,7 +16,7 @@
 
 class State {
  public:
-  State(int nCF, int nPF, int nAF, int nX_, int nG_, int nNodes_, int pOrder);
+  State(int nCF, int nPF, int nAF, int nX_, int nNodes_, int pOrder);
 
   [[nodiscard]] auto get_n_cf() const noexcept -> int;
   [[nodiscard]] auto get_n_pf() const noexcept -> int;

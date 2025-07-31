@@ -27,15 +27,15 @@ using bc::BoundaryConditions;
 
 class Driver {
  public:
-  explicit Driver(const ProblemIn* pin);
+  explicit Driver(ProblemIn* pin);
 
   auto execute() -> int;
 
  private:
   // init
-  void initialize(const ProblemIn* pin);
+  void initialize(ProblemIn* pin);
 
-  ProblemIn pin_;
+  std::shared_ptr<ProblemIn> pin_;
 
   std::unique_ptr<PackageManager> manager_;
 
@@ -50,11 +50,6 @@ class Driver {
   double time_;
   double dt_;
   double t_end_;
-  double cfl_;
-  int i_print_;
-  double nlim_;
-  double dt_hdf5_;
-  double dt_init_frac_;
 
   // core bits
   std::unique_ptr<EOS> eos_;

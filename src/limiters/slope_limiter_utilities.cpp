@@ -17,14 +17,14 @@
 
 namespace limiter_utilities {
 
-auto initialize_slope_limiter(const GridStructure* grid, const ProblemIn* pin,
+auto initialize_slope_limiter(const bool enabled, const std::string type, const GridStructure* grid, const ProblemIn* pin,
                               const std::vector<int>& vars, const int nvars)
     -> SlopeLimiter {
   SlopeLimiter S_Limiter;
-  if (utilities::to_lower(pin->limiter_type) == "minmod") {
-    S_Limiter = TVDMinmod(grid, pin, vars, nvars);
+  if (utilities::to_lower(type) == "minmod") {
+    S_Limiter = TVDMinmod(enabled, grid, pin, vars, nvars);
   } else {
-    S_Limiter = WENO(grid, pin, vars, nvars);
+    S_Limiter = WENO(enabled, grid, pin, vars, nvars);
   }
   return S_Limiter;
 }

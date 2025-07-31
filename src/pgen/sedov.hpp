@@ -16,7 +16,7 @@
 /**
  * @brief Initialize sedov blast wave
  **/
-void sedov_init(State* state, GridStructure* grid, const ProblemIn* pin) {
+void sedov_init(State* state, GridStructure* grid, ProblemIn* pin) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -32,9 +32,9 @@ void sedov_init(State* state, GridStructure* grid, const ProblemIn* pin) {
 
   constexpr static int iPF_D = 0;
 
-  const double V0 = pin->in_table["problem"]["params"]["v0"].value_or(0.0);
-  const double D0 = pin->in_table["problem"]["params"]["rho0"].value_or(1.0);
-  const double E0 = pin->in_table["problem"]["params"]["E0"].value_or(0.3);
+  const auto D0 = pin->param()->get<double>("problem.params.rho0", 1.0);
+  const auto V0 = pin->param()->get<double>("problem.params.v0", 0.0);
+  const auto E0 = pin->param()->get<double>("problem.params.e0", 0.3);
 
   const int origin = 1;
 

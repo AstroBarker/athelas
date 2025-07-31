@@ -43,7 +43,7 @@ auto main(int argc, char** argv) -> int {
   Kokkos::initialize(argc, argv);
   {
     // pin
-    const auto pin = std::make_unique<ProblemIn>(input_path);
+    const auto pin = std::make_shared<ProblemIn>(input_path);
 
     // --- Create Driver ---
     Driver driver(pin.get());

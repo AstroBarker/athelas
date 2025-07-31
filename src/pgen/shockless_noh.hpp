@@ -14,8 +14,7 @@
 /**
  * @brief Initialize shockless Noh problem
  **/
-void shockless_noh_init(State* state, GridStructure* grid,
-                        const ProblemIn* pin) {
+void shockless_noh_init(State* state, GridStructure* grid, ProblemIn* pin) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -31,9 +30,9 @@ void shockless_noh_init(State* state, GridStructure* grid,
 
   constexpr static int iPF_D = 0;
 
-  const double D = pin->in_table["problem"]["params"]["rho"].value_or(1.0);
-  const double E_M =
-      pin->in_table["problem"]["params"]["specific_energy"].value_or(1.0);
+  const auto D = pin->param()->get<double>("problem.params.rho0", 1.0);
+  const auto E_M =
+      pin->param()->get<double>("problem.params.specific_energy", 1.0);
 
   double X1 = 0.0;
   for (int iX = ilo; iX <= ihi; iX++) {

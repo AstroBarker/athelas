@@ -29,14 +29,13 @@
  **/
 ModalBasis::ModalBasis(poly_basis::poly_basis basis, const View3D<double> uPF,
                        GridStructure* grid, const int pOrder, const int nN,
-                       const int nElements, const int nGuard,
-                       const bool density_weight)
+                       const int nElements, const bool density_weight)
     : nX_(nElements), order_(pOrder), nNodes_(nN),
-      mSize_((nN) * (nN + 2) * (nElements + 2 * nGuard)),
+      mSize_((nN) * (nN + 2) * (nElements + 2)),
       density_weight_(density_weight),
-      mass_matrix_("MassMatrix", nElements + 2 * nGuard, pOrder),
-      phi_("phi_", nElements + 2 * nGuard, 3 * nN + 2, pOrder),
-      dphi_("dphi_", nElements + 2 * nGuard, 3 * nN + 2, pOrder) {
+      mass_matrix_("MassMatrix", nElements + 2, pOrder),
+      phi_("phi_", nElements + 2, 3 * nN + 2, pOrder),
+      dphi_("dphi_", nElements + 2, 3 * nN + 2, pOrder) {
   // --- Compute grid quantities ---
   grid->compute_mass(uPF);
   grid->compute_mass_r(uPF); // Weird place for this to be but works
