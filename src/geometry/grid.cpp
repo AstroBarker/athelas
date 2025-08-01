@@ -25,8 +25,8 @@ using namespace geometry;
 GridStructure::GridStructure(const ProblemIn* pin)
     : nElements_(pin->param()->get<int>("problem.nx")),
       nNodes_(pin->param()->get<int>("fluid.nnodes")), mSize_(nElements_ + 2),
-      xL_(pin->param()->get<int>("problem.xl")),
-      xR_(pin->param()->get<int>("problem.xr")),
+      xL_(pin->param()->get<double>("problem.xl")),
+      xR_(pin->param()->get<double>("problem.xr")),
       geometry_(pin->param()->get<Geometry>("problem.geometry_model")),
       nodes_("Nodes", nNodes_), weights_("weights_", nNodes_),
       centers_("Cetners", mSize_), widths_("widths_", mSize_),

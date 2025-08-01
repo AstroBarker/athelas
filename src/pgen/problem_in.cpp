@@ -87,7 +87,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
   if (nx.value() <= 0) {
     THROW_ATHELAS_ERROR("nx must be > 0!");
   }
-  params_->add("problem.nx", nx);
+  params_->add("problem.nx", nx.value());
 
   std::optional<double> cfl = config["problem"]["cfl"].value<double>();
   // NOTE: It may be worthwhile to have cfl be registerd per physics.
@@ -106,10 +106,10 @@ ProblemIn::ProblemIn(const std::string& fn) {
   }
   params_->add("problem.geometry", geom.value());
   if (geom.value() == "planar") {
-    params_->add("problem.geometryi_model", Geometry::Planar);
+    params_->add("problem.geometry_model", Geometry::Planar);
   }
   if (geom.value() == "spherical") {
-    params_->add("problem.geometryi_model", Geometry::Spherical);
+    params_->add("problem.geometry_model", Geometry::Spherical);
   }
 
   // --- hande [problem.params] ---
@@ -145,13 +145,13 @@ ProblemIn::ProblemIn(const std::string& fn) {
   if (!config["physics"].is_table()) {
     THROW_ATHELAS_ERROR("Input deck must have a [physics] block!");
   }
-  std::optional<bool> rad = config["problem"]["radiation"].value<bool>();
+  std::optional<bool> rad = config["physics"]["radiation"].value<bool>();
   if (!rad) {
     THROW_ATHELAS_ERROR("Missing or invalid 'radiation' in [physics] block.");
   }
   params_->add("physics.rad_active", rad.value());
 
-  std::optional<bool> grav = config["problem"]["gravity"].value<bool>();
+  std::optional<bool> grav = config["physics"]["gravity"].value<bool>();
   if (!grav) {
     THROW_ATHELAS_ERROR("Missing or invalid 'gravity' in [physics] block.");
   }
@@ -181,11 +181,11 @@ ProblemIn::ProblemIn(const std::string& fn) {
 
   std::optional<bool> limit_fluid =
       config["fluid"]["limiter"]["do_limiter"].value_or(true);
-  params_->add("rad.limiter.enabled", limit_fluid);
+  params_->add("fluid.limiter.enabled", limit_fluid.value());
 
   std::optional<std::string> fluid_limiter =
       config["fluid"]["limiter"]["type"].value_or("minmod");
-  params_->add("rad.limiter.type", fluid_limiter);
+  params_->add("fluid.limiter.type", fluid_limiter.value());
 
   if (limit_fluid.value() && fluid_limiter.value() == "minmod") {
     const double b_tvd = config["fluid"]["limiter"]["b_tvd"].value_or(1.0);
@@ -284,12 +284,8 @@ ProblemIn::ProblemIn(const std::string& fn) {
     THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read fluid "
                         "dirichlet_values_o as array.");
   }
-  if (fluid_bc_i.value() == "dirichlet") {
-    params_->add("fluid.bc.i.dirichlet_values", fluid_i_dirichlet_values);
-  }
-  if (fluid_bc_o.value() == "dirichlet") {
-    params_->add("fluid.bc.o.dirichlet_values", fluid_o_dirichlet_values);
-  }
+  params_->add("fluid.bc.i.dirichlet_values", fluid_i_dirichlet_values);
+  params_->add("fluid.bc.o.dirichlet_values", fluid_o_dirichlet_values);
   // fluid block
 
   // --- radiation block ---
@@ -322,11 +318,11 @@ ProblemIn::ProblemIn(const std::string& fn) {
 
     std::optional<bool> limit_rad =
         config["radiation"]["limiter"]["do_limiter"].value_or(true);
-    params_->add("radiation.limiter.enabled", limit_rad);
+    params_->add("radiation.limiter.enabled", limit_rad.value());
 
     std::optional<std::string> rad_limiter =
         config["radiation"]["limiter"]["type"].value_or("minmod");
-    params_->add("radiation.limiter.type", rad_limiter);
+    params_->add("radiation.limiter.type", rad_limiter.value());
 
     if (limit_rad.value() && rad_limiter.value() == "minmod") {
       const double b_tvd =
@@ -432,12 +428,8 @@ ProblemIn::ProblemIn(const std::string& fn) {
       THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read radiation "
                           "dirichlet_values_o as array.");
     }
-    if (rad_bc_i.value() == "dirichlet") {
-      params_->add("radiation.bc.i.dirichlet_values", rad_i_dirichlet_values);
-    }
-    if (rad_bc_o.value() == "dirichlet") {
-      params_->add("radiatio.bc.o.dirichlet_values", rad_o_dirichlet_values);
-    }
+    params_->add("radiation.bc.i.dirichlet_values", rad_i_dirichlet_values);
+    params_->add("radiatio.bc.o.dirichlet_values", rad_o_dirichlet_values);
   } // radiation block
 
   // gravity block --
@@ -520,12 +512,13 @@ ProblemIn::ProblemIn(const std::string& fn) {
     THROW_ATHELAS_ERROR("'type' not provided in [eos] block!");
   }
   params_->add("eos.type", eos_type.value());
-  params_->add("eos.gamma_ideal", config["eos"]["ideal_gamma"].value_or(1.4));
+  params_->add("eos.gamma", config["eos"]["gamma"].value_or(1.4));
 
   // --- opac ---
-  if (!config["opac"].is_table() && rad.value()) {
-    THROW_ATHELAS_ERROR("Radiation abled but no [opac] block provided!");
-  } else {
+  if (rad.value()) {
+    if (!config["opac"].is_table()) {
+      THROW_ATHELAS_ERROR("Radiation abled but no [opac] block provided!");
+    }
     std::optional<std::string> opac_type =
         config["opac"]["type"].value<std::string>();
     if (!opac_type.has_value()) {

@@ -57,9 +57,9 @@ KOKKOS_INLINE_FUNCTION auto initialize_eos(const ProblemIn* pin) -> EOS {
   EOS eos;
   const auto type = pin->param()->get<std::string>("eos.type");
   if (type == "ideal") {
-    eos = IdealGas(pin->param()->get<double>("eos.ideal_gamma"));
+    eos = IdealGas(pin->param()->get<double>("eos.gamma"));
   } else if (type == "marshak") {
-    eos = Marshak(pin->param()->get<double>("eos.ideal_gamma"));
+    eos = Marshak(pin->param()->get<double>("eos.gamma"));
   } else {
     THROW_ATHELAS_ERROR("Please choose a valid eos!");
   }

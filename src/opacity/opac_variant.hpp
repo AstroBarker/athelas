@@ -45,14 +45,14 @@ rosseland_mean(const Opacity* opac, const double rho, const double T,
 KOKKOS_INLINE_FUNCTION auto initialize_opacity(const ProblemIn* pin)
     -> Opacity {
   Opacity opac;
-  const auto type = pin->param()->get<std::string>("opac_type");
+  const auto type = pin->param()->get<std::string>("opac_type", "constant");
   if (type == "constant") {
-    opac = Constant(pin->param()->get<double>("opac.kP"),
-                    pin->param()->get<double>("opac.kR"));
+    opac = Constant(pin->param()->get<double>("opac.kP", 1.0),
+                    pin->param()->get<double>("opac.kR", 1.0));
   } else { // powerlaw rho
-    opac = PowerlawRho(pin->param()->get<double>("opac.kP"),
-                       pin->param()->get<double>("opac.kR"),
-                       pin->param()->get<double>("opac.exp"));
+    opac = PowerlawRho(pin->param()->get<double>("opac.kP", 1.0),
+                       pin->param()->get<double>("opac.kR", 1.0),
+                       pin->param()->get<double>("opac.exp", 1.0));
   }
   return opac;
 }

@@ -21,16 +21,17 @@ auto initialize_slope_limiter(const std::string field,
                               const GridStructure* grid, const ProblemIn* pin,
                               const std::vector<int>& vars, const int nvars)
     -> SlopeLimiter {
-  const auto enabled = pin->param()->get<bool>(field + ".limiter.enabled");
-  const auto type    = pin->param()->get<std::string>(field + ".limiter.type");
+  const auto enabled = pin->param()->get<bool>(field + ".limiter.enabled", false);
+  const auto type    = pin->param()->get<std::string>(field + ".limiter.type", "minmod");
   SlopeLimiter S_Limiter;
+  if (enabled) {
   if (utilities::to_lower(type) == "minmod") {
     S_Limiter = TVDMinmod(
         enabled, grid, vars, nvars, pin->param()->get<int>(field + ".porder"),
         pin->param()->get<double>(field + ".limiter.b_tvd"),
         pin->param()->get<double>(field + ".limiter.m_tvb"),
         pin->param()->get<bool>(field + ".limiter.characteristic"),
-        pin->param()->get<bool>(field + ".limiter.tci_opt"),
+        pin->param()->get<bool>(field + ".limiter.tci_enabled"),
         pin->param()->get<double>(field + ".limiter.tci_val"));
   } else {
     S_Limiter = WENO(enabled, grid, vars, nvars,
@@ -40,8 +41,9 @@ auto initialize_slope_limiter(const std::string field,
                      pin->param()->get<double>(field + ".limiter.gamma_r"),
                      pin->param()->get<double>(field + ".limiter.weno_r"),
                      pin->param()->get<bool>(field + ".limiter.characteristic"),
-                     pin->param()->get<bool>(field + ".limiter.tci_opt"),
+                     pin->param()->get<bool>(field + ".limiter.tci_enabled"),
                      pin->param()->get<double>(field + ".limiter.tci_val"));
+  }
   }
   return S_Limiter;
 }
