@@ -424,7 +424,7 @@ RKIntegrator create_tableau(MethodID method_id) {
     auto b_im_host = Kokkos::create_mirror_view(b_im);
     auto c_im_host = Kokkos::create_mirror_view(c_im);
 
-    constexpr static double gam = 1.0 + (std::numbers::sqrt2 / 2.0);
+    constexpr static double gam = 1.0 - (1.0 / std::numbers::sqrt2);
     a_im_host(0, 0)             = gam;
     a_im_host(1, 0)             = 1.0 - 2.0 * gam;
     a_im_host(1, 1)             = gam;
@@ -507,7 +507,7 @@ RKIntegrator create_tableau(MethodID method_id) {
 
     return RKIntegrator(method_id, type, explicit_order, implicit_order, stages,
                         explicit_tableau, implicit_tableau);
-  } // end IMEX_SSPRK22_DIRK
+  } // end IMEX_ARK32_ESDIRK
   case MethodID::IMEX_PDARS_ESDIRK: {
     // --- Ran Chu et al 2019 PD-ARS ESDIRK --- //
     constexpr static MethodType type    = MethodType::IMEX;
