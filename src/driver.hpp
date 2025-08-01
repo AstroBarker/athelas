@@ -27,7 +27,8 @@ using bc::BoundaryConditions;
 
 class Driver {
  public:
-  explicit Driver(ProblemIn* pin);
+  explicit Driver(std::shared_ptr<ProblemIn> pin);
+  // explicit Driver(ProblemIn* pin);
 
   auto execute() -> int;
 
@@ -41,8 +42,6 @@ class Driver {
 
   // TODO(astrobarker): thread in run_id_
   // std::string run_id_;
-  int nX_;
-  std::string problem_name_;
   bool restart_;
 
   std::unique_ptr<BoundaryConditions> bcs_;
@@ -79,24 +78,8 @@ namespace {
  * Compute the CFL timestep restriction.
  **/
 KOKKOS_INLINE_FUNCTION
-auto compute_cfl(const double CFL, const int order, const int nStages,
-                 const int tOrder) -> double {
+auto compute_cfl(const double CFL, const int order) -> double {
   double c = 1.0;
-
-  if (nStages == tOrder) {
-    c = 1.0;
-  }
-  if (nStages != tOrder) {
-    if (tOrder == 2) {
-      c = 1.0;
-    }
-    if (tOrder == 3) {
-      c = 1.0;
-    }
-    if (tOrder == 4) {
-      c = 0.76;
-    }
-  }
 
   const double max_cfl = 0.95;
   return std::min(c * CFL / ((2.0 * (order)-1.0)), max_cfl);

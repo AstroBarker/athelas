@@ -27,8 +27,7 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
                  const std::string& problem_name, double time, int order,
                  int i_write, bool do_rad);
 
-void print_simulation_parameters(GridStructure grid, ProblemIn* pin,
-                                 double CFL);
+void print_simulation_parameters(GridStructure grid, ProblemIn* pin);
 
 void write_basis(ModalBasis* basis, int ihi, int nNodes, int order,
                  const std::string& problem_name);

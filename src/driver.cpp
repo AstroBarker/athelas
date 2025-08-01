@@ -28,16 +28,16 @@
 #include "utils/error.hpp"
 
 auto Driver::execute() -> int {
-  const int nx     = pin_->param()->get<int>("problem.nx");
-  const double cfl = pin_->param()->get<double>("problem.cfl");
+  const auto nx           = pin_->param()->get<int>("problem.nx");
+  const auto problem_name = pin_->param()->get<std::string>("problem.problem");
 
   // some startup io
   write_basis(fluid_basis_.get(), pin_->param()->get<int>("problem.nx"),
               pin_->param()->get<int>("fluid.nnodes"),
               pin_->param()->get<int>("fluid.porder"),
               pin_->param()->get<std::string>("problem.problem"));
-  print_simulation_parameters(grid_, &pin_, cfl);
-  write_state(&state_, grid_, &sl_hydro_, problem_name_, time_,
+  print_simulation_parameters(grid_, pin_.get());
+  write_state(&state_, grid_, &sl_hydro_, problem_name, time_,
               pin_->param()->get<int>("fluid.porder"), 0, opts_.do_rad);
 
   // --- Timer ---
@@ -45,13 +45,13 @@ auto Driver::execute() -> int {
   double zc_ws = 0.0; // zone cycles / wall second
 
   // initial timestep TODO(astrobarker) make input param
-  const double nlim         = (pin_->param()->get<double>("problem.nlim")) == -1
-                                  ? std::numeric_limits<double>::infinity()
-                                  : pin_->param()->get<double>("problem.nlim");
-  const int ncycle_out      = pin_->param()->get<int>("output.ncycle_out");
-  double const dt_init      = pin_->param()->get<double>("output.initial_dt");
-  const double dt_init_frac = pin_->param()->get<double>("output.dt_init_frac");
-  const double dt_hdf5      = pin_->param()->get<double>("output.dt_hdf5");
+  const double nlim       = (pin_->param()->get<double>("problem.nlim")) == -1
+                                ? std::numeric_limits<double>::infinity()
+                                : pin_->param()->get<double>("problem.nlim");
+  const auto ncycle_out   = pin_->param()->get<int>("output.ncycle_out");
+  const auto dt_init      = pin_->param()->get<double>("output.initial_dt");
+  const auto dt_init_frac = pin_->param()->get<double>("output.dt_init_frac");
+  const auto dt_hdf5      = pin_->param()->get<double>("output.dt_hdf5");
 
   dt_ = dt_init;
 
@@ -92,7 +92,7 @@ auto Driver::execute() -> int {
     } catch (const AthelasError& e) {
       std::cerr << e.what() << std::endl;
       std::println("!!! Bad State found, writing _final_ output file ...");
-      write_state(&state_, grid_, &sl_hydro_, problem_name_, time_,
+      write_state(&state_, grid_, &sl_hydro_, problem_name, time_,
                   pin_->param()->get<int>("fluid.porder"), -1, opts_.do_rad);
       return AthelasExitCodes::FAILURE;
     }
@@ -102,7 +102,7 @@ auto Driver::execute() -> int {
 
     // Write state, other io
     if (time_ >= i_out_h5 * dt_hdf5) {
-      write_state(&state_, grid_, &sl_hydro_, problem_name_, time_,
+      write_state(&state_, grid_, &sl_hydro_, problem_name, time_,
                   fluid_basis_->get_order(), i_out_h5, opts_.do_rad);
       i_out_h5 += 1;
     }
@@ -116,7 +116,7 @@ auto Driver::execute() -> int {
     // timer
     if (iStep % ncycle_out == 0) {
       zc_ws =
-          static_cast<double>(ncycle_out) * nX_ / timer_zone_cycles.seconds();
+          static_cast<double>(ncycle_out) * nx / timer_zone_cycles.seconds();
       std::println("{} {:.5e} {:.5e} {:.5e}", iStep, time_, dt_, zc_ws);
       timer_zone_cycles.reset();
     }
@@ -124,7 +124,7 @@ auto Driver::execute() -> int {
     iStep++;
   }
 
-  write_state(&state_, grid_, &sl_hydro_, problem_name_, time_,
+  write_state(&state_, grid_, &sl_hydro_, problem_name, time_,
               pin_->param()->get<double>("fluid.porder"), -1, opts_.do_rad);
 
   return AthelasExitCodes::SUCCESS;
@@ -138,7 +138,12 @@ void Driver::initialize(ProblemIn* pin) { // NOLINT
     initialize_fields(&state_, &grid_, eos_.get(), pin);
   }
 
-  const double cfl = pin_->param()->get<double>("problem.cfl");
+  const auto nx = pin_->param()->get<int>("problem.nx");
+  const int max_order =
+      std::max(pin_->param()->get<int>("fluid.porder"),
+               pin_->param()->get<int>("radiation.porder", 1));
+  const auto cfl =
+      compute_cfl(pin_->param()->get<double>("problem.cfl"), max_order);
 
   // --- Datastructure for modal basis ---
   fluid_basis_ = std::make_unique<ModalBasis>(
@@ -162,11 +167,11 @@ void Driver::initialize(ProblemIn* pin) { // NOLINT
   if (rad_active) {
     manager_->add_package(RadHydroPackage{
         pin, ssprk_.get_n_stages(), eos_.get(), opac_.get(), fluid_basis_.get(),
-        radiation_basis_.get(), bcs_.get(), cfl, nX_, true});
+        radiation_basis_.get(), bcs_.get(), cfl, nx, true});
   } else {
     [[unlikely]] // pure Hydro
     manager_->add_package(HydroPackage{pin, ssprk_.get_n_stages(), eos_.get(),
-                                       fluid_basis_.get(), bcs_.get(), cfl, nX_,
+                                       fluid_basis_.get(), bcs_.get(), cfl, nx,
                                        true});
   }
   if (gravity_active) {
@@ -217,38 +222,29 @@ void Driver::initialize(ProblemIn* pin) { // NOLINT
 
 using limiter_utilities::initialize_slope_limiter;
 // Driver
-Driver::Driver(ProblemIn* pin) // NOLINT
-    : pin_(std::make_shared<ProblemIn>(pin)),
-      manager_(std::make_unique<PackageManager>()),
-      nX_(pin->param()->get<int>("problem.nx")),
-      problem_name_(pin->param()->get<std::string>("problem.problem")),
+Driver::Driver(std::shared_ptr<ProblemIn> pin) // NOLINT
+    : pin_(pin), manager_(std::make_unique<PackageManager>()),
       restart_(pin->param()->get<bool>("problem.restart")),
-      bcs_(std::make_unique<BoundaryConditions>(bc::make_boundary_conditions(
-          pin->param()->get<bool>("rad_active"),
-          pin->param()->get<std::string>("fluid.bc.i"),
-          pin->param()->get<std::string>("fluid.bc.o"),
-          pin->param()->get<std::array<double, 3>>("fluid.bc.i.dirichlet"),
-          pin->param()->get<std::array<double, 3>>("fluid.bc.o.dirichlet"),
-          pin->param()->get<std::string>("radiation.bc.i"),
-          pin->param()->get<std::string>("radiation.bc.o"),
-          pin->param()->get<std::array<double, 2>>("radiation.bc.i.dirichlet"),
-          pin->param()->get<std::array<double, 2>>(
-              "radiation.bc.o.dirichlet")))),
+      bcs_(std::make_unique<BoundaryConditions>(
+          bc::make_boundary_conditions(pin.get()))),
       time_(0.0), dt_(pin_->param()->get<double>("output.initial_dt")),
       t_end_(pin->param()->get<double>("output.tf")),
-      eos_(std::make_unique<EOS>(initialize_eos(pin))),
-      opac_(std::make_unique<Opacity>(initialize_opacity(pin))), grid_(pin),
+      eos_(std::make_unique<EOS>(initialize_eos(pin.get()))),
+      opac_(std::make_unique<Opacity>(initialize_opacity(pin.get()))),
+      grid_(pin.get()),
       opts_(pin->param()->get<bool>("physics.rad_active"), false, restart_,
             pin->param()->get<int>("radiation.porder")),
       state_(3 + 2 * (pin->param()->get<bool>("physics.rad_active")), 3, 1,
              pin->param()->get<int>("problem.nx"),
              pin->param()->get<int>("fluid.nnodes"),
              pin->param()->get<int>("fluid.porder")),
-      sl_hydro_(imnitialize_slope_limiter(&grid_, pin, {0, 1, 2}, 3)),
-      sl_rad_(initialize_slope_limiter(&grid_, pin, {3, 4}, 2)), // update
-      ssprk_(pin, &grid_, eos_.get()),
+      sl_hydro_(
+          initialize_slope_limiter("fluid", &grid_, pin.get(), {0, 1, 2}, 3)),
+      sl_rad_(initialize_slope_limiter("radiation", &grid_, pin.get(), {3, 4},
+                                       2)), // update
+      ssprk_(pin.get(), &grid_, eos_.get()),
       history_(std::make_unique<HistoryOutput>(
           pin->param()->get<std::string>("output.hist_fn"),
           pin->param()->get<bool>("output.history_enabled"))) {
-  initialize(pin);
+  initialize(pin.get());
 }

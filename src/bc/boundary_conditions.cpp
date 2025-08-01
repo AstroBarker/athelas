@@ -39,17 +39,21 @@ BcType parse_bc_type(const std::string& name) {
   return BcType::Null;
 }
 
-auto make_boundary_conditions(
-    bool do_rad,
-
-    const std::string& fluid_bc_i, const std::string& fluid_bc_o,
-    const std::array<double, 3>& fluid_i_dirichlet_values,
-    const std::array<double, 3>& fluid_o_dirichlet_values,
-
-    const std::string& rad_bc_i, const std::string& rad_bc_o,
-    const std::array<double, 2>& rad_i_dirichlet_values,
-    const std::array<double, 2>& rad_o_dirichlet_values) -> BoundaryConditions {
+auto make_boundary_conditions(const ProblemIn* pin) -> BoundaryConditions {
   BoundaryConditions my_bc;
+  const auto do_rad     = pin->param()->get<bool>("rad_active");
+  const auto fluid_bc_i = pin->param()->get<std::string>("fluid.bc.i");
+  const auto fluid_bc_o = pin->param()->get<std::string>("fluid.bc.o");
+  const auto fluid_i_dirichlet_values =
+      pin->param()->get<std::array<double, 3>>("fluid.bc.i.dirichlet");
+  const auto fluid_o_dirichlet_values =
+      pin->param()->get<std::array<double, 3>>("fluid.bc.o.dirichlet");
+  const auto rad_bc_i = pin->param()->get<std::string>("radiation.bc.i");
+  const auto rad_bc_o = pin->param()->get<std::string>("radiation.bc.o");
+  const auto rad_i_dirichlet_values =
+      pin->param()->get<std::array<double, 2>>("radiation.bc.i.dirichlet");
+  const auto rad_o_dirichlet_values =
+      pin->param()->get<std::array<double, 2>>("radiation.bc.o.dirichlet");
 
   // --- Fluid BCs ---
   BcType f_inner = parse_bc_type(fluid_bc_i);

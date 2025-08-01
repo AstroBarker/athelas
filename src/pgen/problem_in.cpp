@@ -16,6 +16,8 @@
 #include "utils/error.hpp"
 #include "utils/utilities.hpp"
 
+using namespace geometry;
+
 // Provide access to the underlying params object
 auto ProblemIn::param() -> Params* { return params_.get(); }
 
@@ -103,6 +105,12 @@ ProblemIn::ProblemIn(const std::string& fn) {
     THROW_ATHELAS_ERROR("Missing or invalid 'geom' in [problem] block.");
   }
   params_->add("problem.geometry", geom.value());
+  if (geom.value() == "planar") {
+    params_->add("problem.geometryi_model", Geometry::Planar);
+  }
+  if (geom.value() == "spherical") {
+    params_->add("problem.geometryi_model", Geometry::Spherical);
+  }
 
   // --- hande [problem.params] ---
   if (!config["problem"]["params"].is_table()) {
@@ -260,9 +268,8 @@ ProblemIn::ProblemIn(const std::string& fn) {
   check_bc(params_->get<std::string>("fluid.bc.i"));
 
   // handle dirichlet..
-  auto fluid_i_dirichlet_values = {0.0, 0.0, 0.0};
-  auto fluid_o_dirichlet_values = {0.0, 0.0, 0.0};
-  // --- testing ---
+  std::array<double, 3> fluid_i_dirichlet_values = {0.0, 0.0, 0.0};
+  std::array<double, 3> fluid_o_dirichlet_values = {0.0, 0.0, 0.0};
   auto* array = config["bc"]["fluid"]["dirichlet_values_i"].as_array();
   if (array->is_array() && fluid_bc_i == "dirichlet") {
     read_toml_array(array, fluid_i_dirichlet_values);
@@ -408,12 +415,12 @@ ProblemIn::ProblemIn(const std::string& fn) {
     check_bc(params_->get<std::string>("radiation.bc.i"));
 
     // handle dirichlet..
-    auto rad_i_dirichlet_values = {0.0, 0.0, 0.0};
-    auto rad_o_dirichlet_values = {0.0, 0.0, 0.0};
+    std::array<double, 2> rad_i_dirichlet_values = {0.0, 0.0};
+    std::array<double, 2> rad_o_dirichlet_values = {0.0, 0.0};
     // --- testing ---
     auto* array = config["bc"]["radiation"]["dirichlet_values_i"].as_array();
     if (array->is_array() && rad_bc_i == "dirichlet") {
-      read_toml_array(array->is_array(), rad_i_dirichlet_values);
+      read_toml_array(array, rad_i_dirichlet_values);
     } else if (!array->is_array() && rad_bc_i == "dirichlet") {
       THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read radiation "
                           "dirichlet_values_i as array.");

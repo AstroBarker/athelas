@@ -16,8 +16,7 @@
 State::State(const int nCF, const int nPF, const int nAF, const int nX_,
              const int nNodes_, const int pOrder)
     : nCF_(nCF), nPF_(nPF), nAF_(nAF), pOrder_(pOrder),
-      uCF_("uCF", nCF_, nX_ + 2, pOrder_),
-      uPF_("uPF", nPF_, nX_ + 2, nNodes_),
+      uCF_("uCF", nCF_, nX_ + 2, pOrder_), uPF_("uPF", nPF_, nX_ + 2, nNodes_),
       uAF_("uAF", nAF_, nX_ + 2, nNodes_) {}
 
 // num var accessors

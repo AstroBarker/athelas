@@ -50,6 +50,7 @@ class ProblemIn {
 
 // TODO(astrobarker) move into class
 auto check_bc(std::string bc) -> bool;
+
 template <typename T, typename G>
 void read_toml_array(T toml_array, G& out_array) {
   long unsigned int index = 0;

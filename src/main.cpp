@@ -46,7 +46,7 @@ auto main(int argc, char** argv) -> int {
     const auto pin = std::make_shared<ProblemIn>(input_path);
 
     // --- Create Driver ---
-    Driver driver(pin.get());
+    Driver driver(pin);
 
     // --- Timer ---
     Kokkos::Timer timer_total;
