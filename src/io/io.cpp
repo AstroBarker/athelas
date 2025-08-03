@@ -16,11 +16,13 @@
 
 #include "H5Cpp.h"
 
+#include "basis/polynomial_basis.hpp"
 #include "build_info.hpp"
-#include "grid.hpp"
-#include "io.hpp"
+#include "geometry/grid.hpp"
+#include "io/io.hpp"
 #include "limiters/slope_limiter.hpp"
-#include "polynomial_basis.hpp"
+#include "io/io.hpp"
+#include "timestepper/tableau.hpp"
 
 /**
  * Write to standard output some initialization info
@@ -31,8 +33,8 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
   const int nNodes = grid.get_n_nodes();
   // NOTE: If I properly support more bases again, adjust here.
   const std::string basis_name = "Legendre";
-  const bool rad_enabled       = pin->param()->get<bool>("radiation.enabled");
-  const bool gravity_enabled   = pin->param()->get<bool>("gravity.enabled");
+  const bool rad_enabled       = pin->param()->get<bool>("physics.rad_active");
+  const bool gravity_enabled   = pin->param()->get<bool>("physics.gravity_active");
 
   std::println("# --- General --- ");
   std::println("# Problem Name    : {}",
@@ -58,13 +60,13 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
   std::println("# --- Discretization Parameters --- ");
   std::println("# Basis          : {}", basis_name);
   std::println("# Integrator     : {}",
-               pin->param()->get<std::string>("time.integrator"));
+               pin->param()->get<std::string>("time.integrator_string"));
   std::println("");
 
   std::println("# --- Fluid Parameters --- ");
   std::println("# Spatial Order  : {}", pin->param()->get<int>("fluid.porder"));
-  std::println("# Inner BC       : {}", pin->param()->get<int>("fluid.bc.i"));
-  std::println("# Outer BC       : {}", pin->param()->get<int>("fluid.bc.o"));
+  std::println("# Inner BC       : {}", pin->param()->get<std::string>("fluid.bc.i"));
+  std::println("# Outer BC       : {}", pin->param()->get<std::string>("fluid.bc.o"));
   std::println("");
 
   std::println("# --- Fluid Limiter Parameters --- ");
@@ -90,7 +92,7 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
                    pin->param()->get<double>("fluid.limiter.weno_r"));
     }
   }
-  if (pin->param()->get<bool>("fluid.limiter.tci_opt")) {
+  if (pin->param()->get<bool>("fluid.limiter.tci_enabled")) {
     std::println("# TCI Value      : {}",
                  pin->param()->get<double>("fluid.limiter.tci_val"));
   } else {
@@ -108,9 +110,9 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
     std::println("# Spatial Order  : {}",
                  pin->param()->get<int>("radiation.porder"));
     std::println("# Inner BC       : {}",
-                 pin->param()->get<int>("radiation.bc.i"));
+                 pin->param()->get<std::string>("radiation.bc.i"));
     std::println("# Outer BC       : {}",
-                 pin->param()->get<int>("radiation.bc.o"));
+                 pin->param()->get<std::string>("radiation.bc.o"));
     std::println("");
 
     std::println("# --- Radiation Limiter Parameters --- ");
@@ -136,7 +138,7 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
                      pin->param()->get<double>("radiation.limiter.weno_r"));
       }
     }
-    if (pin->param()->get<bool>("radiation.limiter.tci_opt")) {
+    if (pin->param()->get<bool>("radiation.limiter.tci_enabled")) {
       std::println("# TCI Value      : {}",
                    pin->param()->get<double>("radiation.limiter.tci_val"));
     } else {

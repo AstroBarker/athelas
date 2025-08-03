@@ -125,7 +125,7 @@ auto Driver::execute() -> int {
   }
 
   write_state(&state_, grid_, &sl_hydro_, problem_name, time_,
-              pin_->param()->get<double>("fluid.porder"), -1, opts_.do_rad);
+              pin_->param()->get<int>("fluid.porder"), -1, opts_.do_rad);
 
   return AthelasExitCodes::SUCCESS;
 }
@@ -228,12 +228,12 @@ Driver::Driver(std::shared_ptr<ProblemIn> pin) // NOLINT
       bcs_(std::make_unique<BoundaryConditions>(
           bc::make_boundary_conditions(pin.get()))),
       time_(0.0), dt_(pin_->param()->get<double>("output.initial_dt")),
-      t_end_(pin->param()->get<double>("output.tf")),
+      t_end_(pin->param()->get<double>("problem.tf")),
       eos_(std::make_unique<EOS>(initialize_eos(pin.get()))),
       opac_(std::make_unique<Opacity>(initialize_opacity(pin.get()))),
       grid_(pin.get()),
-      opts_(pin->param()->get<bool>("physics.rad_active"), false, restart_,
-            pin->param()->get<int>("radiation.porder")),
+      opts_(pin->param()->get<bool>("physics.rad_active"), pin->param()->get<bool>("physics.gravity_active"), restart_,
+            pin->param()->get<int>("fluid.porder", 0)),
       state_(3 + 2 * (pin->param()->get<bool>("physics.rad_active")), 3, 1,
              pin->param()->get<int>("problem.nx"),
              pin->param()->get<int>("fluid.nnodes"),

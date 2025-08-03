@@ -51,6 +51,7 @@ class Driver {
   double t_end_;
 
   // core bits
+  // TODO(astrobarker): kepe eos_, opac_ in packages.
   std::unique_ptr<EOS> eos_;
   std::unique_ptr<Opacity> opac_;
   GridStructure grid_;

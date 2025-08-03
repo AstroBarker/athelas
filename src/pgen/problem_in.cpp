@@ -48,7 +48,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
   if (!pname.has_value()) {
     THROW_ATHELAS_ERROR("Missing or invalid 'problem' in [problem] block.");
   }
-  params_->add("problem.problem_name", pname.value());
+  params_->add("problem.problem", pname.value());
 
   std::optional<bool> restart = config["problem"]["restart"].value_or(false);
   params_->add("problem.restart", restart.value_or(false));
@@ -62,7 +62,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
   }
   params_->add("problem.tf", tf.value());
 
-  const int nlim = config["problem"]["nlim"].value_or(-1);
+  const double nlim = config["problem"]["nlim"].value_or(-1);
   params_->add("problem.nlim", nlim);
 
   std::optional<double> xl = config["problem"]["xl"].value<double>();
@@ -162,13 +162,13 @@ ProblemIn::ProblemIn(const std::string& fn) {
     THROW_ATHELAS_ERROR("[fluid] block must be provided!");
   }
 
-  std::optional<int> porder = config["fluid"]["porder"].value<bool>();
+  std::optional<int> porder = config["fluid"]["porder"].value<int>();
   if (!porder) {
     THROW_ATHELAS_ERROR("fluid enabled but 'porder' missing in [fluid] block!");
   }
   params_->add("fluid.porder", porder.value());
 
-  std::optional<int> nnodes = config["fluid"]["nnodes"].value<bool>();
+  std::optional<int> nnodes = config["fluid"]["nnodes"].value<int>();
   if (!nnodes) {
     THROW_ATHELAS_ERROR("fluid enabled but 'nnodes' missing in [fluid] block!");
   }
@@ -297,14 +297,14 @@ ProblemIn::ProblemIn(const std::string& fn) {
           "Radiation is active but radiation block is missing!");
     }
 
-    std::optional<int> porder = config["radiation"]["porder"].value<bool>();
+    std::optional<int> porder = config["radiation"]["porder"].value<int>();
     if (!porder) {
       THROW_ATHELAS_ERROR(
           "radiation enabled but 'porder' missing in [radiation] block!");
     }
     params_->add("radiation.porder", porder.value());
 
-    std::optional<int> nnodes = config["radiation"]["nnodes"].value<bool>();
+    std::optional<int> nnodes = config["radiation"]["nnodes"].value<int>();
     if (!nnodes) {
       THROW_ATHELAS_ERROR(
           "radiation enabled but 'nnodes' missing in [radiation] block!");
@@ -498,6 +498,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
     const MethodID method_id =
         string_to_id(utilities::to_lower(integrator.value()));
     params_->add("time.integrator", method_id);
+    params_->add("time.integrator_string", integrator.value()); // for IO
   } else {
     THROW_ATHELAS_ERROR("You must list an integrator in the input deck!");
   }
