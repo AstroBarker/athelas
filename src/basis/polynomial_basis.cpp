@@ -232,10 +232,8 @@ auto ModalBasis::ortho(const int order, const int iX, const int i_eta,
 
   double phi_n = 0.0;
   for (int k = 0; k < order; k++) {
-    const double numerator =
-        inner_product(k, order, iX, eta_c, uPF, grid);
-    const double denominator =
-        inner_product(k, iX, eta_c, uPF, grid);
+    const double numerator   = inner_product(k, order, iX, eta_c, uPF, grid);
+    const double denominator = inner_product(k, iX, eta_c, uPF, grid);
     // ? Can this be cleaned up?
     if (!derivative_option) {
       phi_n = phi_(iX, i_eta, k);

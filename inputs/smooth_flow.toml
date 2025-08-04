@@ -3,13 +3,17 @@ problem = "smooth_flow"
 t_end = 0.5
 geometry = "planar"
 restart = false
-do_rad = false
 xl = 0.0
 xr = 1.0
 cfl = 0.5
+nx = 128
 
 [problem.params]
 amp = 0.99999999999999
+
+[physics]
+radiation = false
+gravity = false
 
 [bc]
 [bc.fluid]
@@ -29,8 +33,12 @@ fn = "smooth_flow.hst"
 basis = "legendre"
 nnodes = 1
 porder = 1
-nx = 128
-ng = 1
+
+[fluid.limiter]
+tci_opt = false
+tci_val = 0.1
+characteristic = true
+gamma_i = 0.8
 
 [time]
 integrator = "EX_SSPRK22"
@@ -38,8 +46,3 @@ integrator = "EX_SSPRK22"
 [eos]
 type = "ideal"
 
-[limiters]
-tci_opt = false
-tci_val = 0.1
-characteristic = true
-gamma_i = 0.8

@@ -3,16 +3,20 @@ problem = "marshak"
 t_end = 5.781e-14
 geometry = "planar"
 restart = false
-do_rad = true
 xl = 0.0
 xr = 3.466205e-3
 cfl = 0.3
+nx = 512
 
 [problem.params]
 v0 = 0.0
 rho0 = 10.0
 T0 = 1.0e4
 epsilon = 1.0
+
+[physics]
+radiation = true
+gravity = false
 
 [bc]
 [bc.fluid]
@@ -34,8 +38,29 @@ dt_hdf5 = 1.0 # only output initial and final
 basis = "legendre"
 nnodes = 3
 porder = 3
-nx = 512
-ng = 1
+
+[fluid.limiter]
+do_limiter = true
+type = "minmod"
+m_tvb = 0.0
+b_tvd = 1.0
+tci_opt = false
+tci_val = 0.1
+characteristic = false
+
+[radiation]
+basis = "legendre"
+nnodes = 3
+porder = 3
+
+[radiation.limiter]
+do_limiter = true
+type = "minmod"
+m_tvb = 0.0
+b_tvd = 1.0
+tci_opt = false
+tci_val = 0.1
+characteristic = false
 
 [time]
 integrator = "IMEX_ARK32_ESDIRK"
@@ -51,11 +76,3 @@ type = "constant"
 kP = 577.0 # cm^2 / g
 kR = 577.0 # cm^2 / g
 
-[limiters]
-do_limiter = true
-type = "minmod"
-m_tvb = 0.0
-b_tvd = 1.0
-tci_opt = false
-tci_val = 0.1
-characteristic = false

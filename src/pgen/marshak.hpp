@@ -18,6 +18,11 @@
  * @brief Initialize radiating shock
  **/
 void marshak_init(State* state, GridStructure* grid, ProblemIn* pin) {
+  const bool rad_active = pin->param()->get<bool>("physics.rad_active");
+  if (!rad_active) {
+    THROW_ATHELAS_ERROR("Marshak requires radiation enabled!");
+  }
+
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
   const int pOrder   = state->get_p_order();

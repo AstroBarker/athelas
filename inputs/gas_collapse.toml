@@ -1,22 +1,21 @@
 [problem]
-problem = "sedov"
-t_end = 0.05
+problem = "gas_collapse"
+t_end = 50.0
 geometry = "spherical"
 restart = false
 xl = 0.0
-xr = 1.0
-bc = "reflecting"
-cfl = 0.25
-nx = 128
+xr = 1.0e9
+cfl = 0.05
+nx = 512
 
 [problem.params]
 v0 = 0.0
 rho0 = 1.0
-E0 = 0.5
+p0 = 10.0
 
 [physics]
 radiation = false
-gravity = false
+gravity = true
 
 [bc]
 [bc.fluid]
@@ -26,30 +25,38 @@ bc_o = "outflow"
 [output]
 nlim = -1
 ncycle_out = 100
-dt_hdf5 = 0.05
-dt_init_frac = 1.05
+dt_hdf5 = 0.1
+dt_init_frac = 1.001
+
+[output.history]
+fn = "gas_collapse.hst"
+#dt = 0.001 # default: dt_hdf5 / 10
 
 [fluid]
 basis = "legendre"
-nnodes = 3
-porder = 3
+nnodes = 1
+porder = 1
 
 [fluid.limiter]
 do_limiter = true
 type = "minmod"
-b_tvd = 1.0
+b_tvd = 0.0
 m_tvb = 0.0
 tci_opt = true
-tci_val = 0.1
+tci_val = 0.25
 characteristic = false
-gamma_i = 0.998
+gamma_i = 0.9
 #gamma_r = 0.005
 #gamma_l = 0.005
 weno_r = 2.0
+
+[gravity]
+model = "spherical"
+gval = 1.0e3
 
 [time]
 integrator = "EX_SSPRK33"
 
 [eos]
 type = "ideal"
-gamma_ideal = 1.6666666667
+gamma_ideal = 1.6666666666667

@@ -3,10 +3,14 @@ problem = "sod"
 t_end = 0.4
 geometry = "planar"
 restart = false
-do_rad = false
 xl = 0.0
 xr = 5.0
 cfl = 0.8
+nx = 256
+
+[physics]
+radiation = false
+gravity = false
 
 [problem.params]
 vL = 0.0
@@ -36,17 +40,8 @@ fn = "sod.hst"
 basis = "legendre"
 nnodes = 3
 porder = 3
-nx = 1024
-ng = 1
 
-[time]
-integrator = "EX_SSPRK54"
-
-[eos]
-type = "ideal"
-ideal_gamma = 1.4 # default: 1.4
-
-[limiters]
+[fluid.limiter]
 do_limiter = true
 type = "minmod"
 m_tvb = 0.0
@@ -59,3 +54,10 @@ gamma_i = 0.1
 #gamma_l = 0.005
 #b_tvd = 2.0 #minmod
 #m_tvb = 1.0 #minmod
+
+[time]
+integrator = "EX_SSPRK54"
+
+[eos]
+type = "ideal"
+ideal_gamma = 1.4 # default: 1.4

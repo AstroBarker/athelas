@@ -3,16 +3,20 @@ problem = "shu_osher"
 t_end = 1.8
 geometry = "planar"
 restart = false
-do_rad = false
 xl = -5.0
 xr = 5.0
 cfl = 0.35
+nx = 256
 
 [problem.params]
 v0 = 2.629369
 rhoL = 3.857143
 pL = 10.33333333
 pR = 1.0
+
+[physics]
+radiation = false
+gravity = false
 
 [bc]
 [bc.fluid]
@@ -32,17 +36,8 @@ fn = "shu_osher.hst"
 basis = "legendre"
 nnodes = 1
 porder = 1
-nx = 256
-ng = 1
 
-[time]
-integrator = "EX_SSPRK33"
-
-[eos]
-type = "ideal"
-gamma_ideal = 1.4
-
-[limiters]
+[fluid.limiter]
 do_limiter = true
 type = "minmod"
 weno_r = 2.0
@@ -52,3 +47,10 @@ characteristic = false
 gamma_i = 0.8
 #gamma_r = 0.005
 #gamma_l = 0.005
+
+[time]
+integrator = "EX_SSPRK33"
+
+[eos]
+type = "ideal"
+gamma_ideal = 1.4

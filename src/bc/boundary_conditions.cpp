@@ -48,12 +48,14 @@ auto make_boundary_conditions(const ProblemIn* pin) -> BoundaryConditions {
       pin->param()->get<std::array<double, 3>>("fluid.bc.i.dirichlet_values");
   const auto fluid_o_dirichlet_values =
       pin->param()->get<std::array<double, 3>>("fluid.bc.o.dirichlet_values");
-  const auto rad_bc_i = pin->param()->get<std::string>("radiation.bc.i", "outflow");
-  const auto rad_bc_o = pin->param()->get<std::string>("radiation.bc.o", "outflow");
-  const auto rad_i_dirichlet_values =
-      pin->param()->get<std::array<double, 2>>("radiation.bc.i.dirichlet_values", {0.0, 0.0});
-  const auto rad_o_dirichlet_values =
-      pin->param()->get<std::array<double, 2>>("radiation.bc.o.dirichlet_values", {0.0, 0.0});
+  const auto rad_bc_i =
+      pin->param()->get<std::string>("radiation.bc.i", "outflow");
+  const auto rad_bc_o =
+      pin->param()->get<std::string>("radiation.bc.o", "outflow");
+  const auto rad_i_dirichlet_values = pin->param()->get<std::array<double, 2>>(
+      "radiation.bc.i.dirichlet_values", {0.0, 0.0});
+  const auto rad_o_dirichlet_values = pin->param()->get<std::array<double, 2>>(
+      "radiation.bc.o.dirichlet_values", {0.0, 0.0});
 
   // --- Fluid BCs ---
   BcType f_inner = parse_bc_type(fluid_bc_i);

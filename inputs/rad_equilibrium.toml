@@ -3,10 +3,10 @@ problem = "rad_equilibrium"
 t_end = 1.0e-7
 geometry = "planar"
 restart = false
-do_rad = true
 xl = 0.0
 xr = 1.0
 cfl = 0.8
+nx = 1
 
 [problem.params]
 v0 = 0.0
@@ -14,11 +14,15 @@ logrho = -7.0
 logE_gas = 10.0
 logE_rad = 12.0
 
+[physics]
+radiation = true
+gravity = false
+
 [bc]
 [bc.fluid]
 bc_i = "outflow"
 bc_o = "outflow"
-[bc.rad]
+[bc.radiation]
 bc_i = "outflow"
 bc_o = "outflow"
 
@@ -36,8 +40,21 @@ fn = "rad_equilibrium.hst"
 basis = "legendre"
 nnodes = 1
 porder = 1
-nx = 1
-ng = 1
+
+[fluid.limiter]
+tci_opt = false
+tci_val = 0.1
+characteristic = false
+
+[radiation]
+basis = "legendre"
+nnodes = 1
+porder = 1
+
+[radiation.limiter]
+tci_opt = false
+tci_val = 0.1
+characteristic = false
 
 [time]
 integrator = "IMEX_SSPRK11"
@@ -52,8 +69,3 @@ type = "powerlaw_rho"
 kP = 4.0e-8 # 1 / cm
 kR = 4.0e-8 # 1 / cm
 exp = -1.0
-
-[limiters]
-tci_opt = false
-tci_val = 0.1
-characteristic = false

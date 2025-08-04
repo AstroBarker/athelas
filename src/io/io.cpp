@@ -21,7 +21,6 @@
 #include "geometry/grid.hpp"
 #include "io/io.hpp"
 #include "limiters/slope_limiter.hpp"
-#include "io/io.hpp"
 #include "timestepper/tableau.hpp"
 
 /**
@@ -34,7 +33,8 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
   // NOTE: If I properly support more bases again, adjust here.
   const std::string basis_name = "Legendre";
   const bool rad_enabled       = pin->param()->get<bool>("physics.rad_active");
-  const bool gravity_enabled   = pin->param()->get<bool>("physics.gravity_active");
+  const bool gravity_enabled =
+      pin->param()->get<bool>("physics.gravity_active");
 
   std::println("# --- General --- ");
   std::println("# Problem Name    : {}",
@@ -65,8 +65,10 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
 
   std::println("# --- Fluid Parameters --- ");
   std::println("# Spatial Order  : {}", pin->param()->get<int>("fluid.porder"));
-  std::println("# Inner BC       : {}", pin->param()->get<std::string>("fluid.bc.i"));
-  std::println("# Outer BC       : {}", pin->param()->get<std::string>("fluid.bc.o"));
+  std::println("# Inner BC       : {}",
+               pin->param()->get<std::string>("fluid.bc.i"));
+  std::println("# Outer BC       : {}",
+               pin->param()->get<std::string>("fluid.bc.o"));
   std::println("");
 
   std::println("# --- Fluid Limiter Parameters --- ");

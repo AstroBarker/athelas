@@ -37,7 +37,9 @@ auto main(int argc, char** argv) -> int {
   auto sig1 = signal(SIGSEGV, segfault_handler);
   auto sig2 = signal(SIGABRT, segfault_handler);
 
-  std::println("# Athelas running!\n");
+  std::println("# ----------------------------------------------------------");
+  std::println("# Athelas running!");
+  std::println("# ----------------------------------------------------------");
 
   // create span of args
   // auto args = std::span( argv, static_cast<size_t>( argc ) );

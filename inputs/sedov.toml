@@ -3,16 +3,19 @@ problem = "sedov"
 t_end = 0.05
 geometry = "spherical"
 restart = false
-do_rad = false
-do_gravity = false
 xl = 0.0
 xr = 1.0
 cfl = 0.25
+ nx = 256
 
 [problem.params]
 v0 = 0.0
 rho0 = 1.0
 E0 = 0.5
+
+[physics]
+radiation = false
+gravity = false
 
 [bc]
 [bc.fluid]
@@ -33,21 +36,8 @@ fn = "sedov.hst"
 basis = "legendre"
 nnodes = 3
 porder = 3
-nx = 256
-ng = 1
 
-[gravity]
-model = "constant"
-gval = 1.0
-
-[time]
-integrator = "EX_SSPRK54"
-
-[eos]
-type = "ideal"
-gamma_ideal = 1.4
-
-[limiters]
+[fluid.limiter]
 do_limiter = true
 type = "minmod"
 b_tvd = 0.0
@@ -59,3 +49,14 @@ gamma_i = 0.9
 #gamma_r = 0.005
 #gamma_l = 0.005
 weno_r = 2.0
+
+[gravity]
+model = "constant"
+gval = 1.0
+
+[time]
+integrator = "EX_SSPRK54"
+
+[eos]
+type = "ideal"
+gamma_ideal = 1.4

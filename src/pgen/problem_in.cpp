@@ -155,7 +155,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
   if (!grav) {
     THROW_ATHELAS_ERROR("Missing or invalid 'gravity' in [physics] block.");
   }
-  params_->add("physics.gravity_active", rad.value());
+  params_->add("physics.gravity_active", grav.value());
 
   // --- fluid block ---
   if (!config["fluid"].is_table()) {
@@ -238,6 +238,8 @@ ProblemIn::ProblemIn(const std::string& fn) {
           "[fluid] block: TCI requested but no tci_val provided!");
     }
     params_->add("fluid.limiter.tci_val", tci_val.value());
+  } else {
+    params_->add("fluid.limiter.tci_val", 0.0);
   }
 
   // characteristic limiting
@@ -382,6 +384,8 @@ ProblemIn::ProblemIn(const std::string& fn) {
             "[radiation] block: TCI requested but no tci_val provided!");
       }
       params_->add("radiation.limiter.tci_val", tci_val.value());
+    } else {
+      params_->add("radiation.limiter.tci_val", 0.0);
     }
 
     // characteristic limiting
@@ -517,19 +521,19 @@ ProblemIn::ProblemIn(const std::string& fn) {
 
   // --- opac ---
   if (rad.value()) {
-    if (!config["opac"].is_table()) {
+    if (!config["opacity"].is_table()) {
       THROW_ATHELAS_ERROR("Radiation abled but no [opac] block provided!");
     }
     std::optional<std::string> opac_type =
-        config["opac"]["type"].value<std::string>();
+        config["opacity"]["type"].value<std::string>();
     if (!opac_type.has_value()) {
       THROW_ATHELAS_ERROR("'type' not provided in [opac] block!");
     }
     params_->add("opac.type", eos_type.value());
 
     if (opac_type.value() == "constant") {
-      std::optional<double> kr = config["opac"]["kR"].value<double>();
-      std::optional<double> kp = config["opac"]["kP"].value<double>();
+      std::optional<double> kr = config["opacity"]["kR"].value<double>();
+      std::optional<double> kp = config["opacity"]["kP"].value<double>();
       if (!kr.has_value() || !kp.has_value()) {
         THROW_ATHELAS_ERROR(
             "Constant opacity must specify mean opacities kR and kP!");
@@ -538,10 +542,10 @@ ProblemIn::ProblemIn(const std::string& fn) {
       params_->add("opac.kP", kp.value());
     }
     if (opac_type.value() == "powerlaw_rho") {
-      std::optional<double> kr = config["opac"]["kR"].value<double>();
-      std::optional<double> kp = config["opac"]["kP"].value<double>();
+      std::optional<double> kr = config["opacity"]["kR"].value<double>();
+      std::optional<double> kp = config["opacity"]["kP"].value<double>();
       std::optional<double> exp =
-          config["opac"]["exp"].value<double>(); // exponent
+          config["opacity"]["exp"].value<double>(); // exponent
       if (!kr.has_value() || !kp.has_value() || !exp.has_value()) {
         THROW_ATHELAS_ERROR("Powerlaw rho opacity must specify mean opacities "
                             "kR and kP and an exponent exp!");
