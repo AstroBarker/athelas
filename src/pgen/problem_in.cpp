@@ -530,7 +530,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
     if (!opac_type.has_value()) {
       THROW_ATHELAS_ERROR("'type' not provided in [opac] block!");
     }
-    params_->add("opac.type", eos_type.value());
+    params_->add("opac.type", opac_type.value());
 
     if (opac_type.value() == "constant") {
       std::optional<double> kr = config["opacity"]["kR"].value<double>();

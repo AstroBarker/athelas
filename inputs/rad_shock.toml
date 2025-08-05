@@ -73,6 +73,8 @@ nnodes = 2
 porder = 2
 
 [radiation.limiter]
+m_tvb = 10.0
+b_tvd = 1.0
 tci_opt = false
 tci_val = 0.1
 characteristic = false
@@ -85,7 +87,7 @@ integrator = "IMEX_ARK32_ESDIRK"
 
 [eos]
 type = "ideal"
-ideal_gamma = 1.66666666666667 # default: 1.4
+gamma = 1.66666666666667 # default: 1.4
 
 [opacity]
 type = "constant"

@@ -45,4 +45,3 @@ integrator = "EX_SSPRK22"
 
 [eos]
 type = "ideal"
-

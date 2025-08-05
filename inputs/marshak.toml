@@ -59,9 +59,9 @@ porder = 2
 [radiation.limiter]
 do_limiter = true
 type = "minmod"
-m_tvb = 0.0
-b_tvd = 1.0
-tci_opt = false
+m_tvb = 1000.0
+b_tvd = 2.0
+tci_opt = true
 tci_val = 0.1
 characteristic = false
 
@@ -72,7 +72,7 @@ integrator = "IMEX_ARK32_ESDIRK"
 
 [eos]
 type = "marshak"
-ideal_gamma = 1.66666666666667 # default: 1.4
+gamma = 1.66666666666667 # default: 1.4
 
 [opacity]
 type = "constant"

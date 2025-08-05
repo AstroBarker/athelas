@@ -60,4 +60,4 @@ integrator = "EX_SSPRK22"
 
 [eos]
 type = "ideal"
-ideal_gamma = 1.66666666667 # default: 1.4
+gamma = 1.66666666667 # default: 1.4

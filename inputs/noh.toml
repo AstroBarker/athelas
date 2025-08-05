@@ -53,4 +53,3 @@ integrator = "EX_SSPRK22"
 [eos]
 type = "ideal"
 gamma = 1.6666666667
-

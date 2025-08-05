@@ -59,4 +59,4 @@ integrator = "EX_SSPRK54"
 
 [eos]
 type = "ideal"
-gamma_ideal = 1.4
+gamma = 1.4
