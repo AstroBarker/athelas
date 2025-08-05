@@ -39,7 +39,8 @@ auto main(int argc, char** argv) -> int {
 
   std::println("# ----------------------------------------------------------");
   std::println("# Athelas running!");
-  std::println("# ----------------------------------------------------------\n");
+  std::println(
+      "# ----------------------------------------------------------\n");
 
   // create span of args
   // auto args = std::span( argv, static_cast<size_t>( argc ) );
