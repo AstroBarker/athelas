@@ -422,7 +422,6 @@ ProblemIn::ProblemIn(const std::string& fn) {
     if (array->is_array() &&
         (rad_bc_i == "dirichlet" || rad_bc_i == "marshak")) {
       read_toml_array(array, rad_i_dirichlet_values);
-      std::println("dirichlet vals {}", rad_i_dirichlet_values);
     } else if (!array->is_array() && rad_bc_i == "dirichlet") {
       THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read radiation "
                           "dirichlet_values_i as array.");
