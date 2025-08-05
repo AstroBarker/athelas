@@ -5,7 +5,6 @@ geometry = "spherical"
 restart = false
 xl = 0.0
 xr = 1.0
-bc = "reflecting"
 cfl = 0.25
 nx = 128
 
