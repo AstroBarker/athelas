@@ -3,15 +3,19 @@ problem = "smooth_advection"
 t_end = 1.0
 geometry = "planar"
 restart = false
-do_rad = false
 xl = 0.0
 xr = 1.0
 cfl = 0.35
+nx = 128
 
 [problem.params]
 v0 = 1.0
 p0 = 0.1
 amp = 1.0
+
+[physics]
+radiation = false
+gravity = false
 
 [bc]
 [bc.fluid]
@@ -30,9 +34,7 @@ dt = 0.001
 [fluid]
 basis = "legendre"
 nnodes = 3
-pprder = 3
-nx = 128
-ng = 1
+porder = 3
 
 [time]
 integrator = "EX_SSPRK33"

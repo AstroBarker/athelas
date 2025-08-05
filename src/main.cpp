@@ -37,16 +37,21 @@ auto main(int argc, char** argv) -> int {
   auto sig1 = signal(SIGSEGV, segfault_handler);
   auto sig2 = signal(SIGABRT, segfault_handler);
 
+  std::println("# ----------------------------------------------------------");
+  std::println("# Athelas running!");
+  std::println(
+      "# ----------------------------------------------------------\n");
+
   // create span of args
   // auto args = std::span( argv, static_cast<size_t>( argc ) );
 
   Kokkos::initialize(argc, argv);
   {
     // pin
-    const auto pin = std::make_unique<ProblemIn>(input_path);
+    const auto pin = std::make_shared<ProblemIn>(input_path);
 
     // --- Create Driver ---
-    Driver driver(pin.get());
+    Driver driver(pin);
 
     // --- Timer ---
     Kokkos::Timer timer_total;

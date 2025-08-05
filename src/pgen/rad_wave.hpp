@@ -14,7 +14,12 @@
 /**
  * @brief Initialize radiating shock
  **/
-void rad_shock_init(State* state, GridStructure* grid, const ProblemIn* pin) {
+void rad_shock_init(State* state, GridStructure* grid, ProblemIn* pin) {
+  const bool rad_active = pin->param()->get<bool>("physics.rad_active");
+  if (!rad_active) {
+    THROW_ATHELAS_ERROR("Radiation wave requires radiation enabled!");
+  }
+
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
   const int pOrder   = state->get_p_order();
@@ -31,15 +36,12 @@ void rad_shock_init(State* state, GridStructure* grid, const ProblemIn* pin) {
 
   constexpr static int iCR_E = 3;
 
-  const double lambda =
-      pin->in_table["problem"]["params"]["lambda"].value_or(0.1);
-  const double kappa =
-      pin->in_table["problem"]["params"]["kappa"].value_or(1.0);
-  const double epsilon =
-      pin->in_table["problem"]["params"]["epsilon"].value_or(1.0e-6);
-  const double rho0 = pin->in_table["problem"]["params"]["rho0"].value_or(1.0);
-  const double P0 =
-      pin->in_table["problem"]["params"]["p0"].value_or(1.0e-6); // K
+  const auto lambda = pin->param()->get<double>("problem.params.lambda", 0.1);
+  const auto kappa  = pin->param()->get<double>("problem.params.kappa", 1.0);
+  const auto epsilon =
+      pin->param()->get<double>("problem.params.epsilon", 1.0e-6);
+  const auto rho0 = pin->param()->get<double>("problem.params.rho0", 1.0);
+  const auto P0   = pin->param()->get<double>("problem.params.p0", 1.0e-6);
 
   // TODO(astrobarker): thread through
   const double gamma = 5.0 / 3.0;

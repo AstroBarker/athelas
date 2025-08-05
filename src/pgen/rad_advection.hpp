@@ -18,8 +18,7 @@
  * @brief Initialize radiation advection test
  * @note EXPERIMENTAL
  **/
-void rad_advection_init(State* state, GridStructure* grid,
-                        const ProblemIn* pin) {
+void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin) {
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
   const int pOrder   = state->get_p_order();
@@ -37,11 +36,10 @@ void rad_advection_init(State* state, GridStructure* grid,
   const int iCR_E = 3;
   const int iCR_F = 4;
 
-  const double V0  = pin->in_table["problem"]["params"]["v0"].value_or(0.1);
-  const double D   = pin->in_table["problem"]["params"]["rho"].value_or(1.0);
-  const double amp = pin->in_table["problem"]["params"]["amp"].value_or(1.0);
-  const double width =
-      pin->in_table["problem"]["params"]["width"].value_or(0.05);
+  const auto V0      = pin->param()->get<double>("problem.params.v0", 1.0);
+  const auto D       = pin->param()->get<double>("problem.params.rho", 1.0);
+  const auto amp     = pin->param()->get<double>("problem.params.amp", 1.0);
+  const auto width   = pin->param()->get<double>("problem.params.width", 0.05);
   const double gamma = 5.0 / 3.0;
   const double gm1   = gamma - 1.0;
   const double mu    = 1.0 + constants::m_e / constants::m_p;

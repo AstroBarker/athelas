@@ -12,98 +12,45 @@
 
 #include <iostream>
 
-#include "abstractions.hpp"
-#include "error.hpp"
-#include "geometry.hpp"
-#include "timestepper/tableau.hpp"
 #include "toml.hpp"
 
-/* hold various program options */
+#include "geometry/geometry.hpp"
+#include "interface/params.hpp"
+#include "utils/abstractions.hpp"
+#include "utils/error.hpp"
+
+// hold various program options
+// should be removed eventually.
 struct Options {
   bool do_rad  = false;
   bool do_grav = false;
   bool restart = false;
 
-  geometry::Geometry geom      = geometry::Planar;
-  poly_basis::poly_basis basis = poly_basis::legendre;
-
   int max_order = 1;
 };
 
 // TODO(astrobarker): Long term solution for this thing.
-// "Params" style wrapper over in_table with GetOrAdd?
+// "Params" style wrapper over config with GetOrAdd?
 class ProblemIn {
 
  public:
   explicit ProblemIn(const std::string& fn);
 
-  std::string problem_name;
-  std::string fluid_bc_i;
-  std::string fluid_bc_o;
-  std::string rad_bc_i;
-  std::string rad_bc_o;
-  std::array<double, 3> fluid_i_dirichlet_values;
-  std::array<double, 3> fluid_o_dirichlet_values;
-  std::array<double, 2> rad_i_dirichlet_values;
-  std::array<double, 2> rad_o_dirichlet_values;
+  auto param() -> Params*;
+  [[nodiscard]] auto param() const -> Params*;
 
-  int nlim{}; // number of cycles
-  int ncycle_out{}; // std output
-  double dt_hdf5{}; // hdf5 output
-  double dt_init_frac{}; // ramp up dt
+  // input table
+  // TODO(astrobarker): move to private
+  toml::table config;
 
-  std::string eos_type;
-
-  int nElements;
-  int nNodes;
-  int nGhost;
-
-  int pOrder;
-  int tOrder;
-  int nStages;
-  std::string integrator;
-  MethodID method_id;
-
-  double xL;
-  double xR;
-  double CFL;
-
-  double t_end;
-
-  poly_basis::poly_basis basis;
-  geometry::Geometry Geometry;
-  bool Restart;
-  bool do_rad;
-
-  bool TCI_Option;
-  double TCI_Threshold;
-  bool Characteristic;
-  double gamma_l;
-  double gamma_i;
-  double gamma_r;
-  double weno_r;
-  double b_tvd{};
-  double m_tvb{};
-  std::string limiter_type;
-  bool do_limiter{};
-
-  // opac
-  std::string opac_type;
-
-  bool history_enabled;
-  std::string hist_fn;
-  double hist_dt;
-
-  // gravity
-  bool do_gravity;
-  GravityModel grav_model;
-  double gval;
-
-  toml::table in_table;
+ private:
+  // params obj
+  std::unique_ptr<Params> params_;
 };
 
 // TODO(astrobarker) move into class
-auto check_bc(std::string& bc) -> bool;
+auto check_bc(std::string bc) -> bool;
+
 template <typename T, typename G>
 void read_toml_array(T toml_array, G& out_array) {
   long unsigned int index = 0;

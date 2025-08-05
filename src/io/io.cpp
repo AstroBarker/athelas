@@ -16,66 +16,154 @@
 
 #include "H5Cpp.h"
 
+#include "basis/polynomial_basis.hpp"
 #include "build_info.hpp"
-#include "grid.hpp"
-#include "io.hpp"
+#include "geometry/grid.hpp"
+#include "io/io.hpp"
 #include "limiters/slope_limiter.hpp"
-#include "polynomial_basis.hpp"
+#include "timestepper/tableau.hpp"
 
 /**
  * Write to standard output some initialization info
  * for the current simulation.
  **/
-void print_simulation_parameters(GridStructure grid, ProblemIn* pin,
-                                 const double CFL) {
-  const int nX        = grid.get_n_elements();
-  const int nNodes    = grid.get_n_nodes();
-  const int basis_int = (pin->basis == poly_basis::legendre) ? 0 : 1;
+void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
+  const int nX     = grid.get_n_elements();
+  const int nNodes = grid.get_n_nodes();
+  // NOTE: If I properly support more bases again, adjust here.
+  const std::string basis_name = "Legendre";
+  const bool rad_enabled       = pin->param()->get<bool>("physics.rad_active");
+  const bool gravity_enabled =
+      pin->param()->get<bool>("physics.gravity_active");
 
-  std::println("# --- Physics Parameters --- ");
-  std::println("# Radiation      : {}", static_cast<int>(pin->do_rad));
-  std::println("# EOS            : {}", pin->eos_type);
+  std::println("# --- General --- ");
+  std::println("# Problem Name    : {}",
+               pin->param()->get<std::string>("problem.problem"));
+  std::println("# CFL             : {}",
+               pin->param()->get<double>("problem.cfl"));
   std::println("");
 
-  std::println("# --- Order Parameters --- ");
-  std::println("# basis          : {} ( 0 : legendre, 1: taylor )", basis_int);
-  std::println("# Spatial Order  : {}", pin->pOrder);
-  std::println("# Temporal Order : {}", pin->tOrder);
-  std::println("# RK Stages      : {}", pin->nStages);
-  std::println("");
-
-  std::println("# --- grid Parameters --- ");
+  std::println("# --- Grid Parameters --- ");
   std::println("# Mesh Elements  : {}", nX);
   std::println("# Number Nodes   : {}", nNodes);
   std::println("# Lower Boundary : {}", grid.get_x_l());
   std::println("# Upper Boundary : {}", grid.get_x_r());
   std::println("");
 
-  std::println("# --- Limiter Parameters --- ");
-  if (pin->pOrder == 1) {
+  std::println("# --- Physics Parameters --- ");
+  std::println("# Radiation      : {}", rad_enabled);
+  std::println("# Gravity        : {}", gravity_enabled);
+  std::println("# EOS            : {}",
+               pin->param()->get<std::string>("eos.type"));
+  std::println("");
+
+  std::println("# --- Discretization Parameters --- ");
+  std::println("# Basis          : {}", basis_name);
+  std::println("# Integrator     : {}",
+               pin->param()->get<std::string>("time.integrator_string"));
+  std::println("");
+
+  std::println("# --- Fluid Parameters --- ");
+  std::println("# Spatial Order  : {}", pin->param()->get<int>("fluid.porder"));
+  std::println("# Inner BC       : {}",
+               pin->param()->get<std::string>("fluid.bc.i"));
+  std::println("# Outer BC       : {}",
+               pin->param()->get<std::string>("fluid.bc.o"));
+  std::println("");
+
+  std::println("# --- Fluid Limiter Parameters --- ");
+  if (pin->param()->get<int>("fluid.porder") == 1) {
     std::println("# Spatial Order 1: Slope limiter not applied.");
   } else {
-    std::println("# gamma_l          : {}", pin->gamma_l);
-    std::println("# gamma_i          : {}", pin->gamma_i);
-    std::println("# gamma_r          : {}", pin->gamma_r);
-    std::println("# weno_r           : {}", pin->weno_r);
+    const auto limiter_type =
+        pin->param()->get<std::string>("fluid.limiter.type");
+    std::println("# Limiter        : {}", limiter_type);
+    if (limiter_type == "minmod") {
+      std::println("# b_tvd          : {}",
+                   pin->param()->get<double>("fluid.limiter.b_tvd"));
+      std::println("# m_tvb          : {}",
+                   pin->param()->get<double>("fluid.limiter.m_tvb"));
+    } else if (limiter_type == "weno") {
+      std::println("# gamma_l          : {}",
+                   pin->param()->get<double>("fluid.limiter.gamma_l"));
+      std::println("# gamma_i          : {}",
+                   pin->param()->get<double>("fluid.limiter.gamma_i"));
+      std::println("# gamma_r          : {}",
+                   pin->param()->get<double>("fluid.limiter.gamma_r"));
+      std::println("# weno_r           : {}",
+                   pin->param()->get<double>("fluid.limiter.weno_r"));
+    }
   }
-  if (pin->TCI_Option) {
-    std::println("# TCI Value      : {}", pin->TCI_Threshold);
+  if (pin->param()->get<bool>("fluid.limiter.tci_enabled")) {
+    std::println("# TCI Value      : {}",
+                 pin->param()->get<double>("fluid.limiter.tci_val"));
   } else {
     std::println("# TCI Not Used.");
   }
-  if (pin->Characteristic) {
+  if (pin->param()->get<bool>("fluid.limiter.characteristic")) {
     std::println("# Limiting       : Characteristic");
   } else {
     std::println("# Limiting       : Componentwise");
   }
   std::println("");
 
-  std::println("# --- Other --- ");
-  std::println("# Problem Name    : {}", pin->problem_name);
-  std::println("# CFL             : {}", CFL);
-  std::println("");
+  if (rad_enabled) {
+    std::println("# --- Radiation Parameters --- ");
+    std::println("# Spatial Order  : {}",
+                 pin->param()->get<int>("radiation.porder"));
+    std::println("# Inner BC       : {}",
+                 pin->param()->get<std::string>("radiation.bc.i"));
+    std::println("# Outer BC       : {}",
+                 pin->param()->get<std::string>("radiation.bc.o"));
+    std::println("");
+
+    std::println("# --- Radiation Limiter Parameters --- ");
+    if (pin->param()->get<int>("radiation.porder") == 1) {
+      std::println("# Spatial Order 1: Slope limiter not applied.");
+    } else {
+      const auto limiter_type =
+          pin->param()->get<std::string>("radiation.limiter.type");
+      std::println("# Limiter        : {}", limiter_type);
+      if (limiter_type == "minmod") {
+        std::println("# b_tvd          : {}",
+                     pin->param()->get<double>("radiation.limiter.b_tvd"));
+        std::println("# m_tvb          : {}",
+                     pin->param()->get<double>("radiation.limiter.m_tvb"));
+      } else if (limiter_type == "weno") {
+        std::println("# gamma_l          : {}",
+                     pin->param()->get<double>("radiation.limiter.gamma_l"));
+        std::println("# gamma_i          : {}",
+                     pin->param()->get<double>("radiation.limiter.gamma_i"));
+        std::println("# gamma_r          : {}",
+                     pin->param()->get<double>("radiation.limiter.gamma_r"));
+        std::println("# weno_r           : {}",
+                     pin->param()->get<double>("radiation.limiter.weno_r"));
+      }
+    }
+    if (pin->param()->get<bool>("radiation.limiter.tci_enabled")) {
+      std::println("# TCI Value      : {}",
+                   pin->param()->get<double>("radiation.limiter.tci_val"));
+    } else {
+      std::println("# TCI Not Used.");
+    }
+    if (pin->param()->get<bool>("radiation.limiter.characteristic")) {
+      std::println("# Limiting       : Characteristic");
+    } else {
+      std::println("# Limiting       : Componentwise");
+    }
+    std::println("");
+  }
+
+  if (gravity_enabled) {
+    std::println("# --- Gravity Parameters --- ");
+    std::println("# Spatial Order  : {}",
+                 pin->param()->get<int>("radiation.porder"));
+    std::println("# Inner BC       : {}",
+                 pin->param()->get<int>("radiation.bc.i"));
+    std::println("# Outer BC       : {}",
+                 pin->param()->get<int>("radiation.bc.o"));
+    std::println("");
+  }
 }
 
 /**
@@ -230,14 +318,15 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
 /**
  * Write Modal basis coefficients and mass matrix
  **/
-void write_basis(ModalBasis* basis, unsigned int ilo, unsigned int ihi,
-                 unsigned int nNodes, unsigned int order,
-                 const std::string& problem_name) {
+void write_basis(ModalBasis* basis, const int ihi, const int nNodes,
+                 const int order, const std::string& problem_name) {
   std::string fn = problem_name;
   fn.append("_basis");
   fn.append(".h5");
 
   const char* fn2 = fn.c_str();
+
+  static constexpr int ilo = 1;
 
   // Calculate total size needed
   const size_t total_size = static_cast<size_t>(ihi) * (nNodes + 2) * order;
@@ -246,9 +335,9 @@ void write_basis(ModalBasis* basis, unsigned int ilo, unsigned int ihi,
   std::vector<double> data(total_size);
 
   // Fill data using vector indexing instead of pointer arithmetic
-  for (unsigned int iX = ilo; iX <= ihi; iX++) {
-    for (unsigned int iN = 0; iN < nNodes + 2; iN++) {
-      for (unsigned int k = 0; k < order; k++) {
+  for (int iX = ilo; iX <= ihi; iX++) {
+    for (int iN = 0; iN < nNodes + 2; iN++) {
+      for (int k = 0; k < order; k++) {
         const size_t idx = (((iX - ilo) * (nNodes + 2) + iN) * order) + k;
         data[idx] = basis->get_phi(static_cast<int>(iX), static_cast<int>(iN),
                                    static_cast<int>(k));

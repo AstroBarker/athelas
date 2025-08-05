@@ -16,7 +16,7 @@
 /**
  * @brief Initialize sedov blast wave
  **/
-void sedov_init(State* state, GridStructure* grid, const ProblemIn* pin) {
+void sedov_init(State* state, GridStructure* grid, ProblemIn* pin) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -32,16 +32,16 @@ void sedov_init(State* state, GridStructure* grid, const ProblemIn* pin) {
 
   constexpr static int iPF_D = 0;
 
-  const double V0 = pin->in_table["problem"]["params"]["v0"].value_or(0.0);
-  const double D0 = pin->in_table["problem"]["params"]["rho0"].value_or(1.0);
-  const double E0 = pin->in_table["problem"]["params"]["E0"].value_or(0.3);
+  const auto D0 = pin->param()->get<double>("problem.params.rho0", 1.0);
+  const auto V0 = pin->param()->get<double>("problem.params.v0", 0.0);
+  const auto E0 = pin->param()->get<double>("problem.params.E0", 0.3);
 
   const int origin = 1;
 
   // TODO(astrobarker): geometry aware volume for energy
   const double volume =
       (4.0 * M_PI / 3.0) * std::pow(grid->get_left_interface(origin + 1), 3.0);
-  const double gamma = 5.0 / 3.0;
+  const double gamma = 1.4;
   const double P0    = (gamma - 1.0) * E0 / volume;
 
   for (int iX = ilo; iX <= ihi; iX++) {

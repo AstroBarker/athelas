@@ -1,35 +1,35 @@
 [problem]
-problem = "shu_osher"
-t_end = 1.8
-geometry = "planar"
+problem = "gas_collapse"
+t_end = 50.0
+geometry = "spherical"
 restart = false
-xl = -5.0
-xr = 5.0
-cfl = 0.35
-nx = 256
+xl = 0.0
+xr = 1.0e9
+cfl = 0.05
+nx = 512
 
 [problem.params]
-v0 = 2.629369
-rhoL = 3.857143
-pL = 10.33333333
-pR = 1.0
+v0 = 0.0
+rho0 = 1.0
+p0 = 10.0
 
 [physics]
 radiation = false
-gravity = false
+gravity = true
 
 [bc]
 [bc.fluid]
-bc_i = "outflow"
+bc_i = "reflecting"
 bc_o = "outflow"
 
 [output]
 nlim = -1
 ncycle_out = 100
-dt_hdf5 = 1.0e-2
+dt_hdf5 = 0.1
+dt_init_frac = 1.001
 
 [output.history]
-fn = "shu_osher.hst"
+fn = "gas_collapse.hst"
 #dt = 0.001 # default: dt_hdf5 / 10
 
 [fluid]
@@ -40,17 +40,23 @@ porder = 1
 [fluid.limiter]
 do_limiter = true
 type = "minmod"
-weno_r = 2.0
-tci_opt = false
-tci_val = 0.1
+b_tvd = 0.0
+m_tvb = 0.0
+tci_opt = true
+tci_val = 0.25
 characteristic = false
-gamma_i = 0.8
+gamma_i = 0.9
 #gamma_r = 0.005
 #gamma_l = 0.005
+weno_r = 2.0
+
+[gravity]
+model = "spherical"
+gval = 1.0e3
 
 [time]
 integrator = "EX_SSPRK33"
 
 [eos]
 type = "ideal"
-gamma = 1.4
+gamma = 1.6666666666667

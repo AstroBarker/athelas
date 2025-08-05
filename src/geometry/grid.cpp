@@ -20,13 +20,18 @@
 #include "grid.hpp"
 #include "quadrature.hpp"
 
+using namespace geometry;
+
 GridStructure::GridStructure(const ProblemIn* pin)
-    : nElements_(pin->nElements), nNodes_(pin->nNodes), nGhost_(pin->nGhost),
-      mSize_(nElements_ + (2 * nGhost_)), xL_(pin->xL), xR_(pin->xR),
-      geometry_(pin->Geometry), nodes_("Nodes", pin->nNodes),
-      weights_("weights_", pin->nNodes), centers_("Cetners", mSize_),
-      widths_("widths_", mSize_), x_l_("Left Interface", mSize_ + 1),
-      mass_("Cell mass_", mSize_), mass_r_("Enclosed mass", mSize_, nNodes_),
+    : nElements_(pin->param()->get<int>("problem.nx")),
+      nNodes_(pin->param()->get<int>("fluid.nnodes")), mSize_(nElements_ + 2),
+      xL_(pin->param()->get<double>("problem.xl")),
+      xR_(pin->param()->get<double>("problem.xr")),
+      geometry_(pin->param()->get<Geometry>("problem.geometry_model")),
+      nodes_("Nodes", nNodes_), weights_("weights_", nNodes_),
+      centers_("Cetners", mSize_), widths_("widths_", mSize_),
+      x_l_("Left Interface", mSize_ + 1), mass_("Cell mass_", mSize_),
+      mass_r_("Enclosed mass", mSize_, nNodes_),
       center_of_mass_("Center of mass_", mSize_),
       grid_("Grid", mSize_, nNodes_) {
   std::vector<double> tmp_nodes(nNodes_);
@@ -125,19 +130,13 @@ auto GridStructure::get_n_elements() const noexcept -> int {
   return nElements_;
 }
 
-// Return number of guard zones
-KOKKOS_FUNCTION
-auto GridStructure::get_guard() const noexcept -> int { return nGhost_; }
-
 // Return first physical zone
 KOKKOS_FUNCTION
-auto GridStructure::get_ilo() const noexcept -> int { return nGhost_; }
+auto GridStructure::get_ilo() noexcept -> int { return 1; }
 
 // Return last physical zone
 KOKKOS_FUNCTION
-auto GridStructure::get_ihi() const noexcept -> int {
-  return nElements_ + nGhost_ - 1;
-}
+auto GridStructure::get_ihi() const noexcept -> int { return nElements_; }
 
 // Return true if in spherical symmetry
 KOKKOS_FUNCTION
@@ -150,15 +149,15 @@ auto GridStructure::do_geometry() const noexcept -> bool {
 KOKKOS_FUNCTION
 void GridStructure::create_grid() {
 
-  const int ilo = nGhost_; // first real zone
-  const int ihi = nElements_ + nGhost_ - 1; // last real zone
+  const int ilo = 1; // first real zone
+  const int ihi = nElements_; // last real zone
 
-  for (int i = 0; i < nElements_ + 2 * nGhost_; i++) {
+  for (int i = 0; i < nElements_ + 2; i++) {
     widths_(i) = (xR_ - xL_) / nElements_;
   }
 
-  x_l_(nGhost_) = xL_;
-  for (int iX = 2; iX < nElements_ + 2 * nGhost_; iX++) {
+  x_l_(1) = xL_;
+  for (int iX = 2; iX < nElements_ + 2; iX++) {
     x_l_(iX) = x_l_(iX - 1) + widths_(iX - 1);
   }
 
@@ -170,7 +169,7 @@ void GridStructure::create_grid() {
   for (int i = ilo - 1; i >= 0; i--) {
     centers_(i) = centers_(i + 1) - widths_(i + 1);
   }
-  for (int i = ihi + 1; i < nElements_ + nGhost_ + 1; i++) {
+  for (int i = ihi + 1; i < nElements_ + 1 + 1; i++) {
     centers_(i) = centers_(i - 1) + widths_(i - 1);
   }
 

@@ -6,6 +6,7 @@
  * @brief Class for holding implicit and explicit RK tableaus.
  *
  * @details TODO: describe tableaus.
+ * TODO(astrobarker): add order, effective cfl to tableaus
  */
 
 #include <unordered_map>
@@ -14,7 +15,7 @@
 #include "tableau.hpp"
 
 // converts an input string to its associated MethodID
-MethodID string_to_id(const std::string& method_name) {
+auto string_to_id(const std::string& method_name) -> MethodID {
   static const std::unordered_map<std::string, MethodID> method_map = {
       {"ex_ssprk11", MethodID::EX_SSPRK11},
       {"ex_ssprk22", MethodID::EX_SSPRK22},
@@ -32,13 +33,11 @@ MethodID string_to_id(const std::string& method_name) {
   auto it = method_map.find(method_name);
   if (it != method_map.end()) {
     return it->second;
-  } else {
-    THROW_ATHELAS_ERROR(
-        (std::string("Unknown method: ") + method_name).c_str());
   }
+  THROW_ATHELAS_ERROR((std::string("Unknown method: ") + method_name));
 }
 
-RKIntegrator create_tableau(MethodID method_id) {
+auto create_tableau(MethodID method_id) -> RKIntegrator {
   switch (method_id) {
   case MethodID::EX_SSPRK11: {
     // --- Forward Euler --- //

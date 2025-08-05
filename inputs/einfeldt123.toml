@@ -4,10 +4,10 @@ problem = "sod"
 t_end = 0.15
 geometry = "planar"
 restart = false
-do_rad = false
 xl = 0.0
 xr = 1.0
 cfl = 0.7
+nx = 256
 
 [problem.params]
 vL = -2.0
@@ -17,6 +17,10 @@ rhoR = 1.0
 pL = 1.2
 pR = 1.2
 x_d = 0.5
+
+[physics]
+radiation = false
+gravity = false
 
 [bc]
 [bc.fluid]
@@ -37,18 +41,8 @@ fn = "athelas.hst"
 basis = "legendre"
 nnodes = 2
 porder = 2
-nx = 256
-ng = 1
 
-[time]
-integrator = "EX_SSPRK3"
-
-[eos]
-type = "ideal"
-ideal_gamma = 1.4 # default: 1.4
-
-# slope limiter is bad for this problem?
-[limiters]
+[fluid.limiter]
 do_limiter = true
 type = "minmod"
 m_tvb = 100.0
@@ -62,3 +56,10 @@ weno_r = 1
 #gamma_l = 0.005
 #b_tvd = 2.0 #minmod
 #m_tvb = 1.0 #minmod
+
+[time]
+integrator = "EX_SSPRK33"
+
+[eos]
+type = "ideal"
+gamma = 1.4 # default: 1.4

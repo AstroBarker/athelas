@@ -30,14 +30,17 @@
 class WENO : public SlopeLimiterBase<WENO> {
  public:
   WENO() = default;
-  WENO(const GridStructure* grid, const ProblemIn* pin,
-       const std::vector<int>& vars, const int nvars)
-      : do_limiter_(pin->do_limiter), order_(pin->pOrder), nvars_(nvars),
-        gamma_i_(pin->gamma_i), gamma_l_(pin->gamma_l), gamma_r_(pin->gamma_r),
-        weno_r_(pin->weno_r), characteristic_(pin->Characteristic),
-        tci_opt_(pin->TCI_Option), tci_val_(pin->TCI_Threshold), vars_(vars),
+  WENO(const bool enabled, const GridStructure* grid,
+       const std::vector<int>& vars, const int nvars, const int order,
+       const double gamma_i, const double gamma_l, const double gamma_r,
+       const double weno_r, const bool characteristic, const bool tci_opt,
+       const double tci_val)
+      : do_limiter_(enabled), order_(order), nvars_(nvars), gamma_i_(gamma_i),
+        gamma_l_(gamma_l), gamma_r_(gamma_r), weno_r_(weno_r),
+        characteristic_(characteristic), tci_opt_(tci_opt), tci_val_(tci_val),
+        vars_(vars),
         modified_polynomial_("modified_polynomial", grid->get_n_elements() + 2,
-                             nvars, pin->pOrder),
+                             nvars, order),
         R_("R Matrix", nvars, nvars, grid->get_n_elements() + 2),
         R_inv_("invR Matrix", nvars, nvars, grid->get_n_elements() + 2),
         U_c_T_("U_c_T", nvars, grid->get_n_elements() + 2),
@@ -85,22 +88,20 @@ class WENO : public SlopeLimiterBase<WENO> {
 class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
  public:
   TVDMinmod() = default;
-  TVDMinmod(const GridStructure* grid, const ProblemIn* pin,
-            const std::vector<int>& vars, const int nvars)
-      : do_limiter_(pin->do_limiter), order_(pin->pOrder), nvars_(nvars),
-        b_tvd_(pin->b_tvd), m_tvb_(pin->m_tvb),
-        characteristic_(pin->Characteristic), tci_opt_(pin->TCI_Option),
-        tci_val_(pin->TCI_Threshold), vars_(vars),
-        R_("R Matrix", nvars, nvars,
-           grid->get_n_elements() + 2 * grid->get_guard()),
-        R_inv_("invR Matrix", nvars, nvars,
-               grid->get_n_elements() + 2 * grid->get_guard()),
+  TVDMinmod(const bool enabled, const GridStructure* grid,
+            const std::vector<int>& vars, const int nvars, const int order,
+            const double b_tvd, const double m_tvb, const bool characteristic,
+            const bool tci_opt, const double tci_val)
+      : do_limiter_(enabled), order_(order), nvars_(nvars), b_tvd_(b_tvd),
+        m_tvb_(m_tvb), characteristic_(characteristic), tci_opt_(tci_opt),
+        tci_val_(tci_val), vars_(vars),
+        R_("R Matrix", nvars, nvars, grid->get_n_elements() + 2),
+        R_inv_("invR Matrix", nvars, nvars, grid->get_n_elements() + 2),
         U_c_T_("U_c_T", nvars, grid->get_n_elements() + 2),
         w_c_T_("w_c_T", nvars, grid->get_n_elements() + 2),
         mult_("Mult", nvars, grid->get_n_elements() + 2),
-        D_("TCI", nvars, grid->get_n_elements() + 2 * grid->get_guard()),
-        limited_cell_("LimitedCell",
-                      grid->get_n_elements() + 2 * grid->get_guard()) {}
+        D_("TCI", nvars, grid->get_n_elements() + 2),
+        limited_cell_("LimitedCell", grid->get_n_elements() + 2) {}
   void apply_slope_limiter(View3D<double> U, const GridStructure* grid,
                            const ModalBasis* basis, const EOS* eos);
   [[nodiscard]] auto get_limited(int iX) const -> int;

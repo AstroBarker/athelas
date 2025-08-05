@@ -1,20 +1,22 @@
 #pragma once
 /**
- * @file noh.hpp
+ * @file gas_collapse.hpp
  * --------------
  *
  * @author Brandon L. Barker
- * @brief Noh test
+ * @brief Collapsing gas cloud
  */
+
+#include <cmath>
 
 #include "abstractions.hpp"
 #include "grid.hpp"
 #include "state.hpp"
 
 /**
- * @brief Initialize Noh problem
+ * @brief Initialize gas collapse
  **/
-void noh_init(State* state, GridStructure* grid, ProblemIn* pin) {
+void gas_collapse_init(State* state, GridStructure* grid, ProblemIn* pin) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -30,27 +32,28 @@ void noh_init(State* state, GridStructure* grid, ProblemIn* pin) {
 
   constexpr static int iPF_D = 0;
 
-  const auto P0 = pin->param()->get<double>("problem.params.p0", 0.000001);
-  const auto V0 = pin->param()->get<double>("problem.params.v0", -1.0);
-  const auto D0 = pin->param()->get<double>("problem.params.rho0", 1.0);
+  const auto V0   = pin->param()->get<double>("problem.params.v0", 0.0);
+  const auto rho0 = pin->param()->get<double>("problem.params.rho0", 1.0);
+  const auto p0   = pin->param()->get<double>("problem.params.p0", 10.0);
+  const double G  = constants::G_GRAV;
 
-  const double GAMMA = 5.0 / 3.0;
+  const double gamma = 5.0 / 3.0;
 
   for (int iX = ilo; iX <= ihi; iX++) {
     for (int k = 0; k < pOrder; k++) {
       for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-        uCF(iCF_Tau, iX, k) = 0.0;
-        uCF(iCF_V, iX, k)   = 0.0;
-        uCF(iCF_E, iX, k)   = 0.0;
-
-        if (k == 0) {
-          uCF(iCF_Tau, iX, 0) = 1.0 / D0;
-          uCF(iCF_V, iX, 0)   = V0;
-          uCF(iCF_E, iX, 0) =
-              (P0 / (GAMMA - 1.0)) * uCF(iCF_Tau, iX, 0) + 0.5 * V0 * V0;
+        const double x = grid->node_coordinate(iX, iNodeX);
+        if (k != 0) {
+          uCF(iCF_Tau, iX, k) = 0.0;
+          uCF(iCF_V, iX, k)   = 0.0;
+          uCF(iCF_E, iX, k)   = 0.0;
+        } else {
+          uCF(iCF_Tau, iX, k) = rho0; // / rho0 * (1.0 / std::cosh(x / H));
+          uCF(iCF_V, iX, k)   = V0;
+          uCF(iCF_E, iX, k) =
+              (p0 / (gamma - 1.0)) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
         }
-
-        uPF(iPF_D, iX, iNodeX) = D0;
+        uPF(iPF_D, iX, iNodeX) = rho0;
       }
     }
   }

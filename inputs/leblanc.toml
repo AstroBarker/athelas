@@ -2,11 +2,10 @@
 problem = "sod"
 t_end = 6.0
 geometry = "planar"
-restart = false
-do_rad = false
 xl = 0.0
 xr = 10.0
 cfl = 0.1
+nx = 2048
 
 [problem.params]
 vL = 0.0
@@ -16,6 +15,10 @@ rhoR = 1.0e-3
 pL = 0.066666667
 pR = 0.666666667e-10
 x_d = 3.0
+
+[physics]
+radiation = false
+gravity = false
 
 [bc]
 [bc.fluid]
@@ -36,17 +39,9 @@ fn = "leblanc.hst"
 basis = "legendre"
 nnodes = 1
 porder = 1
-nx = 2048
-ng = 1
 
-[time]
-integrator = "EX_SSPRK22"
 
-[eos]
-type = "ideal"
-ideal_gamma = 1.66666666667 # default: 1.4
-
-[limiters]
+[fluid.limiter]
 do_limiter = true
 type = "minmod"
 m_tvb = 0.0
@@ -59,3 +54,10 @@ gamma_i = 0.1
 #gamma_l = 0.005
 #b_tvd = 2.0 #minmod
 #m_tvb = 1.0 #minmod
+
+[time]
+integrator = "EX_SSPRK22"
+
+[eos]
+type = "ideal"
+gamma = 1.66666666667 # default: 1.4

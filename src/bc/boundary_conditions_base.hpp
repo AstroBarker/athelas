@@ -14,7 +14,7 @@
 #include <array>
 #include <cassert>
 
-#include "Kokkos_Core.hpp"
+#include "pgen/problem_in.hpp"
 
 namespace bc {
 
@@ -87,15 +87,5 @@ KOKKOS_INLINE_FUNCTION auto get_bc_data<2>(BoundaryConditions* bc)
   return bc->rad_bc;
 }
 
-auto make_boundary_conditions(
-    bool do_rad,
-
-    const std::string& fluid_bc_i, const std::string& fluid_bc_o,
-    const std::array<double, 3>& fluid_i_dirichlet_values,
-    const std::array<double, 3>& fluid_o_dirichlet_values,
-
-    const std::string& rad_bc_i, const std::string& rad_bc_o,
-    const std::array<double, 2>& rad_i_dirichlet_values,
-    const std::array<double, 2>& rad_o_dirichlet_values) -> BoundaryConditions;
-
+auto make_boundary_conditions(const ProblemIn* pin) -> BoundaryConditions;
 } // namespace bc

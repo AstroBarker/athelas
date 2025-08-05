@@ -14,8 +14,7 @@
 /**
  * @brief Initialize moving contact discontinuity test
  **/
-void moving_contact_init(State* state, GridStructure* grid,
-                         const ProblemIn* pin) {
+void moving_contact_init(State* state, GridStructure* grid, ProblemIn* pin) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -31,11 +30,11 @@ void moving_contact_init(State* state, GridStructure* grid,
 
   constexpr static int iPF_D = 0;
 
-  const double V0  = pin->in_table["problem"]["params"]["v0"].value_or(0.1);
-  const double D_L = pin->in_table["problem"]["params"]["rhoL"].value_or(1.4);
-  const double D_R = pin->in_table["problem"]["params"]["rhoR"].value_or(1.0);
-  const double P_L = pin->in_table["problem"]["params"]["pL"].value_or(1.0);
-  const double P_R = pin->in_table["problem"]["params"]["pR"].value_or(1.0);
+  const auto V0  = pin->param()->get<double>("problem.params.v0", 0.1);
+  const auto D_L = pin->param()->get<double>("problem.params.rhoL", 1.4);
+  const auto D_R = pin->param()->get<double>("problem.params.rhoR", 1.0);
+  const auto P_L = pin->param()->get<double>("problem.params.pL", 1.0);
+  const auto P_R = pin->param()->get<double>("problem.params.pR", 1.0);
 
   double X1 = 0.0;
   for (int iX = ilo; iX <= ihi; iX++) {

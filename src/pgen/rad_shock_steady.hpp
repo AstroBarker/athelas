@@ -35,8 +35,12 @@
  *   - Density: 3.598 g/cm^3
  *   - Temperature: 9.9302e6 K (855.720 eV)
  **/
-void rad_shock_steady_init(State* state, GridStructure* grid,
-                           const ProblemIn* pin) {
+void rad_shock_steady_init(State* state, GridStructure* grid, ProblemIn* pin) {
+  const bool rad_active = pin->param()->get<bool>("physics.rad_active");
+  if (!rad_active) {
+    THROW_ATHELAS_ERROR("Steady radiative shock requires radiation enabled!");
+  }
+
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
   const int pOrder   = state->get_p_order();
@@ -53,14 +57,13 @@ void rad_shock_steady_init(State* state, GridStructure* grid,
 
   const int iCR_E = 3;
 
-  const double V0   = pin->in_table["problem"]["params"]["v0"].value_or(0.0);
-  const double rhoL = pin->in_table["problem"]["params"]["rhoL"].value_or(1.0);
-  const double rhoR =
-      pin->in_table["problem"]["params"]["rhoR"].value_or(2.286);
-  const double T_L =
-      pin->in_table["problem"]["params"]["T_L"].value_or(1.16045181e6); // K
-  const double T_R =
-      pin->in_table["problem"]["params"]["T_R"].value_or(2.4109e6); // K
+  const auto V0   = pin->param()->get<double>("problem.params.v0", 0.0);
+  const auto rhoL = pin->param()->get<double>("problem.params.rhoL", 1.0);
+  const auto rhoR = pin->param()->get<double>("problem.params.rhoR", 2.286);
+  const auto T_L =
+      pin->param()->get<double>("problem.params.T_L", 1.16045181e6); // K
+  const auto T_R =
+      pin->param()->get<double>("problem.params.T_R", 2.4109e6); // K
 
   // TODO(astrobarker): thread through
   const double Abar  = 1.0;

@@ -16,8 +16,12 @@
 /**
  * Initialize equilibrium rad test
  **/
-void rad_equilibrium_init(State* state, GridStructure* grid,
-                          const ProblemIn* pin) {
+void rad_equilibrium_init(State* state, GridStructure* grid, ProblemIn* pin) {
+  const bool rad_active = pin->param()->get<bool>("physics.rad_active");
+  if (!rad_active) {
+    THROW_ATHELAS_ERROR("Radiation equilibriation requires radiation enabled!");
+  }
+
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
   const int pOrder   = state->get_p_order();
@@ -34,15 +38,13 @@ void rad_equilibrium_init(State* state, GridStructure* grid,
 
   const int iCR_E = 3;
 
-  const double V0 = pin->in_table["problem"]["params"]["v0"].value_or(0.0);
-  const double logD =
-      pin->in_table["problem"]["params"]["logrho"].value_or(-7.0);
-  const double logE_gas =
-      pin->in_table["problem"]["params"]["logE_gas"].value_or(
-          10.0); // erg / cm^3
-  const double logE_rad =
-      pin->in_table["problem"]["params"]["logE_rad"].value_or(
-          12.0); // erg / cm^3
+  const auto V0   = pin->param()->get<double>("problem.params.v0", 0.0);
+  const auto logD = pin->param()->get<double>("problem.params.logrho", -7.0);
+  const auto logE_gas =
+      pin->param()->get<double>("problem.params.logE_gas", 10.0);
+  const auto logE_rad =
+      pin->param()->get<double>("problem.params.logE_rad", 12.0);
+
   const double D      = std::pow(10.0, logD);
   const double Ev_gas = std::pow(10.0, logE_gas);
   const double Ev_rad = std::pow(10.0, logE_rad);

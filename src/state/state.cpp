@@ -14,11 +14,10 @@
 #include "state.hpp"
 
 State::State(const int nCF, const int nPF, const int nAF, const int nX_,
-             const int nG_, const int nNodes_, const int pOrder)
+             const int nNodes_, const int pOrder)
     : nCF_(nCF), nPF_(nPF), nAF_(nAF), pOrder_(pOrder),
-      uCF_("uCF", nCF_, nX_ + 2 * nG_, pOrder_),
-      uPF_("uPF", nPF_, nX_ + 2 * nG_, nNodes_),
-      uAF_("uAF", nAF_, nX_ + 2 * nG_, nNodes_) {}
+      uCF_("uCF", nCF_, nX_ + 2, pOrder_), uPF_("uPF", nPF_, nX_ + 2, nNodes_),
+      uAF_("uAF", nAF_, nX_ + 2, nNodes_) {}
 
 // num var accessors
 auto State::get_n_cf() const noexcept -> int { return this->nCF_; }

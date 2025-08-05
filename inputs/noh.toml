@@ -3,15 +3,19 @@ problem = "noh"
 t_end = 0.5
 geometry = "planar"
 restart = false
-do_rad = false
 xl = 0.0
 xr = 1.0
 cfl = 0.1
+nx = 128
 
 [problem.params]
 v0 = -1.0
 rho0 = 1.0
 p0 = 0.000001
+
+[physics]
+radiation = false
+gravity = false
 
 [bc]
 [bc.fluid]
@@ -32,17 +36,8 @@ fn = "noh.hst"
 basis = "legendre"
 nnodes = 2
 porder = 2
-nx = 128
-ng = 1
 
-[time]
-integrator = "EX_SSPRK22"
-
-[eos]
-type = "ideal"
-gamma = 1.6666666667
-
-[limiters]
+[fluid.limiter]
 do_limiter = true
 type = "minmod"
 b_tvd = 1.0
@@ -51,3 +46,10 @@ tci_opt = false
 tci_val = 0.1
 characteristic = true
 gamma_i = 0.8
+
+[time]
+integrator = "EX_SSPRK22"
+
+[eos]
+type = "ideal"
+gamma = 1.6666666667

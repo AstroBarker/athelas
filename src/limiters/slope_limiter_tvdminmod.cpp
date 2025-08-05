@@ -38,8 +38,8 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
       1.0e-10; // TODO(astrobarker): move to input deck
   constexpr static double EPS = 1.0e-10;
 
-  const int& ilo = grid->get_ilo();
-  const int& ihi = grid->get_ihi();
+  static constexpr int ilo = 1;
+  const int& ihi           = grid->get_ihi();
 
   const int nvars = nvars_;
 

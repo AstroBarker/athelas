@@ -3,10 +3,14 @@ problem = "sod"
 t_end = 0.2
 geometry = "planar"
 restart = false
-do_rad = false
 xl = 0.0
 xr = 1.0
 cfl = 0.8
+nx = 256
+
+[physics]
+radiation = false
+gravity = false
 
 [problem.params]
 vL = 0.0
@@ -36,17 +40,8 @@ dt = 0.001
 basis = "legendre"
 nnodes = 3
 porder = 3
-nx = 256
-ng = 1
 
-[time]
-integrator = "EX_SSPRK33"
-
-[eos]
-type = "ideal"
-ideal_gamma = 1.4 # default: 1.4
-
-[limiters]
+[fluid.limiter]
 do_limiter = true
 type = "minmod"
 m_tvb = 100.0
@@ -57,3 +52,10 @@ tci_val = 0.05
 characteristic = false
 gamma_i = 0.5
 weno_r = 2.0
+
+[time]
+integrator = "EX_SSPRK33"
+
+[eos]
+type = "ideal"
+gamma = 1.4 # default: 1.4

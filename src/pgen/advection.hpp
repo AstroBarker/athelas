@@ -17,7 +17,7 @@
 /**
  * Initialize advection test
  **/
-void advection_init(State* state, GridStructure* grid, const ProblemIn* pin) {
+void advection_init(State* state, GridStructure* grid, ProblemIn* pin) {
   // Smooth advection problem
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -33,9 +33,9 @@ void advection_init(State* state, GridStructure* grid, const ProblemIn* pin) {
 
   const int iPF_D = 0;
 
-  const double V0  = pin->in_table["problem"]["params"]["v0"].value_or(-1.0);
-  const double P0  = pin->in_table["problem"]["params"]["p0"].value_or(0.01);
-  const double Amp = pin->in_table["problem"]["params"]["amp"].value_or(1.0);
+  const auto V0  = pin->param()->get<double>("problem.params.v0", -1.0);
+  const auto P0  = pin->param()->get<double>("problem.params.p0", 0.01);
+  const auto Amp = pin->param()->get<double>("problem.params.amp", 1.0);
 
   double X1 = 0.0;
   for (int iX = ilo; iX <= ihi; iX++) {

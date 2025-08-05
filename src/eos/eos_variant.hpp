@@ -55,10 +55,11 @@ KOKKOS_INLINE_FUNCTION auto get_gamma(const EOS* eos) -> double {
 
 KOKKOS_INLINE_FUNCTION auto initialize_eos(const ProblemIn* pin) -> EOS {
   EOS eos;
-  if (pin->eos_type == "ideal") {
-    eos = IdealGas(pin->in_table["eos"]["ideal_gamma"].value_or(1.4));
-  } else if (pin->eos_type == "marshak") {
-    eos = Marshak(pin->in_table["eos"]["ideal_gamma"].value_or(1.4));
+  const auto type = pin->param()->get<std::string>("eos.type");
+  if (type == "ideal") {
+    eos = IdealGas(pin->param()->get<double>("eos.gamma"));
+  } else if (type == "marshak") {
+    eos = Marshak(pin->param()->get<double>("eos.gamma"));
   } else {
     THROW_ATHELAS_ERROR("Please choose a valid eos!");
   }

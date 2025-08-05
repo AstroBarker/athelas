@@ -51,9 +51,7 @@ class GridStructure {
   [[nodiscard]] auto do_geometry() const noexcept -> bool;
 
   KOKKOS_FUNCTION
-  [[nodiscard]] auto get_guard() const noexcept -> int;
-  KOKKOS_FUNCTION
-  [[nodiscard]] auto get_ilo() const noexcept -> int;
+  [[nodiscard]] static auto get_ilo() noexcept -> int;
   KOKKOS_FUNCTION
   [[nodiscard]] auto get_ihi() const noexcept -> int;
   KOKKOS_FUNCTION
@@ -70,7 +68,7 @@ class GridStructure {
   KOKKOS_FUNCTION
   void compute_mass_r(View3D<double> uPF);
   KOKKOS_FUNCTION
-  auto enclosed_mass(const int iX, const int iN) const noexcept -> double;
+  auto enclosed_mass(int iX, int iN) const noexcept -> double;
   KOKKOS_FUNCTION
   void compute_center_of_mass(View3D<double> uPF);
   KOKKOS_FUNCTION
@@ -84,7 +82,6 @@ class GridStructure {
  private:
   int nElements_;
   int nNodes_;
-  int nGhost_;
   int mSize_;
 
   double xL_;
