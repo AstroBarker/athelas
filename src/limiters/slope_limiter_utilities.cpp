@@ -138,7 +138,8 @@ void detect_troubled_cells(View3D<double> U, View2D<double> D,
           denominator = std::max(
               std::max(std::abs(cell_avg_L), std::abs(cell_avg_R)), cell_avg);
 
-          D(iC%3, iX) = result / denominator; // TODO(astrobarker): fix this index crap
+          D(iC % 3, iX) =
+              result / denominator; // TODO(astrobarker): fix this index crap
         }); // par_for iX
   } // loop iC;
 }

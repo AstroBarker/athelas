@@ -419,7 +419,8 @@ ProblemIn::ProblemIn(const std::string& fn) {
     std::array<double, 2> rad_o_dirichlet_values = {0.0, 0.0};
     // --- testing ---
     auto* array = config["bc"]["radiation"]["dirichlet_values_i"].as_array();
-    if (array->is_array() && (rad_bc_i == "dirichlet" || rad_bc_i == "marshak")) {
+    if (array->is_array() &&
+        (rad_bc_i == "dirichlet" || rad_bc_i == "marshak")) {
       read_toml_array(array, rad_i_dirichlet_values);
       std::println("dirichlet vals {}", rad_i_dirichlet_values);
     } else if (!array->is_array() && rad_bc_i == "dirichlet") {
