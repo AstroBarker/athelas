@@ -134,7 +134,16 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
   View1D<int> limited_cell_{};
 };
 
-using SlopeLimiter = std::variant<WENO, TVDMinmod>;
+// A default no-op limiter used when limiting is disabled.
+class Unlimited : public SlopeLimiterBase<Unlimited> {
+ public:
+  Unlimited() = default;
+  void apply_slope_limiter(View3D<double> U, const GridStructure* grid,
+                           const ModalBasis* basis, const EOS* eos);
+  [[nodiscard]] auto get_limited(int iX) const -> int;
+};
+
+using SlopeLimiter = std::variant<WENO, TVDMinmod, Unlimited>;
 
 // std::visit functions
 KOKKOS_INLINE_FUNCTION void apply_slope_limiter(SlopeLimiter* limiter,

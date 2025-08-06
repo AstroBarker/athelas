@@ -46,7 +46,10 @@ auto initialize_slope_limiter(const std::string field,
           pin->param()->get<bool>(field + ".limiter.tci_enabled"),
           pin->param()->get<double>(field + ".limiter.tci_val"));
     }
+  } else {
+    S_Limiter = Unlimited(); // no-op "limiter" when limiting is disabled
   }
+
   return S_Limiter;
 }
 
