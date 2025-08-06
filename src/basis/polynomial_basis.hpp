@@ -47,6 +47,17 @@ class ModalBasis {
 
   [[nodiscard]] auto get_order() const noexcept -> int;
 
+  // L2 projection from nodal to modal representation
+  void
+  project_nodal_to_modal(View3D<double> uCF, View3D<double> uPF,
+                         GridStructure* grid, int iCF, int iX,
+                         const std::function<double(double)>& nodal_func) const;
+
+  // L2 projection from nodal to modal representation for all cells
+  void project_nodal_to_modal_all_cells(
+      View3D<double> uCF, View3D<double> uPF, GridStructure* grid, int iCF,
+      const std::function<double(double)>& nodal_func) const;
+
   static auto legendre(int n, double x) -> double;
   static auto d_legendre(int order, double x) -> double;
   static auto legendre(int n, double x, double x_c) -> double;

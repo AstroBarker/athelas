@@ -17,11 +17,14 @@
 /**
  * @brief Initialize smooth flow test problem
  **/
-void smooth_flow_init(State* state, GridStructure* grid, ProblemIn* pin) {
+void smooth_flow_init(State* state, GridStructure* grid, ProblemIn* pin,
+                      const EOS* eos, ModalBasis* fluid_basis = nullptr) {
+  if (pin->param()->get<std::string>("eos.type") != "ideal") {
+    THROW_ATHELAS_ERROR("Smooth flow requires ideal gas eos!");
+  }
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
-  const int pOrder   = state->get_p_order();
 
   const int ilo    = grid->get_ilo();
   const int ihi    = grid->get_ihi();
@@ -36,60 +39,56 @@ void smooth_flow_init(State* state, GridStructure* grid, ProblemIn* pin) {
   const auto amp =
       pin->param()->get<double>("problem.params.amp", 0.9999999999999999);
 
-  double X1 = 0.0;
-  for (int iX = ilo; iX <= ihi; iX++) {
-    for (int k = 0; k < pOrder; k++) {
-      for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-        X1                  = grid->get_centers(iX);
-        uCF(iCF_Tau, iX, k) = 0.0;
-        uCF(iCF_V, iX, k)   = 0.0;
-        uCF(iCF_E, iX, k)   = 0.0;
-
-        if (k == 0) {
-          double const D      = (1.0 + (amp * sin(constants::PI * X1)));
-          uCF(iCF_Tau, iX, 0) = 1.0 / D;
-          uCF(iCF_V, iX, 0)   = 0.0;
-          uCF(iCF_E, iX, 0)   = (D * D * D / 2.0) * uCF(iCF_Tau, iX, 0);
-        } else if (k == 1) {
-          double const D      = (1.0 + (amp * sin(constants::PI * X1)));
-          double const dD     = (amp * constants::PI * cos(constants::PI * X1));
-          uCF(iCF_Tau, iX, k) = (-1 / (D * D)) * dD * grid->get_widths(iX);
-          uCF(iCF_V, iX, k)   = 0.0;
-          uCF(iCF_E, iX, k)   = ((2.0 / 2.0) * D) * dD * grid->get_widths(iX);
-        } else if (k == 2) {
-          double const D = (1.0 + (amp * sin(constants::PI * X1)));
-          double const ddD =
-              -(amp * constants::PI * constants::PI) * sin(constants::PI * X1);
-          uCF(iCF_Tau, iX, k) = (2.0 / (D * D * D)) * ddD *
-                                grid->get_widths(iX) * grid->get_widths(iX);
-          uCF(iCF_V, iX, k) = 0.0;
-          uCF(iCF_E, iX, k) =
-              (2.0 / 2.0) * ddD * grid->get_widths(iX) * grid->get_widths(iX);
-        } else if (k == 3) {
-          double const D = (1.0 + (amp * sin(constants::PI * X1)));
-          double const dddD =
-              -(amp * constants::PI * constants::PI * constants::PI) *
-              cos(constants::PI * X1);
-          uCF(iCF_Tau, iX, k) = (-6.0 / (D * D * D * D)) * dddD *
-                                grid->get_widths(iX) * grid->get_widths(iX) *
-                                grid->get_widths(iX);
-          uCF(iCF_V, iX, k) = 0.0;
-          uCF(iCF_E, iX, k) = 0.0;
-        } else {
-          uCF(iCF_Tau, iX, k) = 0.0;
-          uCF(iCF_V, iX, k)   = 0.0;
-          uCF(iCF_E, iX, k)   = 0.0;
+  // Phase 1: Initialize nodal values (always done)
+  Kokkos::parallel_for(
+      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+        for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
+          const double x         = grid->node_coordinate(iX, iNodeX);
+          uPF(iPF_D, iX, iNodeX) = (1.0 + amp * sin(constants::PI * x));
         }
+      });
 
-        uPF(iPF_D, iX, iNodeX) = (1.0 + amp * sin(constants::PI * X1));
-      }
-    }
+  // Phase 2: Initialize modal coefficients
+  if (fluid_basis != nullptr) {
+    // Use L2 projection for accurate modal coefficients
+    auto density_func = [&amp](double x) -> double {
+      return 1.0 + amp * sin(constants::PI * x);
+    };
+
+    auto velocity_func = [](double x) -> double { return 0.0; };
+
+    auto energy_func = [&amp](double x) -> double {
+      const double D = 1.0 + amp * sin(constants::PI * x);
+      return (D * D * D / 2.0) / D;
+    };
+
+    // Project each conserved variable using Kokkos parallel for
+    fluid_basis->project_nodal_to_modal_all_cells(uCF, uPF, grid, iCF_Tau,
+                                                  density_func);
+    fluid_basis->project_nodal_to_modal_all_cells(uCF, uPF, grid, iCF_V,
+                                                  velocity_func);
+    fluid_basis->project_nodal_to_modal_all_cells(uCF, uPF, grid, iCF_E,
+                                                  energy_func);
+  } else {
+    // Fallback: set cell averages only (k=0)
+    Kokkos::parallel_for(
+        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+          const int k     = 0;
+          const double X1 = grid->get_centers(iX);
+
+          const double D      = (1.0 + (amp * sin(constants::PI * X1)));
+          uCF(iCF_Tau, iX, k) = 1.0 / D;
+          uCF(iCF_V, iX, k)   = 0.0;
+          uCF(iCF_E, iX, k)   = (D * D * D / 2.0) * uCF(iCF_Tau, iX, k);
+        });
   }
+
   // Fill density in guard cells
-  for (int iX = 0; iX < ilo; iX++) {
-    for (int iN = 0; iN < nNodes; iN++) {
-      uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-      uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
-    }
-  }
+  Kokkos::parallel_for(
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
+        for (int iN = 0; iN < nNodes; iN++) {
+          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
+          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+        }
+      });
 }

@@ -41,4 +41,7 @@ class EosBase {
     return static_cast<EOS const*>(this)->temperature_from_conserved(
         tau, V, EmT, lambda);
   }
+  auto get_gamma() -> double {
+    return static_cast<EOS const*>(this)->get_gamma();
+  }
 };
