@@ -16,7 +16,8 @@
 /**
  * @brief Initialize gas collapse
  **/
-void gas_collapse_init(State* state, GridStructure* grid, ProblemIn* pin) {
+void gas_collapse_init(State* state, GridStructure* grid, ProblemIn* pin,
+                       ModalBasis* fluid_basis = nullptr) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();

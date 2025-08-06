@@ -13,11 +13,13 @@
 #include "constants.hpp"
 #include "grid.hpp"
 #include "state.hpp"
+#include"polynomial_basis.hpp"
 
 /**
  * @brief Initialize radiating shock
  **/
-void marshak_init(State* state, GridStructure* grid, ProblemIn* pin) {
+void marshak_init(State* state, GridStructure* grid, ProblemIn* pin,
+                  ModalBasis* fluid_basis = nullptr, ModalBasis* radiation_basis = nullptr) {
   const bool rad_active = pin->param()->get<bool>("physics.rad_active");
   if (!rad_active) {
     THROW_ATHELAS_ERROR("Marshak requires radiation enabled!");

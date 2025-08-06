@@ -16,7 +16,8 @@
 /**
  * Initialize equilibrium rad test
  **/
-void rad_equilibrium_init(State* state, GridStructure* grid, ProblemIn* pin) {
+void rad_equilibrium_init(State* state, GridStructure* grid, ProblemIn* pin,
+                          ModalBasis* fluid_basis = nullptr, ModalBasis* radiation_basis = nullptr) {
   const bool rad_active = pin->param()->get<bool>("physics.rad_active");
   if (!rad_active) {
     THROW_ATHELAS_ERROR("Radiation equilibriation requires radiation enabled!");

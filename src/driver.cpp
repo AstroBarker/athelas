@@ -133,10 +133,6 @@ auto Driver::execute() -> int {
 void Driver::initialize(ProblemIn* pin) { // NOLINT
   using fluid::HydroPackage;
   using gravity::GravityPackage;
-  if (!restart_) {
-    // --- Initialize fields ---
-    initialize_fields(&state_, &grid_, eos_.get(), pin);
-  }
 
   const auto nx = pin_->param()->get<int>("problem.nx");
   const int max_order =
@@ -145,18 +141,30 @@ void Driver::initialize(ProblemIn* pin) { // NOLINT
   const auto cfl =
       compute_cfl(pin_->param()->get<double>("problem.cfl"), max_order);
 
-  // --- Datastructure for modal basis ---
-  fluid_basis_ = std::make_unique<ModalBasis>(
-      poly_basis::poly_basis::legendre, state_.get_u_pf(), &grid_,
-      pin->param()->get<int>("fluid.porder"),
-      pin->param()->get<int>("fluid.nnodes"),
-      pin->param()->get<int>("problem.nx"), true);
-  if (opts_.do_rad) {
+
+  if (!restart_) {
+    // --- Phase 1: Initialize fields (nodal values only) ---
+    initialize_fields(&state_, &grid_, eos_.get(), pin);
+
+    // --- Datastructure for modal basis ---
+    fluid_basis_ = std::make_unique<ModalBasis>(
+  poly_basis::poly_basis::legendre, state_.get_u_pf(), &grid_,
+  pin->param()->get<int>("fluid.porder"),
+  pin->param()->get<int>("fluid.nnodes"),
+  pin->param()->get<int>("problem.nx"), true);
+    if (opts_.do_rad) {
     radiation_basis_ = std::make_unique<ModalBasis>(
-        poly_basis::poly_basis::legendre, state_.get_u_pf(), &grid_,
-        pin->param()->get<int>("radiation.porder"),
-        pin->param()->get<int>("radiation.nnodes"),
-        pin->param()->get<int>("problem.nx"), false);
+    poly_basis::poly_basis::legendre, state_.get_u_pf(), &grid_,
+    pin->param()->get<int>("radiation.porder"),
+    pin->param()->get<int>("radiation.nnodes"),
+    pin->param()->get<int>("problem.nx"), false);
+    }
+
+    
+    // --- Phase 2: Re-initialize with modal projection ---
+    // This will use the nodal density from Phase 1 to construct proper modal coefficients
+    initialize_fields(&state_, &grid_, eos_.get(), pin, fluid_basis_.get(), 
+                     radiation_basis_.get());
   }
 
   const bool rad_active     = pin->param()->get<bool>("physics.rad_active");

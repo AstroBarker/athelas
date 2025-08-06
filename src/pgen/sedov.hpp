@@ -16,7 +16,8 @@
 /**
  * @brief Initialize sedov blast wave
  **/
-void sedov_init(State* state, GridStructure* grid, ProblemIn* pin) {
+void sedov_init(State* state, GridStructure* grid, ProblemIn* pin,
+                ModalBasis* fluid_basis = nullptr) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -47,7 +48,7 @@ void sedov_init(State* state, GridStructure* grid, ProblemIn* pin) {
       Kokkos::RangePolicy<>(ilo, ihi + 1),
       KOKKOS_LAMBDA(int iX) {
         const int k = 0;
-        
+
         uCF(iCF_Tau, iX, k) = 1.0 / D0;
         uCF(iCF_V, iX, k)   = V0;
         if (iX == origin - 1 || iX == origin) {
@@ -57,7 +58,7 @@ void sedov_init(State* state, GridStructure* grid, ProblemIn* pin) {
           uCF(iCF_E, iX, k) =
               (1.0e-6 / (gamma - 1.0)) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
         }
-        
+
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
           uPF(iPF_D, iX, iNodeX) = D0;
         }

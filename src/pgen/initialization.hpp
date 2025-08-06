@@ -37,36 +37,37 @@
  * or a a device-host copy
  **/
 void initialize_fields(State* state, GridStructure* grid, const EOS* /*eos*/,
-                       ProblemIn* pin) {
+                       ProblemIn* pin, ModalBasis* fluid_basis = nullptr,
+                       ModalBasis* radiation_basis = nullptr) {
 
   const auto problem_name = pin->param()->get<std::string>("problem.problem");
 
   if (problem_name == "sod") {
-    sod_init(state, grid, pin);
+    sod_init(state, grid, pin, fluid_basis);
   } else if (problem_name == "shu_osher") {
-    shu_osher_init(state, grid, pin);
+    shu_osher_init(state, grid, pin, fluid_basis);
   } else if (problem_name == "moving_contact") {
-    moving_contact_init(state, grid, pin);
+    moving_contact_init(state, grid, pin, fluid_basis);
   } else if (problem_name == "smooth_advection") {
-    advection_init(state, grid, pin);
+    advection_init(state, grid, pin, fluid_basis);
   } else if (problem_name == "sedov") {
-    sedov_init(state, grid, pin);
+    sedov_init(state, grid, pin, fluid_basis);
   } else if (problem_name == "noh") {
-    noh_init(state, grid, pin);
+    noh_init(state, grid, pin, fluid_basis);
   } else if (problem_name == "shockless_noh") {
-    shockless_noh_init(state, grid, pin);
+    shockless_noh_init(state, grid, pin, fluid_basis);
   } else if (problem_name == "smooth_flow") {
-    smooth_flow_init(state, grid, pin);
+    smooth_flow_init(state, grid, pin, fluid_basis);
   } else if (problem_name == "rad_equilibrium") {
-    rad_equilibrium_init(state, grid, pin);
+    rad_equilibrium_init(state, grid, pin, fluid_basis, radiation_basis);
   } else if (problem_name == "rad_advection") {
-    rad_advection_init(state, grid, pin);
+    rad_advection_init(state, grid, pin, fluid_basis, radiation_basis);
   } else if (problem_name == "rad_shock_steady") {
-    rad_shock_steady_init(state, grid, pin);
+    rad_shock_steady_init(state, grid, pin, fluid_basis, radiation_basis);
   } else if (problem_name == "rad_shock") {
-    rad_shock_init(state, grid, pin);
+    rad_shock_init(state, grid, pin, fluid_basis, radiation_basis);
   } else if (problem_name == "marshak") {
-    marshak_init(state, grid, pin);
+    marshak_init(state, grid, pin, fluid_basis, radiation_basis);
   } else {
     THROW_ATHELAS_ERROR(" ! Please choose a valid problem_name");
   }

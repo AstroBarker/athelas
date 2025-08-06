@@ -14,7 +14,8 @@
 /**
  * @brief Initialize Sod shock tube
  **/
-void sod_init(State* state, GridStructure* grid, ProblemIn* pin) {
+void sod_init(State* state, GridStructure* grid, ProblemIn* pin,
+              ModalBasis* fluid_basis = nullptr) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -39,6 +40,24 @@ void sod_init(State* state, GridStructure* grid, ProblemIn* pin) {
 
   const double gamma = 1.4;
 
+  // Phase 1: Initialize nodal values (always done)
+  Kokkos::parallel_for(
+      Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_LAMBDA(int iX) {
+        const double X1 = grid->get_centers(iX);
+
+        if (X1 <= x_d) {
+          for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
+            uPF(iPF_D, iX, iNodeX) = D_L;
+          }
+        } else {
+          for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
+            uPF(iPF_D, iX, iNodeX) = D_R;
+          }
+        }
+      });
+
+  // Phase 2: Initialize modal coefficients
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(ilo, ihi + 1),
       KOKKOS_LAMBDA(int iX) {
@@ -50,19 +69,11 @@ void sod_init(State* state, GridStructure* grid, ProblemIn* pin) {
           uCF(iCF_V, iX, k)   = V_L;
           uCF(iCF_E, iX, k) =
               (P_L / (gamma - 1.0)) * uCF(iCF_Tau, iX, k) + 0.5 * V_L * V_L;
-
-          for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-            uPF(iPF_D, iX, iNodeX) = D_L;
-          }
-        } else { // right domain
+        } else {
           uCF(iCF_Tau, iX, k) = 1.0 / D_R;
           uCF(iCF_V, iX, k)   = V_R;
           uCF(iCF_E, iX, k) =
               (P_R / (gamma - 1.0)) * uCF(iCF_Tau, iX, k) + 0.5 * V_R * V_R;
-
-          for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-            uPF(iPF_D, iX, iNodeX) = D_R;
-          }
         }
       });
 

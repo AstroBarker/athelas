@@ -18,7 +18,8 @@
  * @brief Initialize radiation advection test
  * @note EXPERIMENTAL
  **/
-void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin) {
+void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin,
+                        ModalBasis* fluid_basis = nullptr, ModalBasis* radiation_basis = nullptr) {
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
 

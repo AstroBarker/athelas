@@ -14,7 +14,8 @@
 /**
  * @brief Initialize shockless Noh problem
  **/
-void shockless_noh_init(State* state, GridStructure* grid, ProblemIn* pin) {
+void shockless_noh_init(State* state, GridStructure* grid, ProblemIn* pin,
+                        ModalBasis* fluid_basis = nullptr) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();

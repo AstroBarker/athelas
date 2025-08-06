@@ -14,7 +14,8 @@
 /**
  * @brief Initialize radiation wave test
  **/
-void rad_wave_init(State* state, GridStructure* grid, ProblemIn* pin) {
+void rad_wave_init(State* state, GridStructure* grid, ProblemIn* pin,
+                   ModalBasis* fluid_basis = nullptr, ModalBasis* radiation_basis = nullptr) {
   const bool rad_active = pin->param()->get<bool>("physics.rad_active");
   if (!rad_active) {
     THROW_ATHELAS_ERROR("Radiation wave requires radiation enabled!");
@@ -55,8 +56,7 @@ void rad_wave_init(State* state, GridStructure* grid, ProblemIn* pin) {
         uCF(iCF_Tau, iX, k) = 1.0 / rho0;
         uCF(iCF_V, iX, k)   = 0.0;
         uCF(iCF_E, iX, k)   = (P0 / gm1) / rho0;
-
-        uCF(iCR_E, iX, k) = epsilon;
+        uCF(iCR_E, iX, k)   = epsilon;
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
           uPF(iPF_D, iX, iNodeX) = rho0;
