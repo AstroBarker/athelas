@@ -156,4 +156,6 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
 } // end apply slope limiter
 
 // LimitedCell accessor
-auto WENO::get_limited(const int iX) const -> int { return limited_cell_(iX); }
+auto WENO::get_limited(const int iX) const -> int {
+  return (!do_limiter_) ? 0.0 : limited_cell_(iX);
+}

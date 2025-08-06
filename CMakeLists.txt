@@ -124,6 +124,7 @@ set( ATHELAS_SOURCES
   "src/linalg/linear_algebra.cpp"
   "src/quadrature/quadrature.cpp"
   "src/limiters/bound_enforcing_limiter.cpp"
+  "src/limiters/slope_limiter_unlimited.cpp"
   "src/limiters/slope_limiter_utilities.cpp"
   "src/limiters/slope_limiter_tvdminmod.cpp"
   "src/limiters/slope_limiter_weno.cpp"

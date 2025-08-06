@@ -152,5 +152,5 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
 
 // limited_cell_ accessor
 auto TVDMinmod::get_limited(const int iX) const -> int {
-  return limited_cell_(iX);
+  return (!do_limiter_) ? 0.0 : limited_cell_(iX);
 }

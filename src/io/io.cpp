@@ -74,6 +74,9 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
   std::println("# --- Fluid Limiter Parameters --- ");
   if (pin->param()->get<int>("fluid.porder") == 1) {
     std::println("# Spatial Order 1: Slope limiter not applied.");
+  }
+  if (!pin->param()->get<bool>("fluid.limiter.enabled")) {
+    std::println("# Limiter Disabled");
   } else {
     const auto limiter_type =
         pin->param()->get<std::string>("fluid.limiter.type");
@@ -93,17 +96,17 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
       std::println("# weno_r           : {}",
                    pin->param()->get<double>("fluid.limiter.weno_r"));
     }
-  }
-  if (pin->param()->get<bool>("fluid.limiter.tci_enabled")) {
-    std::println("# TCI Value      : {}",
-                 pin->param()->get<double>("fluid.limiter.tci_val"));
-  } else {
-    std::println("# TCI Not Used.");
-  }
-  if (pin->param()->get<bool>("fluid.limiter.characteristic")) {
-    std::println("# Limiting       : Characteristic");
-  } else {
-    std::println("# Limiting       : Componentwise");
+    if (pin->param()->get<bool>("fluid.limiter.tci_enabled")) {
+      std::println("# TCI Value      : {}",
+                   pin->param()->get<double>("fluid.limiter.tci_val"));
+    } else {
+      std::println("# TCI Not Used.");
+    }
+    if (pin->param()->get<bool>("fluid.limiter.characteristic")) {
+      std::println("# Limiting       : Characteristic");
+    } else {
+      std::println("# Limiting       : Componentwise");
+    }
   }
   std::println("");
 
@@ -120,6 +123,9 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
     std::println("# --- Radiation Limiter Parameters --- ");
     if (pin->param()->get<int>("radiation.porder") == 1) {
       std::println("# Spatial Order 1: Slope limiter not applied.");
+    }
+    if (!pin->param()->get<bool>("radiation.limiter.enabled")) {
+      std::println("# Limiter Disabled");
     } else {
       const auto limiter_type =
           pin->param()->get<std::string>("radiation.limiter.type");
@@ -139,17 +145,17 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
         std::println("# weno_r           : {}",
                      pin->param()->get<double>("radiation.limiter.weno_r"));
       }
-    }
-    if (pin->param()->get<bool>("radiation.limiter.tci_enabled")) {
-      std::println("# TCI Value      : {}",
-                   pin->param()->get<double>("radiation.limiter.tci_val"));
-    } else {
-      std::println("# TCI Not Used.");
-    }
-    if (pin->param()->get<bool>("radiation.limiter.characteristic")) {
-      std::println("# Limiting       : Characteristic");
-    } else {
-      std::println("# Limiting       : Componentwise");
+      if (pin->param()->get<bool>("radiation.limiter.tci_enabled")) {
+        std::println("# TCI Value      : {}",
+                     pin->param()->get<double>("radiation.limiter.tci_val"));
+      } else {
+        std::println("# TCI Not Used.");
+      }
+      if (pin->param()->get<bool>("radiation.limiter.characteristic")) {
+        std::println("# Limiting       : Characteristic");
+      } else {
+        std::println("# Limiting       : Componentwise");
+      }
     }
     std::println("");
   }
