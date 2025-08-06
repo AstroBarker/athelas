@@ -446,7 +446,7 @@ auto ModalBasis::get_order() const noexcept -> int { return order_; }
  **/
 void ModalBasis::project_nodal_to_modal(
     View3D<double> uCF, View3D<double> uPF, GridStructure* grid, int iCF,
-    int iX, const std::function<double(double)>& nodal_func) {
+    int iX, const std::function<double(double)>& nodal_func) const {
   // Clear existing modal coefficients
   for (int k = 0; k < order_; k++) {
     uCF(iCF, iX, k) = 0.0;
@@ -485,34 +485,12 @@ void ModalBasis::project_nodal_to_modal(
  **/
 void ModalBasis::project_nodal_to_modal_all_cells(
     View3D<double> uCF, View3D<double> uPF, GridStructure* grid, int iCF,
-    const std::function<double(double)>& nodal_func) {
+    const std::function<double(double)>& nodal_func) const {
   const int ilo = grid->get_ilo();
   const int ihi = grid->get_ihi();
 
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_CLASS_LAMBDA(int iX) {
-        // Clear existing modal coefficients
-        for (int k = 0; k < order_; k++) {
-          uCF(iCF, iX, k) = 0.0;
-        }
-
-        // Compute L2 projection: <nodal_func, phi_k> / <phi_k, phi_k>
-        for (int k = 0; k < order_; k++) {
-          double numerator         = 0.0;
-          const double denominator = mass_matrix_(iX, k);
-
-          // Compute <nodal_func, phi_k> using quadrature
-          for (int iN = 0; iN < nNodes_; iN++) {
-            const double X         = grid->node_coordinate(iX, iN);
-            const double nodal_val = nodal_func(X);
-            const double rho       = density_weight_ ? uPF(0, iX, iN) : 1.0;
-
-            numerator += nodal_val * phi_(iX, iN + 1, k) *
-                         grid->get_weights(iN) * grid->get_widths(iX) *
-                         grid->get_sqrt_gm(X) * rho;
-          }
-
-          uCF(iCF, iX, k) = numerator / denominator;
-        }
+        project_nodal_to_modal(uCF, uPF, grid, iCF, iX, nodal_func);
       });
 }
