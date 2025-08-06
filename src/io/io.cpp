@@ -71,7 +71,7 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
                pin->param()->get<std::string>("fluid.bc.o"));
   std::println("");
 
-  std::println("# --- Fluid Limiter Parameters --- ");
+  std::println("# --- Fluid Limiter --- ");
   if (pin->param()->get<int>("fluid.porder") == 1) {
     std::println("# Spatial Order 1: Slope limiter not applied.");
   }
@@ -81,32 +81,6 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
     const auto limiter_type =
         pin->param()->get<std::string>("fluid.limiter.type");
     std::println("# Limiter        : {}", limiter_type);
-    if (limiter_type == "minmod") {
-      std::println("# b_tvd          : {}",
-                   pin->param()->get<double>("fluid.limiter.b_tvd"));
-      std::println("# m_tvb          : {}",
-                   pin->param()->get<double>("fluid.limiter.m_tvb"));
-    } else if (limiter_type == "weno") {
-      std::println("# gamma_l          : {}",
-                   pin->param()->get<double>("fluid.limiter.gamma_l"));
-      std::println("# gamma_i          : {}",
-                   pin->param()->get<double>("fluid.limiter.gamma_i"));
-      std::println("# gamma_r          : {}",
-                   pin->param()->get<double>("fluid.limiter.gamma_r"));
-      std::println("# weno_r           : {}",
-                   pin->param()->get<double>("fluid.limiter.weno_r"));
-    }
-    if (pin->param()->get<bool>("fluid.limiter.tci_enabled")) {
-      std::println("# TCI Value      : {}",
-                   pin->param()->get<double>("fluid.limiter.tci_val"));
-    } else {
-      std::println("# TCI Not Used.");
-    }
-    if (pin->param()->get<bool>("fluid.limiter.characteristic")) {
-      std::println("# Limiting       : Characteristic");
-    } else {
-      std::println("# Limiting       : Componentwise");
-    }
   }
   std::println("");
 
@@ -130,32 +104,6 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
       const auto limiter_type =
           pin->param()->get<std::string>("radiation.limiter.type");
       std::println("# Limiter        : {}", limiter_type);
-      if (limiter_type == "minmod") {
-        std::println("# b_tvd          : {}",
-                     pin->param()->get<double>("radiation.limiter.b_tvd"));
-        std::println("# m_tvb          : {}",
-                     pin->param()->get<double>("radiation.limiter.m_tvb"));
-      } else if (limiter_type == "weno") {
-        std::println("# gamma_l          : {}",
-                     pin->param()->get<double>("radiation.limiter.gamma_l"));
-        std::println("# gamma_i          : {}",
-                     pin->param()->get<double>("radiation.limiter.gamma_i"));
-        std::println("# gamma_r          : {}",
-                     pin->param()->get<double>("radiation.limiter.gamma_r"));
-        std::println("# weno_r           : {}",
-                     pin->param()->get<double>("radiation.limiter.weno_r"));
-      }
-      if (pin->param()->get<bool>("radiation.limiter.tci_enabled")) {
-        std::println("# TCI Value      : {}",
-                     pin->param()->get<double>("radiation.limiter.tci_val"));
-      } else {
-        std::println("# TCI Not Used.");
-      }
-      if (pin->param()->get<bool>("radiation.limiter.characteristic")) {
-        std::println("# Limiting       : Characteristic");
-      } else {
-        std::println("# Limiting       : Componentwise");
-      }
     }
     std::println("");
   }
