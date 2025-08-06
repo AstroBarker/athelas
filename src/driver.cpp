@@ -142,7 +142,17 @@ void Driver::initialize(ProblemIn* pin) { // NOLINT
       compute_cfl(pin_->param()->get<double>("problem.cfl"), max_order);
 
   if (!restart_) {
-    // --- Phase 1: Initialize fields (nodal values only) ---
+    // The pattern here is annoying and due to a chicken-and-egg
+    // pattern between problem generation and basis construction.
+    // Some problems, like Shu-Osher, need the basis at setup
+    // to perform the L2 projection from nodal to modal
+    // representation. Basis construction, however, requires the
+    // nodal density field as density weighted inner products are used.
+    // So here, the firist initialize_fields call may only populate nodal
+    // density in uPF. Then bases are constructed. Then, the second
+    // initialize_fields call populates the conserved variables.
+    // For simple cases, like Sod, the layering is redundant, as
+    // the bases are never used.
     initialize_fields(&state_, &grid_, eos_.get(), pin);
 
     // --- Datastructure for modal basis ---
