@@ -19,7 +19,12 @@
  * @note EXPERIMENTAL
  **/
 void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin,
-                        ModalBasis* fluid_basis = nullptr, ModalBasis* radiation_basis = nullptr) {
+                        const EOS* eos, ModalBasis* fluid_basis = nullptr,
+                        ModalBasis* radiation_basis = nullptr) {
+  if (pin->param()->get<std::string>("eos.type") != "ideal") {
+    THROW_ATHELAS_ERROR("Radiation advection requires ideal gas eos!");
+  }
+
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
 
@@ -40,14 +45,13 @@ void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin,
   const auto D       = pin->param()->get<double>("problem.params.rho", 1.0);
   const auto amp     = pin->param()->get<double>("problem.params.amp", 1.0);
   const auto width   = pin->param()->get<double>("problem.params.width", 0.05);
-  const double gamma = 5.0 / 3.0;
-  const double gm1   = gamma - 1.0;
   const double mu    = 1.0 + constants::m_e / constants::m_p;
+  const double gamma = get_gamma(eos);
+  const double gm1   = gamma - 1.0;
 
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ihi + 2),
-      KOKKOS_LAMBDA(int iX) {
-        const int k = 0;
+      Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int iX) {
+        const int k     = 0;
         const double X1 = grid->get_centers(iX);
 
         uCF(iCR_E, iX, k) =
@@ -71,8 +75,7 @@ void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo),
-      KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
           uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
           uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);

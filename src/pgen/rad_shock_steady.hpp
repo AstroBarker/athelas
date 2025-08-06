@@ -36,10 +36,15 @@
  *   - Temperature: 9.9302e6 K (855.720 eV)
  **/
 void rad_shock_steady_init(State* state, GridStructure* grid, ProblemIn* pin,
-                           ModalBasis* fluid_basis = nullptr, ModalBasis* radiation_basis = nullptr) {
+                           const EOS* eos, ModalBasis* fluid_basis = nullptr,
+                           ModalBasis* radiation_basis = nullptr) {
   const bool rad_active = pin->param()->get<bool>("physics.rad_active");
   if (!rad_active) {
     THROW_ATHELAS_ERROR("Steady radiative shock requires radiation enabled!");
+  }
+
+  if (pin->param()->get<std::string>("eos.type") != "ideal") {
+    THROW_ATHELAS_ERROR("Steady radiative shock requires ideal gas eos!");
   }
 
   View3D<double> uCF = state->get_u_cf();
@@ -67,18 +72,18 @@ void rad_shock_steady_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   // TODO(astrobarker): thread through
   const double Abar  = 1.0;
-  const double gamma = 5.0 / 3.0;
+  const double gamma = get_gamma(eos);
+  const double gm1   = gamma - 1.0;
   const double em_gas_L =
-      (T_L * constants::N_A * constants::k_B) / ((gamma - 1.0) * Abar);
+      (T_L * constants::N_A * constants::k_B) / (gm1 * Abar);
   const double em_gas_R =
-      (T_R * constants::N_A * constants::k_B) / ((gamma - 1.0) * Abar);
+      (T_R * constants::N_A * constants::k_B) / (gm1 * Abar);
   const double e_rad_L = constants::a * std::pow(T_L, 4.0);
   const double e_rad_R = constants::a * std::pow(T_R, 4.0);
 
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ihi + 2),
-      KOKKOS_LAMBDA(int iX) {
-        const int k = 0;
+      Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int iX) {
+        const int k     = 0;
         const double X1 = grid->get_centers(iX);
 
         if (X1 <= 0.0) {
@@ -104,8 +109,7 @@ void rad_shock_steady_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo),
-      KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
           uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
           uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);

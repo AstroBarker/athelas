@@ -12,14 +12,19 @@
 #include "abstractions.hpp"
 #include "constants.hpp"
 #include "grid.hpp"
+#include "polynomial_basis.hpp"
 #include "state.hpp"
-#include"polynomial_basis.hpp"
 
 /**
  * @brief Initialize radiating shock
  **/
 void marshak_init(State* state, GridStructure* grid, ProblemIn* pin,
-                  ModalBasis* fluid_basis = nullptr, ModalBasis* radiation_basis = nullptr) {
+                  const EOS* eos, ModalBasis* fluid_basis = nullptr,
+                  ModalBasis* radiation_basis = nullptr) {
+  if (pin->param()->get<std::string>("eos.type") != "marshak") {
+    THROW_ATHELAS_ERROR("Marshak requires marshak eos!");
+  }
+
   const bool rad_active = pin->param()->get<bool>("physics.rad_active");
   if (!rad_active) {
     THROW_ATHELAS_ERROR("Marshak requires radiation enabled!");
@@ -58,8 +63,7 @@ void marshak_init(State* state, GridStructure* grid, ProblemIn* pin,
   const double e_rad = constants::a * std::pow(T0, 4.0);
 
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ihi + 2),
-      KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int iX) {
         const int k = 0;
 
         uCF(iCF_Tau, iX, k) = 1.0 / rho0;
@@ -75,8 +79,7 @@ void marshak_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo),
-      KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
           uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
           uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);

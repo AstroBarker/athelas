@@ -32,43 +32,41 @@
 
 /**
  * Initialize the conserved Fields for various problems.
- * TODO: For now I initialize constant on each cell. Is there a better way?
- * TODO: To be good Kokkos, either make all relevant loops par_for,
- * or a a device-host copy
  **/
-void initialize_fields(State* state, GridStructure* grid, const EOS* /*eos*/,
+void initialize_fields(State* state, GridStructure* grid, const EOS* eos,
                        ProblemIn* pin, ModalBasis* fluid_basis = nullptr,
                        ModalBasis* radiation_basis = nullptr) {
 
   const auto problem_name = pin->param()->get<std::string>("problem.problem");
 
+  // This is clunky and not elegant but it works.
   if (problem_name == "sod") {
-    sod_init(state, grid, pin, fluid_basis);
+    sod_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "shu_osher") {
-    shu_osher_init(state, grid, pin, fluid_basis);
+    shu_osher_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "moving_contact") {
-    moving_contact_init(state, grid, pin, fluid_basis);
+    moving_contact_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "smooth_advection") {
-    advection_init(state, grid, pin, fluid_basis);
+    advection_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "sedov") {
-    sedov_init(state, grid, pin, fluid_basis);
+    sedov_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "noh") {
-    noh_init(state, grid, pin, fluid_basis);
+    noh_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "shockless_noh") {
-    shockless_noh_init(state, grid, pin, fluid_basis);
+    shockless_noh_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "smooth_flow") {
-    smooth_flow_init(state, grid, pin, fluid_basis);
+    smooth_flow_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "rad_equilibrium") {
-    rad_equilibrium_init(state, grid, pin, fluid_basis, radiation_basis);
+    rad_equilibrium_init(state, grid, pin, eos, fluid_basis, radiation_basis);
   } else if (problem_name == "rad_advection") {
-    rad_advection_init(state, grid, pin, fluid_basis, radiation_basis);
+    rad_advection_init(state, grid, pin, eos, fluid_basis, radiation_basis);
   } else if (problem_name == "rad_shock_steady") {
-    rad_shock_steady_init(state, grid, pin, fluid_basis, radiation_basis);
+    rad_shock_steady_init(state, grid, pin, eos, fluid_basis, radiation_basis);
   } else if (problem_name == "rad_shock") {
-    rad_shock_init(state, grid, pin, fluid_basis, radiation_basis);
+    rad_shock_init(state, grid, pin, eos, fluid_basis, radiation_basis);
   } else if (problem_name == "marshak") {
-    marshak_init(state, grid, pin, fluid_basis, radiation_basis);
+    marshak_init(state, grid, pin, eos, fluid_basis, radiation_basis);
   } else {
-    THROW_ATHELAS_ERROR(" ! Please choose a valid problem_name");
+    THROW_ATHELAS_ERROR("Please choose a valid problem_name!");
   }
 }

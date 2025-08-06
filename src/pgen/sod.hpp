@@ -14,8 +14,11 @@
 /**
  * @brief Initialize Sod shock tube
  **/
-void sod_init(State* state, GridStructure* grid, ProblemIn* pin,
+void sod_init(State* state, GridStructure* grid, ProblemIn* pin, const EOS* eos,
               ModalBasis* fluid_basis = nullptr) {
+  if (pin->param()->get<std::string>("eos.type") != "ideal") {
+    THROW_ATHELAS_ERROR("Sod requires ideal gas eos!");
+  }
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -38,12 +41,12 @@ void sod_init(State* state, GridStructure* grid, ProblemIn* pin,
   const auto P_R = pin->param()->get<double>("problem.params.pR", 0.1);
   const auto x_d = pin->param()->get<double>("problem.params.x_d", 0.5);
 
-  const double gamma = 1.4;
+  const double gamma = get_gamma(eos);
+  const double gm1   = gamma - 1.0;
 
   // Phase 1: Initialize nodal values (always done)
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
         const double X1 = grid->get_centers(iX);
 
         if (X1 <= x_d) {
@@ -59,28 +62,26 @@ void sod_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   // Phase 2: Initialize modal coefficients
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(int iX) {
-        const int k = 0;
+      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+        const int k     = 0;
         const double X1 = grid->get_centers(iX);
 
         if (X1 <= x_d) {
           uCF(iCF_Tau, iX, k) = 1.0 / D_L;
           uCF(iCF_V, iX, k)   = V_L;
           uCF(iCF_E, iX, k) =
-              (P_L / (gamma - 1.0)) * uCF(iCF_Tau, iX, k) + 0.5 * V_L * V_L;
+              (P_L / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V_L * V_L;
         } else {
           uCF(iCF_Tau, iX, k) = 1.0 / D_R;
           uCF(iCF_V, iX, k)   = V_R;
           uCF(iCF_E, iX, k) =
-              (P_R / (gamma - 1.0)) * uCF(iCF_Tau, iX, k) + 0.5 * V_R * V_R;
+              (P_R / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V_R * V_R;
         }
       });
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo),
-      KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
           uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
           uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);

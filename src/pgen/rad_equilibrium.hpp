@@ -17,10 +17,14 @@
  * Initialize equilibrium rad test
  **/
 void rad_equilibrium_init(State* state, GridStructure* grid, ProblemIn* pin,
-                          ModalBasis* fluid_basis = nullptr, ModalBasis* radiation_basis = nullptr) {
+                          const EOS* eos, ModalBasis* fluid_basis = nullptr,
+                          ModalBasis* radiation_basis = nullptr) {
   const bool rad_active = pin->param()->get<bool>("physics.rad_active");
   if (!rad_active) {
     THROW_ATHELAS_ERROR("Radiation equilibriation requires radiation enabled!");
+  }
+  if (pin->param()->get<std::string>("eos.type") != "ideal") {
+    THROW_ATHELAS_ERROR("Radiation equilibriation requires ideal gas eos!");
   }
 
   View3D<double> uCF = state->get_u_cf();
@@ -50,8 +54,7 @@ void rad_equilibrium_init(State* state, GridStructure* grid, ProblemIn* pin,
   const double Ev_rad = std::pow(10.0, logE_rad);
 
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ihi + 2),
-      KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int iX) {
         const int k = 0;
 
         uCF(iCF_Tau, iX, k) = 1.0 / D;
@@ -66,8 +69,7 @@ void rad_equilibrium_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo),
-      KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
           uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
           uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);

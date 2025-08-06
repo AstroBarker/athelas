@@ -17,7 +17,11 @@
  * @brief Initialize sedov blast wave
  **/
 void sedov_init(State* state, GridStructure* grid, ProblemIn* pin,
-                ModalBasis* fluid_basis = nullptr) {
+                const EOS* eos, ModalBasis* fluid_basis = nullptr) {
+
+  if (pin->param()->get<std::string>("eos.type") != "ideal") {
+    THROW_ATHELAS_ERROR("Sedov requires ideal gas eos!");
+  }
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
@@ -39,24 +43,23 @@ void sedov_init(State* state, GridStructure* grid, ProblemIn* pin,
   const int origin = 1;
 
   // TODO(astrobarker): geometry aware volume for energy
+  const double gamma = get_gamma(eos);
+  const double gm1   = gamma - 1.0;
   const double volume =
       (4.0 * M_PI / 3.0) * std::pow(grid->get_left_interface(origin + 1), 3.0);
-  const double gamma = 1.4;
-  const double P0    = (gamma - 1.0) * E0 / volume;
+  const double P0 = gm1 * E0 / volume;
 
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
         const int k = 0;
 
         uCF(iCF_Tau, iX, k) = 1.0 / D0;
         uCF(iCF_V, iX, k)   = V0;
         if (iX == origin - 1 || iX == origin) {
-          uCF(iCF_E, iX, k) =
-              (P0 / (gamma - 1.0)) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
+          uCF(iCF_E, iX, k) = (P0 / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
         } else {
           uCF(iCF_E, iX, k) =
-              (1.0e-6 / (gamma - 1.0)) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
+              (1.0e-6 / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
         }
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
@@ -66,8 +69,7 @@ void sedov_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo),
-      KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
           uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
           uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
