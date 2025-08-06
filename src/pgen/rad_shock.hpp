@@ -25,7 +25,6 @@ void rad_shock_init(State* state, GridStructure* grid, ProblemIn* pin) {
 
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
-  const int pOrder   = state->get_p_order();
 
   const int ilo    = grid->get_ilo();
   const int ihi    = grid->get_ihi();
@@ -56,43 +55,40 @@ void rad_shock_init(State* state, GridStructure* grid, ProblemIn* pin) {
   const double e_rad_L  = constants::a * std::pow(T_L, 4.0);
   const double e_rad_R  = constants::a * std::pow(T_R, 4.0);
 
-  for (int iX = 0; iX <= ihi + 1; iX++) {
-    for (int k = 0; k < pOrder; k++) {
-      for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-        double X1           = grid->get_centers(iX);
-        uCF(iCF_Tau, iX, k) = 0.0;
-        uCF(iCF_V, iX, k)   = 0.0;
-        uCF(iCF_E, iX, k)   = 0.0;
-        uCF(3, iX, k)       = 0.0;
-        uCF(4, iX, k)       = 0.0;
+  Kokkos::parallel_for(
+      Kokkos::RangePolicy<>(0, ihi + 2),
+      KOKKOS_LAMBDA(int iX) {
+        const int k = 0;
+        const double X1 = grid->get_centers(iX);
 
         if (X1 <= x_d) {
-          if (k == 0) {
-            uCF(iCF_Tau, iX, 0) = 1.0 / rhoL;
-            uCF(iCF_V, iX, 0)   = V_L;
-            uCF(iCF_E, iX, 0)   = em_gas_L + 0.5 * V_L * V_L;
+          uCF(iCF_Tau, iX, k) = 1.0 / rhoL;
+          uCF(iCF_V, iX, k)   = V_L;
+          uCF(iCF_E, iX, k)   = em_gas_L + 0.5 * V_L * V_L;
+          uCF(iCR_E, iX, k)   = e_rad_L;
 
-            uCF(iCR_E, iX, 0) = e_rad_L;
+          for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
+            uPF(iPF_D, iX, iNodeX) = rhoL;
           }
-          uPF(iPF_D, iX, iNodeX) = rhoL;
         } else {
-          if (k == 0) {
-            uCF(iCF_Tau, iX, 0) = 1.0 / rhoR;
-            uCF(iCF_V, iX, 0)   = V_R;
-            uCF(iCF_E, iX, 0)   = em_gas_R + 0.5 * V_R * V_R;
+          uCF(iCF_Tau, iX, k) = 1.0 / rhoR;
+          uCF(iCF_V, iX, k)   = V_R;
+          uCF(iCF_E, iX, k)   = em_gas_R + 0.5 * V_R * V_R;
+          uCF(iCR_E, iX, k)   = e_rad_R;
 
-            uCF(iCR_E, iX, 0) = e_rad_R;
+          for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
+            uPF(iPF_D, iX, iNodeX) = rhoR;
           }
-          uPF(iPF_D, iX, iNodeX) = rhoR;
         }
-      }
-    }
-  }
+      });
+
   // Fill density in guard cells
-  for (int iX = 0; iX < ilo; iX++) {
-    for (int iN = 0; iN < nNodes; iN++) {
-      uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-      uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
-    }
-  }
+  Kokkos::parallel_for(
+      Kokkos::RangePolicy<>(0, ilo),
+      KOKKOS_LAMBDA(int iX) {
+        for (int iN = 0; iN < nNodes; iN++) {
+          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
+          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+        }
+      });
 }

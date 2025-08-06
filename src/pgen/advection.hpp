@@ -21,7 +21,6 @@ void advection_init(State* state, GridStructure* grid, ProblemIn* pin) {
   // Smooth advection problem
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
-  const int pOrder   = state->get_p_order();
 
   const int ilo    = grid->get_ilo();
   const int ihi    = grid->get_ihi();
@@ -37,31 +36,29 @@ void advection_init(State* state, GridStructure* grid, ProblemIn* pin) {
   const auto P0  = pin->param()->get<double>("problem.params.p0", 0.01);
   const auto Amp = pin->param()->get<double>("problem.params.amp", 1.0);
 
-  double X1 = 0.0;
-  for (int iX = ilo; iX <= ihi; iX++) {
-    for (int k = 0; k < pOrder; k++) {
-      for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-        X1 = grid->get_centers(iX);
+  Kokkos::parallel_for(
+      Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_LAMBDA(int iX) {
+        const int k = 0;
+        const double X1 = grid->get_centers(iX);
 
-        if (k != 0) {
-          uCF(iCF_Tau, iX, k) = 0.0;
-          uCF(iCF_V, iX, k)   = 0.0;
-          uCF(iCF_E, iX, k)   = 0.0;
-        } else {
-          uCF(iCF_Tau, iX, k) =
-              1.0 / (2.0 + Amp * sin(2.0 * constants::PI * X1));
-          uCF(iCF_V, iX, k) = V0;
-          uCF(iCF_E, iX, k) = (P0 / 0.4) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
+        uCF(iCF_Tau, iX, k) =
+            1.0 / (2.0 + Amp * sin(2.0 * constants::PI * X1));
+        uCF(iCF_V, iX, k) = V0;
+        uCF(iCF_E, iX, k) = (P0 / 0.4) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
+
+        for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
+          uPF(iPF_D, iX, iNodeX) = (2.0 + Amp * sin(2.0 * constants::PI * X1));
         }
-        uPF(iPF_D, iX, iNodeX) = (2.0 + Amp * sin(2.0 * constants::PI * X1));
-      }
-    }
-  }
+      });
+
   // Fill density in guard cells
-  for (int iX = 0; iX < ilo; iX++) {
-    for (int iN = 0; iN < nNodes; iN++) {
-      uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-      uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
-    }
-  }
+  Kokkos::parallel_for(
+      Kokkos::RangePolicy<>(0, ilo),
+      KOKKOS_LAMBDA(int iX) {
+        for (int iN = 0; iN < nNodes; iN++) {
+          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
+          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+        }
+      });
 }
