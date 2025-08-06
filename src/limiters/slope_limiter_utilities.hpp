@@ -43,7 +43,7 @@ constexpr auto MINMOD_B(T a, T b, T c, T dx, T M) -> T {
 auto barth_jespersen(double U_v_L, double U_v_R, double U_c_L, double U_c_T,
                      double U_c_R, double alpha) -> double;
 
-void detect_troubled_cells(View3D<double> U, View2D<double> D,
+void detect_troubled_cells(const View3D<double> U, View1D<double> D,
                            const GridStructure* grid, const ModalBasis* basis,
                            const std::vector<int>& vars);
 

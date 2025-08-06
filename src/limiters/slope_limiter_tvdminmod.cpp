@@ -35,7 +35,7 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
   }
 
   constexpr static double sl_threshold_ =
-      1.0e-10; // TODO(astrobarker): move to input deck
+      1.0e-6; // TODO(astrobarker): move to input deck
   constexpr static double EPS = 1.0e-10;
 
   static constexpr int ilo = 1;
@@ -93,17 +93,16 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
           limited_cell_(iX) = 0;
 
           // Do nothing we don't need to limit slopes
-          if ((D_(0, iX) > tci_val_ || D_(iC % nvars, iX) > tci_val_) ||
-              !tci_opt_) {
+          if (D_(iX) > tci_val_ || !tci_opt_) {
 
             // --- Begin TVD Minmod Limiter --- //
-            const double s_i = U(iC, iX, 1); // target cell slope
-            const double c_i = U(iC, iX, 0); // target cell avg
-            const double c_p = U(iC, iX + 1, 0); // cell iX + 1 avg
-            const double c_m = U(iC, iX - 1, 0); // cell iX - 1 avg
-            const double dx  = grid->get_widths(iX);
-            double new_slope = MINMOD_B(s_i, b_tvd_ * (c_p - c_i),
-                                        b_tvd_ * (c_i - c_m), dx, m_tvb_);
+            const double s_i       = U(iC, iX, 1); // target cell slope
+            const double c_i       = U(iC, iX, 0); // target cell avg
+            const double c_p       = U(iC, iX + 1, 0); // cell iX + 1 avg
+            const double c_m       = U(iC, iX - 1, 0); // cell iX - 1 avg
+            const double dx        = grid->get_widths(iX);
+            const double new_slope = MINMOD_B(s_i, b_tvd_ * (c_p - c_i),
+                                              b_tvd_ * (c_i - c_m), dx, m_tvb_);
 
             // check limited slope difference vs threshold
             if (std::abs(new_slope - s_i) >

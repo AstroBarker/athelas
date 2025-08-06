@@ -198,38 +198,4 @@ auto numerical_flux_hll_rad(const double E_L, const double E_R,
   return {flux_e, flux_f};
 }
 
-/**
- * Compute the rad timestep.
- **/
-auto compute_timestep_rad(const GridStructure* grid, const double CFL)
-    -> double {
-
-  constexpr static double MIN_DT = 1.0e-18;
-  constexpr static double MAX_DT = 100.0;
-
-  const int& ilo = grid->get_ilo();
-  const int& ihi = grid->get_ihi();
-
-  double dt = 0.0;
-  Kokkos::parallel_reduce(
-      "Compute Timestep", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int iX, double& lmin) {
-        const double dr = grid->get_widths(iX);
-
-        const double eigval = constants::c_cgs;
-
-        const double dt_old = std::abs(dr) / std::abs(eigval);
-
-        lmin = std::min(dt_old, lmin);
-      },
-      Kokkos::Min<double>(dt));
-
-  dt = std::max(CFL * dt, MIN_DT);
-  dt = std::min(dt, MAX_DT);
-
-  assert(!std::isnan(dt) && "NaN encountered in compute_timestep_rad.\n");
-
-  return dt;
-}
-
 } // namespace radiation

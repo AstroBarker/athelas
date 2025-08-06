@@ -49,18 +49,18 @@ void GravityPackage::gravity_update(const View3D<double> state,
         double local_sum_v = 0.0;
         double local_sum_e = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
-          const double X = grid.node_coordinate(iX, iN);
+          const double X       = grid.node_coordinate(iX, iN);
+          const double sqrt_gm = grid.get_sqrt_gm(X);
+          const double weight  = grid.get_weights(iN);
           if constexpr (Model == GravityModel::Spherical) {
-            local_sum_v += grid.get_weights(iN) *
-                           basis_->get_phi(iX, iN + 1, k) *
-                           grid.enclosed_mass(iX, iN) * grid.get_sqrt_gm(X) /
+            local_sum_v += weight * basis_->get_phi(iX, iN + 1, k) *
+                           grid.enclosed_mass(iX, iN) * sqrt_gm /
                            ((X * X) * basis_->basis_eval(state, iX, 0, iN + 1));
             local_sum_e +=
                 local_sum_v * basis_->basis_eval(state, iX, 1, iN + 1);
           } else {
-            local_sum_v += grid.get_sqrt_gm(X) * grid.get_weights(iN) *
-                           basis_->get_phi(iX, iN + 1, k) * gval_ /
-                           basis_->basis_eval(state, iX, 0, iN + 1);
+            local_sum_v += sqrt_gm * weight * basis_->get_phi(iX, iN + 1, k) *
+                           gval_ / basis_->basis_eval(state, iX, 0, iN + 1);
             local_sum_e +=
                 local_sum_v * basis_->basis_eval(state, iX, 1, iN + 1);
           }

@@ -126,7 +126,7 @@ class TimeStepper {
 
       auto Us_j =
           Kokkos::subview(U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
-      apply_slope_limiter(sl_hydro, SumVar_U_, &grid_s_[iS],
+      apply_slope_limiter(sl_hydro, Us_j, &grid_s_[iS],
                           pkgs->get_package<HydroPackage>("Hydro")->get_basis(),
                           eos_);
       bel::apply_bound_enforcing_limiter(

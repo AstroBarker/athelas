@@ -46,7 +46,7 @@ class WENO : public SlopeLimiterBase<WENO> {
         U_c_T_("U_c_T", nvars, grid->get_n_elements() + 2),
         w_c_T_("w_c_T", nvars, grid->get_n_elements() + 2),
         mult_("Mult", nvars, grid->get_n_elements() + 2),
-        D_("TCI", nvars, grid->get_n_elements() + 2),
+        D_("TCI", grid->get_n_elements() + 2),
         limited_cell_("LimitedCell", grid->get_n_elements() + 2) {}
 
   void apply_slope_limiter(View3D<double> U, const GridStructure* grid,
@@ -81,7 +81,7 @@ class WENO : public SlopeLimiterBase<WENO> {
   // matrix mult scratch scape
   View2D<double> mult_{};
 
-  View2D<double> D_{};
+  View1D<double> D_{};
   View1D<int> limited_cell_{};
 };
 
@@ -100,7 +100,7 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
         U_c_T_("U_c_T", nvars, grid->get_n_elements() + 2),
         w_c_T_("w_c_T", nvars, grid->get_n_elements() + 2),
         mult_("Mult", nvars, grid->get_n_elements() + 2),
-        D_("TCI", nvars, grid->get_n_elements() + 2),
+        D_("TCI", grid->get_n_elements() + 2),
         limited_cell_("LimitedCell", grid->get_n_elements() + 2) {}
   void apply_slope_limiter(View3D<double> U, const GridStructure* grid,
                            const ModalBasis* basis, const EOS* eos);
@@ -130,7 +130,7 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
   // matrix mult scratch scape
   View2D<double> mult_{};
 
-  View2D<double> D_{};
+  View1D<double> D_{};
   View1D<int> limited_cell_{};
 };
 
