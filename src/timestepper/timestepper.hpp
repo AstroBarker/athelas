@@ -13,17 +13,14 @@
  */
 
 #include "abstractions.hpp"
-#include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
 #include "eos/eos_variant.hpp"
 #include "fluid/hydro_package.hpp"
 #include "interface/packages_base.hpp"
 #include "limiters/bound_enforcing_limiter.hpp"
 #include "limiters/slope_limiter.hpp"
-#include "opacity/opac_variant.hpp"
 #include "problem_in.hpp"
 #include "radiation/radhydro_package.hpp"
-#include "solvers/root_finders.hpp"
 #include "state/state.hpp"
 #include "timestepper/tableau.hpp"
 

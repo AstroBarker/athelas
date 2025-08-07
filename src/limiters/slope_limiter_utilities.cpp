@@ -112,7 +112,7 @@ auto barth_jespersen(double U_v_L, double U_v_R, double U_c_L, double U_c_T,
 void detect_troubled_cells(const View3D<double> U, View1D<double> D,
                            const GridStructure* grid, const ModalBasis* basis,
                            const std::vector<int>& vars) {
-  const int ilo = grid->get_ilo();
+  const int ilo = 1;
   const int ihi = grid->get_ihi();
   Kokkos::parallel_for(
       "SlopeLimiter :: TCI :: Zero", Kokkos::RangePolicy<>(ilo, ihi + 1),

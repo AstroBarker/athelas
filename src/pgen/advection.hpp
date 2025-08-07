@@ -9,10 +9,12 @@
 
 #include <cmath> /* sin */
 
-#include "abstractions.hpp"
-#include "constants.hpp"
-#include "grid.hpp"
-#include "state.hpp"
+#include "basis/polynomial_basis.hpp"
+#include "eos/eos_variant.hpp"
+#include "geometry/grid.hpp"
+#include "state/state.hpp"
+#include "utils/abstractions.hpp"
+#include "utils/constants.hpp"
 
 /**
  * Initialize advection test
@@ -27,7 +29,7 @@ void advection_init(State* state, GridStructure* grid, ProblemIn* pin,
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
 
-  const int ilo    = grid->get_ilo();
+  const int ilo    = 1;
   const int ihi    = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
@@ -60,7 +62,7 @@ void advection_init(State* state, GridStructure* grid, ProblemIn* pin,
       return 2.0 + Amp * sin(2.0 * constants::PI * x);
     };
 
-    auto velocity_func = [&V0](double x) -> double { return V0; };
+    auto velocity_func = [&V0](double /*x*/) -> double { return V0; };
 
     auto energy_func = [&P0, &V0, &Amp, &gm1](double x) -> double {
       const double rho = 2.0 + Amp * sin(2.0 * constants::PI * x);

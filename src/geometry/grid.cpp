@@ -54,7 +54,7 @@ GridStructure::GridStructure(const ProblemIn* pin)
 
 // linear shape function on the reference element
 KOKKOS_INLINE_FUNCTION
-auto shape_function(const int interface, const double eta) -> const double {
+auto shape_function(const int interface, const double eta) -> double {
   if (interface == 0) {
     return 1.0 * (0.5 - eta);
   }
@@ -184,7 +184,7 @@ void GridStructure::create_grid() {
  * Compute cell masses
  **/
 KOKKOS_FUNCTION
-void GridStructure::compute_mass(View3D<double> uPF) {
+void GridStructure::compute_mass(const View3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
   const int ilo     = get_ilo();
   const int ihi     = get_ihi();
@@ -213,7 +213,7 @@ void GridStructure::compute_mass(View3D<double> uPF) {
  * Compute enclosed masses
  **/
 KOKKOS_FUNCTION
-void GridStructure::compute_mass_r(View3D<double> uPF) {
+void GridStructure::compute_mass_r(const View3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
   const int ilo     = get_ilo();
   const int ihi     = get_ihi();
@@ -243,7 +243,7 @@ auto GridStructure::enclosed_mass(const int iX, const int iN) const noexcept
  * Compute cell centers of masses reference coordinates
  **/
 KOKKOS_FUNCTION
-void GridStructure::compute_center_of_mass(View3D<double> uPF) {
+void GridStructure::compute_center_of_mass(const View3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
   const int ilo     = get_ilo();
   const int ihi     = get_ihi();
@@ -272,7 +272,7 @@ void GridStructure::compute_center_of_mass(View3D<double> uPF) {
  * Update grid coordinates using interface velocities.
  **/
 KOKKOS_FUNCTION
-void GridStructure::update_grid(View1D<double> SData) {
+void GridStructure::update_grid(const View1D<double> SData) {
 
   const int ilo = get_ilo();
   const int ihi = get_ihi();

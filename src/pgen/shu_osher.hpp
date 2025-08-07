@@ -9,10 +9,11 @@
 
 #include <cmath>
 
-#include "abstractions.hpp"
-#include "grid.hpp"
-#include "polynomial_basis.hpp"
-#include "state.hpp"
+#include "basis/polynomial_basis.hpp"
+#include "eos/eos_variant.hpp"
+#include "geometry/grid.hpp"
+#include "state/state.hpp"
+#include "utils/abstractions.hpp"
 
 /**
  * @brief Initialize Shu Osher hydro test
@@ -26,7 +27,7 @@ void shu_osher_init(State* state, GridStructure* grid, ProblemIn* pin,
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
 
-  const int ilo    = grid->get_ilo();
+  const int ilo    = 1;
   const int ihi    = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
@@ -70,27 +71,25 @@ void shu_osher_init(State* state, GridStructure* grid, ProblemIn* pin,
     auto tau_func = [&D_L](double x) -> double {
       if (x <= -4.0) {
         return 1.0 / D_L;
-      } else {
-        return 1.0 / (1.0 + 0.2 * sin(5.0 * x));
       }
+      return 1.0 / (1.0 + 0.2 * sin(5.0 * x));
     };
 
     auto velocity_func = [&V0](double x) -> double {
       if (x <= -4.0) {
         return V0;
-      } else {
-        return 0.0;
       }
+      return 0.0;
     };
 
     auto energy_func = [&P_L, &P_R, &V0, &D_L, &gm1](double x) -> double {
       if (x <= -4.0) {
         return (P_L / gm1) / D_L + 0.5 * V0 * V0;
-      } else {
-        const double rho = 1.0 + 0.2 * sin(5.0 * x);
-        return (P_R / gm1) / rho;
       }
+      const double rho = 1.0 + 0.2 * sin(5.0 * x);
+      return (P_R / gm1) / rho;
     };
+
     Kokkos::parallel_for(
         Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
           const int k     = 0;

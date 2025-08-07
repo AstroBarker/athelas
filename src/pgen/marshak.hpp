@@ -9,18 +9,19 @@
 
 #include <cmath>
 
-#include "abstractions.hpp"
-#include "constants.hpp"
-#include "grid.hpp"
-#include "polynomial_basis.hpp"
-#include "state.hpp"
+#include "basis/polynomial_basis.hpp"
+#include "eos/eos_variant.hpp"
+#include "geometry/grid.hpp"
+#include "state/state.hpp"
+#include "utils/abstractions.hpp"
+#include "utils/constants.hpp"
 
 /**
  * @brief Initialize radiating shock
  **/
 void marshak_init(State* state, GridStructure* grid, ProblemIn* pin,
-                  const EOS* eos, ModalBasis* fluid_basis = nullptr,
-                  ModalBasis* radiation_basis = nullptr) {
+                  const EOS* /*eos*/, ModalBasis* /*fluid_basis = nullptr*/,
+                  ModalBasis* /*radiation_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "marshak") {
     THROW_ATHELAS_ERROR("Marshak requires marshak eos!");
   }
@@ -33,7 +34,7 @@ void marshak_init(State* state, GridStructure* grid, ProblemIn* pin,
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
 
-  const int ilo    = grid->get_ilo();
+  const int ilo    = 1;
   const int ihi    = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
