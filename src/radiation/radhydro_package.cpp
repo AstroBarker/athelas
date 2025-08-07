@@ -272,7 +272,7 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
         });
   }
 
-  if (order > 1) [[likely]] {
+  if (order > 1) {
     // --- Volume Term ---
     Kokkos::parallel_for(
         "RadHydro :: Volume Term",
@@ -289,6 +289,7 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
             const double dphi_fluid = fluid_basis_->get_d_phi(iX, iN + 1, k);
             const double X          = grid.node_coordinate(iX, iN);
             const double sqrt_gm    = grid.get_sqrt_gm(X);
+            const double vstar      = flux_u_(stage, iX);
 
             auto lambda      = nullptr;
             const double vel = fluid_basis_->basis_eval(state, iX, 1, iN + 1);
@@ -299,8 +300,7 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
             const double f_rad = rad_basis_->basis_eval(state, iX, 4, iN + 1);
             const double p_rad = compute_closure(e_rad, f_rad);
             const auto [flux1, flux2, flux3] = fluid::flux_fluid(vel, P);
-            const auto [flux_e, flux_f] =
-                flux_rad(e_rad, f_rad, p_rad, flux_u_(stage, iX));
+            const auto [flux_e, flux_f] = flux_rad(e_rad, f_rad, p_rad, vstar);
             local_sum1 += weight * flux1 * dphi_fluid * sqrt_gm;
             local_sum2 += weight * flux2 * dphi_fluid * sqrt_gm;
             local_sum3 += weight * flux3 * dphi_fluid * sqrt_gm;
