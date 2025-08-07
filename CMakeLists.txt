@@ -78,6 +78,20 @@ else()
     option(ATHELAS_IMPORT_KOKKOS "If ON, attempt to link to an external Kokkos src. If OFF, build Kokkos from source and package with ATHELAS" OFF)
 endif()
 
+# === Sanitizer Support ===
+option(ATHELAS_ENABLE_SANITIZERS "Enable AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
+
+if(ATHELAS_ENABLE_SANITIZERS)
+    message(STATUS "Sanitizers enabled: AddressSanitizer + UndefinedBehaviorSanitizer")
+
+    # List of sanitizer-related compile and link flags
+    set(SANITIZER_FLAGS "-fsanitize=address,undefined" "-fno-omit-frame-pointer")
+
+    # Apply to all targets globally (alternatively, apply per target)
+    add_compile_options(${SANITIZER_FLAGS})
+    add_link_options(${SANITIZER_FLAGS})
+endif()
+
 include_directories(src)
 include_directories("src/concepts")
 include_directories("src/geometry")
