@@ -14,9 +14,7 @@
 
 #include "toml.hpp"
 
-#include "geometry/geometry.hpp"
 #include "interface/params.hpp"
-#include "utils/abstractions.hpp"
 #include "utils/error.hpp"
 
 // hold various program options
@@ -39,11 +37,8 @@ class ProblemIn {
   auto param() -> Params*;
   [[nodiscard]] auto param() const -> Params*;
 
-  // input table
-  // TODO(astrobarker): move to private
-  toml::table config;
-
  private:
+  toml::table config_;
   // params obj
   std::unique_ptr<Params> params_;
 };

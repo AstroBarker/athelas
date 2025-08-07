@@ -13,7 +13,6 @@
 
 #include "concepts/packages.hpp"
 #include "geometry/grid.hpp"
-#include "state/state.hpp"
 
 // Package wrapper that erases types while maintaining performance
 // TODO(astrobarker) move to a CRTP pattern
@@ -29,7 +28,7 @@ class PackageWrapper {
 
   // get original type
   template <typename T>
-  T* get_base_package() {
+  auto get_base_package() -> T* {
     auto* model = dynamic_cast<PackageModel<T>*>(package_.get());
     return model ? &model->get_package() : nullptr;
   }

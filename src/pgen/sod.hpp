@@ -7,15 +7,17 @@
  * @brief Sod shock tube
  */
 
-#include "abstractions.hpp"
-#include "grid.hpp"
-#include "state.hpp"
+#include "basis/polynomial_basis.hpp"
+#include "eos/eos_variant.hpp"
+#include "geometry/grid.hpp"
+#include "state/state.hpp"
+#include "utils/abstractions.hpp"
 
 /**
  * @brief Initialize Sod shock tube
  **/
 void sod_init(State* state, GridStructure* grid, ProblemIn* pin, const EOS* eos,
-              ModalBasis* fluid_basis = nullptr) {
+              ModalBasis* /*fluid_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Sod requires ideal gas eos!");
   }
@@ -23,7 +25,7 @@ void sod_init(State* state, GridStructure* grid, ProblemIn* pin, const EOS* eos,
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
 
-  const int ilo    = grid->get_ilo();
+  const int ilo    = 1;
   const int ihi    = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 

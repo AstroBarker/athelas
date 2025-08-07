@@ -9,16 +9,18 @@
 
 #include <cmath>
 
-#include "abstractions.hpp"
-#include "constants.hpp"
-#include "grid.hpp"
-#include "state.hpp"
+#include "basis/polynomial_basis.hpp"
+#include "eos/eos_variant.hpp"
+#include "geometry/grid.hpp"
+#include "state/state.hpp"
+#include "utils/abstractions.hpp"
+#include "utils/constants.hpp"
 
 /**
  * @brief Initialize smooth flow test problem
  **/
 void smooth_flow_init(State* state, GridStructure* grid, ProblemIn* pin,
-                      const EOS* eos, ModalBasis* fluid_basis = nullptr) {
+                      const EOS* /*eos*/, ModalBasis* fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Smooth flow requires ideal gas eos!");
   }
@@ -26,7 +28,7 @@ void smooth_flow_init(State* state, GridStructure* grid, ProblemIn* pin,
   View3D<double> uCF = state->get_u_cf();
   View3D<double> uPF = state->get_u_pf();
 
-  const int ilo    = grid->get_ilo();
+  const int ilo    = 1;
   const int ihi    = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
@@ -55,7 +57,7 @@ void smooth_flow_init(State* state, GridStructure* grid, ProblemIn* pin,
       return 1.0 + amp * sin(constants::PI * x);
     };
 
-    auto velocity_func = [](double x) -> double { return 0.0; };
+    auto velocity_func = [](double /*x*/) -> double { return 0.0; };
 
     auto energy_func = [&amp](double x) -> double {
       const double D = 1.0 + amp * sin(constants::PI * x);
