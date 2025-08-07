@@ -38,6 +38,5 @@ auto llf_flux(double Fp, double Fm, double Up, double Um, double alpha)
 auto numerical_flux_hll_rad(double E_L, double E_R, double F_L, double F_R,
                             double P_L, double P_R, double vstar)
     -> std::tuple<double, double>;
-auto compute_timestep_rad(const GridStructure* grid, double CFL) -> double;
 
 } // namespace radiation

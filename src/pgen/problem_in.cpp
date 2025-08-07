@@ -272,19 +272,27 @@ ProblemIn::ProblemIn(const std::string& fn) {
   // handle dirichlet..
   std::array<double, 3> fluid_i_dirichlet_values = {0.0, 0.0, 0.0};
   std::array<double, 3> fluid_o_dirichlet_values = {0.0, 0.0, 0.0};
-  auto* array = config["bc"]["fluid"]["dirichlet_values_i"].as_array();
-  if (array->is_array() && fluid_bc_i == "dirichlet") {
-    read_toml_array(array, fluid_i_dirichlet_values);
-  } else if (!array->is_array() && fluid_bc_i == "dirichlet") {
-    THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read fluid "
-                        "dirichlet_values_i as array.");
+
+  if (fluid_bc_i == "dirichlet") {
+    const auto& node = config["bc"]["fluid"]["dirichlet_values_i"];
+    if (node && node.is_array()) {
+      const auto* array = node.as_array();
+      read_toml_array(array, fluid_i_dirichlet_values);
+    } else {
+      THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read fluid "
+                          "dirichlet_values_i as array.");
+    }
   }
-  array = config["bc"]["fluid"]["dirichlet_values_o"].as_array();
-  if (array->is_array() && fluid_bc_o == "dirichlet") {
-    read_toml_array(array, fluid_o_dirichlet_values);
-  } else if (!array->is_array() && fluid_bc_o == "dirichlet") {
-    THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read fluid "
-                        "dirichlet_values_o as array.");
+
+  if (fluid_bc_o == "dirichlet") {
+    const auto& node = config["bc"]["fluid"]["dirichlet_values_o"];
+    if (node && node.is_array()) {
+      const auto* array = node.as_array();
+      read_toml_array(array, fluid_o_dirichlet_values);
+    } else {
+      THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read fluid "
+                          "dirichlet_values_o as array.");
+    }
   }
   params_->add("fluid.bc.i.dirichlet_values", fluid_i_dirichlet_values);
   params_->add("fluid.bc.o.dirichlet_values", fluid_o_dirichlet_values);
@@ -417,21 +425,27 @@ ProblemIn::ProblemIn(const std::string& fn) {
     // handle dirichlet..
     std::array<double, 2> rad_i_dirichlet_values = {0.0, 0.0};
     std::array<double, 2> rad_o_dirichlet_values = {0.0, 0.0};
-    // --- testing ---
-    auto* array = config["bc"]["radiation"]["dirichlet_values_i"].as_array();
-    if (array->is_array() &&
-        (rad_bc_i == "dirichlet" || rad_bc_i == "marshak")) {
-      read_toml_array(array, rad_i_dirichlet_values);
-    } else if (!array->is_array() && rad_bc_i == "dirichlet") {
-      THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read radiation "
-                          "dirichlet_values_i as array.");
+
+    if (rad_bc_i == "dirichlet" || rad_bc_i == "marshak") {
+      const auto& node = config["bc"]["radiation"]["dirichlet_values_i"];
+      if (node && node.is_array()) {
+        const auto* array = node.as_array();
+        read_toml_array(array, rad_i_dirichlet_values);
+      } else {
+        THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read radiation "
+                            "dirichlet_values_i as array.");
+      }
     }
-    array = config["bc"]["radiation"]["dirichlet_values_o"].as_array();
-    if (array->is_array() && rad_bc_o == "dirichlet") {
-      read_toml_array(array, rad_o_dirichlet_values);
-    } else if (!array->is_array() && rad_bc_o == "dirichlet") {
-      THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read radiation "
-                          "dirichlet_values_o as array.");
+
+    if (rad_bc_o == "dirichlet") {
+      const auto& node = config["bc"]["radiation"]["dirichlet_values_o"];
+      if (node && node.is_array()) {
+        const auto* array = node.as_array();
+        read_toml_array(array, rad_o_dirichlet_values);
+      } else {
+        THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read radiation "
+                            "dirichlet_values_o as array.");
+      }
     }
     params_->add("radiation.bc.i.dirichlet_values", rad_i_dirichlet_values);
     params_->add("radiatio.bc.o.dirichlet_values", rad_o_dirichlet_values);
@@ -449,8 +463,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
     params_->add("gravity.model", (utilities::to_lower(gmodel) == "spherical")
                                       ? GravityModel::Spherical
                                       : GravityModel::Constant);
-    if (params_->get<GravityModel>("gravity..model") ==
-            GravityModel::Constant &&
+    if (params_->get<GravityModel>("gravity.model") == GravityModel::Constant &&
         gval <= 0.0) {
       THROW_ATHELAS_ERROR(
           "Constant gravitational potential requested but g <= 0.0!");

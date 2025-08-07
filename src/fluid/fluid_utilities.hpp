@@ -20,12 +20,8 @@
 
 namespace fluid {
 
-auto flux_fluid(double V, double P, int iCF) -> double;
 auto flux_fluid(const double V, const double P)
     -> std::tuple<double, double, double>;
-auto source_fluid_rad(double D, double V, double T, double kappa_r,
-                      double kappa_p, double E, double F, double Pr, int iCF)
-    -> double;
 auto numerical_flux_gudonov(double vL, double vR, double pL, double pR,
                             double zL, double zR) -> std::tuple<double, double>;
 auto numerical_flux_gudonov_positivity(double tauL, double tauR, double vL,
@@ -35,7 +31,4 @@ auto numerical_flux_gudonov_positivity(double tauL, double tauR, double vL,
 void numerical_flux_hllc(double vL, double vR, double pL, double pR, double cL,
                          double cR, double rhoL, double rhoR, double& Flux_U,
                          double& Flux_P);
-auto compute_timestep_fluid(View3D<double> U, const GridStructure* grid,
-                            EOS* eos, double CFL) -> double;
-
 } // namespace fluid

@@ -222,7 +222,7 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
         // Riemann Problem
         // auto [flux_u, flux_p] = numerical_flux_gudonov( uCF_L( 1 ), uCF_R( 1
         // ), P_L, P_R, lam_L, lam_R);
-        auto [flux_u, flux_p] = numerical_flux_gudonov_positivity(
+        const auto [flux_u, flux_p] = numerical_flux_gudonov_positivity(
             uCF_L(0), uCF_R(0), uCF_L(1), uCF_R(1), Pgas_L, Pgas_R, Cs_L, Cs_R);
         flux_u_(stage, iX) = flux_u;
 
@@ -232,13 +232,14 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
         const double eddington_factor = Prad_L / E_L;
         const double alpha =
             (constants::c_cgs - vstar) * std::sqrt(eddington_factor);
-        auto flux_e = llf_flux(F_R, F_L, E_R, E_L, alpha);
-        auto flux_f = llf_flux(c2 * Prad_R, c2 * Prad_L, F_R, F_L, alpha);
-        double advective_flux_e = 0.0;
-        double advective_flux_f = 0.0;
+        const double flux_e = llf_flux(F_R, F_L, E_R, E_L, alpha);
+        const double flux_f =
+            llf_flux(c2 * Prad_R, c2 * Prad_L, F_R, F_L, alpha);
 
-        advective_flux_e = (vstar >= 0) ? vstar * E_L : vstar * E_R;
-        advective_flux_f = (vstar >= 0) ? vstar * F_L : vstar * F_R;
+        const double advective_flux_e =
+            (vstar >= 0) ? vstar * E_L : vstar * E_R;
+        const double advective_flux_f =
+            (vstar >= 0) ? vstar * F_L : vstar * F_R;
 
         dFlux_num_(0, iX) = -flux_u_(stage, iX);
         dFlux_num_(1, iX) = flux_p;
@@ -283,6 +284,13 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
           double local_sum_e = 0.0;
           double local_sum_f = 0.0;
           for (int iN = 0; iN < nNodes; ++iN) {
+            const double weight     = grid.get_weights(iN);
+            const double dphi_rad   = rad_basis_->get_d_phi(iX, iN + 1, k);
+            const double dphi_fluid = fluid_basis_->get_d_phi(iX, iN + 1, k);
+            const double X          = grid.node_coordinate(iX, iN);
+            const double sqrt_gm    = grid.get_sqrt_gm(X);
+            const double vstar      = flux_u_(stage, iX);
+
             auto lambda      = nullptr;
             const double vel = fluid_basis_->basis_eval(state, iX, 1, iN + 1);
             const double P   = pressure_from_conserved(
@@ -292,24 +300,12 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
             const double f_rad = rad_basis_->basis_eval(state, iX, 4, iN + 1);
             const double p_rad = compute_closure(e_rad, f_rad);
             const auto [flux1, flux2, flux3] = fluid::flux_fluid(vel, P);
-            const auto [flux_e, flux_f] =
-                flux_rad(e_rad, f_rad, p_rad, flux_u_(stage, iX));
-            const double X = grid.node_coordinate(iX, iN);
-            local_sum1 += grid.get_weights(iN) * flux1 *
-                          fluid_basis_->get_d_phi(iX, iN + 1, k) *
-                          grid.get_sqrt_gm(X);
-            local_sum2 += grid.get_weights(iN) * flux2 *
-                          fluid_basis_->get_d_phi(iX, iN + 1, k) *
-                          grid.get_sqrt_gm(X);
-            local_sum3 += grid.get_weights(iN) * flux3 *
-                          fluid_basis_->get_d_phi(iX, iN + 1, k) *
-                          grid.get_sqrt_gm(X);
-            local_sum_e += grid.get_weights(iN) * flux_e *
-                           rad_basis_->get_d_phi(iX, iN + 1, k) *
-                           grid.get_sqrt_gm(X);
-            local_sum_f += grid.get_weights(iN) * flux_f *
-                           rad_basis_->get_d_phi(iX, iN + 1, k) *
-                           grid.get_sqrt_gm(X);
+            const auto [flux_e, flux_f] = flux_rad(e_rad, f_rad, p_rad, vstar);
+            local_sum1 += weight * flux1 * dphi_fluid * sqrt_gm;
+            local_sum2 += weight * flux2 * dphi_fluid * sqrt_gm;
+            local_sum3 += weight * flux3 * dphi_fluid * sqrt_gm;
+            local_sum_e += weight * flux_e * dphi_rad * sqrt_gm;
+            local_sum_f += weight * flux_f * dphi_rad * sqrt_gm;
           }
 
           dU(0, iX, k) += local_sum1;
@@ -354,12 +350,17 @@ auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
   constexpr static double c2 = c * c;
 
   const int nNodes = grid.get_n_nodes();
+  const double dx  = grid.get_widths(iX);
 
   double local_sum_e_r = 0.0; // radiation energy source
   double local_sum_m_r = 0.0; // radiation momentum (flux) source
   double local_sum_e_g = 0.0; // gas energy source
   double local_sum_m_g = 0.0; // gas momentum (velocity) source
   for (int iN = 0; iN < nNodes; ++iN) {
+    const double weight    = grid.get_weights(iN);
+    const double phi_rad   = rad_basis->get_phi(iX, iN + 1, k);
+    const double phi_fluid = fluid_basis->get_phi(iX, iN + 1, k);
+
     // Note: basis evaluations are awkward here.
     // must be sure to use the correct basis functions.
     const double tau  = fluid_basis->basis_eval(uCRH, iX, 0, iN + 1);
@@ -391,20 +392,14 @@ auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
     const double source_e_g = c * G0;
     const double source_m_g = G;
 
-    local_sum_e_r +=
-        grid.get_weights(iN) * rad_basis->get_phi(iX, iN + 1, k) * source_e_r;
-    local_sum_m_r +=
-        grid.get_weights(iN) * rad_basis->get_phi(iX, iN + 1, k) * source_m_r;
-    local_sum_e_g +=
-        grid.get_weights(iN) * fluid_basis->get_phi(iX, iN + 1, k) * source_e_g;
-    local_sum_m_g +=
-        grid.get_weights(iN) * fluid_basis->get_phi(iX, iN + 1, k) * source_m_g;
+    local_sum_e_r += weight * phi_rad * source_e_r;
+    local_sum_m_r += weight * phi_rad * source_m_r;
+    local_sum_e_g += weight * phi_fluid * source_e_g;
+    local_sum_m_g += weight * phi_fluid * source_m_g;
   }
   // \Delta x / M_kk
-  const double dx_o_mkk_fluid =
-      grid.get_widths(iX) / fluid_basis->get_mass_matrix(iX, k);
-  const double dx_o_mkk_rad =
-      grid.get_widths(iX) / rad_basis->get_mass_matrix(iX, k);
+  const double dx_o_mkk_fluid = dx / fluid_basis->get_mass_matrix(iX, k);
+  const double dx_o_mkk_rad   = dx / rad_basis->get_mass_matrix(iX, k);
 
   return {local_sum_m_g * dx_o_mkk_fluid, local_sum_e_g * dx_o_mkk_fluid,
           local_sum_e_r * dx_o_mkk_rad, local_sum_m_r * dx_o_mkk_rad};

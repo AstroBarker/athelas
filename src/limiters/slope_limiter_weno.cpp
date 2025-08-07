@@ -81,14 +81,8 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
         KOKKOS_CLASS_LAMBDA(const int iX) {
           limited_cell_(iX) = 0;
 
-          // Check if TCI val is less than TCI_Threshold
-          int j = 0;
-          if (D_(iC, iX) > tci_val_ && tci_opt_) {
-            j++;
-          }
-
           // Do nothing we don't need to limit slopes
-          if (j != 0 || !tci_opt_) {
+          if (D_(iX) > tci_val_ || !tci_opt_) {
             // get scratch modified_polynomial view for this cell's work
             auto modified_polynomial_i = Kokkos::subview(
                 modified_polynomial_, iX, Kokkos::ALL, Kokkos::ALL);

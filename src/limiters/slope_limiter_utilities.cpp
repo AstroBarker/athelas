@@ -106,12 +106,17 @@ auto barth_jespersen(double U_v_L, double U_v_R, double U_c_L, double U_c_T,
 /**
  * Apply the Troubled Cell Indicator of Fu & Shu (2017)
  * to flag cells for limiting
+ * Detects smoothness by comparing local cell averages to extrapolated
+ * neighbor projections.
  **/
-void detect_troubled_cells(View3D<double> U, View2D<double> D,
+void detect_troubled_cells(const View3D<double> U, View1D<double> D,
                            const GridStructure* grid, const ModalBasis* basis,
                            const std::vector<int>& vars) {
   const int ilo = grid->get_ilo();
   const int ihi = grid->get_ihi();
+  Kokkos::parallel_for(
+      "SlopeLimiter :: TCI :: Zero", Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_LAMBDA(const int iX) { D(iX) = 0.0; });
 
   // Cell averages by extrapolating L and R neighbors into current cell
 
@@ -139,10 +144,11 @@ void detect_troubled_cells(View3D<double> U, View2D<double> D,
                      std::abs(cell_avg - cell_avg_R_T));
 
           denominator = std::max(
-              std::max(std::abs(cell_avg_L), std::abs(cell_avg_R)), cell_avg);
+              {std::abs(cell_avg_L), std::abs(cell_avg_R), cell_avg, 1.0e-10});
 
-          D(iC % 3, iX) =
-              result / denominator; // TODO(astrobarker): fix this index crap
+          D(iX) = std::max(
+              D(iX),
+              result / denominator); // TODO(astrobarker): fix this index crap
         }); // par_for iX
   } // loop iC;
 }
@@ -160,42 +166,20 @@ auto cell_average(View3D<double> U, const GridStructure* grid,
                   const int extrapolate) -> double {
   const int nNodes = grid->get_n_nodes();
 
-  double avg  = 0.0;
-  double mass = 0.0;
-  double X    = 0.0;
+  double avg      = 0.0;
+  double vol      = 0.0;
+  const double dx = grid->get_widths(iX + extrapolate);
 
-  // Used to set loop bounds
-  int mult  = 1;
-  int end   = nNodes;
-  int start = 0;
-
-  if (extrapolate == -1) {
-    mult = 1;
-  }
-  if (extrapolate == +0) {
-    mult = 0;
-  }
-  if (extrapolate == +1) {
-    mult = 2;
+  // NOTE: do mass or volume avg?
+  for (int iN = 0; iN < nNodes; ++iN) {
+    const double X       = grid->node_coordinate(iX + extrapolate, iN);
+    const double sqrt_gm = grid->get_sqrt_gm(X);
+    const double weight  = grid->get_weights(iN);
+    vol += weight * sqrt_gm * dx; // TODO(astrobarker) rho
+    avg += weight * basis->basis_eval(U, iX, iCF, iN + 1) * sqrt_gm * dx;
   }
 
-  if (extrapolate == 0) {
-    start = 0;
-  } else {
-    start = 2 + mult * nNodes;
-  }
-  end = start + nNodes - 1;
-
-  for (int iN = start; iN < end; iN++) {
-    X = grid->node_coordinate(iX + extrapolate, iN - start);
-    mass += grid->get_weights(iN - start) * grid->get_sqrt_gm(X) *
-            grid->get_widths(iX + extrapolate); // TODO(astrobarker) rho
-    avg += grid->get_weights(iN - start) *
-           basis->basis_eval(U, iX + extrapolate, iCF, iN + 1) *
-           grid->get_sqrt_gm(X) * grid->get_widths(iX + extrapolate);
-  }
-
-  return avg / mass;
+  return avg / vol;
 }
 
 /**

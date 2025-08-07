@@ -34,8 +34,8 @@ ModalBasis::ModalBasis(poly_basis::poly_basis basis, const View3D<double> uPF,
       mSize_((nN) * (nN + 2) * (nElements + 2)),
       density_weight_(density_weight),
       mass_matrix_("MassMatrix", nElements + 2, pOrder),
-      phi_("phi_", nElements + 2, 3 * nN + 2, pOrder),
-      dphi_("dphi_", nElements + 2, 3 * nN + 2, pOrder) {
+      phi_("phi_", nElements + 2, nN + 2, pOrder),
+      dphi_("dphi_", nElements + 2, nN + 2, pOrder) {
   // --- Compute grid quantities ---
   grid->compute_mass(uPF);
   grid->compute_mass_r(uPF); // Weird place for this to be but works
@@ -255,7 +255,7 @@ auto ModalBasis::ortho(const int order, const int iX, const int i_eta,
  **/
 void ModalBasis::initialize_basis(const Kokkos::View<double***> uPF,
                                   GridStructure* grid) {
-  const int n_eta = (3 * nNodes_) + 2;
+  const int n_eta = nNodes_ + 2;
   const int ilo   = grid->get_ilo();
   const int ihi   = grid->get_ihi();
 
@@ -268,15 +268,8 @@ void ModalBasis::initialize_basis(const Kokkos::View<double***> uPF,
           eta = -0.5;
         } else if (i_eta == nNodes_ + 1) {
           eta = +0.5;
-        } else if (i_eta > 0 && i_eta < nNodes_ + 1) // GL nodes
-        {
+        } else if (i_eta > 0 && i_eta < nNodes_ + 1) { // GL nodes
           eta = grid->get_nodes(i_eta - 1);
-        } else if (i_eta > nNodes_ + 1 &&
-                   i_eta < 2 * nNodes_ + 2) // GL nodes left neighbor
-        {
-          eta = grid->get_nodes(i_eta - nNodes_ - 2) + 1.0;
-        } else {
-          eta = grid->get_nodes(i_eta - (2 * nNodes_) - 2) - 1.0;
         }
 
         phi_(iX, i_eta, k)  = ortho(k, iX, i_eta, eta, 0.0, uPF, grid, false);

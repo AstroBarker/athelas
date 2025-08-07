@@ -118,7 +118,7 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
         // Riemann Problem
         // auto [flux_u, flux_p] = numerical_flux_gudonov( uCF_L( 1 ), uCF_R( 1
         // ), P_L, P_R, lam_L, lam_R);
-        auto [flux_u, flux_p] = numerical_flux_gudonov_positivity(
+        const auto [flux_u, flux_p] = numerical_flux_gudonov_positivity(
             uCF_L(0), uCF_R(0), uCF_L(1), uCF_R(1), P_L, P_R, Cs_L, Cs_R);
         flux_u_(stage, iX) = flux_u;
 
@@ -147,7 +147,7 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
                            dFlux_num_(iCF, iX + 0) * Poly_L * SqrtGm_L);
       });
 
-  if (order > 1) {
+  if (order > 1) [[likely]] {
     // --- Volume Term ---
     Kokkos::parallel_for(
         "Hydro :: Volume Term",
@@ -157,22 +157,21 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
           double local_sum2 = 0.0;
           double local_sum3 = 0.0;
           for (int iN = 0; iN < nNodes; ++iN) {
+            const double weight  = grid.get_weights(iN);
+            const double dphi    = basis_->get_d_phi(iX, iN + 1, k);
+            const double X       = grid.node_coordinate(iX, iN);
+            const double sqrt_gm = grid.get_sqrt_gm(X);
+
             auto lambda      = nullptr;
             const double vel = basis_->basis_eval(state, iX, 1, iN + 1);
             const double P   = pressure_from_conserved(
                 eos_, basis_->basis_eval(state, iX, 0, iN + 1), vel,
                 basis_->basis_eval(state, iX, 2, iN + 1), lambda);
             const auto [flux1, flux2, flux3] = flux_fluid(vel, P);
-            auto X                           = grid.node_coordinate(iX, iN);
-            local_sum1 += grid.get_weights(iN) * flux1 *
-                          basis_->get_d_phi(iX, iN + 1, k) *
-                          grid.get_sqrt_gm(X);
-            local_sum2 += grid.get_weights(iN) * flux2 *
-                          basis_->get_d_phi(iX, iN + 1, k) *
-                          grid.get_sqrt_gm(X);
-            local_sum3 += grid.get_weights(iN) * flux3 *
-                          basis_->get_d_phi(iX, iN + 1, k) *
-                          grid.get_sqrt_gm(X);
+
+            local_sum1 += weight * flux1 * dphi * sqrt_gm;
+            local_sum2 += weight * flux2 * dphi * sqrt_gm;
+            local_sum3 += weight * flux3 * dphi * sqrt_gm;
           }
 
           dU(0, iX, k) += local_sum1;
