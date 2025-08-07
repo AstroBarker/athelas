@@ -3,7 +3,7 @@ import unittest
 from regression_test import AthelasRegressionTest
 
 
-class MarshakShockTubeTest(AthelasRegressionTest):
+class MarshakTest(AthelasRegressionTest):
   """Test for the Marshak wave problem"""
 
   def __init__(self, methodName="test_marshak", executable_path=None):
@@ -76,7 +76,7 @@ class MarshakShockTubeTest(AthelasRegressionTest):
 def create_test_suite(executable_path=None):
   """Create a test suite for the Marshak wave test"""
   suite = unittest.TestSuite()
-  suite.addTest(MarshakShockTubeTest(executable_path=executable_path))
+  suite.addTest(MarshakTest(executable_path=executable_path))
   return suite
 
 
