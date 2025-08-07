@@ -1,6 +1,7 @@
 [problem]
 problem = "marshak"
 t_end = 5.781e-14
+nlim = -1
 geometry = "planar"
 restart = false
 xl = 0.0
@@ -28,7 +29,6 @@ bc_o = "outflow"
 dirichlet_values_i = [1.1113063385e12, 0.0]
 
 [output]
-nlim = -1
 ncycle_out = 100
 #dt_hdf5 = 1.0e-12 # default: 100 outputs
 dt_init_frac = 1.0005

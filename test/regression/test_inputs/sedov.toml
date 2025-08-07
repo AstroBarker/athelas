@@ -1,6 +1,7 @@
 [problem]
 problem = "sedov"
 t_end = 0.05
+nlim = -1
 geometry = "spherical"
 restart = false
 xl = 0.0
@@ -23,7 +24,6 @@ bc_i = "reflecting"
 bc_o = "outflow"
 
 [output]
-nlim = -1
 ncycle_out = 100
 dt_hdf5 = 0.05
 dt_init_frac = 1.05

@@ -1,6 +1,7 @@
 [problem]
 problem = "rad_shock"
 t_end = 0.2e-9
+nlim = -1
 geometry = "planar"
 restart = false
 xl = 0.0
@@ -45,7 +46,6 @@ dirichlet_values_i = [1.70874e11, 0.0]
 dirichlet_values_o = [3.06805e13, 0.0]
 
 [output]
-nlim = -1
 ncycle_out = 250
 #dt_hdf5 = 1.0e-15 # default: 100 outputs
 dt_init_frac = 1.001

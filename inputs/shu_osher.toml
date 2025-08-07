@@ -1,12 +1,13 @@
 [problem]
 problem = "shu_osher"
 t_end = 1.8
+nlim = -1
 geometry = "planar"
 restart = false
-xl = -5.0
-xr = 5.0
+xl = -10.0
+xr = 10.0
 cfl = 0.35
-nx = 256
+nx = 1024
 
 [problem.params]
 v0 = 2.629369
@@ -24,7 +25,6 @@ bc_i = "outflow"
 bc_o = "outflow"
 
 [output]
-nlim = -1
 ncycle_out = 100
 dt_hdf5 = 1.0e-2
 
@@ -34,19 +34,17 @@ fn = "shu_osher.hst"
 
 [fluid]
 basis = "legendre"
-nnodes = 1
-porder = 1
+nnodes = 2
+porder = 2
 
 [fluid.limiter]
 do_limiter = true
 type = "minmod"
-weno_r = 2.0
+b_tvd = 1.0
+m_tvb = 0.0
 tci_opt = false
 tci_val = 0.1
 characteristic = false
-gamma_i = 0.8
-#gamma_r = 0.005
-#gamma_l = 0.005
 
 [time]
 integrator = "EX_SSPRK33"

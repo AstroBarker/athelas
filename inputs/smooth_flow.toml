@@ -1,6 +1,7 @@
 [problem]
 problem = "smooth_flow"
 t_end = 0.5
+nlim = -1
 geometry = "planar"
 restart = false
 xl = 0.0
@@ -21,7 +22,6 @@ bc_i = "periodic"
 bc_o = "periodic"
 
 [output]
-nlim = -1
 ncycle_out = 100
 dt_hdf5 = 0.1
 

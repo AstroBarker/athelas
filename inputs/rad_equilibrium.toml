@@ -1,6 +1,7 @@
 [problem]
 problem = "rad_equilibrium"
 t_end = 1.0e-7
+nlim = -1
 geometry = "planar"
 restart = false
 xl = 0.0
@@ -27,7 +28,6 @@ bc_i = "outflow"
 bc_o = "outflow"
 
 [output]
-nlim = -1
 ncycle_out = 100
 #dt_hdf5 = 1.0e-12 # default: 100 outputs
 dt_init_frac = 1.005

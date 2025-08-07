@@ -1,6 +1,7 @@
 [problem]
 problem = "sod"
 t_end = 0.2
+nlim = -1
 geometry = "planar"
 restart = false
 xl = 0.0
@@ -28,7 +29,6 @@ bc_i = "outflow"
 bc_o = "outflow"
 
 [output]
-nlim = -1
 ncycle_out = 100000
 dt_hdf5 = 1.0
 dt_init_frac = 1.5
