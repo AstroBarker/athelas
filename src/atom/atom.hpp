@@ -16,8 +16,8 @@
 namespace atom {
 
 struct EnergyLevel {
-  double ionization_potential;  // in eV
-  double statistical_weight;    // degeneracy factor
+  double ionization_potential; // in eV
+  double statistical_weight; // degeneracy factor
 };
 
 struct AtomData {
@@ -55,7 +55,7 @@ ViewSizeHost h_counts  = Kokkos::create_mirror_view(level_counts);
 // Fill
 for (int s = 0; s < num_species; ++s) {
   h_offsets(s) = offsets[s];
-  h_counts(s) = host_levels[s].size();
+  h_counts(s)  = host_levels[s].size();
   for (size_t l = 0; l < host_levels[s].size(); ++l) {
     h_levels(offsets[s] + l) = host_levels[s][l];
   }
@@ -72,9 +72,9 @@ double partition_function(int species_idx, double T_eV,
                           Kokkos::View<const size_t*> offsets,
                           Kokkos::View<const size_t*> counts) {
   size_t start = offsets(species_idx);
-  size_t count = counts(species_idx)// num_levels
+  size_t count = counts(species_idx) // num_levels
 
-  double Z = 0.0;
+      double Z = 0.0;
   for (size_t l = 0; l < count; ++l) {
     const auto& level = levels(start + l);
     Z += level.statistical_weight *
@@ -82,11 +82,13 @@ double partition_function(int species_idx, double T_eV,
   }
   return Z;
 }
-Kokkos::parallel_for("compute_partition", N_cells, KOKKOS_LAMBDA(int i) {
-  for (int s = 0; s < num_species; ++s) {
-    double Z = partition_function(s, temperature(i), levels, level_offsets, level_counts);
-    // use or store Z
-  }
-});
+Kokkos::parallel_for(
+    "compute_partition", N_cells, KOKKOS_LAMBDA(int i) {
+      for (int s = 0; s < num_species; ++s) {
+        double Z = partition_function(s, temperature(i), levels, level_offsets,
+                                      level_counts);
+        // use or store Z
+      }
+    });
 
 } // namespace atom
