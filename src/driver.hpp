@@ -16,7 +16,7 @@ using bc::BoundaryConditions;
 
 /**
  * @class Driver
- * @brief the primary executor of the simulation. 
+ * @brief the primary executor of the simulation.
  * Owns key data and calls timestepper, IO.
  */
 class Driver {

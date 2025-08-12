@@ -16,6 +16,8 @@ specific_energy = 1.0
 [physics]
 radiation = false
 gravity = false
+composition = false
+ionization = false
 
 [bc]
 [bc.fluid]

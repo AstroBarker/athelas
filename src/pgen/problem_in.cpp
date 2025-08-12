@@ -499,12 +499,14 @@ ProblemIn::ProblemIn(const std::string& fn) {
     THROW_ATHELAS_ERROR(
         "Composition enabled but [composition.ncomps] not provided!");
   }
-  params_->add("composition.ncomps", ncomps.value());
+  if (comps.value()) {
+    params_->add("composition.ncomps", ncomps.value());
+  }
 
   // --------------------------------
   // ---------- ionization ----------
   // --------------------------------
-  if (!config_["ionization"].is_table() && comps.value()) {
+  if (!config_["ionization"].is_table() && ion.value()) {
     THROW_ATHELAS_ERROR(
         "Ionization enabled but no [ionization] block provided!");
   }
@@ -517,8 +519,10 @@ ProblemIn::ProblemIn(const std::string& fn) {
                         "atomic data (fn_ionization and fn_degeneracy). "
                         "Defaults are in athelas/data/");
   }
-  params_->add("ionization.fn_ionization", fn_ion.value());
-  params_->add("ionization.fn_degeneracy", fn_deg.value());
+  if (ion.value()) {
+    params_->add("ionization.fn_ionization", fn_ion.value());
+    params_->add("ionization.fn_degeneracy", fn_deg.value());
+  }
 
   // ----------------------------
   // ---------- output ----------

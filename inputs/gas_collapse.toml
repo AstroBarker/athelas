@@ -17,6 +17,8 @@ p0 = 10.0
 [physics]
 radiation = false
 gravity = true
+composition = false
+ionization = false
 
 [bc]
 [bc.fluid]

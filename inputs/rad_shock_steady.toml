@@ -34,6 +34,8 @@ T_R = 2.4109e6
 [physics]
 radiation = true
 gravity = false
+composition = false
+ionization = false
 
 # TODO(astrobarker) fix
 [bc]

@@ -17,6 +17,8 @@ E0 = 0.5
 [physics]
 radiation = false
 gravity = false
+composition = false
+ionization = false
 
 [bc]
 [bc.fluid]
@@ -59,4 +61,4 @@ integrator = "EX_SSPRK54"
 
 [eos]
 type = "ideal"
-gamma = 1.4
+gamma = 1.666667

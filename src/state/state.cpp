@@ -11,7 +11,7 @@ State::State(const int nCF, const int nPF, const int nAF, const int nX_,
     if (ncomps <= 0) {
       THROW_ATHELAS_ERROR("Composition enabled but ncomps <= 0!");
     }
-    uComp_ = View3D<double>("composition", ncomps, nX_);
+    uComp_ = View3D<double>("composition", ncomps, nX_, nNodes_);
   }
 }
 
