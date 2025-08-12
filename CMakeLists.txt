@@ -187,7 +187,7 @@ endif()
 # Kokkos
 if (NOT TARGET Kokkos::kokkos)
   if (ATHELAS_IMPORT_KOKKOS)
-    find_package(Kokkos 4.2)
+    find_package(Kokkos 4.7)
     if (NOT Kokkos_FOUND)
       unset(ATHELAS_IMPORT_KOKKOS CACHE)
       message(FATAL_ERROR "Could not find external Kokkos. Consider importing a Kokkos installation into your environment or disabling external Kokkos with e.g. -DATHELAS_IMPORT_KOKKOS=OFF")
