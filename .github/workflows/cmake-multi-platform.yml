@@ -49,8 +49,8 @@ jobs:
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 140
         sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 140
         sudo apt-get install -qq libhdf5-dev liblapack-dev liblapacke-dev libopenblas-dev libomp-dev
-        sudo apt-get install -y clang-20 libc++-dev libomp-dev llvm-dev #babysit clang
-        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-20 100
+        sudo apt-get install -y clang libc++-dev libomp-dev llvm-dev #babysit clang
+        #sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-20 100
 
 
     - name: Set reusable strings
