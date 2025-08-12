@@ -1,0 +1,78 @@
+name: GCC Compilation and Regression Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Release, Debug]
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq git
+        sudo apt-get install -qq libhdf5-dev liblapack-dev liblapacke-dev libopenblas-dev libomp-dev
+        sudo apt-get install -qq gcc-14 g++-14
+        # Set gcc-14 as the default gcc
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 140
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 140
+        sudo apt install -y clang-17 libc++-17-dev libc++abi-17-dev # modern clang
+        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-17 100
+
+    
+    - name: Set up Python with uv
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.uv/bin" >> $GITHUB_PATH
+        
+    - name: Install Python dependencies with uv
+      run: |
+        uv venv
+        echo "VIRTUAL_ENV=${{ github.workspace }}/.venv" >> $GITHUB_ENV
+        echo "${{ github.workspace }}/.venv/bin" >> $GITHUB_PATH
+
+    - name: Install Python dependencies in venv
+      run: |
+        uv pip install numpy h5py astropy matplotlib scipy
+        
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+        
+    - name: Configure CMake
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_CXX_COMPILER=g++
+        -DCMAKE_C_COMPILER=gcc
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DMACHINE=UBUNTU
+        -DATHELAS_ENABLE_UNIT_TESTS=On
+        -S ${{ github.workspace }}
+        
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+      
+    - name: Run Unit Tests
+      run: |
+        cd build
+        ctest
