@@ -254,10 +254,12 @@ class Parser {
 }; // Parser
 
 // --- Utility functions for extracting columns into containers ---
+// TODO(astrobarker): Could be nice to make a "loadtxt" style wrapper
+// that loads and gets.
 
 template <typename T = std::string>
-auto extract_column_by_index(const Parser::ParseResult& data,
-                             size_t column_index) -> std::vector<T> {
+auto get_column_by_index(const Parser::ParseResult& data, size_t column_index)
+    -> std::vector<T> {
   std::vector<T> column;
   column.reserve(data.rows.size());
 
@@ -286,21 +288,21 @@ auto extract_column_by_index(const Parser::ParseResult& data,
 // Gets a column by name.
 // Find hheader index with given name, calls extract_column_by_index
 template <typename T = std::string>
-auto extract_column_by_name(const Parser::ParseResult& data,
-                            const std::string& column_name) -> std::vector<T> {
+auto get_column_by_name(const Parser::ParseResult& data,
+                        const std::string& column_name) -> std::vector<T> {
   auto it = std::ranges::find(data.headers, column_name);
   if (it == data.headers.end()) {
     return {}; // Column not found
   }
 
   size_t column_index = std::distance(data.headers.begin(), it);
-  return extract_column_by_index<T>(data, column_index);
+  return get_column_by_index<T>(data, column_index);
 }
 
 // Modern C++23 approach using ranges and views
 template <typename T = std::string>
-auto extract_column_view_by_index(const Parser::ParseResult& data,
-                                  size_t column_index) {
+auto get_column_view_by_index(const Parser::ParseResult& data,
+                              size_t column_index) {
   return data.rows |
          std::views::transform([column_index](const auto& row) -> T {
            if (column_index < row.size()) {
@@ -325,10 +327,10 @@ auto extract_column_view_by_index(const Parser::ParseResult& data,
 // Extract multiple columns at once into a tuple of vectors
 // Takes a ParseResult, std::array<size_t, N>{0, 1, ...N} (etc)
 template <typename... Types>
-auto extract_columns_by_indices(const Parser::ParseResult& data,
-                                std::array<size_t, sizeof...(Types)> indices) {
+auto get_columns_by_indices(const Parser::ParseResult& data,
+                            std::array<size_t, sizeof...(Types)> indices) {
   return [&data, &indices]<size_t... I>(std::index_sequence<I...>) {
-    return std::make_tuple(extract_column_by_index<Types>(data, indices[I])...);
+    return std::make_tuple(get_column_by_index<Types>(data, indices[I])...);
   }(std::make_index_sequence<sizeof...(Types)>{});
 }
 
@@ -336,11 +338,11 @@ auto extract_columns_by_indices(const Parser::ParseResult& data,
 // Instead of taking a std::array, as above, this takes variadic args
 // Just pass in column indices!
 template <typename... Types>
-auto extract_columns_by_indices(const Parser::ParseResult& data,
-                                size_t first_index, auto... other_indices)
+auto get_columns_by_indices(const Parser::ParseResult& data, size_t first_index,
+                            auto... other_indices)
   requires(sizeof...(Types) == sizeof...(other_indices) + 1)
 {
   std::array<size_t, sizeof...(Types)> indices{
       first_index, static_cast<size_t>(other_indices)...};
-  return extract_columns_by_indices<Types...>(data, indices);
+  return get_columns_by_indices<Types...>(data, indices);
 }

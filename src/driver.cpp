@@ -1,13 +1,5 @@
-/**
- * @file driver.cpp
- * --------------
- *
- * @author Brandon L. Barker
- * @brief main driver routine
- *
- */
-
 #include "driver.hpp"
+#include "atom/atom.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
 #include "fluid/hydro_package.hpp"
@@ -31,6 +23,10 @@ auto Driver::execute() -> int {
   const auto nx           = pin_->param()->get<int>("problem.nx");
   const auto problem_name = pin_->param()->get<std::string>("problem.problem");
 
+  atom::AtomicData atom(
+      pin_->param()->get<std::string>("ionization.fn_ionization"),
+      pin_->param()->get<std::string>("ionization.fn_degeneracy"));
+
   // some startup io
   write_basis(fluid_basis_.get(), pin_->param()->get<int>("problem.nx"),
               pin_->param()->get<int>("fluid.nnodes"),
@@ -44,7 +40,6 @@ auto Driver::execute() -> int {
   Kokkos::Timer timer_zone_cycles;
   double zc_ws = 0.0; // zone cycles / wall second
 
-  // initial timestep TODO(astrobarker) make input param
   const double nlim       = (pin_->param()->get<double>("problem.nlim")) == -1
                                 ? std::numeric_limits<double>::infinity()
                                 : pin_->param()->get<double>("problem.nlim");
@@ -62,7 +57,6 @@ auto Driver::execute() -> int {
   std::println("# Step    t       dt       zone_cycles / wall_second");
   while (time_ < t_end_ && iStep <= nlim) {
 
-    // TODO(astrobarker) use manager_->min_timestep
     dt_ = std::min(manager_->min_timestep(
                        state_.get_u_cf(), grid_,
                        {.t = time_, .dt = dt_, .dt_a = 0.0, .stage = 0}),
