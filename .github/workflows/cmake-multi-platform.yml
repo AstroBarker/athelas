@@ -43,7 +43,7 @@ jobs:
         submodules: recursive
     - name: Setup Latest Clang
       if: matrix.c_compiler == 'clang'
-      uses: MorganCaron/latest-clang-compiler@master
+      uses: MorganCaron/latest-clang-action@master
 
     - name: Install dependencies
       if: matrix.c_compiler != 'clang'
