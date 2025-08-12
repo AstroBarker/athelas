@@ -1,16 +1,3 @@
-/**
- * @file problem_in.cpp
- * --------------
- *
- * @author Brandon L. Barker
- * @brief Class for loading input deck
- *
- * @details Loads input deck in TOML format.
- *          See: https://github.com/marzer/tomlplusplus
- *
- *  Horrible stuff here.
- */
-
 #include "pgen/problem_in.hpp"
 #include "timestepper/tableau.hpp"
 #include "utils/error.hpp"
@@ -27,7 +14,9 @@ ProblemIn::ProblemIn(const std::string& fn) {
   // toml++ wants a string_view
   std::string_view const fn_in{fn};
 
-  // Load ini
+  // ------------------------------
+  // ---------- Load ini ----------
+  // ------------------------------
   try {
     config_ = toml::parse_file(fn_in);
   } catch (const toml::parse_error& err) {
@@ -38,7 +27,9 @@ ProblemIn::ProblemIn(const std::string& fn) {
 
   std::println("# Loading Input Deck ...");
 
-  // --- problem block ---
+  // -----------------------------------
+  // ---------- problem block ----------
+  // -----------------------------------
   if (!config_["problem"].is_table()) {
     THROW_ATHELAS_ERROR("Input deck must have a [problem] block!");
   }
@@ -112,7 +103,9 @@ ProblemIn::ProblemIn(const std::string& fn) {
     params_->add("problem.geometry_model", Geometry::Spherical);
   }
 
-  // --- hande [problem.params] ---
+  // ---------------------------------------------
+  // ---------- handle [problem.params] ----------
+  // ---------------------------------------------
   if (!config_["problem"]["params"].is_table()) {
     THROW_ATHELAS_ERROR("No [params] block in [problem]!");
   }
@@ -141,7 +134,9 @@ ProblemIn::ProblemIn(const std::string& fn) {
     }
   }
 
-  // --- physics block ---
+  // -----------------------------------
+  // ---------- physics block ----------
+  // -----------------------------------
   if (!config_["physics"].is_table()) {
     THROW_ATHELAS_ERROR("Input deck must have a [physics] block!");
   }
@@ -157,7 +152,25 @@ ProblemIn::ProblemIn(const std::string& fn) {
   }
   params_->add("physics.gravity_active", grav.value());
 
-  // --- fluid block ---
+  std::optional<bool> comps = config_["physics"]["composition"].value<bool>();
+  if (!comps) {
+    THROW_ATHELAS_ERROR("Missing or invalid 'composition' in [physics] block.");
+  }
+  params_->add("physics.composition_enabled", comps.value());
+
+  std::optional<bool> ion = config_["physics"]["ionization"].value<bool>();
+  if (!ion) {
+    THROW_ATHELAS_ERROR("Missing or invalid 'ionization' in [physics] block.");
+  }
+  params_->add("physics.ionization_enabled", ion.value());
+
+  if (ion.value() && !comps.value()) {
+    THROW_ATHELAS_ERROR("Ionization enabled but composition disabled!");
+  }
+
+  // ---------------------------------
+  // ---------- fluid block ----------
+  // ---------------------------------
   if (!config_["fluid"].is_table()) {
     THROW_ATHELAS_ERROR("[fluid] block must be provided!");
   }
@@ -296,9 +309,11 @@ ProblemIn::ProblemIn(const std::string& fn) {
   }
   params_->add("fluid.bc.i.dirichlet_values", fluid_i_dirichlet_values);
   params_->add("fluid.bc.o.dirichlet_values", fluid_o_dirichlet_values);
-  // fluid block
+  // ---fluid block ---
 
-  // --- radiation block ---
+  // -------------------------------------
+  // ---------- radiation block ----------
+  // -------------------------------------
   // I suspect much of this should really go into
   // the individual packages.
   if (rad.value()) {
@@ -449,9 +464,11 @@ ProblemIn::ProblemIn(const std::string& fn) {
     }
     params_->add("radiation.bc.i.dirichlet_values", rad_i_dirichlet_values);
     params_->add("radiatio.bc.o.dirichlet_values", rad_o_dirichlet_values);
-  } // radiation block
+  } // --- radiation block ---
 
-  // gravity block --
+  // -----------------------------------
+  // ---------- gravity block ----------
+  // -----------------------------------
   if (grav.value()) {
     if (!config_["gravity"].is_table()) {
       THROW_ATHELAS_ERROR(
@@ -470,7 +487,42 @@ ProblemIn::ProblemIn(const std::string& fn) {
     }
   } // gravity block
 
-  // --- output ---
+  // ---------------------------------
+  // ---------- composition ----------
+  // ---------------------------------
+  if (!config_["composition"].is_table() && comps.value()) {
+    THROW_ATHELAS_ERROR(
+        "Composition enabled but no [composition] block provided!");
+  }
+  std::optional<int> ncomps = config_["composition"]["ncomps"].value<int>();
+  if (comps.value() && !ncomps) {
+    THROW_ATHELAS_ERROR(
+        "Composition enabled but [composition.ncomps] not provided!");
+  }
+  params_->add("composition.ncomps", ncomps.value());
+
+  // --------------------------------
+  // ---------- ionization ----------
+  // --------------------------------
+  if (!config_["ionization"].is_table() && comps.value()) {
+    THROW_ATHELAS_ERROR(
+        "Ionization enabled but no [ionization] block provided!");
+  }
+  std::optional<std::string> fn_ion =
+      config_["ionization"]["fn_ionization"].value<std::string>();
+  std::optional<std::string> fn_deg =
+      config_["ionization"]["fn_degeneracy"].value<std::string>();
+  if (!fn_ion || !fn_deg) {
+    THROW_ATHELAS_ERROR("With ionization enabled you must provide paths to "
+                        "atomic data (fn_ionization and fn_degeneracy). "
+                        "Defaults are in athelas/data/");
+  }
+  params_->add("ionization.fn_ionization", fn_ion.value());
+  params_->add("ionization.fn_degeneracy", fn_deg.value());
+
+  // ----------------------------
+  // ---------- output ----------
+  // ----------------------------
   // In principle everything below can be defaulted, but
   // I still require the block present.
   if (!config_["output"].is_table()) {
@@ -506,7 +558,9 @@ ProblemIn::ProblemIn(const std::string& fn) {
   params_->add("output.hist_fn", hist_fn);
   params_->add("output.hist_dt", hist_dt);
 
-  // --- time ---
+  // --------------------------
+  // ---------- time ----------
+  // --------------------------
   if (!config_["time"].is_table()) {
     THROW_ATHELAS_ERROR("No [time] block provided!");
   }
@@ -521,7 +575,9 @@ ProblemIn::ProblemIn(const std::string& fn) {
     THROW_ATHELAS_ERROR("You must list an integrator in the input deck!");
   }
 
-  // --- eos ---
+  // -------------------------
+  // ---------- eos ----------
+  // -------------------------
   if (!config_["eos"].is_table()) {
     THROW_ATHELAS_ERROR("No [eos] block provided!");
   }
@@ -533,7 +589,9 @@ ProblemIn::ProblemIn(const std::string& fn) {
   params_->add("eos.type", eos_type.value());
   params_->add("eos.gamma", config_["eos"]["gamma"].value_or(1.4));
 
-  // --- opac ---
+  // --------------------------
+  // ---------- opac ----------
+  // --------------------------
   if (rad.value()) {
     if (!config_["opacity"].is_table()) {
       THROW_ATHELAS_ERROR("Radiation abled but no [opac] block provided!");

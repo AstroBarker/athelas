@@ -1,20 +1,8 @@
 #pragma once
-/**
- * @file driver.hpp
- * --------------
- *
- * @author Brandon L. Barker
- * @brief Driver
- *
- * @details Functions:
- *            - NumNodes
- *            - compute_cfl
- *            - compute_timestep
- */
 
 #include <memory>
-#include <string>
 
+#include "atom/atom.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
@@ -23,8 +11,14 @@
 #include "pgen/problem_in.hpp"
 #include "timestepper/timestepper.hpp"
 
+using atom::AtomicData;
 using bc::BoundaryConditions;
 
+/**
+ * @class Driver
+ * @brief the primary executor of the simulation. 
+ * Owns key data and calls timestepper, IO.
+ */
 class Driver {
  public:
   explicit Driver(std::shared_ptr<ProblemIn> pin);
@@ -71,6 +65,9 @@ class Driver {
   // bases
   std::unique_ptr<ModalBasis> fluid_basis_; // init in constr body
   std::unique_ptr<ModalBasis> radiation_basis_; // init in constr body
+
+  // The rest
+  std::optional<AtomicData> atomic_data_;
 }; // class Driver
 //
 namespace {

@@ -23,9 +23,6 @@ auto Driver::execute() -> int {
   const auto nx           = pin_->param()->get<int>("problem.nx");
   const auto problem_name = pin_->param()->get<std::string>("problem.problem");
 
-  atom::AtomicData atom(
-      pin_->param()->get<std::string>("ionization.fn_ionization"),
-      pin_->param()->get<std::string>("ionization.fn_degeneracy"));
 
   // some startup io
   write_basis(fluid_basis_.get(), pin_->param()->get<int>("problem.nx"),
@@ -58,7 +55,7 @@ auto Driver::execute() -> int {
   while (time_ < t_end_ && iStep <= nlim) {
 
     dt_ = std::min(manager_->min_timestep(
-                       state_.get_u_cf(), grid_,
+                       state_.u_cf(), grid_,
                        {.t = time_, .dt = dt_, .dt_a = 0.0, .stage = 0}),
                    dt_ * dt_init_frac);
     if (time_ + dt_ > t_end_) {
@@ -151,13 +148,13 @@ void Driver::initialize(ProblemIn* pin) { // NOLINT
 
     // --- Datastructure for modal basis ---
     fluid_basis_ = std::make_unique<ModalBasis>(
-        poly_basis::poly_basis::legendre, state_.get_u_pf(), &grid_,
+        poly_basis::poly_basis::legendre, state_.u_pf(), &grid_,
         pin->param()->get<int>("fluid.porder"),
         pin->param()->get<int>("fluid.nnodes"),
         pin->param()->get<int>("problem.nx"), true);
     if (opts_.do_rad) {
       radiation_basis_ = std::make_unique<ModalBasis>(
-          poly_basis::poly_basis::legendre, state_.get_u_pf(), &grid_,
+          poly_basis::poly_basis::legendre, state_.u_pf(), &grid_,
           pin->param()->get<int>("radiation.porder"),
           pin->param()->get<int>("radiation.nnodes"),
           pin->param()->get<int>("problem.nx"), false);
@@ -198,8 +195,15 @@ void Driver::initialize(ProblemIn* pin) { // NOLINT
   }
   std::print("\n\n");
 
+  // --- atomic data ---
+  if (pin_->param()->get<bool>("physics.ionization_enabled")) {
+    atomic_data_.emplace(
+      pin_->param()->get<std::string>("ionization.fn_ionization"),
+      pin_->param()->get<std::string>("ionization.fn_degeneracy"));
+  }
+
   // --- slope limiter to initial condition ---
-  apply_slope_limiter(&sl_hydro_, state_.get_u_cf(), &grid_, fluid_basis_.get(),
+  apply_slope_limiter(&sl_hydro_, state_.u_cf(), &grid_, fluid_basis_.get(),
                       eos_.get());
 
   // --- Add history outputs ---
@@ -249,7 +253,8 @@ Driver::Driver(std::shared_ptr<ProblemIn> pin) // NOLINT
       state_(3 + 2 * (pin->param()->get<bool>("physics.rad_active")), 3, 1,
              pin->param()->get<int>("problem.nx"),
              pin->param()->get<int>("fluid.nnodes"),
-             pin->param()->get<int>("fluid.porder")),
+             pin->param()->get<int>("fluid.porder"), 
+             pin_->param()->get<bool>("physics.composition_enabled")), // TODO(astrobarker): thread in ncomps
       sl_hydro_(
           initialize_slope_limiter("fluid", &grid_, pin.get(), {0, 1, 2}, 3)),
       sl_rad_(initialize_slope_limiter("radiation", &grid_, pin.get(), {3, 4},

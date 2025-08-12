@@ -131,7 +131,7 @@ TEST_CASE("Parser parses valid text file correctly", "[parser]") {
     auto result = Parser::parse_file(fn, ' ');
     REQUIRE(result);
 
-    auto [col1, col2, col3] = extract_columns_by_indices<int, int, int>(
+    auto [col1, col2, col3] = get_columns_by_indices<int, int, int>(
         *result, std::array<size_t, 3>{0, 1, 2});
 
     SECTION("File parsed correctly") {
@@ -144,11 +144,11 @@ TEST_CASE("Parser parses valid text file correctly", "[parser]") {
     }
 
     SECTION("Other parsing utilities work") {
-      auto col1 = extract_column_by_name<int>(*result, "header1");
+      auto col1 = get_column_by_name<int>(*result, "header1");
       REQUIRE(col1[0] == 1);
       REQUIRE(col1[1] == 3);
 
-      auto col1_view = extract_column_view_by_index(*result, 0);
+      auto col1_view = get_column_view_by_index(*result, 0);
       REQUIRE(col1[0] == 1);
       REQUIRE(col1[1] == 3);
     }

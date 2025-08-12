@@ -22,8 +22,8 @@ void sod_init(State* state, GridStructure* grid, ProblemIn* pin, const EOS* eos,
     THROW_ATHELAS_ERROR("Sod requires ideal gas eos!");
   }
 
-  View3D<double> uCF = state->get_u_cf();
-  View3D<double> uPF = state->get_u_pf();
+  View3D<double> uCF = state->u_cf();
+  View3D<double> uPF = state->u_pf();
 
   const int ilo    = 1;
   const int ihi    = grid->get_ihi();
