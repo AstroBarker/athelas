@@ -162,10 +162,10 @@ set_target_properties(libathelas
 # hack because Clang is legacy..
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # Workaround for std::expected not available in clang
-  add_compile_options(
-    -stdlib=libc++ -D__cpp_concepts=202002 -Wno-builtin-macro-redefined --std=c++2b
-  )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  #  add_compile_options(
+  #  -stdlib=libc++ -D__cpp_concepts=202002 -Wno-builtin-macro-redefined --std=c++23
+  #)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fopenmp=libomp --std=c++23")
 endif()
 
 # Check for FindOpenMP
@@ -247,6 +247,7 @@ include_directories("external/tomlplusplus")
 # --- main ---
 
 add_executable( athelas src/main.cpp ${ATHELAS_SOURCES} )
+target_compile_features(athelas PRIVATE cxx_std_23)
 set_target_properties(athelas
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib"
