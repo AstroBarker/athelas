@@ -22,6 +22,8 @@ x_d = 0.5
 [physics]
 radiation = false
 gravity = false
+composition = false
+ionization = false
 
 [bc]
 [bc.fluid]
