@@ -165,6 +165,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(
     -stdlib=libc++ -D__cpp_concepts=202002 -Wno-builtin-macro-redefined --std=c++2b
   )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 endif()
 
 # Check for FindOpenMP
