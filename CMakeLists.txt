@@ -161,37 +161,20 @@ set_target_properties(libathelas
 
 # hack because Clang is legacy..
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # Workaround for std::expected not available in clang
-  #  add_compile_options(
-  #  -stdlib=libc++ -D__cpp_concepts=202002 -Wno-builtin-macro-redefined --std=c++23
-  #)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fopenmp=libomp --std=c++23")
-endif()
-
-# Check for FindOpenMP
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fopenmp=libomp --std=c++23")
     set(OpenMP_CXX_FLAGS="-fopenmp=libomp")
-    set(ENABLE_OPENMP ON)
-    set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "Allow Kokkos to use OpenMP as execution space.")
     include_directories(${OpenMP_CXX_INCLUDE_DIRS})
-else()
-    find_package(OpenMP REQUIRED)
 endif()
-if (OPENMP_FOUND)
+# Check for FindOpenMP
+find_package(OpenMP REQUIRED)
+if (OPENMP_CXX_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     message(STATUS "OPEN MP ${OpenMP_CXX_SPEC_DATE}")
-    if((OpenMP_CXX_SPEC_DATE GREATER_EQUAL "201511"))
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOMP45")
-        message(STATUS "Using OpenMP 4.5 directives")
-    else()
-        message(STATUS "Not using OpenMP 4.5 directives: ${OpenMP_C_VERSION_MAJOR} ${OpenMP_C_VERSION_MINOR}")
-    endif()
     set(ENABLE_OPENMP ON)
     set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "Allow Kokkos to use OpenMP as execution space.")
     include_directories(${OpenMP_CXX_INCLUDE_DIRS})
-endif(OPENMP_FOUND)
+endif(OPENMP_CXX_FOUND)
 
 set(ENABLE_COMPILER_WARNINGS False)
 if (ENABLE_COMPILER_WARNINGS)
