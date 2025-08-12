@@ -3,7 +3,7 @@
 # But it works.
 # ===
 
-cmake_minimum_required( VERSION 3.11 )
+cmake_minimum_required( VERSION 3.20 )
 cmake_policy(SET CMP0074 NEW)
 
 # If the user doesn't specify a build type, prefer RelWithDebInfo
@@ -161,7 +161,7 @@ set_target_properties(libathelas
 
 # hack because Clang is legacy..
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fopenmp=libomp --std=c++23")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++ -fopenmp=libomp --std=c++23")
     set(OpenMP_CXX_FLAGS="-fopenmp=libomp")
     include_directories(${OpenMP_CXX_INCLUDE_DIRS})
 endif()
@@ -198,6 +198,7 @@ if (NOT TARGET Kokkos::kokkos)
       message(STATUS "Using Kokkos source from Kokkos_ROOT=${Kokkos_ROOT}")
     elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/Kokkos/CMakeLists.txt)
       add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/Kokkos)
+      include_directories(${Kokkos_INCLUDE_DIRS_RET})
       message(STATUS "Using Kokkos source from Athelas submodule at ${CMAKE_CURRENT_SOURCE_DIR}/external/Kokkos")
     else()
       message(FATAL_ERROR "Could not find Kokkos source. Consider running `git submodule update --init`, providing the path to a Kokkos source directory with Kokkos_ROOT, or setting ATHELAS_IMPORT_KOKKOS=ON to link to an external Kokkos installation.")
@@ -228,7 +229,7 @@ else()
   find_package( LAPACK REQUIRED  )
   message(STATUS "LAPACKE_LIBRARIES = ${LAPACK_LIBRARIES}")
   include_directories(${LAPACK_INCLUDE_DIRS})
-    target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
+	#    target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
 endif()
 include_directories(${LAPACK_INCLUDE_DIRS})
 
@@ -236,29 +237,60 @@ include_directories(${LAPACK_INCLUDE_DIRS})
 include_directories("external/tomlplusplus")
 
 # --- main ---
+# --- libathelas ---
+target_compile_options(libathelas PRIVATE 
+    -fPIC 
+    -Wall 
+    ${OpenMP_CXX_FLAGS}
+)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(libathelas PRIVATE -stdlib=libstdc++)
+    target_link_options(libathelas PRIVATE -stdlib=libstdc++)
+    
+    # Add specific Clang flags for Kokkos
+    target_compile_options(libathelas PRIVATE -fopenmp=libomp)
+endif()
+target_link_libraries(libathelas kokkos)
 
-add_executable( athelas src/main.cpp ${ATHELAS_SOURCES} )
+# --- athelas executable ---
+add_executable(athelas src/main.cpp ${ATHELAS_SOURCES})
 target_compile_features(athelas PRIVATE cxx_std_23)
-set_target_properties(athelas
-    PROPERTIES
+set_target_properties(athelas PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib"
     #RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
 )
 
-# -- finalize ---
-# yeah it's a mess but it works
+# Set compile options
+target_compile_options(athelas PRIVATE 
+    -fPIC 
+    -Wall 
+    ${OpenMP_CXX_FLAGS}
+)
 
-target_link_libraries( libathelas Kokkos::kokkos git_version )
-target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenMP_CXX_FLAGS} )
-
-target_compile_options( athelas PRIVATE -fPIC -Wall -llapacke )
-add_dependencies( athelas libathelas )
-
-target_link_libraries( athelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos stdc++exp ${OpenMP_CXX_FLAGS} )
-
-if ( ATHELAS_ENABLE_UNIT_TESTS )
-  message("\nConfiguring tests")
-  enable_testing()
-  add_subdirectory( test )
+# Set compiler-specific options
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(athelas PRIVATE -stdlib=libstdc++ -fopenmp=libomp)
+    target_link_options(athelas PRIVATE -stdlib=libstdc++)
+    
+    # Find and link libomp explicitly for Clang
+    find_library(LIBOMP_LIBRARY NAMES omp)
+    if(LIBOMP_LIBRARY)
+        target_link_libraries(athelas PRIVATE ${LIBOMP_LIBRARY})
+    endif()
 endif()
+
+# Add dependencies
+add_dependencies(athelas libathelas)
+
+# Link libraries (do this only once, with all libraries)
+target_link_libraries(athelas PRIVATE
+    libathelas
+    kokkos
+    git_version
+    OpenMP::OpenMP_CXX
+    ${HDF5_C_LIBRARIES}
+    ${HDF5_LIBRARIES}
+    ${LAPACK_LIBRARIES}
+    stdc++exp
+)

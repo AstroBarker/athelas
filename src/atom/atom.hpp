@@ -67,7 +67,7 @@ class AtomicData {
     int total_levels = 0;
     std::vector<int> offs(num_species_);
 
-    for (int s = 0; s < num_species_; ++s) {
+    for (size_t s = 0; s < num_species_; ++s) {
       int Z   = s;
       offs[s] = total_levels;
       total_levels += Z; // Z ionization levels
@@ -101,7 +101,7 @@ class AtomicData {
     int g_idx     = 0; // Index into degeneracy factors vector
     int level_idx = 0; // Index into our ion_data_ array
 
-    for (int s = 0; s < num_species_; ++s) {
+    for (size_t s = 0; s < num_species_; ++s) {
       int Z = atomic_numbers_host(s);
 
       // For species s, we have:
