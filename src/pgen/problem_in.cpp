@@ -514,7 +514,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
       config_["ionization"]["fn_ionization"].value<std::string>();
   std::optional<std::string> fn_deg =
       config_["ionization"]["fn_degeneracy"].value<std::string>();
-  if (!fn_ion || !fn_deg) {
+  if ((!fn_ion || !fn_deg) && ion.value()) {
     THROW_ATHELAS_ERROR("With ionization enabled you must provide paths to "
                         "atomic data (fn_ionization and fn_degeneracy). "
                         "Defaults are in athelas/data/");
