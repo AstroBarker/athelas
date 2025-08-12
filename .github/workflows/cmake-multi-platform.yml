@@ -50,8 +50,9 @@ jobs:
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 140
         sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 140
         sudo apt-get install -qq libhdf5-dev liblapack-dev liblapacke-dev libopenblas-dev libomp-dev
-        sudo apt-get install -y clang-19 libc++-19-dev libc++abi-19-dev libomp-dev llvm-dev #babysit clang
-        #sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-20 100
+        sudo apt-get install -y clang-19 libc++-19-dev libc++abi-19-dev libomp-19-dev llvm-19-dev #babysit clang
+        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 100
+        sudo update-alternatives --set clang++ /usr/bin/clang++-19
 
 
     - name: Set reusable strings
