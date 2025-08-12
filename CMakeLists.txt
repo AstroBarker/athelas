@@ -163,7 +163,7 @@ set_target_properties(libathelas
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # Workaround for std::expected not available in clang
   add_compile_options(
-    -stdlib=libstdc++ -D__cpp_concepts=202002 -Wno-builtin-macro-redefined
+    -stdlib=libc++ -D__cpp_concepts=202002 -Wno-builtin-macro-redefined --std=c++2b
   )
 endif()
 
