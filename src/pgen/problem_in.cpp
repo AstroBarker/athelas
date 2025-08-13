@@ -632,7 +632,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
     }
   }
 
-  std::println("# config_uration ... Complete\n");
+  std::println("# Configuration ... Complete\n");
 }
 
 auto check_bc(std::string bc) -> bool {
