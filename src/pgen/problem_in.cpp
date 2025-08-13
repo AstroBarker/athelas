@@ -592,6 +592,10 @@ ProblemIn::ProblemIn(const std::string& fn) {
   }
   params_->add("eos.type", eos_type.value());
   params_->add("eos.gamma", config_["eos"]["gamma"].value_or(1.4));
+  if (eos_type.value() == "polytropic") {
+    params_->add("eos.k", config_["eos"]["k"].value<double>().value());
+    params_->add("eos.n", config_["eos"]["n"].value<double>().value());
+  }
 
   // --------------------------
   // ---------- opac ----------

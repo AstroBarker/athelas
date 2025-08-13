@@ -1,9 +1,7 @@
 #pragma once
+
 /**
- * @file eos_base.hpp
- * --------------
- *
- * @author Brandon L. Barker
+ * @class EosBase
  * @brief Base class for equations of state using the Curiously Recurring
  *Template Pattern (CRTP)
  *
@@ -18,8 +16,7 @@
  *          - temperature_from_conserved
  *
  *          These interfaces are implemented for all EOS
- **/
-
+ */
 template <class EOS>
 class EosBase {
  public:

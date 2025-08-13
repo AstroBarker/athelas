@@ -1,9 +1,5 @@
 #pragma once
 /**
- * @file eos_variant.hpp
- * --------------
- *
- * @author Brandon L. Barker
  * @brief Provides variant-based dispatch for equations of state
  *
  * @details This header implements a type-safe way to handle different EOS
@@ -17,7 +13,7 @@
 #include "error.hpp"
 #include "problem_in.hpp"
 
-using EOS = std::variant<IdealGas, Marshak>;
+using EOS = std::variant<IdealGas, Polytropic, Marshak>;
 
 KOKKOS_INLINE_FUNCTION auto
 pressure_from_conserved(const EOS* eos, const double tau, const double V,
@@ -58,6 +54,8 @@ KOKKOS_INLINE_FUNCTION auto initialize_eos(const ProblemIn* pin) -> EOS {
   const auto type = pin->param()->get<std::string>("eos.type");
   if (type == "ideal") {
     eos = IdealGas(pin->param()->get<double>("eos.gamma"));
+  } else if (type == "polytropic") {
+    eos = Polytropic(pin->param()->get<double>("eos.k"), pin->param()->get<double>("eos.n"));
   } else if (type == "marshak") {
     eos = Marshak(pin->param()->get<double>("eos.gamma"));
   } else {
