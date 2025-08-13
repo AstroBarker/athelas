@@ -1,20 +1,23 @@
+#pragma once
 /**
  * Utilities for testing
  * Contains:
  * SoftEqual
  **/
 
-#ifndef _TEST_UTILS_HPP_
-#define _TEST_UTILS_HPP_
-
 #include <cmath>
+#include <iostream>
+#include <print>
+
+#include "io/parser.hpp"
 
 using Real = double;
 
 /**
  * Test for near machine precision
  **/
-bool SoftEqual(const Real& val, const Real& ref, const Real tol = 1.0e-8) {
+inline bool SoftEqual(const Real& val, const Real& ref,
+                      const Real tol = 1.0e-8) {
   if (std::fabs(val - ref) < tol * std::fabs(ref) / 2.0) {
     return true;
   } else {
@@ -22,4 +25,29 @@ bool SoftEqual(const Real& val, const Real& ref, const Real tol = 1.0e-8) {
   }
 }
 
-#endif // _TEST_UTILS_HPP_
+// Utility function to print parse results
+inline void print_parser_data(const Parser::ParseResult& result) {
+  // Print headers
+  std::print("Headers: ");
+  for (size_t i = 0; i < result.headers.size(); ++i) {
+    std::cout << std::format("\"{}\"", result.headers[i]);
+    if (i < result.headers.size() - 1) {
+      std::print(", ");
+    }
+  }
+  std::print("\n\n");
+
+  // Print rows
+  for (size_t row_idx = 0; row_idx < result.rows.size(); ++row_idx) {
+    const auto& row = result.rows[row_idx];
+    std::cout << std::format("Row {}: ", row_idx + 1);
+
+    for (size_t col_idx = 0; col_idx < row.size(); ++col_idx) {
+      std::cout << std::format("\"{}\"", row[col_idx]);
+      if (col_idx < row.size() - 1) {
+        std::print(", ");
+      }
+    }
+    std::print("\n\n");
+  }
+}

@@ -12,6 +12,8 @@ nx = 256
 [physics]
 radiation = false
 gravity = false
+composition = false
+ionization = false
 
 [problem.params]
 vL = 0.0

@@ -19,6 +19,8 @@ logE_rad = 12.0
 [physics]
 radiation = true
 gravity = false
+composition = false
+ionization = false
 
 [bc]
 [bc.fluid]

@@ -56,7 +56,7 @@ class TimeStepper {
     const auto& order = opts->max_order;
     const auto& ihi   = grid.get_ihi();
 
-    auto U = state->get_u_cf();
+    auto U = state->u_cf();
 
     const int nvars = U.extent(0);
 
@@ -190,7 +190,7 @@ class TimeStepper {
     const auto& order = opts->max_order;
     const auto& ihi   = grid.get_ihi();
 
-    auto uCF = state->get_u_cf();
+    auto uCF = state->u_cf();
 
     grid_s_[0] = grid;
 

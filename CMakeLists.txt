@@ -3,7 +3,7 @@
 # But it works.
 # ===
 
-cmake_minimum_required( VERSION 3.11 )
+cmake_minimum_required( VERSION 3.20 )
 cmake_policy(SET CMP0074 NEW)
 
 # If the user doesn't specify a build type, prefer RelWithDebInfo
@@ -161,28 +161,20 @@ set_target_properties(libathelas
 
 # hack because Clang is legacy..
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # Workaround for std::expected not available in clang
-  add_compile_options(
-    -stdlib=libstdc++ -D__cpp_concepts=202002 -Wno-builtin-macro-redefined
-  )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++ -fopenmp=libomp --std=c++23")
+    set(OpenMP_CXX_FLAGS="-fopenmp=libomp")
+    include_directories(${OpenMP_CXX_INCLUDE_DIRS})
 endif()
-
 # Check for FindOpenMP
 find_package(OpenMP REQUIRED)
-if (OPENMP_FOUND)
+if (OPENMP_CXX_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     message(STATUS "OPEN MP ${OpenMP_CXX_SPEC_DATE}")
-    if((OpenMP_CXX_SPEC_DATE GREATER_EQUAL "201511"))
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOMP45")
-        message(STATUS "Using OpenMP 4.5 directives")
-    else()
-        message(STATUS "Not using OpenMP 4.5 directives: ${OpenMP_C_VERSION_MAJOR} ${OpenMP_C_VERSION_MINOR}")
-    endif()
     set(ENABLE_OPENMP ON)
     set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "Allow Kokkos to use OpenMP as execution space.")
     include_directories(${OpenMP_CXX_INCLUDE_DIRS})
-endif(OPENMP_FOUND)
+endif(OPENMP_CXX_FOUND)
 
 set(ENABLE_COMPILER_WARNINGS False)
 if (ENABLE_COMPILER_WARNINGS)
@@ -195,7 +187,7 @@ endif()
 # Kokkos
 if (NOT TARGET Kokkos::kokkos)
   if (ATHELAS_IMPORT_KOKKOS)
-    find_package(Kokkos 4.2)
+    find_package(Kokkos 4.7)
     if (NOT Kokkos_FOUND)
       unset(ATHELAS_IMPORT_KOKKOS CACHE)
       message(FATAL_ERROR "Could not find external Kokkos. Consider importing a Kokkos installation into your environment or disabling external Kokkos with e.g. -DATHELAS_IMPORT_KOKKOS=OFF")
@@ -206,6 +198,7 @@ if (NOT TARGET Kokkos::kokkos)
       message(STATUS "Using Kokkos source from Kokkos_ROOT=${Kokkos_ROOT}")
     elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/Kokkos/CMakeLists.txt)
       add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/Kokkos)
+      include_directories(${Kokkos_INCLUDE_DIRS_RET})
       message(STATUS "Using Kokkos source from Athelas submodule at ${CMAKE_CURRENT_SOURCE_DIR}/external/Kokkos")
     else()
       message(FATAL_ERROR "Could not find Kokkos source. Consider running `git submodule update --init`, providing the path to a Kokkos source directory with Kokkos_ROOT, or setting ATHELAS_IMPORT_KOKKOS=ON to link to an external Kokkos installation.")
@@ -236,7 +229,7 @@ else()
   find_package( LAPACK REQUIRED  )
   message(STATUS "LAPACKE_LIBRARIES = ${LAPACK_LIBRARIES}")
   include_directories(${LAPACK_INCLUDE_DIRS})
-    target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
+	#    target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
 endif()
 include_directories(${LAPACK_INCLUDE_DIRS})
 
@@ -244,28 +237,60 @@ include_directories(${LAPACK_INCLUDE_DIRS})
 include_directories("external/tomlplusplus")
 
 # --- main ---
+# --- libathelas ---
+target_compile_options(libathelas PRIVATE 
+    -fPIC 
+    -Wall 
+    ${OpenMP_CXX_FLAGS}
+)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(libathelas PRIVATE -stdlib=libstdc++)
+    target_link_options(libathelas PRIVATE -stdlib=libstdc++)
+    
+    # Add specific Clang flags for Kokkos
+    target_compile_options(libathelas PRIVATE -fopenmp=libomp)
+endif()
+target_link_libraries(libathelas kokkos)
 
-add_executable( athelas src/main.cpp ${ATHELAS_SOURCES} )
-set_target_properties(athelas
-    PROPERTIES
+# --- athelas executable ---
+add_executable(athelas src/main.cpp ${ATHELAS_SOURCES})
+target_compile_features(athelas PRIVATE cxx_std_23)
+set_target_properties(athelas PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib"
     #RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
 )
 
-# -- finalize ---
-# yeah it's a mess but it works
+# Set compile options
+target_compile_options(athelas PRIVATE 
+    -fPIC 
+    -Wall 
+    ${OpenMP_CXX_FLAGS}
+)
 
-target_link_libraries( libathelas Kokkos::kokkos git_version )
-target_link_libraries( libathelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenMP_CXX_FLAGS} )
-
-target_compile_options( athelas PRIVATE -fPIC -Wall -llapacke )
-add_dependencies( athelas libathelas )
-
-target_link_libraries( athelas ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${LAPACK_LIBRARIES} Kokkos::kokkos stdc++exp ${OpenMP_CXX_FLAGS} )
-
-if ( ATHELAS_ENABLE_UNIT_TESTS )
-  message("\nConfiguring tests")
-  enable_testing()
-  add_subdirectory( test )
+# Set compiler-specific options
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(athelas PRIVATE -stdlib=libstdc++ -fopenmp=libomp)
+    target_link_options(athelas PRIVATE -stdlib=libstdc++)
+    
+    # Find and link libomp explicitly for Clang
+    find_library(LIBOMP_LIBRARY NAMES omp)
+    if(LIBOMP_LIBRARY)
+        target_link_libraries(athelas PRIVATE ${LIBOMP_LIBRARY})
+    endif()
 endif()
+
+# Add dependencies
+add_dependencies(athelas libathelas)
+
+# Link libraries (do this only once, with all libraries)
+target_link_libraries(athelas PRIVATE
+    libathelas
+    kokkos
+    git_version
+    OpenMP::OpenMP_CXX
+    ${HDF5_C_LIBRARIES}
+    ${HDF5_LIBRARIES}
+    ${LAPACK_LIBRARIES}
+    stdc++exp
+)

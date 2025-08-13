@@ -6,12 +6,14 @@ geometry = "planar"
 restart = false
 xl = 0.0
 xr = 1.0
-cfl = 0.8
+cfl = 0.5
 nx = 256
 
 [physics]
 radiation = false
 gravity = false
+composition = false
+ionization = false
 
 [problem.params]
 vL = 0.0
@@ -44,14 +46,11 @@ porder = 3
 [fluid.limiter]
 do_limiter = true
 type = "minmod"
-m_tvb = 100.0
+m_tvb = 10.0
 b_tvd = 1.0
 tci_opt = true
-tci_val = 0.05
-#tci_val = 0.6
+tci_val = 0.075
 characteristic = false
-gamma_i = 0.5
-weno_r = 2.0
 
 [time]
 integrator = "EX_SSPRK33"

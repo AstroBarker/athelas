@@ -6,7 +6,7 @@ message( STATUS "Fetching Catch2 as needed" )
 FetchContent_Declare( 
   Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG        v3.0.1 # or later
+  GIT_TAG        v3.9.0 # or later
   )
 FetchContent_MakeAvailable(Catch2)
 
@@ -15,6 +15,7 @@ add_executable( unit_tests
   unit_tests_main.cpp
 
   test_catch_integration.cpp
+  test_parser.cpp
   )
 
 target_link_libraries( unit_tests

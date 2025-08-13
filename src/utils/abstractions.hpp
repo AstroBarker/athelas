@@ -34,6 +34,9 @@ using View2D = Kokkos::View<T**>;
 template <typename T>
 using View1D = Kokkos::View<T*>;
 
+template <typename T>
+using HostView1D = Kokkos::View<T*, Kokkos::HostSpace>;
+
 /* Where to put this? */
 namespace poly_basis {
 enum poly_basis { legendre, taylor };

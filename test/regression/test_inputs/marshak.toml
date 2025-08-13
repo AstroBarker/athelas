@@ -18,6 +18,8 @@ epsilon = 1.0
 [physics]
 radiation = true
 gravity = false
+composition = false
+ionization = false
 
 [bc]
 [bc.fluid]

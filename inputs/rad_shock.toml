@@ -7,8 +7,8 @@ restart = false
 xl = 0.0
 xr = 0.01575
 x_d = 0.0132
-cfl = 0.1
-nx = 128
+cfl = 0.95
+nx = 256
 
 # Mach 3 Case:
 # - Left side (pre-shock):
@@ -32,18 +32,20 @@ T_R = 7.98e6
 [physics]
 radiation = true
 gravity = false
+composition = false
+ionization = false
 
 [bc]
 [bc.fluid]
 bc_i = "outflow"
 bc_o = "outflow"
-dirichlet_values_i = [1.757469e-1, 5.19e7, 1.616577e15]
-dirichlet_values_o = [5.847953e-2, 1.73e7, 1.137159e15]
+dirichlet_values_i = [1.757469e-1, 5.19e7, 1.6165769496e15]
+dirichlet_values_o = [5.847953e-2, 1.73e7, 1.1371588340e15]
 [bc.radiation]
 bc_i = "outflow"
 bc_o = "outflow"
-dirichlet_values_i = [1.70874e11, 0.0]
-dirichlet_values_o = [3.06805e13, 0.0]
+dirichlet_values_i = [1.7087439876e11, 0.0]
+dirichlet_values_o = [3.0680511120e13, 0.0]
 
 [output]
 ncycle_out = 250
@@ -56,10 +58,24 @@ fn = "rad_shock.hst"
 
 [fluid]
 basis = "legendre"
-nnodes = 2
-porder = 2
+nnodes = 3
+porder = 3
 
 [fluid.limiter]
+do_limiter = true
+type = "minmod"
+m_tvb = 4.0
+b_tvd = 1.0
+tci_opt = true
+tci_val = 2.0
+characteristic = false
+
+[radiation]
+basis = "legendre"
+nnodes = 3
+porder = 3
+
+[radiation.limiter]
 type = "minmod"
 m_tvb = 0.0
 b_tvd = 1.0
@@ -67,22 +83,10 @@ tci_opt = false
 tci_val = 0.1
 characteristic = false
 
-[radiation]
-basis = "legendre"
-nnodes = 2
-porder = 2
-
-[radiation.limiter]
-m_tvb = 10.0
-b_tvd = 1.0
-tci_opt = false
-tci_val = 0.1
-characteristic = false
-
 [time]
-#integrator = "IMEX_SSPRK11"
+integrator = "IMEX_SSPRK11"
 #integrator = "IMEX_SSPRK22_DIRK" # bad
-integrator = "IMEX_ARK32_ESDIRK"
+#integrator = "IMEX_ARK32_ESDIRK"
 #integrator = "IMEX_PDARS_ESDIRK"
 
 [eos]

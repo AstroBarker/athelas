@@ -126,8 +126,8 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
 void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
                  const std::string& problem_name, double time, int order,
                  int i_write, bool do_rad) {
-  View3D<double> uCF = state->get_u_cf();
-  View3D<double> uPF = state->get_u_pf();
+  View3D<double> uCF = state->u_cf();
+  View3D<double> uPF = state->u_pf();
 
   // Construct filename
   std::string fn = problem_name;

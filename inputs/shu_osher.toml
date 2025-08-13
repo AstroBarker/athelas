@@ -7,7 +7,7 @@ restart = false
 xl = -10.0
 xr = 10.0
 cfl = 0.35
-nx = 1024
+nx = 128
 
 [problem.params]
 v0 = 2.629369
@@ -18,6 +18,8 @@ pR = 1.0
 [physics]
 radiation = false
 gravity = false
+composition = false
+ionization = false
 
 [bc]
 [bc.fluid]
@@ -34,6 +36,7 @@ fn = "shu_osher.hst"
 
 [fluid]
 basis = "legendre"
+<<<<<<< Updated upstream
 nnodes = 2
 porder = 2
 

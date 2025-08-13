@@ -86,7 +86,7 @@ inline void WARNING_ATHELAS(const std::string& message) {
 
 template <typename T>
 void check_state(T state, const int ihi, const bool do_rad) {
-  auto uCF       = state->get_u_cf();
+  auto uCF       = state->u_cf();
   const double c = constants::c_cgs;
 
   // Create host mirrors of the views

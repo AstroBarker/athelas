@@ -25,7 +25,7 @@ auto total_fluid_energy(const State& state, const GridStructure& grid,
   const auto& ihi    = grid.get_ihi();
   const auto& nNodes = grid.get_n_nodes();
 
-  const auto u = state.get_u_cf();
+  const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
@@ -56,7 +56,7 @@ auto total_fluid_momentum(const State& state, const GridStructure& grid,
   const auto& ihi    = grid.get_ihi();
   const auto& nNodes = grid.get_n_nodes();
 
-  const auto u = state.get_u_cf();
+  const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
@@ -87,7 +87,7 @@ auto total_internal_energy(const State& state, const GridStructure& grid,
   const auto& ihi    = grid.get_ihi();
   const auto& nNodes = grid.get_n_nodes();
 
-  const auto u = state.get_u_cf();
+  const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
@@ -120,7 +120,7 @@ auto total_gravitational_energy(const State& state, const GridStructure& grid,
   const auto& ihi    = grid.get_ihi();
   const auto& nNodes = grid.get_n_nodes();
 
-  const auto u = state.get_u_cf();
+  const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
@@ -152,7 +152,7 @@ auto total_kinetic_energy(const State& state, const GridStructure& grid,
   const auto& ihi    = grid.get_ihi();
   const auto& nNodes = grid.get_n_nodes();
 
-  const auto u = state.get_u_cf();
+  const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
@@ -185,7 +185,7 @@ auto total_rad_energy(const State& state, const GridStructure& grid,
   const auto& ihi    = grid.get_ihi();
   const auto& nNodes = grid.get_n_nodes();
 
-  const auto u = state.get_u_cf();
+  const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
@@ -216,7 +216,7 @@ auto total_rad_momentum(const State& state, const GridStructure& grid,
   const auto& ihi    = grid.get_ihi();
   const auto& nNodes = grid.get_n_nodes();
 
-  const auto u = state.get_u_cf();
+  const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
@@ -247,7 +247,7 @@ auto total_energy(const State& state, const GridStructure& grid,
   const auto& ihi    = grid.get_ihi();
   const auto& nNodes = grid.get_n_nodes();
 
-  const auto u = state.get_u_cf();
+  const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
@@ -280,7 +280,7 @@ auto total_momentum(const State& state, const GridStructure& grid,
   const auto& ihi    = grid.get_ihi();
   const auto& nNodes = grid.get_n_nodes();
 
-  const auto u = state.get_u_cf();
+  const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
@@ -312,7 +312,7 @@ auto total_mass(const State& state, const GridStructure& grid,
   const auto& ihi    = grid.get_ihi();
   const auto& nNodes = grid.get_n_nodes();
 
-  const auto u = state.get_u_cf();
+  const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(

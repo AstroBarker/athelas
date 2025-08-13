@@ -1,4 +1,4 @@
-name: GCC Compilation and Regression Tests
+name: Compilation and Unit Tests
 
 on:
   push:
@@ -31,26 +31,6 @@ jobs:
         sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 140
 
     
-    - name: Set up Python with uv
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-        
-    - name: Install uv
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        echo "$HOME/.uv/bin" >> $GITHUB_PATH
-        
-    - name: Install Python dependencies with uv
-      run: |
-        uv venv
-        echo "VIRTUAL_ENV=${{ github.workspace }}/.venv" >> $GITHUB_ENV
-        echo "${{ github.workspace }}/.venv/bin" >> $GITHUB_PATH
-
-    - name: Install Python dependencies in venv
-      run: |
-        uv pip install numpy h5py astropy matplotlib scipy
-        
     - name: Set reusable strings
       id: strings
       shell: bash
@@ -64,12 +44,13 @@ jobs:
         -DCMAKE_C_COMPILER=gcc
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DMACHINE=UBUNTU
+        -DATHELAS_ENABLE_UNIT_TESTS=On
         -S ${{ github.workspace }}
         
     - name: Build
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
       
-    - name: Run Regression Tests
-      working-directory: test/regression
+    - name: Run Unit Tests
       run: |
-        python run_regression_tests.py -e ${{ steps.strings.outputs.build-output-dir }}/athelas
+        cd build
+        ctest
