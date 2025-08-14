@@ -2,7 +2,6 @@
 
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
-#include "timestepper/tableau.hpp"
 #include "utils/abstractions.hpp"
 
 /**
@@ -29,5 +28,5 @@ class HydrostaticEquilibrium {
 
   static constexpr int iP_ = 0;
 
-  static auto rhs(double mass_enc, double rho, double r) -> double;
+  auto rhs(double mass_enc, double p, double r) const -> double;
 };

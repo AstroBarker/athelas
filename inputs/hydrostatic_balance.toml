@@ -5,14 +5,12 @@ nlim = -1
 geometry = "spherical"
 restart = false
 xl = 0.0
-xr = 1.0e9
+xr = 5.0e10
 cfl = 0.05
 nx = 512
 
 [problem.params]
-v0 = 0.0
-rho0 = 1.0
-p0 = 10.0
+rho_c = 1.0e2
 
 [physics]
 radiation = false
@@ -61,5 +59,6 @@ integrator = "EX_SSPRK33"
 
 [eos]
 type = "polytropic"
-k = 1.0e8
-n = 2.0
+#k = 7.125e14
+k = 1.0e13
+n = 3.0

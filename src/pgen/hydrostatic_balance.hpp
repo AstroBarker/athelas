@@ -38,12 +38,12 @@ void hydrostatic_balance_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   constexpr static int iPF_D = 0;
 
-  //const auto V0  = pin->param()->get<double>("problem.params.v0", 2.629369);
+  const auto rho_c  = pin->param()->get<double>("problem.params.rho_c", 1.0e8);
 
   const double gamma = get_gamma(eos);
   const double gm1   = gamma - 1.0;
 
-  auto solver = HydrostaticEquilibrium(1.0e5, 1.0e-5, eos, pin->param()->get<double>("eos.k"), 
+  auto solver = HydrostaticEquilibrium(1.0e0, 1.0e-5, eos, pin->param()->get<double>("eos.k"), 
                                        pin->param()->get<double>("eos.n"));
   solver.solve(state->u_af(), grid);
   /*

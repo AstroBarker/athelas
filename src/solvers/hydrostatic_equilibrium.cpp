@@ -2,8 +2,9 @@
 #include "Kokkos_Core.hpp"
 #include "utils/constants.hpp"
 
-auto HydrostaticEquilibrium::rhs(const double mass_enc, const double rho, const double r) -> double {
+auto HydrostaticEquilibrium::rhs(const double mass_enc, const double p, const double r) const -> double {
   static constexpr double G = constants::G_GRAV;
+  const double rho = std::pow(p/k_, n_/(n_ + 1.0));
   return - G * mass_enc * rho / (r * r);
 }
 
@@ -43,20 +44,20 @@ void HydrostaticEquilibrium::solve(View3D<double> uAF, const GridStructure* grid
   for (int i = 0; i < size; ++i) {
     const double r = h_r(i);
     const double p = h_p(i);
-    const double rho = std::pow(p/k_, -n_/(n_ + 1.0));
+    const double rho = std::pow(p/k_, n_/(n_ + 1.0));
     const double dr = h_r(i + 1) - r;
     std::println("p, rho = {} {}", h_p(i), rho);
     const double m = m_enc;// + constants::FOURPI * rho * r * r * dr;
 
     // RK4
     // MAKE RHS IN TERMS OF P
-    const double k1 = rhs(m, rho, r);
-    const double k2 = rhs(m + 0.5 * dr * k1, rho + 0.5 * dr * k1, r + 0.5 * dr);
-    const double k3 = rhs(m + 0.5 * dr * k2, rho + 0.5 * dr * k2, r + 0.5 * dr);
-    const double k4 = rhs(m + dr * k3, rho + dr * k3, r + dr);
-    std::println("k1 k2 k3 k4 m r {} {} {} {} {} {}", k1, k2, k3, k4, m , r);
+    // NOTE: Currently holding m constant through the stages!
+    const double k1 = dr * rhs(m, p, r);
+    const double k2 = dr * rhs(m, p + 0.5  * k1, r + 0.5 * dr);
+    const double k3 = dr * rhs(m, p + 0.5  * k2, r + 0.5 * dr);
+    const double k4 = dr * rhs(m, p + k3, r + dr);
 
     m_enc += constants::FOURPI * rho * r * r * dr;
-    h_p(i+1) = p + (dr / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
+    h_p(i+1) = std::max(p + (1.0 / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4), p_threshold_);
   }
 }
