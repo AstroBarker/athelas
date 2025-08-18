@@ -7,6 +7,7 @@
  * @brief Useful utilities
  *
  * @details Provides
+ *          - LINTERP
  *          - SGN
  *          - compute_internal_energy
  *          - to_lower
@@ -19,6 +20,21 @@
 #include "polynomial_basis.hpp"
 
 namespace utilities {
+
+/**
+ * @brief simple linear interpolation to x
+ *
+ * Uses fused multiply add (std::fma) to reduce rounding errors when available.
+ */
+KOKKOS_FUNCTION
+template <typename T>
+constexpr auto LINTERP(T x0, T x1, T y0, T y1, T x) -> T {
+  if (x0 == x1) {
+    return y0;
+  }
+  T t = (x - x0) / (x1 - x0);
+  return std::fma(y1 - y0, t, y0);
+}
 
 // [[x]]_+ = -.5 * (x + |x|) is positive part of x
 [[nodiscard]] KOKKOS_INLINE_FUNCTION auto pos_part(const double x) noexcept

@@ -20,13 +20,15 @@
  * @brief Initialize Shu Osher hydro test
  **/
 void hydrostatic_balance_init(State* state, GridStructure* grid, ProblemIn* pin,
-                    const EOS* eos, ModalBasis* fluid_basis = nullptr) {
+                              const EOS* eos,
+                              ModalBasis* fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "polytropic") {
     THROW_ATHELAS_ERROR("Hydrostatic balance requires polytropic eos!");
   }
 
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
+  View3D<double> uAF = state->u_af();
 
   const int ilo    = 1;
   const int ihi    = grid->get_ihi();
@@ -38,57 +40,49 @@ void hydrostatic_balance_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   constexpr static int iPF_D = 0;
 
-  const auto rho_c  = pin->param()->get<double>("problem.params.rho_c", 1.0e8);
+  const auto rho_c = pin->param()->get<double>("problem.params.rho_c", 1.0e8);
+  const auto p_thresh =
+      pin->param()->get<double>("problem.params.p_threshold", 1.0e-10);
+
+  const auto polytropic_k = pin->param()->get<double>("eos.k");
+  const auto polytropic_n = pin->param()->get<double>("eos.n");
 
   const double gamma = get_gamma(eos);
   const double gm1   = gamma - 1.0;
 
-  auto solver = HydrostaticEquilibrium(1.0e0, 1.0e-5, eos, pin->param()->get<double>("eos.k"), 
-                                       pin->param()->get<double>("eos.n"));
-  solver.solve(state->u_af(), grid);
-  /*
-  // Phase 1: Initialize nodal values (always done)
-  Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
-        const double X1 = grid->get_centers(iX);
+  auto rho_from_p = [&polytropic_k, &polytropic_n](const double p) -> double {
+    return std::pow(p / polytropic_k, polytropic_n / (polytropic_n + 1.0));
+  };
 
-        if (X1 <= -4.0) {
-          // Left state: constant values
+  if (fluid_basis == nullptr) {
+    auto solver = HydrostaticEquilibrium(rho_c, p_thresh, eos,
+                                         pin->param()->get<double>("eos.k"),
+                                         pin->param()->get<double>("eos.n"));
+    solver.solve(state->u_af(), grid, pin);
+
+    // Phase 1: Initialize nodal values (always done)
+    Kokkos::parallel_for(
+        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
           for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-            uPF(iPF_D, iX, iNodeX) = D_L;
+            uPF(iPF_D, iX, iNodeX) = rho_from_p(uAF(0, iX, iNodeX));
           }
-        } else {
-          // Right state: sinusoidal density
-          for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-            const double x         = grid->node_coordinate(iX, iNodeX);
-            uPF(iPF_D, iX, iNodeX) = (1.0 + 0.2 * sin(5.0 * x));
-          }
-        }
-      });
+        });
+  }
 
   // Phase 2: Initialize modal coefficients
   if (fluid_basis != nullptr) {
     // Use L2 projection for accurate modal coefficients
-    auto tau_func = [&D_L](double x) -> double {
-      if (x <= -4.0) {
-        return 1.0 / D_L;
-      }
-      return 1.0 / (1.0 + 0.2 * sin(5.0 * x));
+    auto tau_func = [&](double /*x*/, int iX, int iN) -> double {
+      return 1.0 / rho_from_p(uAF(0, iX, iN));
     };
 
-    auto velocity_func = [&V0](double x) -> double {
-      if (x <= -4.0) {
-        return V0;
-      }
+    auto velocity_func = [](double /*x*/, int /*iX*/, int /*iN*/) -> double {
       return 0.0;
     };
 
-    auto energy_func = [&P_L, &P_R, &V0, &D_L, &gm1](double x) -> double {
-      if (x <= -4.0) {
-        return (P_L / gm1) / D_L + 0.5 * V0 * V0;
-      }
-      const double rho = 1.0 + 0.2 * sin(5.0 * x);
-      return (P_R / gm1) / rho;
+    auto energy_func = [&](double /*x*/, int iX, int iN) -> double {
+      const double rho = rho_from_p(uAF(0, iX, iN));
+      return (uAF(0, iX, iN) / gm1) / rho;
     };
 
     Kokkos::parallel_for(
@@ -96,39 +90,13 @@ void hydrostatic_balance_init(State* state, GridStructure* grid, ProblemIn* pin,
           const int k     = 0;
           const double X1 = grid->get_centers(iX);
 
-          if (X1 <= -4.0) {
-            uCF(iCF_Tau, iX, k) = 1.0 / D_L;
-            uCF(iCF_V, iX, k)   = V0;
-            uCF(iCF_E, iX, k) =
-                (P_L / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
-          } else {
-            // Project each conserved variable
-            fluid_basis->project_nodal_to_modal(uCF, uPF, grid, iCF_Tau, iX,
-                                                tau_func);
-            fluid_basis->project_nodal_to_modal(uCF, uPF, grid, iCF_V, iX,
-                                                velocity_func);
-            fluid_basis->project_nodal_to_modal(uCF, uPF, grid, iCF_E, iX,
-                                                energy_func);
-          }
-        });
-
-  } else {
-    // Fallback: set cell averages only (k=0)
-    Kokkos::parallel_for(
-        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
-          const int k     = 0;
-          const double X1 = grid->get_centers(iX);
-
-          if (X1 <= -4.0) {
-            uCF(iCF_Tau, iX, k) = 1.0 / D_L;
-            uCF(iCF_V, iX, k)   = V0;
-            uCF(iCF_E, iX, k) =
-                (P_L / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
-          } else {
-            uCF(iCF_Tau, iX, k) = 1.0 / (1.0 + 0.2 * sin(5.0 * X1));
-            uCF(iCF_V, iX, k)   = 0.0;
-            uCF(iCF_E, iX, k)   = (P_R / gm1) * uCF(iCF_Tau, iX, k);
-          }
+          // Project each conserved variable
+          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, iCF_Tau, iX,
+                                              tau_func);
+          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, iCF_V, iX,
+                                              velocity_func);
+          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, iCF_E, iX,
+                                              energy_func);
         });
   }
 
@@ -140,5 +108,4 @@ void hydrostatic_balance_init(State* state, GridStructure* grid, ProblemIn* pin,
           uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
         }
       });
-*/
 }

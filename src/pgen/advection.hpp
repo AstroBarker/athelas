@@ -58,13 +58,16 @@ void advection_init(State* state, GridStructure* grid, ProblemIn* pin,
   // Phase 2: Initialize modal coefficients
   if (fluid_basis != nullptr) {
     // Use L2 projection for accurate modal coefficients
-    auto density_func = [&Amp](double x) -> double {
+    auto density_func = [&Amp](double x, int /*iX*/, int /*iN*/) -> double {
       return 2.0 + Amp * sin(2.0 * constants::PI * x);
     };
 
-    auto velocity_func = [&V0](double /*x*/) -> double { return V0; };
+    auto velocity_func = [&V0](double /*x*/, int /*iX*/, int /*iN*/) -> double {
+      return V0;
+    };
 
-    auto energy_func = [&P0, &V0, &Amp, &gm1](double x) -> double {
+    auto energy_func = [&P0, &V0, &Amp, &gm1](double x, int /*iX*/,
+                                              int /*iN*/) -> double {
       const double rho = 2.0 + Amp * sin(2.0 * constants::PI * x);
       return (P0 / gm1) / rho + 0.5 * V0 * V0;
     };

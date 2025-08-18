@@ -12,10 +12,9 @@ class HydrostaticEquilibrium {
  public:
   HydrostaticEquilibrium(double rho_c, double p_threshold, const EOS* eos,
                          double k, double n)
-      : rho_c_(rho_c), p_threshold_(p_threshold), eos_(eos),
-        k_(k), n_(n) {}
+      : rho_c_(rho_c), p_threshold_(p_threshold), eos_(eos), k_(k), n_(n) {}
 
-  void solve(View3D<double> uAF, const GridStructure* grid);
+  void solve(View3D<double> uAF, GridStructure* grid, ProblemIn* pin);
 
  private:
   double rho_c_; // central density

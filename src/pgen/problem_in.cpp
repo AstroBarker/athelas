@@ -477,6 +477,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
     const double gval = config_["gravity"]["gval"].value_or(1.0);
     params_->add("gravity.gval", gval); // Always present
     const std::string gmodel = config_["gravity"]["model"].value_or("constant");
+    params_->add("gravity.modelstring", gmodel);
     params_->add("gravity.model", (utilities::to_lower(gmodel) == "spherical")
                                       ? GravityModel::Spherical
                                       : GravityModel::Constant);

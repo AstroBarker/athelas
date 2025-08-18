@@ -18,6 +18,7 @@
 #include "timestepper/timestepper.hpp"
 #include "utils/abstractions.hpp"
 #include "utils/error.hpp"
+#include "utils/fill_derived.hpp"
 
 auto Driver::execute() -> int {
   const auto nx           = pin_->param()->get<int>("problem.nx");
@@ -92,6 +93,7 @@ auto Driver::execute() -> int {
 
     // Write state, other io
     if (time_ >= i_out_h5 * dt_hdf5) {
+      fill_derived(&state_, eos_.get(), &grid_, fluid_basis_.get());
       write_state(&state_, grid_, &sl_hydro_, problem_name, time_,
                   fluid_basis_->get_order(), i_out_h5, opts_.do_rad);
       i_out_h5 += 1;
@@ -114,6 +116,7 @@ auto Driver::execute() -> int {
     iStep++;
   }
 
+  fill_derived(&state_, eos_.get(), &grid_, fluid_basis_.get());
   write_state(&state_, grid_, &sl_hydro_, problem_name, time_,
               pin_->param()->get<int>("fluid.porder"), -1, opts_.do_rad);
 
@@ -249,7 +252,7 @@ Driver::Driver(std::shared_ptr<ProblemIn> pin) // NOLINT
       opts_(pin->param()->get<bool>("physics.rad_active"),
             pin->param()->get<bool>("physics.gravity_active"), restart_,
             pin->param()->get<int>("fluid.porder", 0)),
-      state_(3 + 2 * (pin->param()->get<bool>("physics.rad_active")), 3, 1,
+      state_(3 + 2 * (pin->param()->get<bool>("physics.rad_active")), 3, 2,
              pin->param()->get<int>("problem.nx"),
              pin->param()->get<int>("fluid.nnodes"),
              pin->param()->get<int>("fluid.porder"),

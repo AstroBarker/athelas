@@ -68,21 +68,22 @@ void shu_osher_init(State* state, GridStructure* grid, ProblemIn* pin,
   // Phase 2: Initialize modal coefficients
   if (fluid_basis != nullptr) {
     // Use L2 projection for accurate modal coefficients
-    auto tau_func = [&D_L](double x) -> double {
+    auto tau_func = [&D_L](double x, int /*iX*/, int /*iN*/) -> double {
       if (x <= -4.0) {
         return 1.0 / D_L;
       }
       return 1.0 / (1.0 + 0.2 * sin(5.0 * x));
     };
 
-    auto velocity_func = [&V0](double x) -> double {
+    auto velocity_func = [&V0](double x, int /*iX*/, int /*iN*/) -> double {
       if (x <= -4.0) {
         return V0;
       }
       return 0.0;
     };
 
-    auto energy_func = [&P_L, &P_R, &V0, &D_L, &gm1](double x) -> double {
+    auto energy_func = [&P_L, &P_R, &V0, &D_L, &gm1](double x, int /*iX*/,
+                                                     int /*iN*/) -> double {
       if (x <= -4.0) {
         return (P_L / gm1) / D_L + 0.5 * V0 * V0;
       }

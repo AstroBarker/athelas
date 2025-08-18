@@ -55,7 +55,8 @@ KOKKOS_INLINE_FUNCTION auto initialize_eos(const ProblemIn* pin) -> EOS {
   if (type == "ideal") {
     eos = IdealGas(pin->param()->get<double>("eos.gamma"));
   } else if (type == "polytropic") {
-    eos = Polytropic(pin->param()->get<double>("eos.k"), pin->param()->get<double>("eos.n"));
+    eos = Polytropic(pin->param()->get<double>("eos.k"),
+                     pin->param()->get<double>("eos.n"));
   } else if (type == "marshak") {
     eos = Marshak(pin->param()->get<double>("eos.gamma"));
   } else {
