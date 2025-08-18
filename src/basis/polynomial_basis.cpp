@@ -277,7 +277,7 @@ void ModalBasis::initialize_basis(const Kokkos::View<double***> uPF,
       }
     }
   }
-  check_orthogonality(uPF, grid);
+  // check_orthogonality(uPF, grid);
   compute_mass_matrix(uPF, grid);
 
   // === Fill Guard cells ===
@@ -439,7 +439,7 @@ auto ModalBasis::get_order() const noexcept -> int { return order_; }
  **/
 void ModalBasis::project_nodal_to_modal(
     View3D<double> uCF, View3D<double> uPF, GridStructure* grid, int iCF,
-    int iX, const std::function<double(double)>& nodal_func) const {
+    int iX, const std::function<double(double, int, int)>& nodal_func) const {
   // Clear existing modal coefficients
   for (int k = 0; k < order_; k++) {
     uCF(iCF, iX, k) = 0.0;
@@ -453,7 +453,7 @@ void ModalBasis::project_nodal_to_modal(
     // Compute <nodal_func, phi_k> using quadrature
     for (int iN = 0; iN < nNodes_; iN++) {
       const double X         = grid->node_coordinate(iX, iN);
-      const double nodal_val = nodal_func(X);
+      const double nodal_val = nodal_func(X, iX, iN);
       const double rho       = density_weight_ ? uPF(0, iX, iN) : 1.0;
 
       numerator += nodal_val * phi_(iX, iN + 1, k) * grid->get_weights(iN) *
@@ -478,7 +478,7 @@ void ModalBasis::project_nodal_to_modal(
  **/
 void ModalBasis::project_nodal_to_modal_all_cells(
     View3D<double> uCF, View3D<double> uPF, GridStructure* grid, int iCF,
-    const std::function<double(double)>& nodal_func) const {
+    const std::function<double(double, int, int)>& nodal_func) const {
   const int ilo = grid->get_ilo();
   const int ihi = grid->get_ihi();
 

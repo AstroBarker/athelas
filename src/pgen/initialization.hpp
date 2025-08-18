@@ -14,6 +14,7 @@
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
 #include "pgen/advection.hpp"
+#include "pgen/hydrostatic_balance.hpp"
 #include "pgen/marshak.hpp"
 #include "pgen/moving_contact.hpp"
 #include "pgen/noh.hpp"
@@ -46,6 +47,8 @@ void initialize_fields(State* state, GridStructure* grid, const EOS* eos,
     shu_osher_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "moving_contact") {
     moving_contact_init(state, grid, pin, eos, fluid_basis);
+  } else if (problem_name == "hydrostatic_balance") {
+    hydrostatic_balance_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "smooth_advection") {
     advection_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "sedov") {

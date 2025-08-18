@@ -1,13 +1,3 @@
-/**
- * @file eos_ideal.cpp
- * --------------
- *
- * @author Brandon L. Barker
- * @brief Ideal gas equation of state
- *
- * @details A standard ideal gas EOS
- *            P = (\gamma - 1) u
- **/
 
 #include <cmath>
 

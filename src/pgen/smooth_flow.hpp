@@ -53,13 +53,15 @@ void smooth_flow_init(State* state, GridStructure* grid, ProblemIn* pin,
   // Phase 2: Initialize modal coefficients
   if (fluid_basis != nullptr) {
     // Use L2 projection for accurate modal coefficients
-    auto density_func = [&amp](double x) -> double {
+    auto density_func = [&amp](double x, int /*iX*/, int /*iN*/) -> double {
       return 1.0 + amp * sin(constants::PI * x);
     };
 
-    auto velocity_func = [](double /*x*/) -> double { return 0.0; };
+    auto velocity_func = [](double /*x*/, int /*iX*/, int /*iN*/) -> double {
+      return 0.0;
+    };
 
-    auto energy_func = [&amp](double x) -> double {
+    auto energy_func = [&amp](double x, int /*iX*/, int /*iN*/) -> double {
       const double D = 1.0 + amp * sin(constants::PI * x);
       return (D * D * D / 2.0) / D;
     };

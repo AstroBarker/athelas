@@ -1,15 +1,3 @@
-/**
- * @file eos_marshak.cpp
- * --------------
- *
- * @author Brandon L. Barker
- * @brief Marshak equation of state
- *
- * @details A standard ideal gas EOS with a weird temperature
- *            P = (\gamma - 1) u
- *            T = (E_r/a)^(1/4)
- **/
-
 #include <cmath>
 
 #include "constants.hpp"

@@ -477,6 +477,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
     const double gval = config_["gravity"]["gval"].value_or(1.0);
     params_->add("gravity.gval", gval); // Always present
     const std::string gmodel = config_["gravity"]["model"].value_or("constant");
+    params_->add("gravity.modelstring", gmodel);
     params_->add("gravity.model", (utilities::to_lower(gmodel) == "spherical")
                                       ? GravityModel::Spherical
                                       : GravityModel::Constant);
@@ -592,6 +593,10 @@ ProblemIn::ProblemIn(const std::string& fn) {
   }
   params_->add("eos.type", eos_type.value());
   params_->add("eos.gamma", config_["eos"]["gamma"].value_or(1.4));
+  if (eos_type.value() == "polytropic") {
+    params_->add("eos.k", config_["eos"]["k"].value<double>().value());
+    params_->add("eos.n", config_["eos"]["n"].value<double>().value());
+  }
 
   // --------------------------
   // ---------- opac ----------

@@ -14,6 +14,7 @@
  *
  *          We support the following equations of state:
  *          - IdealGas (default): ideal gas EOS
+ *          - Polytropic: Stellar polytrope EOS
  *          - Marshak: Weird ideal gas for Marshak test.
  *          - Stellar: currently an unused placceholder
  *
@@ -23,6 +24,12 @@
 #include "eos_base.hpp"
 #include "error.hpp"
 
+/**
+ * @class IdealGas
+ * @brief Ideal gas equation of state
+ *
+ * @details A standard ideal gas EOS P = (\gamma - 1) u
+ */
 class IdealGas : public EosBase<IdealGas> {
  public:
   IdealGas() = default;
@@ -44,7 +51,44 @@ class IdealGas : public EosBase<IdealGas> {
   double gamma_{};
 };
 
-// TODO(astrobarker): thread su olson alpha in
+/**
+ * @class Polytropic
+ * @brief polytropic equation of state: P = K rho^(1 + 1/n)
+ */
+class Polytropic : public EosBase<Polytropic> {
+ public:
+  Polytropic() = default;
+  explicit Polytropic(double k, double n) : k_(k), n_(n) {
+    if (k_ <= 0.0) {
+      THROW_ATHELAS_ERROR(" ! Polytropic :: k <= 0.0!");
+    }
+    if (n_ <= 0.0 || n > 5) {
+      THROW_ATHELAS_ERROR(" ! Polytropic :: n must be in (0.0, 5.0]!");
+    }
+  }
+
+  auto pressure_from_conserved(double tau, double V, double EmT,
+                               double* lambda) const -> double;
+  auto sound_speed_from_conserved(double tau, double V, double EmT,
+                                  double* lambda) const -> double;
+  auto temperature_from_conserved(double tau, double V, double E,
+                                  double* lambda) const -> double;
+  [[nodiscard]] auto get_gamma() const noexcept -> double;
+
+ private:
+  double k_{};
+  double n_{}; // polytropic index. technically an int -- dont want to cast
+};
+
+/**
+ * @class Marshak
+ * @brief Marshak equation of state
+ *
+ * @details A standard ideal gas EOS with a weird temperature
+ *            P = (\gamma - 1) u
+ *            T = (E_r/a)^(1/4)
+ * TODO(astrobarker): thread alpha in
+ */
 class Marshak : public EosBase<Marshak> {
  public:
   Marshak() = default;

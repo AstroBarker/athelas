@@ -6,6 +6,8 @@
  * @brief HDF5 and std out IO routines
  *
  * @details Collection of functions for IO using H5Cpp for HDF5 operations
+ *
+ * TODO(astrobarker): make device friendly
  */
 
 #include <array>
@@ -110,12 +112,8 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
 
   if (gravity_enabled) {
     std::println("# --- Gravity Parameters --- ");
-    std::println("# Spatial Order  : {}",
-                 pin->param()->get<int>("radiation.porder"));
-    std::println("# Inner BC       : {}",
-                 pin->param()->get<int>("radiation.bc.i"));
-    std::println("# Outer BC       : {}",
-                 pin->param()->get<int>("radiation.bc.o"));
+    std::println("# Modal           : {}",
+                 pin->param()->get<std::string>("gravity.modelstring"));
     std::println("");
   }
 }
@@ -128,6 +126,7 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
                  int i_write, bool do_rad) {
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
+  View3D<double> uAF = state->u_af();
 
   // Construct filename
   std::string fn = problem_name;
@@ -163,7 +162,9 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
   std::vector<DataType> vel(size);
   std::vector<DataType> eint(size);
   std::vector<DataType> erad(size);
+  std::vector<DataType> press(size);
   std::vector<DataType> frad(size);
+  std::vector<DataType> nodalr(size);
   std::vector<DataType> gridout(nX);
   std::vector<DataType> dr(nX);
   std::vector<DataType> limiter(nX);
@@ -171,12 +172,14 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
   // Fill data vectors
   for (int k = 0; k < order; k++) {
     for (int iX = ilo; iX <= ihi; iX++) {
-      gridout[(iX - ilo)].x         = grid.get_centers(iX);
-      dr[(iX - ilo)].x              = grid.get_widths(iX);
-      limiter[(iX - ilo)].x         = get_limited(SL, iX);
-      tau[(iX - ilo) + (k * nX)].x  = uCF(0, iX, k);
-      vel[(iX - ilo) + (k * nX)].x  = uCF(1, iX, k);
-      eint[(iX - ilo) + (k * nX)].x = uCF(2, iX, k);
+      gridout[(iX - ilo)].x           = grid.get_centers(iX);
+      dr[(iX - ilo)].x                = grid.get_widths(iX);
+      limiter[(iX - ilo)].x           = get_limited(SL, iX);
+      nodalr[(iX - ilo) + (k * nX)].x = grid.node_coordinate(iX, k);
+      tau[(iX - ilo) + (k * nX)].x    = uCF(0, iX, k);
+      vel[(iX - ilo) + (k * nX)].x    = uCF(1, iX, k);
+      eint[(iX - ilo) + (k * nX)].x   = uCF(2, iX, k);
+      press[(iX - ilo) + (k * nX)].x  = uAF(0, iX, k);
       if (do_rad) {
         erad[(iX - ilo) + (k * nX)].x = uCF(3, iX, k);
         frad[(iX - ilo) + (k * nX)].x = uCF(4, iX, k);
@@ -192,6 +195,7 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
   H5::Group const group_mdb  = file.createGroup("/metadata/build");
   H5::Group const group_grid = file.createGroup("/grid");
   H5::Group const group_CF   = file.createGroup("/conserved");
+  H5::Group const group_AF   = file.createGroup("/auxilliary");
   H5::Group const group_DF   = file.createGroup("/diagnostic");
 
   // Create datasets with proper dimensions
@@ -233,6 +237,8 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
       file.createDataSet("/metadata/order", H5::PredType::NATIVE_INT, md_space);
   H5::DataSet const dataset_time = file.createDataSet(
       "/metadata/time", H5::PredType::NATIVE_DOUBLE, md_space);
+  H5::DataSet dataset_grid_nodal =
+      file.createDataSet("/grid/x_nodal", H5::PredType::NATIVE_DOUBLE, space);
   H5::DataSet dataset_grid =
       file.createDataSet("/grid/x", H5::PredType::NATIVE_DOUBLE, space_grid);
   H5::DataSet dataset_width =
@@ -243,6 +249,8 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
       "/conserved/velocity", H5::PredType::NATIVE_DOUBLE, space);
   H5::DataSet dataset_eint = file.createDataSet(
       "/conserved/energy", H5::PredType::NATIVE_DOUBLE, space);
+  H5::DataSet dataset_press = file.createDataSet(
+      "/auxilliary/pressure", H5::PredType::NATIVE_DOUBLE, space);
 
   H5::DataSet dataset_limiter = file.createDataSet(
       "/diagnostic/limiter", H5::PredType::NATIVE_DOUBLE, space_grid);
@@ -252,12 +260,14 @@ void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
   dataset_order.write(&order, H5::PredType::NATIVE_INT);
   dataset_time.write(&time, H5::PredType::NATIVE_DOUBLE);
 
+  dataset_grid_nodal.write(nodalr.data(), H5::PredType::NATIVE_DOUBLE);
   dataset_grid.write(gridout.data(), H5::PredType::NATIVE_DOUBLE);
   dataset_width.write(dr.data(), H5::PredType::NATIVE_DOUBLE);
   dataset_limiter.write(limiter.data(), H5::PredType::NATIVE_DOUBLE);
   dataset_tau.write(tau.data(), H5::PredType::NATIVE_DOUBLE);
   dataset_vel.write(vel.data(), H5::PredType::NATIVE_DOUBLE);
   dataset_eint.write(eint.data(), H5::PredType::NATIVE_DOUBLE);
+  dataset_press.write(press.data(), H5::PredType::NATIVE_DOUBLE);
 
   if (do_rad) {
     H5::DataSet dataset_erad = file.createDataSet(
