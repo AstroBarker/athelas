@@ -10,6 +10,7 @@
 
 #include <any>
 #include <string>
+#include <typeindex>
 #include <unordered_map>
 
 #include "utils/error.hpp"
@@ -127,6 +128,7 @@ class Params {
   void remove(const std::string& key);
   void clear();
   auto keys() const -> std::vector<std::string>;
+  auto get_type(const std::string& key) const -> std::type_index;
 
  private:
   std::unordered_map<std::string, std::unique_ptr<std::any>> params_;

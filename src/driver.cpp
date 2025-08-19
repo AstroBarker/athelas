@@ -30,7 +30,7 @@ auto Driver::execute() -> int {
               pin_->param()->get<int>("fluid.porder"),
               pin_->param()->get<std::string>("problem.problem"));
   print_simulation_parameters(grid_, pin_.get());
-  write_state(&state_, grid_, &sl_hydro_, problem_name, time_,
+  write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
               pin_->param()->get<int>("fluid.porder"), 0, opts_.do_rad);
 
   // --- Timer ---
@@ -83,7 +83,7 @@ auto Driver::execute() -> int {
     } catch (const AthelasError& e) {
       std::cerr << e.what() << std::endl;
       std::println("!!! Bad State found, writing _final_ output file ...");
-      write_state(&state_, grid_, &sl_hydro_, problem_name, time_,
+      write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
                   pin_->param()->get<int>("fluid.porder"), -1, opts_.do_rad);
       return AthelasExitCodes::FAILURE;
     }
@@ -94,7 +94,7 @@ auto Driver::execute() -> int {
     // Write state, other io
     if (time_ >= i_out_h5 * dt_hdf5) {
       fill_derived(&state_, eos_.get(), &grid_, fluid_basis_.get());
-      write_state(&state_, grid_, &sl_hydro_, problem_name, time_,
+      write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
                   fluid_basis_->get_order(), i_out_h5, opts_.do_rad);
       i_out_h5 += 1;
     }
@@ -117,7 +117,7 @@ auto Driver::execute() -> int {
   }
 
   fill_derived(&state_, eos_.get(), &grid_, fluid_basis_.get());
-  write_state(&state_, grid_, &sl_hydro_, problem_name, time_,
+  write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
               pin_->param()->get<int>("fluid.porder"), -1, opts_.do_rad);
 
   return AthelasExitCodes::SUCCESS;

@@ -23,9 +23,9 @@ struct DataType {
   double x{};
 };
 
-void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
-                 const std::string& problem_name, double time, int order,
-                 int i_write, bool do_rad);
+void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
+                 ProblemIn* pin, double time, int order, int i_write,
+                 bool do_rad);
 
 void print_simulation_parameters(GridStructure grid, ProblemIn* pin);
 
