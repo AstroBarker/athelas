@@ -12,7 +12,10 @@
 
 #include <array>
 #include <cstddef>
+#include <iomanip>
+#include <map>
 #include <print>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -121,161 +124,247 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
 /**
  * Write simulation output to disk
  **/
-void write_state(State* state, GridStructure grid, SlopeLimiter* SL,
-                 const std::string& problem_name, double time, int order,
-                 int i_write, bool do_rad) {
+
+// Structure to hold variable metadata
+struct VariableInfo {
+  std::string path;
+  std::string description;
+  bool is_modal; // true if variable has modal structure (nX * order), false if
+                 // cell-centered (nX)
+};
+
+// Helper class for HDF5 output management
+class HDF5Writer {
+ private:
+  H5::H5File file_;
+  std::map<std::string, H5::Group> groups_;
+
+ public:
+  HDF5Writer(const std::string& filename) : file_(filename, H5F_ACC_TRUNC) {}
+
+  // Create group hierarchy
+  void createGroup(const std::string& path) {
+    if (groups_.find(path) != groups_.end()) return;
+
+    // Create parent groups recursively
+    size_t pos = path.find_last_of('/');
+    if (pos != std::string::npos && pos > 0) {
+      std::string parent = path.substr(0, pos);
+      createGroup(parent);
+    }
+
+    groups_[path] = file_.createGroup(path);
+  }
+
+  // Write scalar metadata
+  template <typename T>
+  void write_scalar(const std::string& path, const T& value,
+                    const H5::DataType& h5type) {
+    std::array<hsize_t, 1> dim = {1};
+    H5::DataSpace space(1, dim.data());
+    H5::DataSet dataset = file_.createDataSet(path, h5type, space);
+    dataset.write(&value, h5type);
+  }
+
+  // Write string metadata
+  void write_string(const std::string& path, const std::string& value) {
+    std::array<hsize_t, 1> dim = {1};
+    H5::DataSpace space(1, dim.data());
+    H5::StrType stringtype(H5::PredType::C_S1, H5T_VARIABLE);
+    H5::DataSet dataset = file_.createDataSet(path, stringtype, space);
+    dataset.write(value, stringtype);
+  }
+
+  // Write vector data
+  void write_vector(const std::string& path, const std::vector<double>& data,
+                    const std::string& description = "") {
+    std::array<hsize_t, 1> dim = {data.size()};
+    H5::DataSpace space(1, dim.data());
+    H5::DataSet dataset =
+        file_.createDataSet(path, H5::PredType::NATIVE_DOUBLE, space);
+    dataset.write(data.data(), H5::PredType::NATIVE_DOUBLE);
+
+    if (!description.empty()) {
+      H5::StrType str_type(H5::PredType::C_S1, description.length());
+      H5::Attribute attr = dataset.createAttribute("description", str_type,
+                                                   H5::DataSpace(H5S_SCALAR));
+      attr.write(str_type, description);
+    }
+  }
+};
+
+// Generate filename with proper padding
+auto generate_filename(const std::string& problem_name, int i_write,
+                       int max_digits = 4) -> std::string {
+  std::ostringstream oss;
+  oss << problem_name << "_";
+
+  if (i_write != -1) {
+    oss << std::setfill('0') << std::setw(max_digits) << i_write;
+  } else {
+    oss << "final";
+  }
+
+  oss << ".h5";
+  return oss.str();
+}
+
+// @brief write to hdf5
+void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
+                 ProblemIn* pin, double time, int order, int i_write,
+                 bool do_rad) {
+
+  // Get views
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
   View3D<double> uAF = state->u_af();
 
-  // Construct filename
-  std::string fn = problem_name;
-  auto i_str     = std::to_string(i_write);
-  int n_pad      = 0;
-  if (i_write < 10) {
-    n_pad = 4;
-  } else if (i_write >= 10 && i_write < 100) {
-    n_pad = 3;
-  } else if (i_write >= 100 && i_write < 1000) {
-    n_pad = 2;
-  } else if (i_write >= 1000 && i_write < 10000) {
-    n_pad = 1;
+  // Grid parameters
+  const int nX         = grid.get_n_elements();
+  const int ilo        = grid.get_ilo();
+  const int ihi        = grid.get_ihi();
+  const int modal_size = nX * order;
+
+  // Generate filename
+  constexpr int max_digits = 6;
+  const auto& problem_name =
+      pin->param()->get_ref<std::string>("problem.problem");
+  std::string filename = generate_filename(problem_name, i_write, max_digits);
+
+  // Create HDF5 writer
+  HDF5Writer writer(filename);
+
+  // Create group structure
+  writer.createGroup("/metadata");
+  writer.createGroup("/metadata/build");
+  writer.createGroup("/grid");
+  writer.createGroup("/conserved");
+  writer.createGroup("/auxiliary");
+  writer.createGroup("/diagnostic");
+  writer.createGroup("/parameters");
+
+  // Define variable configuration
+  std::map<std::string, VariableInfo> variables{
+      // Grid variables
+      {"grid/x",
+       {.path = "/grid/x", .description = "Cell centers", .is_modal = false}},
+      {"grid/dx",
+       {.path = "/grid/dx", .description = "Cell widths", .is_modal = false}},
+      {"grid/x_nodal",
+       {.path        = "/grid/x_nodal",
+        .description = "Nodal coordinates",
+        .is_modal    = true}},
+
+      // Conserved variables
+      {"conserved/tau",
+       {.path        = "/conserved/tau",
+        .description = "Mass density",
+        .is_modal    = true}},
+      {"conserved/velocity",
+       {.path        = "/conserved/velocity",
+        .description = "Velocity",
+        .is_modal    = true}},
+      {"conserved/energy",
+       {.path        = "/conserved/energy",
+        .description = "Internal energy",
+        .is_modal    = true}},
+
+      // Auxiliary variables
+      {"auxiliary/pressure",
+       {.path        = "/auxiliary/pressure",
+        .description = "Pressure",
+        .is_modal    = true}},
+
+      // Diagnostic variables
+      {"diagnostic/limiter",
+       {.path        = "/diagnostic/limiter",
+        .description = "Slope limiter values",
+        .is_modal    = false}}};
+
+  // Add radiation variables if needed
+  if (do_rad) {
+    variables["conserved/rad_energy"]   = {.path        = "/conserved/rad_energy",
+                                           .description = "Radiation energy",
+                                           .is_modal    = true};
+    variables["conserved/rad_momentum"] = {.path = "/conserved/rad_momentum",
+                                           .description = "Radiation momentum",
+                                           .is_modal    = true};
   }
-  std::string suffix = std::string(n_pad, '0').append(i_str);
-  fn.append("_");
-  if (i_write != -1) {
-    fn.append(suffix);
-  } else {
-    fn.append("final");
+
+  // Prepare data containers
+  std::map<std::string, std::vector<double>> data_arrays;
+
+  // Initialize arrays based on variable type
+  for (const auto& [key, var_info] : variables) {
+    const int size   = var_info.is_modal ? modal_size : nX;
+    data_arrays[key] = std::vector<double>(size);
   }
-  fn.append(".h5");
 
-  const char* fn2 = fn.c_str();
+  // Fill data arrays
+  for (int iX = ilo; iX <= ihi; iX++) {
+    const int i_local = iX - ilo;
 
-  const int nX   = grid.get_n_elements();
-  const int ilo  = grid.get_ilo();
-  const int ihi  = grid.get_ihi();
-  const int size = (nX * order);
+    // Cell-centered quantities (filled once per cell)
+    data_arrays["grid/x"][i_local]             = grid.get_centers(iX);
+    data_arrays["grid/dx"][i_local]            = grid.get_widths(iX);
+    data_arrays["diagnostic/limiter"][i_local] = get_limited(SL, iX);
 
-  // Create data vectors
-  std::vector<DataType> tau(size);
-  std::vector<DataType> vel(size);
-  std::vector<DataType> eint(size);
-  std::vector<DataType> erad(size);
-  std::vector<DataType> press(size);
-  std::vector<DataType> frad(size);
-  std::vector<DataType> nodalr(size);
-  std::vector<DataType> gridout(nX);
-  std::vector<DataType> dr(nX);
-  std::vector<DataType> limiter(nX);
+    // Modal quantities (filled for each mode in each cell)
+    for (int k = 0; k < order; k++) {
+      const int idx = i_local + (k * nX);
 
-  // Fill data vectors
-  for (int k = 0; k < order; k++) {
-    for (int iX = ilo; iX <= ihi; iX++) {
-      gridout[(iX - ilo)].x           = grid.get_centers(iX);
-      dr[(iX - ilo)].x                = grid.get_widths(iX);
-      limiter[(iX - ilo)].x           = get_limited(SL, iX);
-      nodalr[(iX - ilo) + (k * nX)].x = grid.node_coordinate(iX, k);
-      tau[(iX - ilo) + (k * nX)].x    = uCF(0, iX, k);
-      vel[(iX - ilo) + (k * nX)].x    = uCF(1, iX, k);
-      eint[(iX - ilo) + (k * nX)].x   = uCF(2, iX, k);
-      press[(iX - ilo) + (k * nX)].x  = uAF(0, iX, k);
+      data_arrays["grid/x_nodal"][idx]       = grid.node_coordinate(iX, k);
+      data_arrays["conserved/tau"][idx]      = uCF(0, iX, k);
+      data_arrays["conserved/velocity"][idx] = uCF(1, iX, k);
+      data_arrays["conserved/energy"][idx]   = uCF(2, iX, k);
+      data_arrays["auxiliary/pressure"][idx] = uAF(0, iX, k);
+
       if (do_rad) {
-        erad[(iX - ilo) + (k * nX)].x = uCF(3, iX, k);
-        frad[(iX - ilo) + (k * nX)].x = uCF(4, iX, k);
+        data_arrays["conserved/rad_energy"][idx]   = uCF(3, iX, k);
+        data_arrays["conserved/rad_momentum"][idx] = uCF(4, iX, k);
       }
     }
   }
 
-  // Create HDF5 file and datasets
-  H5::H5File const file(fn2, H5F_ACC_TRUNC);
+  // metadata
+  writer.write_scalar("/metadata/nx", nX, H5::PredType::NATIVE_INT);
+  writer.write_scalar("/metadata/order", order, H5::PredType::NATIVE_INT);
+  writer.write_scalar("/metadata/time", time, H5::PredType::NATIVE_DOUBLE);
 
-  // Create groups
-  H5::Group const group_md   = file.createGroup("/metadata");
-  H5::Group const group_mdb  = file.createGroup("/metadata/build");
-  H5::Group const group_grid = file.createGroup("/grid");
-  H5::Group const group_CF   = file.createGroup("/conserved");
-  H5::Group const group_AF   = file.createGroup("/auxilliary");
-  H5::Group const group_DF   = file.createGroup("/diagnostic");
+  // build information
+  writer.write_string("/metadata/build/git_hash", build_info::GIT_HASH);
+  writer.write_string("/metadata/build/compiler", build_info::COMPILER);
+  writer.write_string("/metadata/build/timestamp", build_info::BUILD_TIMESTAMP);
+  writer.write_string("/metadata/build/arch", build_info::ARCH);
+  writer.write_string("/metadata/build/os", build_info::OS);
+  writer.write_string("/metadata/build/optimization", build_info::OPTIMIZATION);
 
-  // Create datasets with proper dimensions
-  std::array<hsize_t, 1> dim = {static_cast<hsize_t>(tau.size())};
-  H5::DataSpace space(1, dim.data());
+  // Write all variable data
+  for (const auto& [key, var_info] : variables) {
+    if (key.find("rad_") != std::string::npos && !do_rad) {
+      continue;
+    }
+    writer.write_vector(var_info.path, data_arrays[key], var_info.description);
+  }
 
-  std::array<hsize_t, 1> dim_grid = {static_cast<hsize_t>(gridout.size())};
-  H5::DataSpace space_grid(1, dim_grid.data());
-
-  std::array<hsize_t, 1> dim_md = {1};
-  H5::DataSpace md_space(1, dim_md.data());
-
-  // --- build info ---
-  H5::StrType stringtype(H5::PredType::C_S1, H5T_VARIABLE);
-  H5::DataSet const dataset_ghash =
-      file.createDataSet("/metadata/build/git_hash", stringtype, md_space);
-  H5::DataSet const dataset_compiler =
-      file.createDataSet("/metadata/build/compiler", stringtype, md_space);
-  H5::DataSet const dataset_timestamp =
-      file.createDataSet("/metadata/build/timestamp", stringtype, md_space);
-  H5::DataSet const dataset_arch =
-      file.createDataSet("/metadata/build/arch", stringtype, md_space);
-  H5::DataSet const dataset_os =
-      file.createDataSet("/metadata/build/os", stringtype, md_space);
-  H5::DataSet const dataset_opt =
-      file.createDataSet("/metadata/build/optimization", stringtype, md_space);
-
-  dataset_ghash.write(build_info::GIT_HASH, stringtype);
-  dataset_compiler.write(build_info::COMPILER, stringtype);
-  dataset_timestamp.write(build_info::BUILD_TIMESTAMP, stringtype);
-  dataset_arch.write(build_info::ARCH, stringtype);
-  dataset_os.write(build_info::OS, stringtype);
-  dataset_opt.write(build_info::OPTIMIZATION, stringtype);
-
-  // --- Create and write datasets ---
-  H5::DataSet const dataset_nx =
-      file.createDataSet("/metadata/nx", H5::PredType::NATIVE_INT, md_space);
-  H5::DataSet const dataset_order =
-      file.createDataSet("/metadata/order", H5::PredType::NATIVE_INT, md_space);
-  H5::DataSet const dataset_time = file.createDataSet(
-      "/metadata/time", H5::PredType::NATIVE_DOUBLE, md_space);
-  H5::DataSet dataset_grid_nodal =
-      file.createDataSet("/grid/x_nodal", H5::PredType::NATIVE_DOUBLE, space);
-  H5::DataSet dataset_grid =
-      file.createDataSet("/grid/x", H5::PredType::NATIVE_DOUBLE, space_grid);
-  H5::DataSet dataset_width =
-      file.createDataSet("/grid/dx", H5::PredType::NATIVE_DOUBLE, space_grid);
-  H5::DataSet dataset_tau =
-      file.createDataSet("/conserved/tau", H5::PredType::NATIVE_DOUBLE, space);
-  H5::DataSet dataset_vel = file.createDataSet(
-      "/conserved/velocity", H5::PredType::NATIVE_DOUBLE, space);
-  H5::DataSet dataset_eint = file.createDataSet(
-      "/conserved/energy", H5::PredType::NATIVE_DOUBLE, space);
-  H5::DataSet dataset_press = file.createDataSet(
-      "/auxilliary/pressure", H5::PredType::NATIVE_DOUBLE, space);
-
-  H5::DataSet dataset_limiter = file.createDataSet(
-      "/diagnostic/limiter", H5::PredType::NATIVE_DOUBLE, space_grid);
-
-  // Write data
-  dataset_nx.write(&nX, H5::PredType::NATIVE_INT);
-  dataset_order.write(&order, H5::PredType::NATIVE_INT);
-  dataset_time.write(&time, H5::PredType::NATIVE_DOUBLE);
-
-  dataset_grid_nodal.write(nodalr.data(), H5::PredType::NATIVE_DOUBLE);
-  dataset_grid.write(gridout.data(), H5::PredType::NATIVE_DOUBLE);
-  dataset_width.write(dr.data(), H5::PredType::NATIVE_DOUBLE);
-  dataset_limiter.write(limiter.data(), H5::PredType::NATIVE_DOUBLE);
-  dataset_tau.write(tau.data(), H5::PredType::NATIVE_DOUBLE);
-  dataset_vel.write(vel.data(), H5::PredType::NATIVE_DOUBLE);
-  dataset_eint.write(eint.data(), H5::PredType::NATIVE_DOUBLE);
-  dataset_press.write(press.data(), H5::PredType::NATIVE_DOUBLE);
-
-  if (do_rad) {
-    H5::DataSet dataset_erad = file.createDataSet(
-        "/conserved/rad_energy", H5::PredType::NATIVE_DOUBLE, space);
-    H5::DataSet dataset_frad = file.createDataSet(
-        "/conserved/rad_momentum", H5::PredType::NATIVE_DOUBLE, space);
-    dataset_erad.write(erad.data(), H5::PredType::NATIVE_DOUBLE);
-    dataset_frad.write(frad.data(), H5::PredType::NATIVE_DOUBLE);
+  // deal with params
+  const auto keys = pin->param()->keys();
+  // probably a more elegant loop pattern
+  for (const auto& key : keys) {
+    auto t = pin->param()->get_type(key);
+    if (t == typeid(std::string)) {
+      writer.write_string("parameters/" + key,
+                          pin->param()->get<std::string>(key));
+    } else if (t == typeid(int)) {
+      writer.write_scalar("parameters/" + key, pin->param()->get<int>(key),
+                          H5::PredType::NATIVE_INT);
+    } else if (t == typeid(double)) {
+      writer.write_scalar("parameters/" + key, pin->param()->get<double>(key),
+                          H5::PredType::NATIVE_DOUBLE);
+    } else {
+      // If the type cannot be matched, write a default string.
+      writer.write_string("parameters/" + key, "Null");
+    }
   }
 }
 

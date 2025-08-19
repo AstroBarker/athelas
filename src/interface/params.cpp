@@ -22,3 +22,7 @@ auto Params::keys() const -> std::vector<std::string> {
   }
   return result;
 }
+
+auto Params::get_type(const std::string& key) const -> std::type_index {
+  return params_.at(key)->type();
+}
