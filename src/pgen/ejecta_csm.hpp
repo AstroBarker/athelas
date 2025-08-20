@@ -52,7 +52,7 @@ void ejecta_csm_init(State* state, GridStructure* grid, ProblemIn* pin,
         const double X1 = grid->get_centers(iX);
 
           for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-            const double x         = grid->node_coordinate(iX, iNodeX);
+            const double x = grid->node_coordinate(iX, iNodeX);
             if (x <= rstar) {
               uPF(iPF_D, iX, iNodeX) = 1.0 / (constants::FOURPI * rstar3 / 3.0);
             } else {

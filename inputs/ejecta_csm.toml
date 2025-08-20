@@ -1,13 +1,13 @@
 [problem]
 problem = "ejecta_csm"
-t_end = 0.05
+t_end = 1.0
 nlim = -1
 geometry = "spherical"
 restart = false
 xl = 0.0
-xr = 1.0
-cfl = 0.5
-nx = 256
+xr = 1.25
+cfl = 0.75
+nx = 512
 
 [physics]
 radiation = false
@@ -35,15 +35,15 @@ dt = 0.001
 
 [fluid]
 basis = "legendre"
-nnodes = 1
-porder = 1
+nnodes = 2
+porder = 2
 
 [fluid.limiter]
 do_limiter = true
 type = "minmod"
-m_tvb = 10.0
+m_tvb = 2.0
 b_tvd = 1.0
-tci_opt = true
+tci_opt = false
 tci_val = 0.075
 characteristic = false
 
