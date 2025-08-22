@@ -34,11 +34,6 @@ cmake ..
 cmake --build . # or make -j
 ```
 
-As a temporary fix for Ubuntu CI, we need to pass a `MACHINE` flag.
-On Mac we support `-DMACHINE=MACOS`,
-Ubuntu supports `-DMACHINE=UBUNTU` (primarily because the CI fails to find `lapacke.h` unless we hold its hand and this is how we do that, for now.)
-This places the executable in the `build` dir.
-
 # Running
 To run `athelas` simply execute `./athelas -i ../inputs/sod.toml`, for instance.
 
@@ -67,10 +62,7 @@ To format a given file according to `ruff.toml`, run `ruff format file.py`.
 Checks for formatting are performed on each PR.
 
 # Dependencies
-* LAPACKE
-* HDF5
-* Kokkos (avialable as a submodule)
+* Eigen (submodule)
+* Kokkos (submodule)
 * TOML++ (submodule)
-
-Hopefully `lapacke` won't be necessary forever, but at present it is needed for initializing the quadrature.
-I find that, on Arch Linux systems, `lapack`, `lapacke`, and `openblas` is sufficient for all `lapacke` needs.
+* HDF5
