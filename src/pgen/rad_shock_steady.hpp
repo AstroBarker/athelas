@@ -53,19 +53,19 @@ void rad_shock_steady_init(State* state, GridStructure* grid, ProblemIn* pin,
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
 
-  const int ilo    = 1;
-  const int ihi    = grid->get_ihi();
+  const int ilo = 1;
+  const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
   const int iCF_Tau = 0;
-  const int iCF_V   = 1;
-  const int iCF_E   = 2;
+  const int iCF_V = 1;
+  const int iCF_E = 2;
 
   const int iPF_D = 0;
 
   const int iCR_E = 3;
 
-  const auto V0   = pin->param()->get<double>("problem.params.v0", 0.0);
+  const auto V0 = pin->param()->get<double>("problem.params.v0", 0.0);
   const auto rhoL = pin->param()->get<double>("problem.params.rhoL", 1.0);
   const auto rhoR = pin->param()->get<double>("problem.params.rhoR", 2.286);
   const auto T_L =
@@ -74,9 +74,9 @@ void rad_shock_steady_init(State* state, GridStructure* grid, ProblemIn* pin,
       pin->param()->get<double>("problem.params.T_R", 2.4109e6); // K
 
   // TODO(astrobarker): thread through
-  const double Abar  = 1.0;
+  const double Abar = 1.0;
   const double gamma = get_gamma(eos);
-  const double gm1   = gamma - 1.0;
+  const double gm1 = gamma - 1.0;
   const double em_gas_L =
       (T_L * constants::N_A * constants::k_B) / (gm1 * Abar);
   const double em_gas_R =
@@ -86,23 +86,23 @@ void rad_shock_steady_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int iX) {
-        const int k     = 0;
+        const int k = 0;
         const double X1 = grid->get_centers(iX);
 
         if (X1 <= 0.0) {
           uCF(iCF_Tau, iX, k) = 1.0 / rhoL;
-          uCF(iCF_V, iX, k)   = V0;
-          uCF(iCF_E, iX, k)   = em_gas_L;
-          uCF(iCR_E, iX, k)   = e_rad_L;
+          uCF(iCF_V, iX, k) = V0;
+          uCF(iCF_E, iX, k) = em_gas_L;
+          uCF(iCR_E, iX, k) = e_rad_L;
 
           for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
             uPF(iPF_D, iX, iNodeX) = rhoL;
           }
         } else {
           uCF(iCF_Tau, iX, k) = 1.0 / rhoR;
-          uCF(iCF_V, iX, k)   = V0;
-          uCF(iCF_E, iX, k)   = em_gas_R;
-          uCF(iCR_E, iX, k)   = e_rad_R;
+          uCF(iCF_V, iX, k) = V0;
+          uCF(iCF_E, iX, k) = em_gas_R;
+          uCF(iCR_E, iX, k) = e_rad_R;
 
           for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
             uPF(iPF_D, iX, iNodeX) = rhoR;

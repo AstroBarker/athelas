@@ -54,7 +54,7 @@ class TimeStepper {
                              SlopeLimiter* sl_hydro, const Options* opts) {
 
     const auto& order = opts->max_order;
-    const auto& ihi   = grid.get_ihi();
+    const auto& ihi = grid.get_ihi();
 
     auto U = state->u_cf();
 
@@ -73,7 +73,7 @@ class TimeStepper {
                                                  {nvars, ihi + 2, order}),
           KOKKOS_CLASS_LAMBDA(const int iCF, const int iX, const int k) {
             SumVar_U_(iCF, iX, k) = U(iCF, iX, k);
-            stage_data_(iS, iX)   = grid.get_left_interface(iX);
+            stage_data_(iS, iX) = grid.get_left_interface(iX);
             // stage_data_( iS, iX )    = grid_s_[iS].get_left_interface( iX );
           });
 
@@ -118,7 +118,7 @@ class TimeStepper {
           });
 
       auto stage_data_j = Kokkos::subview(stage_data_, iS, Kokkos::ALL);
-      grid_s_[iS]       = grid;
+      grid_s_[iS] = grid;
       grid_s_[iS].update_grid(stage_data_j);
 
       auto Us_j =
@@ -157,7 +157,7 @@ class TimeStepper {
                 integrator_.explicit_tableau.b_i(iS);
           });
       auto stage_data_j = Kokkos::subview(stage_data_, 0, Kokkos::ALL);
-      grid_s_[iS]       = grid;
+      grid_s_[iS] = grid;
       grid_s_[iS].update_grid(stage_data_j);
     }
 
@@ -188,7 +188,7 @@ class TimeStepper {
                              const Options* opts) {
 
     const auto& order = opts->max_order;
-    const auto& ihi   = grid.get_ihi();
+    const auto& ihi = grid.get_ihi();
 
     auto uCF = state->u_cf();
 
@@ -214,8 +214,8 @@ class TimeStepper {
       // --- Inner update loop ---
 
       for (int j = 0; j < iS; ++j) {
-        dt_info.stage        = j;
-        const double dt_a    = dt * integrator_.explicit_tableau.a_ij(iS, j);
+        dt_info.stage = j;
+        const double dt_a = dt * integrator_.explicit_tableau.a_ij(iS, j);
         const double dt_a_im = dt * integrator_.implicit_tableau.a_ij(iS, j);
         auto Us_j =
             Kokkos::subview(U_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
@@ -258,7 +258,7 @@ class TimeStepper {
       } // End inner loop
 
       auto stage_data_j = Kokkos::subview(stage_data_, iS, Kokkos::ALL);
-      grid_s_[iS]       = grid;
+      grid_s_[iS] = grid;
       grid_s_[iS].update_grid(stage_data_j);
 
       // set U_s
@@ -309,7 +309,7 @@ class TimeStepper {
 
       // implicit update
       dt_info.stage = iS;
-      dt_info.dt_a  = dt * integrator_.implicit_tableau.a_ij(iS, iS);
+      dt_info.dt_a = dt * integrator_.implicit_tableau.a_ij(iS, iS);
       pkgs->update_implicit_iterative(Us_j, SumVar_U_, grid_s_[iS], dt_info);
 
       // set U_s after iterative solve
@@ -341,8 +341,8 @@ class TimeStepper {
     } // end outer loop
 
     for (int iS = 0; iS < nStages_; ++iS) {
-      dt_info.stage        = iS;
-      const double dt_b    = dt * integrator_.explicit_tableau.b_i(iS);
+      dt_info.stage = iS;
+      const double dt_b = dt * integrator_.explicit_tableau.b_i(iS);
       const double dt_b_im = dt * integrator_.implicit_tableau.b_i(iS);
       auto Us_i =
           Kokkos::subview(U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
@@ -376,7 +376,7 @@ class TimeStepper {
             stage_data_(iS, iX) += dt_b * flux_u_i(iX);
           });
       auto stage_data_j = Kokkos::subview(stage_data_, iS, Kokkos::ALL);
-      grid_s_[iS]       = grid;
+      grid_s_[iS] = grid;
       grid_s_[iS].update_grid(stage_data_j);
     }
 

@@ -93,16 +93,16 @@ class PackageWrapper {
                                  const GridStructure&, const TimeStepInfo&) = 0;
     virtual void update_implicit_iterative(View3D<double>, View3D<double>,
                                            const GridStructure&,
-                                           const TimeStepInfo&)             = 0;
+                                           const TimeStepInfo&) = 0;
     [[nodiscard]] virtual auto min_timestep(View3D<double> state,
                                             const GridStructure& grid,
                                             const TimeStepInfo& dt_info) const
         -> double = 0;
 
     [[nodiscard]] virtual auto name() const noexcept -> std::string_view = 0;
-    [[nodiscard]] virtual auto is_active() const noexcept -> bool        = 0;
-    [[nodiscard]] virtual auto has_explicit() const noexcept -> bool     = 0;
-    [[nodiscard]] virtual auto has_implicit() const noexcept -> bool     = 0;
+    [[nodiscard]] virtual auto is_active() const noexcept -> bool = 0;
+    [[nodiscard]] virtual auto has_explicit() const noexcept -> bool = 0;
+    [[nodiscard]] virtual auto has_implicit() const noexcept -> bool = 0;
   };
 
   template <PhysicsPackage T>

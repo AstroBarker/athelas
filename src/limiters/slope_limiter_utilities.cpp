@@ -128,8 +128,8 @@ void detect_troubled_cells(const View3D<double> U, View1D<double> D,
         "SlopeLimiter :: TCI", Kokkos::RangePolicy<>(ilo, ihi + 1),
         KOKKOS_LAMBDA(const int iX) {
           double denominator = 0.0;
-          double result      = 0.0;
-          double cell_avg    = U(iC, iX, 0);
+          double result = 0.0;
+          double cell_avg = U(iC, iX, 0);
 
           // Extrapolate neighboring poly representations into current cell
           // and compute the new cell averages
@@ -166,15 +166,15 @@ auto cell_average(View3D<double> U, const GridStructure* grid,
                   const int extrapolate) -> double {
   const int nNodes = grid->get_n_nodes();
 
-  double avg      = 0.0;
-  double vol      = 0.0;
+  double avg = 0.0;
+  double vol = 0.0;
   const double dx = grid->get_widths(iX + extrapolate);
 
   // NOTE: do mass or volume avg?
   for (int iN = 0; iN < nNodes; ++iN) {
-    const double X       = grid->node_coordinate(iX + extrapolate, iN);
+    const double X = grid->node_coordinate(iX + extrapolate, iN);
     const double sqrt_gm = grid->get_sqrt_gm(X);
-    const double weight  = grid->get_weights(iN);
+    const double weight = grid->get_weights(iN);
     vol += weight * sqrt_gm * dx; // TODO(astrobarker) rho
     avg += weight * basis->basis_eval(U, iX, iCF, iN + 1) * sqrt_gm * dx;
   }
@@ -192,8 +192,8 @@ void modify_polynomial(const View3D<double> U,
                        const double gamma_l, const double gamma_r, const int iX,
                        const int iCQ) {
   const double Ubar_i = U(iCQ, iX, 0);
-  const double fac    = 1.0;
-  const int order     = U.extent(2);
+  const double fac = 1.0;
+  const int order = U.extent(2);
 
   const double modified_p_slope_mag =
       fac * std::min({U(iCQ, iX - 1, 1), U(iCQ, iX, 1), U(iCQ, iX + 1, 1)});

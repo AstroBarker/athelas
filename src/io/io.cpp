@@ -33,11 +33,11 @@
  * for the current simulation.
  **/
 void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
-  const int nX     = grid.get_n_elements();
+  const int nX = grid.get_n_elements();
   const int nNodes = grid.get_n_nodes();
   // NOTE: If I properly support more bases again, adjust here.
   const std::string basis_name = "Legendre";
-  const bool rad_enabled       = pin->param()->get<bool>("physics.rad_active");
+  const bool rad_enabled = pin->param()->get<bool>("physics.rad_active");
   const bool gravity_enabled =
       pin->param()->get<bool>("physics.gravity_active");
 
@@ -220,9 +220,9 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
   View3D<double> uAF = state->u_af();
 
   // Grid parameters
-  const int nX         = grid.get_n_elements();
-  const int ilo        = grid.get_ilo();
-  const int ihi        = grid.get_ihi();
+  const int nX = grid.get_n_elements();
+  const int ilo = grid.get_ilo();
+  const int ihi = grid.get_ihi();
   const int modal_size = nX * order;
 
   // Generate filename
@@ -251,44 +251,44 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
       {"grid/dx",
        {.path = "/grid/dx", .description = "Cell widths", .is_modal = false}},
       {"grid/x_nodal",
-       {.path        = "/grid/x_nodal",
+       {.path = "/grid/x_nodal",
         .description = "Nodal coordinates",
-        .is_modal    = true}},
+        .is_modal = true}},
 
       // Conserved variables
       {"conserved/tau",
-       {.path        = "/conserved/tau",
+       {.path = "/conserved/tau",
         .description = "Mass density",
-        .is_modal    = true}},
+        .is_modal = true}},
       {"conserved/velocity",
-       {.path        = "/conserved/velocity",
+       {.path = "/conserved/velocity",
         .description = "Velocity",
-        .is_modal    = true}},
+        .is_modal = true}},
       {"conserved/energy",
-       {.path        = "/conserved/energy",
+       {.path = "/conserved/energy",
         .description = "Internal energy",
-        .is_modal    = true}},
+        .is_modal = true}},
 
       // Auxiliary variables
       {"auxiliary/pressure",
-       {.path        = "/auxiliary/pressure",
+       {.path = "/auxiliary/pressure",
         .description = "Pressure",
-        .is_modal    = true}},
+        .is_modal = true}},
 
       // Diagnostic variables
       {"diagnostic/limiter",
-       {.path        = "/diagnostic/limiter",
+       {.path = "/diagnostic/limiter",
         .description = "Slope limiter values",
-        .is_modal    = false}}};
+        .is_modal = false}}};
 
   // Add radiation variables if needed
   if (do_rad) {
-    variables["conserved/rad_energy"]   = {.path        = "/conserved/rad_energy",
-                                           .description = "Radiation energy",
-                                           .is_modal    = true};
+    variables["conserved/rad_energy"] = {.path = "/conserved/rad_energy",
+                                         .description = "Radiation energy",
+                                         .is_modal = true};
     variables["conserved/rad_momentum"] = {.path = "/conserved/rad_momentum",
                                            .description = "Radiation momentum",
-                                           .is_modal    = true};
+                                           .is_modal = true};
   }
 
   // Prepare data containers
@@ -296,7 +296,7 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
 
   // Initialize arrays based on variable type
   for (const auto& [key, var_info] : variables) {
-    const int size   = var_info.is_modal ? modal_size : nX;
+    const int size = var_info.is_modal ? modal_size : nX;
     data_arrays[key] = std::vector<double>(size);
   }
 
@@ -305,22 +305,22 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
     const int i_local = iX - ilo;
 
     // Cell-centered quantities (filled once per cell)
-    data_arrays["grid/x"][i_local]             = grid.get_centers(iX);
-    data_arrays["grid/dx"][i_local]            = grid.get_widths(iX);
+    data_arrays["grid/x"][i_local] = grid.get_centers(iX);
+    data_arrays["grid/dx"][i_local] = grid.get_widths(iX);
     data_arrays["diagnostic/limiter"][i_local] = get_limited(SL, iX);
 
     // Modal quantities (filled for each mode in each cell)
     for (int k = 0; k < order; k++) {
       const int idx = i_local + (k * nX);
 
-      data_arrays["grid/x_nodal"][idx]       = grid.node_coordinate(iX, k);
-      data_arrays["conserved/tau"][idx]      = uCF(0, iX, k);
+      data_arrays["grid/x_nodal"][idx] = grid.node_coordinate(iX, k);
+      data_arrays["conserved/tau"][idx] = uCF(0, iX, k);
       data_arrays["conserved/velocity"][idx] = uCF(1, iX, k);
-      data_arrays["conserved/energy"][idx]   = uCF(2, iX, k);
+      data_arrays["conserved/energy"][idx] = uCF(2, iX, k);
       data_arrays["auxiliary/pressure"][idx] = uAF(0, iX, k);
 
       if (do_rad) {
-        data_arrays["conserved/rad_energy"][idx]   = uCF(3, iX, k);
+        data_arrays["conserved/rad_energy"][idx] = uCF(3, iX, k);
         data_arrays["conserved/rad_momentum"][idx] = uCF(4, iX, k);
       }
     }

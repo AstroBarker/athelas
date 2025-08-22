@@ -46,9 +46,9 @@ void fill_ghost_zones(View3D<double> U, const GridStructure* grid,
   Kokkos::parallel_for(
       "Fill ghost zones", Kokkos::RangePolicy<>(start, stop + 1),
       KOKKOS_LAMBDA(const int q) {
-        const int ghost_L    = 0;
+        const int ghost_L = 0;
         const int interior_L = (this_bc[0].type != BcType::Periodic) ? 1 : nX;
-        const int ghost_R    = nX + 1;
+        const int ghost_R = nX + 1;
         const int interior_R = (this_bc[1].type != BcType::Periodic) ? nX : 1;
 
         apply_bc<N>(this_bc[0], U, q, ghost_L, interior_L, basis);
@@ -116,8 +116,8 @@ apply_bc(const BoundaryConditionsData<N>& bc, View3D<double> U, const int q,
         }
       } else if (q == 4) {
         constexpr static double c = constants::c_cgs;
-        const double E0           = U(3, interior_cell, k);
-        const double F0           = U(4, interior_cell, k);
+        const double E0 = U(3, interior_cell, k);
+        const double F0 = U(4, interior_cell, k);
         U(q, ghost_cell, k) =
             (k == 0) ? 0.5 * c * Einc - 0.5 * (c * E0 + 2.0 * F0) : 0.0;
       }

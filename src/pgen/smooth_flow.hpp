@@ -28,13 +28,13 @@ void smooth_flow_init(State* state, GridStructure* grid, ProblemIn* pin,
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
 
-  const int ilo    = 1;
-  const int ihi    = grid->get_ihi();
+  const int ilo = 1;
+  const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
   constexpr static int iCF_Tau = 0;
-  constexpr static int iCF_V   = 1;
-  constexpr static int iCF_E   = 2;
+  constexpr static int iCF_V = 1;
+  constexpr static int iCF_E = 2;
 
   constexpr static int iPF_D = 0;
 
@@ -45,7 +45,7 @@ void smooth_flow_init(State* state, GridStructure* grid, ProblemIn* pin,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          const double x         = grid->node_coordinate(iX, iNodeX);
+          const double x = grid->node_coordinate(iX, iNodeX);
           uPF(iPF_D, iX, iNodeX) = (1.0 + amp * sin(constants::PI * x));
         }
       });
@@ -77,13 +77,13 @@ void smooth_flow_init(State* state, GridStructure* grid, ProblemIn* pin,
     // Fallback: set cell averages only (k=0)
     Kokkos::parallel_for(
         Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
-          const int k     = 0;
+          const int k = 0;
           const double X1 = grid->get_centers(iX);
 
-          const double D      = (1.0 + (amp * sin(constants::PI * X1)));
+          const double D = (1.0 + (amp * sin(constants::PI * X1)));
           uCF(iCF_Tau, iX, k) = 1.0 / D;
-          uCF(iCF_V, iX, k)   = 0.0;
-          uCF(iCF_E, iX, k)   = (D * D * D / 2.0) * uCF(iCF_Tau, iX, k);
+          uCF(iCF_V, iX, k) = 0.0;
+          uCF(iCF_E, iX, k) = (D * D * D / 2.0) * uCF(iCF_Tau, iX, k);
         });
   }
 

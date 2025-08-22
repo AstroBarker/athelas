@@ -29,28 +29,28 @@ void advection_init(State* state, GridStructure* grid, ProblemIn* pin,
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
 
-  const int ilo    = 1;
-  const int ihi    = grid->get_ihi();
+  const int ilo = 1;
+  const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
   const int iCF_Tau = 0;
-  const int iCF_V   = 1;
-  const int iCF_E   = 2;
+  const int iCF_V = 1;
+  const int iCF_E = 2;
 
   const int iPF_D = 0;
 
-  const auto V0  = pin->param()->get<double>("problem.params.v0", -1.0);
-  const auto P0  = pin->param()->get<double>("problem.params.p0", 0.01);
+  const auto V0 = pin->param()->get<double>("problem.params.v0", -1.0);
+  const auto P0 = pin->param()->get<double>("problem.params.p0", 0.01);
   const auto Amp = pin->param()->get<double>("problem.params.amp", 1.0);
 
   const double gamma = get_gamma(eos);
-  const double gm1   = gamma - 1.0;
+  const double gm1 = gamma - 1.0;
 
   // Phase 1: Initialize nodal values (always done)
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          const double x         = grid->node_coordinate(iX, iNodeX);
+          const double x = grid->node_coordinate(iX, iNodeX);
           uPF(iPF_D, iX, iNodeX) = (2.0 + Amp * sin(2.0 * constants::PI * x));
         }
       });
@@ -83,7 +83,7 @@ void advection_init(State* state, GridStructure* grid, ProblemIn* pin,
     // Fallback: set cell averages only (k=0)
     Kokkos::parallel_for(
         Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
-          const int k     = 0;
+          const int k = 0;
           const double X1 = grid->get_centers(iX);
 
           uCF(iCF_Tau, iX, k) =

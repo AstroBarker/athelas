@@ -28,13 +28,13 @@ void sedov_init(State* state, GridStructure* grid, ProblemIn* pin,
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
 
-  const int ilo    = 1;
-  const int ihi    = grid->get_ihi();
+  const int ilo = 1;
+  const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
   constexpr static int iCF_Tau = 0;
-  constexpr static int iCF_V   = 1;
-  constexpr static int iCF_E   = 2;
+  constexpr static int iCF_V = 1;
+  constexpr static int iCF_E = 2;
 
   constexpr static int iPF_D = 0;
 
@@ -46,7 +46,7 @@ void sedov_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   // TODO(astrobarker): geometry aware volume for energy
   const double gamma = get_gamma(eos);
-  const double gm1   = gamma - 1.0;
+  const double gm1 = gamma - 1.0;
   const double volume =
       (4.0 * M_PI / 3.0) * std::pow(grid->get_left_interface(origin + 1), 3.0);
   const double P0 = gm1 * E0 / volume;
@@ -56,7 +56,7 @@ void sedov_init(State* state, GridStructure* grid, ProblemIn* pin,
         const int k = 0;
 
         uCF(iCF_Tau, iX, k) = 1.0 / D0;
-        uCF(iCF_V, iX, k)   = V0;
+        uCF(iCF_V, iX, k) = V0;
         if (iX == origin - 1 || iX == origin) {
           uCF(iCF_E, iX, k) = (P0 / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
         } else {

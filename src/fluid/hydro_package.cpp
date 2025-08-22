@@ -31,8 +31,8 @@ void HydroPackage::update_explicit(const View3D<double> state,
                                    View3D<double> dU, const GridStructure& grid,
                                    const TimeStepInfo& dt_info) const {
   const auto& order = basis_->get_order();
-  const auto& ilo   = grid.get_ilo();
-  const auto& ihi   = grid.get_ihi();
+  const auto& ilo = grid.get_ilo();
+  const auto& ihi = grid.get_ihi();
 
   const auto stage = dt_info.stage;
 
@@ -74,9 +74,9 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
                                     const GridStructure& grid,
                                     const int stage) const {
   const auto& nNodes = grid.get_n_nodes();
-  const auto& order  = basis_->get_order();
-  const auto& ilo    = grid.get_ilo();
-  const auto& ihi    = grid.get_ihi();
+  const auto& order = basis_->get_order();
+  const auto& ilo = grid.get_ilo();
+  const auto& ihi = grid.get_ihi();
 
   // --- Interpolate Conserved Variable to Interfaces ---
 
@@ -136,10 +136,10 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, ilo, 0},
                                              {NUM_VARS_, ihi + 1, order}),
       KOKKOS_CLASS_LAMBDA(const int iCF, const int iX, const int k) {
-        const auto& Poly_L   = basis_->get_phi(iX, 0, k);
-        const auto& Poly_R   = basis_->get_phi(iX, nNodes + 1, k);
-        const auto& X_L      = grid.get_left_interface(iX);
-        const auto& X_R      = grid.get_left_interface(iX + 1);
+        const auto& Poly_L = basis_->get_phi(iX, 0, k);
+        const auto& Poly_R = basis_->get_phi(iX, nNodes + 1, k);
+        const auto& X_L = grid.get_left_interface(iX);
+        const auto& X_R = grid.get_left_interface(iX + 1);
         const auto& SqrtGm_L = grid.get_sqrt_gm(X_L);
         const auto& SqrtGm_R = grid.get_sqrt_gm(X_R);
 
@@ -157,14 +157,14 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
           double local_sum2 = 0.0;
           double local_sum3 = 0.0;
           for (int iN = 0; iN < nNodes; ++iN) {
-            const double weight  = grid.get_weights(iN);
-            const double dphi    = basis_->get_d_phi(iX, iN + 1, k);
-            const double X       = grid.node_coordinate(iX, iN);
+            const double weight = grid.get_weights(iN);
+            const double dphi = basis_->get_d_phi(iX, iN + 1, k);
+            const double X = grid.node_coordinate(iX, iN);
             const double sqrt_gm = grid.get_sqrt_gm(X);
 
-            auto lambda      = nullptr;
+            auto lambda = nullptr;
             const double vel = basis_->basis_eval(state, iX, 1, iN + 1);
-            const double P   = pressure_from_conserved(
+            const double P = pressure_from_conserved(
                 eos_, basis_->basis_eval(state, iX, 0, iN + 1), vel,
                 basis_->basis_eval(state, iX, 2, iN + 1), lambda);
             const auto [flux1, flux2, flux3] = flux_fluid(vel, P);
@@ -185,16 +185,16 @@ KOKKOS_FUNCTION
 void HydroPackage::fluid_geometry(const View3D<double> state, View3D<double> dU,
                                   const GridStructure& grid) const {
   const int& nNodes = grid.get_n_nodes();
-  const int& order  = basis_->get_order();
-  const int& ilo    = grid.get_ilo();
-  const int& ihi    = grid.get_ihi();
+  const int& order = basis_->get_order();
+  const int& ilo = grid.get_ilo();
+  const int& ihi = grid.get_ihi();
 
   Kokkos::parallel_for(
       "Hydro :: Geometry Term",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
       KOKKOS_CLASS_LAMBDA(const int iX, const int k) {
         double local_sum = 0.0;
-        auto lambda      = nullptr;
+        auto lambda = nullptr;
         for (int iN = 0; iN < nNodes; ++iN) {
           const double P = pressure_from_conserved(
               eos_, basis_->basis_eval(state, iX, 0, iN + 1),
@@ -230,8 +230,8 @@ auto HydroPackage::min_timestep(const View3D<double> state,
       "Hydro::min_timestep", Kokkos::RangePolicy<>(ilo, ihi + 1),
       KOKKOS_CLASS_LAMBDA(const int ix, double& lmin) {
         // --- Using Cell Averages ---
-        const double tau_x  = state(0, ix, 0);
-        const double vel_x  = state(1, ix, 0);
+        const double tau_x = state(0, ix, 0);
+        const double vel_x = state(1, ix, 0);
         const double eint_x = state(2, ix, 0);
 
         const double dr = grid.get_widths(ix);

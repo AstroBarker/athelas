@@ -37,9 +37,9 @@ void GravityPackage::gravity_update(const View3D<double> state,
                                     View3D<double> dU,
                                     const GridStructure& grid) const {
   const int& nNodes = grid.get_n_nodes();
-  const int& order  = basis_->get_order();
-  const int& ilo    = grid.get_ilo();
-  const int& ihi    = grid.get_ihi();
+  const int& order = basis_->get_order();
+  const int& ilo = grid.get_ilo();
+  const int& ihi = grid.get_ihi();
 
   // This can probably be simplified.
   Kokkos::parallel_for(
@@ -49,9 +49,9 @@ void GravityPackage::gravity_update(const View3D<double> state,
         double local_sum_v = 0.0;
         double local_sum_e = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
-          const double X       = grid.node_coordinate(iX, iN);
+          const double X = grid.node_coordinate(iX, iN);
           const double sqrt_gm = grid.get_sqrt_gm(X);
-          const double weight  = grid.get_weights(iN);
+          const double weight = grid.get_weights(iN);
           if constexpr (Model == GravityModel::Spherical) {
             local_sum_v += weight * basis_->get_phi(iX, iN + 1, k) *
                            grid.enclosed_mass(iX, iN) * sqrt_gm /

@@ -18,19 +18,19 @@
 template <class T1, class T2, class EOS>
 void compute_characteristic_decomposition(T1 U, T2 R, T2 R_inv, EOS eos) {
 
-  const double tau  = U(0);
-  const double v    = U(1);
+  const double tau = U(0);
+  const double v = U(1);
   const double Em_T = U(2);
 
-  auto lambda    = nullptr;
+  auto lambda = nullptr;
   const double p = pressure_from_conserved(eos, tau, v, Em_T, lambda);
 
   const double gamma = get_gamma(eos);
-  const double gm1   = gamma - 1.0;
+  const double gm1 = gamma - 1.0;
 
-  const double v2  = v * v;
-  const double cs  = std::sqrt(p * gamma * tau);
-  const double z   = cs / tau;
+  const double v2 = v * v;
+  const double cs = std::sqrt(p * gamma * tau);
+  const double z = cs / tau;
   const double chi = p / (z);
 
   /* --- Thermodynamic Derivatives of pressure --- */
@@ -43,15 +43,15 @@ void compute_characteristic_decomposition(T1 U, T2 R, T2 R_inv, EOS eos) {
   // const double lam = std::sqrt( p * p_Em - p_Tau );
 
   /*  --- Compute Matrix Elements --- */
-  const double R00     = gm1 / p;
-  const double R01     = -1 / (z * (chi - v));
-  const double R02     = -1 / (z * (chi + v));
-  const double R10     = 0;
-  const double R11     = gamma / (-cs + gamma * v);
-  const double R12     = gamma / (cs + gamma * v);
-  const double R20     = 1;
-  const double R21     = 1;
-  const double R22     = 1;
+  const double R00 = gm1 / p;
+  const double R01 = -1 / (z * (chi - v));
+  const double R02 = -1 / (z * (chi + v));
+  const double R10 = 0;
+  const double R11 = gamma / (-cs + gamma * v);
+  const double R12 = gamma / (cs + gamma * v);
+  const double R20 = 1;
+  const double R21 = 1;
+  const double R22 = 1;
   const double R_inv00 = p / gamma;
   const double R_inv01 = -v / gamma;
   const double R_inv02 = 1.0 / gamma;

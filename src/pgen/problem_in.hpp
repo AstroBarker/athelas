@@ -20,7 +20,7 @@
 // hold various program options
 // should be removed eventually.
 struct Options {
-  bool do_rad  = false;
+  bool do_rad = false;
   bool do_grav = false;
   bool restart = false;
 

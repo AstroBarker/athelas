@@ -47,13 +47,13 @@ auto numerical_flux_gudonov_positivity(const double tauL, const double tauR,
       std::max( std::sqrt( pos_part( -pR + pL ) / tauR ), -( vRmL ) / tauR ),
       csR / tauR );
   */
-  const double zL    = csL / tauL;
-  const double zR    = csR / tauR;
+  const double zL = csL / tauL;
+  const double zR = csR / tauR;
   const double z_sum = zL + zR;
 
   // get tau star states
-  const double term1_l    = tauL - (pRmL) / (zL * zL);
-  const double term2_l    = tauL + vRmL / zL;
+  const double term1_l = tauL - (pRmL) / (zL * zL);
+  const double term2_l = tauL + vRmL / zL;
   const double tau_l_star = (zL * term1_l + zR * term2_l) / z_sum;
 
   /*
@@ -88,7 +88,7 @@ void numerical_flux_hllc(double vL, double vR, double pL, double pR, double cL,
                          double& Flux_P) {
   double const aL = vL - cL; // left wave speed estimate
   double const aR = vR + cR; // right wave speed estimate
-  Flux_U          = (rhoR * vR * (aR - vR) - rhoL * vL * (aL - vL) + pL - pR) /
+  Flux_U = (rhoR * vR * (aR - vR) - rhoL * vL * (aL - vL) + pL - pR) /
            (rhoR * (aR - vR) - rhoL * (aL - vL));
   Flux_P = rhoL * (vL - aL) * (vL - Flux_U) + pL;
 }

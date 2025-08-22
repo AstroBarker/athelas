@@ -114,22 +114,22 @@ ProblemIn::ProblemIn(const std::string& fn) {
     // There must be a better way to do this...
     if (auto val = node.value<int>()) {
       std::string this_key = std::string{key};
-      std::string out      = "problem.params." + this_key;
+      std::string out = "problem.params." + this_key;
       params_->add(out, val.value());
     }
     if (auto val = node.value<double>()) {
       std::string this_key = std::string{key};
-      std::string out      = "problem.params." + this_key;
+      std::string out = "problem.params." + this_key;
       params_->add(out, val.value());
     }
     if (auto val = node.value<bool>()) {
       std::string this_key = std::string{key};
-      std::string out      = "problem.params." + this_key;
+      std::string out = "problem.params." + this_key;
       params_->add(out, val.value());
     }
     if (auto val = node.value<std::string>()) {
       std::string this_key = std::string{key};
-      std::string out      = "problem.params." + this_key;
+      std::string out = "problem.params." + this_key;
       params_->add(out, val.value());
     }
   }
@@ -537,7 +537,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
   const double dt_hdf5 =
       config_["output"]["dt_hdf5"].value_or(tf.value() / 100.0);
   const double dt_init_frac = config_["output"]["dt_init_frac"].value_or(1.05);
-  const double initial_dt   = config_["output"]["initial_dt"].value_or(1.0e-16);
+  const double initial_dt = config_["output"]["initial_dt"].value_or(1.0e-16);
   const bool history_enabled = config_["output"]["history"].is_table();
   const std::string hist_fn =
       config_["output"]["history"]["fn"].value_or("athelas.hst");

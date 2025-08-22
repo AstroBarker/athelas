@@ -30,20 +30,20 @@ namespace quadrature {
 auto jacobi_matrix(int m, std::vector<double>& aj, std::vector<double>& bj)
     -> double {
 
-  double ab   = NAN;
+  double ab = NAN;
   double zemu = NAN;
-  double abi  = NAN;
-  double abj  = NAN;
+  double abi = NAN;
+  double abj = NAN;
 
-  ab   = 0.0;
+  ab = 0.0;
   zemu = 2.0 / (ab + 1.0);
   for (int i = 0; i < m; i++) {
     aj[i] = 0.0;
   }
 
   for (int i = 1; i <= m; i++) {
-    abi       = i + ab * (i % 2);
-    abj       = 2 * i + ab;
+    abi = i + ab * (i % 2);
+    abj = 2 * i + ab;
     bj[i - 1] = sqrt(abi * abi / (abj * abj - 1.0));
   }
 

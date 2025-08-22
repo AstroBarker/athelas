@@ -49,9 +49,9 @@ auto target_func_rad_energy(double theta, View3D<double> U,
 template <typename F>
 auto bisection(const View3D<double> U, F target, const ModalBasis* basis,
                const int iX, const int iN) -> double {
-  constexpr static double TOL    = 1e-10;
+  constexpr static double TOL = 1e-10;
   constexpr static int MAX_ITERS = 100;
-  constexpr static double delta  = 1.0e-3; // reduce root by delta
+  constexpr static double delta = 1.0e-3; // reduce root by delta
 
   // bisection bounds on theta
   double a = 0.0;
@@ -90,8 +90,8 @@ template <typename F>
 auto backtrace(const View3D<double> U, F target, const ModalBasis* basis,
                const int iX, const int iN) -> double {
   constexpr static double EPSILON = 1.0e-10; // maybe make this smarter
-  double theta                    = 1.0;
-  double nodal                    = -1.0;
+  double theta = 1.0;
+  double nodal = -1.0;
 
   while (theta >= 0.01 && nodal < EPSILON) {
     nodal = target(theta, U, basis, iX, iN);

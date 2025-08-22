@@ -38,14 +38,14 @@ GridStructure::GridStructure(const ProblemIn* pin)
   std::vector<double> tmp_weights(nNodes_);
 
   for (int iN = 0; iN < nNodes_; iN++) {
-    tmp_nodes[iN]   = 0.0;
+    tmp_nodes[iN] = 0.0;
     tmp_weights[iN] = 0.0;
   }
 
   quadrature::lg_quadrature(nNodes_, tmp_nodes, tmp_weights);
 
   for (int iN = 0; iN < nNodes_; iN++) {
-    nodes_(iN)   = tmp_nodes[iN];
+    nodes_(iN) = tmp_nodes[iN];
     weights_(iN) = tmp_weights[iN];
   }
 
@@ -186,11 +186,11 @@ void GridStructure::create_grid() {
 KOKKOS_FUNCTION
 void GridStructure::compute_mass(const View3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
-  const int ilo     = get_ilo();
-  const int ihi     = get_ihi();
+  const int ilo = get_ilo();
+  const int ihi = get_ihi();
 
   double mass = 0.0;
-  double X    = 0.0;
+  double X = 0.0;
 
   for (int iX = ilo; iX <= ihi; iX++) {
     mass = 0.0;
@@ -215,11 +215,11 @@ void GridStructure::compute_mass(const View3D<double> uPF) {
 KOKKOS_FUNCTION
 void GridStructure::compute_mass_r(const View3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
-  const int ilo     = get_ilo();
-  const int ihi     = get_ihi();
+  const int ilo = get_ilo();
+  const int ihi = get_ihi();
 
   double mass = 0.0;
-  double X    = 0.0;
+  double X = 0.0;
 
   const double geom_fac = (do_geometry()) ? 4.0 * constants::PI : 1.0;
 
@@ -245,11 +245,11 @@ auto GridStructure::enclosed_mass(const int iX, const int iN) const noexcept
 KOKKOS_FUNCTION
 void GridStructure::compute_center_of_mass(const View3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
-  const int ilo     = get_ilo();
-  const int ihi     = get_ihi();
+  const int ilo = get_ilo();
+  const int ihi = get_ihi();
 
   double com = 0.0;
-  double X   = 0.0;
+  double X = 0.0;
 
   for (int iX = ilo; iX <= ihi; iX++) {
     com = 0.0;
@@ -280,8 +280,8 @@ void GridStructure::update_grid(const View1D<double> SData) {
   Kokkos::parallel_for(
       "Grid Update 1", Kokkos::RangePolicy<>(ilo, ihi + 2),
       KOKKOS_CLASS_LAMBDA(int iX) {
-        x_l_(iX)     = SData(iX);
-        widths_(iX)  = SData(iX + 1) - SData(iX);
+        x_l_(iX) = SData(iX);
+        widths_(iX) = SData(iX + 1) - SData(iX);
         centers_(iX) = 0.5 * (SData(iX + 1) + SData(iX));
       });
 
