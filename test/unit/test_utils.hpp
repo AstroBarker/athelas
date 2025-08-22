@@ -11,14 +11,12 @@
 
 #include "io/parser.hpp"
 
-using Real = double;
-
 /**
  * Test for near machine precision
  **/
-inline bool SoftEqual(const Real& val, const Real& ref,
-                      const Real tol = 1.0e-8) {
-  if (std::fabs(val - ref) < tol * std::fabs(ref) / 2.0) {
+inline bool soft_equal(const double& val, const double& ref,
+                       const double tol = 1.0e-8) {
+  if (std::fabs(val - ref) < tol * std::fabs(ref) + tol) {
     return true;
   } else {
     return false;
