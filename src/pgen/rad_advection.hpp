@@ -30,30 +30,30 @@ void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin,
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
 
-  const int ilo    = 1;
-  const int ihi    = grid->get_ihi();
+  const int ilo = 1;
+  const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
   const int iCF_Tau = 0;
-  const int iCF_V   = 1;
-  const int iCF_E   = 2;
+  const int iCF_V = 1;
+  const int iCF_E = 2;
 
   const int iPF_D = 0;
 
   const int iCR_E = 3;
   const int iCR_F = 4;
 
-  const auto V0      = pin->param()->get<double>("problem.params.v0", 1.0);
-  const auto D       = pin->param()->get<double>("problem.params.rho", 1.0);
-  const auto amp     = pin->param()->get<double>("problem.params.amp", 1.0);
-  const auto width   = pin->param()->get<double>("problem.params.width", 0.05);
-  const double mu    = 1.0 + constants::m_e / constants::m_p;
+  const auto V0 = pin->param()->get<double>("problem.params.v0", 1.0);
+  const auto D = pin->param()->get<double>("problem.params.rho", 1.0);
+  const auto amp = pin->param()->get<double>("problem.params.amp", 1.0);
+  const auto width = pin->param()->get<double>("problem.params.width", 0.05);
+  const double mu = 1.0 + constants::m_e / constants::m_p;
   const double gamma = get_gamma(eos);
-  const double gm1   = gamma - 1.0;
+  const double gm1 = gamma - 1.0;
 
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int iX) {
-        const int k     = 0;
+        const int k = 0;
         const double X1 = grid->get_centers(iX);
 
         uCF(iCR_E, iX, k) =
@@ -65,7 +65,7 @@ void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin,
         const double sie_fluid =
             constants::k_B * Trad / (gm1 * mu * constants::m_p);
         uCF(iCF_Tau, iX, k) = 1.0 / D;
-        uCF(iCF_V, iX, k)   = V0;
+        uCF(iCF_V, iX, k) = V0;
         uCF(iCF_E, iX, k) =
             sie_fluid +
             0.5 * V0 * V0; // p0 / (gamma - 1.0) / D + 0.5 * V0 * V0;

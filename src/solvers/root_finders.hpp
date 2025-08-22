@@ -81,11 +81,11 @@ class RadHydroConvergence {
     double max_error = 0.0;
     for (int k = 0; k < num_modes_; ++k) {
       const double abs_err = std::abs(u_n(q, k) - u_nm1(q, k));
-      const double scale   = std::max(
+      const double scale = std::max(
           {scales_.velocity_scale, std::abs(u_n(q, k)), std::abs(u_nm1(q, k))});
       const double normalized_err = abs_err / scale;
-      const double weighted_err   = normalized_err * mode_weights_[k];
-      max_error                   = std::max(max_error, weighted_err);
+      const double weighted_err = normalized_err * mode_weights_[k];
+      max_error = std::max(max_error, weighted_err);
     }
     return max_error;
   }
@@ -94,11 +94,11 @@ class RadHydroConvergence {
     double max_error = 0.0;
     for (int k = 0; k < num_modes_; ++k) {
       const double abs_err = std::abs(u_n(q, k) - u_nm1(q, k));
-      const double scale   = std::max(
+      const double scale = std::max(
           {scales_.energy_scale, std::abs(u_n(q, k)), std::abs(u_nm1(q, k))});
       const double normalized_err = abs_err / scale;
-      const double weighted_err   = normalized_err * mode_weights_[k];
-      max_error                   = std::max(max_error, weighted_err);
+      const double weighted_err = normalized_err * mode_weights_[k];
+      max_error = std::max(max_error, weighted_err);
     }
     return max_error;
   }
@@ -112,8 +112,8 @@ class RadHydroConvergence {
           std::max({scales_.rad_energy_scale, std::abs(u_n(q, k)),
                     std::abs(u_nm1(q, k))});
       const double normalized_err = abs_err / scale;
-      const double weighted_err   = normalized_err * mode_weights_[k];
-      max_error                   = std::max(max_error, weighted_err);
+      const double weighted_err = normalized_err * mode_weights_[k];
+      max_error = std::max(max_error, weighted_err);
     }
     return max_error;
   }
@@ -122,11 +122,11 @@ class RadHydroConvergence {
     double max_error = 0.0;
     for (int k = 0; k < num_modes_; ++k) {
       const double abs_err = std::abs(u_n(q, k) - u_nm1(q, k));
-      const double scale   = std::max(
+      const double scale = std::max(
           {scales_.rad_flux_scale, std::abs(u_n(q, k)), std::abs(u_nm1(q, k))});
       const double normalized_err = abs_err / scale;
-      const double weighted_err   = normalized_err * mode_weights_[k];
-      max_error                   = std::max(max_error, weighted_err);
+      const double weighted_err = normalized_err * mode_weights_[k];
+      max_error = std::max(max_error, weighted_err);
     }
     return max_error;
   }
@@ -135,10 +135,10 @@ class RadHydroConvergence {
   template <typename T>
   auto check_convergence(const T state_n, const T state_nm1) -> bool {
 
-    double max_velocity_error   = 0.0;
-    double max_energy_error     = 0.0;
+    double max_velocity_error = 0.0;
+    double max_energy_error = 0.0;
     double max_rad_energy_error = 0.0;
-    double max_rad_flux_error   = 0.0;
+    double max_rad_flux_error = 0.0;
 
     max_velocity_error = std::max(max_velocity_error,
                                   fluid_velocity_error(state_n, state_nm1, 1));
@@ -149,10 +149,10 @@ class RadHydroConvergence {
     max_rad_flux_error = std::max(max_rad_flux_error,
                                   radiation_flux_error(state_n, state_nm1, 4));
 
-    bool velocity_converged   = max_velocity_error < rel_tol_;
-    bool energy_converged     = max_energy_error < rel_tol_;
+    bool velocity_converged = max_velocity_error < rel_tol_;
+    bool energy_converged = max_energy_error < rel_tol_;
     bool rad_energy_converged = max_rad_energy_error < rel_tol_;
-    bool rad_flux_converged   = max_rad_flux_error < rel_tol_;
+    bool rad_flux_converged = max_rad_flux_error < rel_tol_;
 
     return velocity_converged && energy_converged && rad_energy_converged &&
            rad_flux_converged;
@@ -223,10 +223,10 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro(T R, double dt_a_ii,
 
   // Set up physical scales based on your problem
   PhysicalScales scales{};
-  scales.velocity_scale   = 1e7; // Typical velocity (cm/s)
-  scales.energy_scale     = 1e12; // Typical energy density
+  scales.velocity_scale = 1e7; // Typical velocity (cm/s)
+  scales.energy_scale = 1e12; // Typical energy density
   scales.rad_energy_scale = 1e12; // Typical radiation energy density
-  scales.rad_flux_scale   = 1e20; // Typical radiation flux
+  scales.rad_flux_scale = 1e20; // Typical radiation flux
 
   static RadHydroConvergence<T> convergence_checker(
       scales, root_finders::ABSTOL, root_finders::RELTOL, num_modes);
@@ -245,7 +245,7 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro(T R, double dt_a_ii,
       // --- update ---
       for (int iC = 1; iC < nvars; ++iC) {
         scratch_nm1(iC, k) = scratch_n(iC, k);
-        scratch_n(iC, k)   = scratch(iC, k);
+        scratch_n(iC, k) = scratch(iC, k);
       }
     }
 
@@ -274,24 +274,24 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro_aa(T R, double dt_a_ii,
   // --- first fixed point iteration ---
   for (int k = 0; k < num_modes; ++k) {
     const auto [xnp1_1_k, xnp1_2_k, xnp1_3_k, xnp1_4_k] = target(scratch_n, k);
-    scratch(1, k)                                       = xnp1_1_k;
-    scratch(2, k)                                       = xnp1_2_k;
-    scratch(3, k)                                       = xnp1_3_k;
-    scratch(4, k)                                       = xnp1_4_k;
+    scratch(1, k) = xnp1_1_k;
+    scratch(2, k) = xnp1_2_k;
+    scratch(3, k) = xnp1_3_k;
+    scratch(4, k) = xnp1_4_k;
   }
   for (int iC = 1; iC < nvars; ++iC) {
     for (int k = 0; k < num_modes; ++k) {
       scratch_nm1(iC, k) = scratch_n(iC, k);
-      scratch_n(iC, k)   = scratch(iC, k);
+      scratch_n(iC, k) = scratch(iC, k);
     }
   }
 
   // Set up physical scales based on your problem
   PhysicalScales scales{};
-  scales.velocity_scale   = 1e7; // Typical velocity (cm/s)
-  scales.energy_scale     = 1e12; // Typical energy density
+  scales.velocity_scale = 1e7; // Typical velocity (cm/s)
+  scales.energy_scale = 1e12; // Typical energy density
   scales.rad_energy_scale = 1e12; // Typical radiation energy density
-  scales.rad_flux_scale   = 1e20; // Typical radiation flux
+  scales.rad_flux_scale = 1e20; // Typical radiation flux
 
   static RadHydroConvergence<T> convergence_checker(
       scales, root_finders::ABSTOL, root_finders::RELTOL, num_modes);
@@ -306,14 +306,14 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro_aa(T R, double dt_a_ii,
   unsigned int n = 1;
   while (n <= root_finders::MAX_ITERS && !converged) {
     for (int k = 0; k < num_modes; ++k) {
-      const auto [s_1_n, s_2_n, s_3_n, s_4_n]         = target(scratch_n, k);
+      const auto [s_1_n, s_2_n, s_3_n, s_4_n] = target(scratch_n, k);
       const auto [s_1_nm1, s_2_nm1, s_3_nm1, s_4_nm1] = target(scratch_nm1, k);
 
       // residuals
-      const auto r_1_n   = residual(s_1_n, scratch_n(1, k));
-      const auto r_2_n   = residual(s_2_n, scratch_n(2, k));
-      const auto r_3_n   = residual(s_3_n, scratch_n(3, k));
-      const auto r_4_n   = residual(s_4_n, scratch_n(4, k));
+      const auto r_1_n = residual(s_1_n, scratch_n(1, k));
+      const auto r_2_n = residual(s_2_n, scratch_n(2, k));
+      const auto r_3_n = residual(s_3_n, scratch_n(3, k));
+      const auto r_4_n = residual(s_4_n, scratch_n(4, k));
       const auto r_1_nm1 = residual(s_1_nm1, scratch_nm1(1, k));
       const auto r_2_nm1 = residual(s_2_nm1, scratch_nm1(2, k));
       const auto r_3_nm1 = residual(s_3_nm1, scratch_nm1(3, k));
@@ -339,7 +339,7 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro_aa(T R, double dt_a_ii,
       // --- update ---
       for (int iC = 1; iC < nvars; ++iC) {
         scratch_nm1(iC, k) = scratch_n(iC, k);
-        scratch_n(iC, k)   = scratch(iC, k);
+        scratch_n(iC, k) = scratch(iC, k);
       }
     }
 
@@ -354,11 +354,11 @@ template <typename T, typename F, typename... Args>
 auto fixed_point(F target, T x0, Args... args) -> T {
 
   unsigned int n = 0;
-  T error        = 1.0;
+  T error = 1.0;
   while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
-    T x1  = target(x0, args...);
+    T x1 = target(x0, args...);
     error = std::abs(residual(target, x0, args...));
-    x0    = x1;
+    x0 = x1;
     ++n;
   }
 
@@ -369,11 +369,11 @@ template <typename T, typename F>
 auto fixed_point(F target, T x0) -> T {
 
   unsigned int n = 0;
-  T error        = 1.0;
+  T error = 1.0;
   while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
-    T x1  = target(x0);
+    T x1 = target(x0);
     error = std::abs(residual(target, x0));
-    x0    = x1;
+    x0 = x1;
     ++n;
   }
 
@@ -385,12 +385,12 @@ template <typename T, typename F, typename... Args>
 auto newton(F target, F dTarget, T x0, Args... args) -> T {
 
   unsigned int n = 0;
-  T h            = target(x0, args...) / dTarget(x0, args...);
-  T error        = 1.0;
+  T h = target(x0, args...) / dTarget(x0, args...);
+  T error = 1.0;
   while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
-    T xn  = x0;
-    T h   = target(xn, args...) / dTarget(xn, args...);
-    x0    = xn - h;
+    T xn = x0;
+    T h = target(xn, args...) / dTarget(xn, args...);
+    x0 = xn - h;
     error = std::abs(xn - x0);
     ++n;
   }
@@ -403,28 +403,28 @@ auto newton_aa(F target, F dTarget, T x0, Args... args) -> T {
 
   unsigned int n = 0;
 
-  T h     = target(x0, args...) / dTarget(x0, args...);
+  T h = target(x0, args...) / dTarget(x0, args...);
   T error = 1.0;
-  T xkm1  = 0.0;
-  T xk    = 0.0;
-  T xkp1  = 0.0;
-  xk      = std::min(x0 - h, root_finders::ABSTOL); // keep positive definite
-  xkm1    = x0;
+  T xkm1 = 0.0;
+  T xk = 0.0;
+  T xkp1 = 0.0;
+  xk = std::min(x0 - h, root_finders::ABSTOL); // keep positive definite
+  xkm1 = x0;
   T result;
   if (std::abs(xk - x0) <= root_finders::ABSTOL) {
     return xk;
   }
   while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
     T hp1 = target(xk, args...) / dTarget(xk, args...);
-    T h   = target(xkm1, args...) / dTarget(xkm1, args...);
+    T h = target(xkm1, args...) / dTarget(xkm1, args...);
     /* Anderson acceleration step */
     T gamma = hp1 / (hp1 - h);
 
-    xkp1  = xk - hp1 - gamma * (xk - xkm1 - hp1 + h);
+    xkp1 = xk - hp1 - gamma * (xk - xkm1 - hp1 + h);
     error = std::abs(xk - xkp1);
 
     xkm1 = xk;
-    xk   = xkp1;
+    xk = xkp1;
 
     ++n;
     result = xk;

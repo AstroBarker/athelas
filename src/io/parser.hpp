@@ -135,7 +135,7 @@ class Parser {
 
   // Parse from string
   static auto parse_string(const std::string& csv_content, char delimiter = ',',
-                           char quote_char             = '"',
+                           char quote_char = '"',
                            bool strip_hash_from_header = true)
       -> std::expected<ParseResult, ParseError> {
     if (csv_content.empty()) {
@@ -175,7 +175,7 @@ class Parser {
         }
 
         result.headers = std::move(headers);
-        first_line     = false;
+        first_line = false;
       } else {
         result.rows.emplace_back(Row{std::move(parsed_row)});
       }
@@ -192,7 +192,7 @@ class Parser {
 
     std::vector<std::string> fields;
     std::string current_field;
-    bool in_quotes         = false;
+    bool in_quotes = false;
     bool quote_encountered = false;
 
     for (size_t i = 0; i < line.size(); ++i) {
@@ -200,7 +200,7 @@ class Parser {
 
       if (ch == quote_char) {
         if (!in_quotes) {
-          in_quotes         = true;
+          in_quotes = true;
           quote_encountered = true;
         } else if (i + 1 < line.size() && line[i + 1] == quote_char) {
           // Escaped quote

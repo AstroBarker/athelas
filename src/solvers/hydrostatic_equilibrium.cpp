@@ -9,26 +9,26 @@ using utilities::LINTERP;
 auto HydrostaticEquilibrium::rhs(const double mass_enc, const double p,
                                  const double r) const -> double {
   static constexpr double G = constants::G_GRAV;
-  const double rho          = std::pow(p / k_, n_ / (n_ + 1.0));
+  const double rho = std::pow(p / k_, n_ / (n_ + 1.0));
   return -G * mass_enc * rho / (r * r);
 }
 
 void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure* grid,
                                    ProblemIn* pin) {
   static constexpr int ilo = 1;
-  const int ihi            = grid->get_ihi();
-  const int nNodes         = grid->get_n_nodes();
-  const double rmax        = grid->get_x_r();
-  const double dr          = rmax / ihi;
+  const int ihi = grid->get_ihi();
+  const int nNodes = grid->get_n_nodes();
+  const double rmax = grid->get_x_r();
+  const double dr = rmax / ihi;
   // Subtely: do we associate rho_c_ with the inner boundary or first nodal
   // point?
-  const double vel    = 0.0;
+  const double vel = 0.0;
   const double energy = 0.0;
-  const auto lambda   = nullptr;
+  const auto lambda = nullptr;
   const double p_c = pressure_from_conserved(eos_, rho_c_, vel, energy, lambda);
 
   const double r_c = grid->node_coordinate(ilo, 0);
-  double m_enc     = (constants::FOURPI / 3.0) * (r_c * r_c * r_c) * rho_c_;
+  double m_enc = (constants::FOURPI / 3.0) * (r_c * r_c * r_c) * rho_c_;
 
   // host data
   auto h_uAF = Kokkos::create_mirror_view(uAF);
@@ -40,19 +40,19 @@ void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure* grid,
   Kokkos::parallel_for(
       "copy grid", Kokkos::RangePolicy<>(0, ihi + 1), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; ++iN) {
-          const double r        = grid->node_coordinate(iX + 1, iN);
+          const double r = grid->node_coordinate(iX + 1, iN);
           d_r(iX * nNodes + iN) = r;
         }
       });
   auto h_r = Kokkos::create_mirror_view(d_r);
   Kokkos::deep_copy(h_r, d_r);
   pressure[0] = p_c;
-  radius[0]   = r_c;
+  radius[0] = r_c;
 
   int i = 0;
   while (pressure.back() > p_threshold_) {
-    const double r   = radius[i];
-    const double p   = pressure[i];
+    const double r = radius[i];
+    const double p = pressure[i];
     const double rho = std::pow(p / k_, n_ / (n_ + 1.0));
 
     // RK4
@@ -89,7 +89,7 @@ void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure* grid,
   // this is awful
   // TODO(astrobarker): when cleaning up grid, get this
   auto newgrid = GridStructure(pin);
-  *grid        = newgrid;
+  *grid = newgrid;
 
   // refill host radius array
   for (int iX = 0; iX <= ihi; ++iX) {
@@ -105,8 +105,8 @@ void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure* grid,
       const double r = h_r(iX * nNodes + iN);
       for (size_t i = 0; i < pressure.size() - 2; ++i) {
         if (radius[i] <= r && radius[i + 1] >= r) { // search
-          const double y     = LINTERP(radius[i], radius[i + 1], pressure[i],
-                                       pressure[i + 1], r);
+          const double y = LINTERP(radius[i], radius[i + 1], pressure[i],
+                                   pressure[i + 1], r);
           h_uAF(iP_, iX, iN) = y;
           break;
         }

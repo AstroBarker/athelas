@@ -49,7 +49,7 @@ auto flux_rad(const double E, const double F, const double P, const double V,
   assert(E > 0.0 &&
          "Radiation :: flux_rad :: non positive definite energy density.");
 
-  static constexpr double c  = constants::c_cgs;
+  static constexpr double c = constants::c_cgs;
   static constexpr double c2 = c * c;
   return (iCR == 0) ? F - V * E : c2 * P - V * F;
 }
@@ -86,9 +86,9 @@ auto flux_rad(const double E, const double F, const double P, const double V)
   constexpr static double a = constants::a;
   constexpr static double c = constants::c_cgs;
 
-  const double b     = V / c;
+  const double b = V / c;
   const double term1 = E - (a * T * T * T * T);
-  const double Fc    = F / c;
+  const double Fc = F / c;
 
   // O(b^2) ala Fuksman
   /*
@@ -131,8 +131,8 @@ auto flux_rad(const double E, const double F, const double P, const double V)
   assert(E > 0.0 && "Radiation :: compute_closure :: Non positive definite "
                     "radiation energy density.");
   constexpr static double one_third = 1.0 / 3.0;
-  const double f                    = std::clamp(flux_factor(E, F), 0.0, 1.0);
-  const double f2                   = f * f;
+  const double f = std::clamp(flux_factor(E, F), 0.0, 1.0);
+  const double f2 = f * f;
   const double chi =
       (3.0 + 4.0 * f2) / (5.0 + 2.0 * std::sqrt(4.0 - (3.0 * f2)));
   const double T = std::clamp(
@@ -151,12 +151,12 @@ auto llf_flux(const double Fp, const double Fm, const double Up,
  * and references therein
  **/
 auto lambda_hll(const double f, const int sign) -> double {
-  constexpr static double c        = constants::c_cgs;
+  constexpr static double c = constants::c_cgs;
   constexpr static double twothird = 2.0 / 3.0;
 
-  const double f2       = f * f;
+  const double f2 = f * f;
   const double sqrtterm = std::sqrt(4.0 - (3.0 * f2));
-  auto res              = c *
+  auto res = c *
              (f + sign * std::sqrt((twothird * (4.0 - 3.0 * f2 - sqrtterm)) +
                                    (2.0 * (2.0 - f2 - sqrtterm)))) /
              sqrtterm;
@@ -178,14 +178,14 @@ auto numerical_flux_hll_rad(const double E_L, const double E_R,
 
   // TODO(astrobarker) - vstar?
   constexpr static double c2 = constants::c_cgs * constants::c_cgs;
-  const double lambda1_L     = lambda_hll(f_L, -1.0);
-  const double lambda1_R     = lambda_hll(f_R, -1.0);
-  const double lambda3_L     = lambda_hll(f_L, 1.0);
-  const double lambda3_R     = lambda_hll(f_R, 1.0);
-  const double lambda_min_L  = lambda1_L;
-  const double lambda_min_R  = lambda1_R;
-  const double lambda_max_L  = lambda3_L;
-  const double lambda_max_R  = lambda3_R;
+  const double lambda1_L = lambda_hll(f_L, -1.0);
+  const double lambda1_R = lambda_hll(f_R, -1.0);
+  const double lambda3_L = lambda_hll(f_L, 1.0);
+  const double lambda3_R = lambda_hll(f_R, 1.0);
+  const double lambda_min_L = lambda1_L;
+  const double lambda_min_R = lambda1_R;
+  const double lambda_max_L = lambda3_L;
+  const double lambda_max_R = lambda3_R;
 
   const double s_r = std::max(lambda_max_L, lambda_max_R) - vstar;
   const double s_l = std::min(lambda_min_L, lambda_min_R) - vstar;

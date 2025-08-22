@@ -10,7 +10,7 @@ AlwaysBreakTemplateDeclarations: true
 BinPackArguments: true
 BinPackParameters: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
-AlignConsecutiveAssignments: true
+AlignConsecutiveAssignments: false
 AlignTrailingComments:
   Kind: Never
 #  OverEmptyLines: 2

@@ -25,7 +25,7 @@ Marshak::sound_speed_from_conserved(const double /*tau*/, const double V,
                                                        double* lambda) const
     -> double {
   const double sie = E - 0.5 * V * V;
-  const double ev  = sie / tau;
+  const double ev = sie / tau;
   return std::pow(ev / constants::a, 0.25);
 }
 

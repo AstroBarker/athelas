@@ -68,17 +68,17 @@ class AtomicData {
     std::vector<int> offs(num_species_);
 
     for (size_t s = 0; s < num_species_; ++s) {
-      int Z   = s;
+      int Z = s;
       offs[s] = total_levels;
       total_levels += Z; // Z ionization levels
     }
 
     ion_data_ = View1D<IonLevel>("ion_data", total_levels + num_species_ + 2);
     atomic_numbers_ = View1D<int>("atomic_number", num_species_);
-    offsets_        = View1D<int>("offsets", num_species_);
+    offsets_ = View1D<int>("offsets", num_species_);
 
-    auto offs_host           = Kokkos::create_mirror_view(offsets_);
-    auto ion_data_host       = Kokkos::create_mirror_view(ion_data_);
+    auto offs_host = Kokkos::create_mirror_view(offsets_);
+    auto ion_data_host = Kokkos::create_mirror_view(ion_data_);
     auto atomic_numbers_host = Kokkos::create_mirror_view(atomic_numbers_);
     for (size_t s = 0; s < num_species_; ++s) {
       offs_host(s) = offs[s];
@@ -97,8 +97,8 @@ class AtomicData {
     }
 
     // process ionization and degerneracy data
-    int chi_idx   = 0; // Index into ionization potentials vector
-    int g_idx     = 0; // Index into degeneracy factors vector
+    int chi_idx = 0; // Index into ionization potentials vector
+    int g_idx = 0; // Index into degeneracy factors vector
     int level_idx = 0; // Index into our ion_data_ array
 
     for (size_t s = 0; s < num_species_; ++s) {
@@ -111,7 +111,7 @@ class AtomicData {
 
       for (int n = 0; n < Z; ++n) { // n goes from 0 to Z-1
         // Level n represents ionization from state n to state n+1
-        ion_data_host(level_idx).chi     = ionization_energies[chi_idx + n];
+        ion_data_host(level_idx).chi = ionization_energies[chi_idx + n];
         ion_data_host(level_idx).g_lower = weights[g_idx + n]; // g[n]
         ion_data_host(level_idx).g_upper = weights[g_idx + n + 1]; // g[n+1]
 
@@ -129,7 +129,7 @@ class AtomicData {
   }
 
   [[nodiscard]] KOKKOS_INLINE_FUNCTION auto species_data(int species) const {
-    const size_t offset      = offsets_(species);
+    const size_t offset = offsets_(species);
     const size_t next_offset = (species + 1 < num_species_)
                                    ? offsets_(species + 1)
                                    : ion_data_.extent(0);

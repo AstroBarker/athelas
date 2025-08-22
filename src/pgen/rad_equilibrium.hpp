@@ -33,26 +33,26 @@ void rad_equilibrium_init(State* state, GridStructure* grid, ProblemIn* pin,
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
 
-  const int ilo    = 1;
-  const int ihi    = grid->get_ihi();
+  const int ilo = 1;
+  const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
   const int iCF_Tau = 0;
-  const int iCF_V   = 1;
-  const int iCF_E   = 2;
+  const int iCF_V = 1;
+  const int iCF_E = 2;
 
   const int iPF_D = 0;
 
   const int iCR_E = 3;
 
-  const auto V0   = pin->param()->get<double>("problem.params.v0", 0.0);
+  const auto V0 = pin->param()->get<double>("problem.params.v0", 0.0);
   const auto logD = pin->param()->get<double>("problem.params.logrho", -7.0);
   const auto logE_gas =
       pin->param()->get<double>("problem.params.logE_gas", 10.0);
   const auto logE_rad =
       pin->param()->get<double>("problem.params.logE_rad", 12.0);
 
-  const double D      = std::pow(10.0, logD);
+  const double D = std::pow(10.0, logD);
   const double Ev_gas = std::pow(10.0, logE_gas);
   const double Ev_rad = std::pow(10.0, logE_rad);
 
@@ -61,9 +61,9 @@ void rad_equilibrium_init(State* state, GridStructure* grid, ProblemIn* pin,
         const int k = 0;
 
         uCF(iCF_Tau, iX, k) = 1.0 / D;
-        uCF(iCF_V, iX, k)   = V0;
-        uCF(iCF_E, iX, k)   = Ev_gas / D;
-        uCF(iCR_E, iX, k)   = Ev_rad;
+        uCF(iCF_V, iX, k) = V0;
+        uCF(iCF_E, iX, k) = Ev_gas / D;
+        uCF(iCR_E, iX, k) = Ev_rad;
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
           uPF(iPF_D, iX, iNodeX) = D;

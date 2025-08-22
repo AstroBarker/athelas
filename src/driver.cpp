@@ -21,7 +21,7 @@
 #include "utils/fill_derived.hpp"
 
 auto Driver::execute() -> int {
-  const auto nx           = pin_->param()->get<int>("problem.nx");
+  const auto nx = pin_->param()->get<int>("problem.nx");
   const auto problem_name = pin_->param()->get<std::string>("problem.problem");
 
   // some startup io
@@ -37,19 +37,19 @@ auto Driver::execute() -> int {
   Kokkos::Timer timer_zone_cycles;
   double zc_ws = 0.0; // zone cycles / wall second
 
-  const double nlim       = (pin_->param()->get<double>("problem.nlim")) == -1
-                                ? std::numeric_limits<double>::infinity()
-                                : pin_->param()->get<double>("problem.nlim");
-  const auto ncycle_out   = pin_->param()->get<int>("output.ncycle_out");
-  const auto dt_init      = pin_->param()->get<double>("output.initial_dt");
+  const double nlim = (pin_->param()->get<double>("problem.nlim")) == -1
+                          ? std::numeric_limits<double>::infinity()
+                          : pin_->param()->get<double>("problem.nlim");
+  const auto ncycle_out = pin_->param()->get<int>("output.ncycle_out");
+  const auto dt_init = pin_->param()->get<double>("output.initial_dt");
   const auto dt_init_frac = pin_->param()->get<double>("output.dt_init_frac");
-  const auto dt_hdf5      = pin_->param()->get<double>("output.dt_hdf5");
+  const auto dt_hdf5 = pin_->param()->get<double>("output.dt_hdf5");
 
   dt_ = dt_init;
 
   // --- Evolution loop ---
-  int iStep      = 0;
-  int i_out_h5   = 1; // output label, start 1
+  int iStep = 0;
+  int i_out_h5 = 1; // output label, start 1
   int i_out_hist = 1; // output hist
   std::println("# Step    t       dt       zone_cycles / wall_second");
   while (time_ < t_end_ && iStep <= nlim) {
@@ -169,7 +169,7 @@ void Driver::initialize(ProblemIn* pin) { // NOLINT
                       radiation_basis_.get());
   }
 
-  const bool rad_active     = pin->param()->get<bool>("physics.rad_active");
+  const bool rad_active = pin->param()->get<bool>("physics.rad_active");
   const bool gravity_active = pin->param()->get<bool>("physics.gravity_active");
 
   // --- Init physics package manager ---

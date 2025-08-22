@@ -41,8 +41,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
   switch (method_id) {
   case MethodID::EX_SSPRK11: {
     // --- Forward Euler --- //
-    constexpr static MethodType type    = MethodType::EX;
-    constexpr static int stages         = 1;
+    constexpr static MethodType type = MethodType::EX;
+    constexpr static int stages = 1;
     constexpr static int explicit_order = 1;
     constexpr static int implicit_order = 0; // dummy
     View2D<double> a_ex("a_ij_ex", stages, stages);
@@ -55,8 +55,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     auto c_ex_host = Kokkos::create_mirror_view(c_ex);
 
     a_ex_host(0, 0) = 0.0;
-    b_ex_host(0)    = 1.0;
-    c_ex_host(0)    = 1.0;
+    b_ex_host(0) = 1.0;
+    c_ex_host(0) = 1.0;
 
     // copy to device
     Kokkos::deep_copy(a_ex, a_ex_host);
@@ -79,8 +79,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
   } // end EX_SSPRK11
   case MethodID::EX_SSPRK22: {
     // --- Heun's method SSPRK(2,2) --- //
-    constexpr static MethodType type    = MethodType::EX;
-    constexpr static int stages         = 2;
+    constexpr static MethodType type = MethodType::EX;
+    constexpr static int stages = 2;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 0; // dummy
     View2D<double> a_ex("a_ij_ex", stages, stages);
@@ -93,10 +93,10 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     auto c_ex_host = Kokkos::create_mirror_view(c_ex);
 
     a_ex_host(1, 0) = 1.0;
-    b_ex_host(0)    = 0.5;
-    b_ex_host(1)    = 0.5;
-    c_ex_host(0)    = 0.0;
-    c_ex_host(1)    = 1.0;
+    b_ex_host(0) = 0.5;
+    b_ex_host(1) = 0.5;
+    c_ex_host(0) = 0.0;
+    c_ex_host(1) = 1.0;
 
     // copy to device
     Kokkos::deep_copy(a_ex, a_ex_host);
@@ -119,8 +119,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
   } // end EX_SSPRK22
   case MethodID::EX_SSPRK33: {
     // --- classic SSPRK(3,3) --- //
-    constexpr static MethodType type    = MethodType::EX;
-    constexpr static int stages         = 3;
+    constexpr static MethodType type = MethodType::EX;
+    constexpr static int stages = 3;
     constexpr static int explicit_order = 3;
     constexpr static int implicit_order = 0; // dummy
     View2D<double> a_ex("a_ij_ex", stages, stages);
@@ -135,12 +135,12 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     a_ex_host(1, 0) = 1.0;
     a_ex_host(2, 0) = 0.25;
     a_ex_host(2, 1) = 0.25;
-    b_ex_host(0)    = 1.0 / 6.0;
-    b_ex_host(1)    = 1.0 / 6.0;
-    b_ex_host(2)    = 2.0 / 3.0;
-    c_ex_host(0)    = 0.0;
-    c_ex_host(1)    = 1.0;
-    c_ex_host(2)    = 0.5;
+    b_ex_host(0) = 1.0 / 6.0;
+    b_ex_host(1) = 1.0 / 6.0;
+    b_ex_host(2) = 2.0 / 3.0;
+    c_ex_host(0) = 0.0;
+    c_ex_host(1) = 1.0;
+    c_ex_host(2) = 0.5;
 
     // copy to device
     Kokkos::deep_copy(a_ex, a_ex_host);
@@ -164,8 +164,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
   case MethodID::EX_SSPRK54: {
     // --- SSPRK(5,4) of Spiteri and Ruuth 2002 --- //
     // TODO(astrobarker) if I want to test other SSPRK(5,4), use _EXT in name
-    constexpr static MethodType type    = MethodType::EX;
-    constexpr static int stages         = 5;
+    constexpr static MethodType type = MethodType::EX;
+    constexpr static int stages = 5;
     constexpr static int explicit_order = 4;
     constexpr static int implicit_order = 0; // dummy
     View2D<double> a_ex("a_ij_ex", stages, stages);
@@ -222,8 +222,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
   case MethodID::EX_SSPRK52: {
     // --- SSPRK(5,2) --- //
     // radius of absolute monotonicity 4.0
-    constexpr static MethodType type    = MethodType::EX;
-    constexpr static int stages         = 5;
+    constexpr static MethodType type = MethodType::EX;
+    constexpr static int stages = 5;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 0; // dummy
     View2D<double> a_ex("a_ij_ex", stages, stages);
@@ -280,8 +280,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
   case MethodID::EX_SSPRK53: {
     // --- SSPRK(5,3) --- //
     // radius of absolute monotonicity 2.65
-    constexpr static MethodType type    = MethodType::EX;
-    constexpr static int stages         = 5;
+    constexpr static MethodType type = MethodType::EX;
+    constexpr static int stages = 5;
     constexpr static int explicit_order = 3;
     constexpr static int implicit_order = 0; // dummy
     View2D<double> a_ex("a_ij_ex", stages, stages);
@@ -337,8 +337,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
   } // end EX_SSPRK52
   case MethodID::IMEX_SSPRK11: {
     // --- Forward Euler + Backward Euler --- //
-    constexpr static MethodType type    = MethodType::IMEX;
-    constexpr static int stages         = 1;
+    constexpr static MethodType type = MethodType::IMEX;
+    constexpr static int stages = 1;
     constexpr static int explicit_order = 1;
     constexpr static int implicit_order = 1;
     View2D<double> a_ex("a_ij_ex", stages, stages);
@@ -351,8 +351,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     auto c_ex_host = Kokkos::create_mirror_view(c_ex);
 
     a_ex_host(0, 0) = 0.0;
-    b_ex_host(0)    = 1.0;
-    c_ex_host(0)    = 1.0;
+    b_ex_host(0) = 1.0;
+    c_ex_host(0) = 1.0;
 
     // copy to device
     Kokkos::deep_copy(a_ex, a_ex_host);
@@ -372,8 +372,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     auto c_im_host = Kokkos::create_mirror_view(c_im);
 
     a_im_host(0, 0) = 1.0;
-    b_im_host(0)    = 1.0;
-    c_im_host(0)    = 1.0;
+    b_im_host(0) = 1.0;
+    c_im_host(0) = 1.0;
 
     Kokkos::deep_copy(a_im, a_im_host);
     Kokkos::deep_copy(b_im, b_im_host);
@@ -387,8 +387,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
   } // end IMEX_SSPRK11
   case MethodID::IMEX_SSPRK22_DIRK: {
     // --- Heun's method SSPRK(2,2) with Pareschi & Russo DIRK(2,2) --- //
-    constexpr static MethodType type    = MethodType::IMEX;
-    constexpr static int stages         = 2;
+    constexpr static MethodType type = MethodType::IMEX;
+    constexpr static int stages = 2;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 2;
     View2D<double> a_ex("a_ij_ex", stages, stages);
@@ -401,10 +401,10 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     auto c_ex_host = Kokkos::create_mirror_view(c_ex);
 
     a_ex_host(1, 0) = 1.0;
-    b_ex_host(0)    = 0.5;
-    b_ex_host(1)    = 0.5;
-    c_ex_host(0)    = 0.0;
-    c_ex_host(1)    = 1.0;
+    b_ex_host(0) = 0.5;
+    b_ex_host(1) = 0.5;
+    c_ex_host(0) = 0.0;
+    c_ex_host(1) = 1.0;
 
     // copy to device
     Kokkos::deep_copy(a_ex, a_ex_host);
@@ -424,13 +424,13 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     auto c_im_host = Kokkos::create_mirror_view(c_im);
 
     constexpr static double gam = 1.0 - (1.0 / std::numbers::sqrt2);
-    a_im_host(0, 0)             = gam;
-    a_im_host(1, 0)             = 1.0 - 2.0 * gam;
-    a_im_host(1, 1)             = gam;
-    b_im_host(0)                = 0.5;
-    b_im_host(1)                = 0.5;
-    c_im_host(0)                = gam;
-    c_im_host(1)                = 1.0 - gam;
+    a_im_host(0, 0) = gam;
+    a_im_host(1, 0) = 1.0 - 2.0 * gam;
+    a_im_host(1, 1) = gam;
+    b_im_host(0) = 0.5;
+    b_im_host(1) = 0.5;
+    c_im_host(0) = gam;
+    c_im_host(1) = 1.0 - gam;
 
     Kokkos::deep_copy(a_im, a_im_host);
     Kokkos::deep_copy(b_im, b_im_host);
@@ -444,8 +444,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
   } // end IMEX_SSPRK22_DIRK
   case MethodID::IMEX_ARK32_ESDIRK: {
     // --- Giraldo et al 2013 ARK32 ESDIRK --- //
-    constexpr static MethodType type    = MethodType::IMEX;
-    constexpr static int stages         = 3;
+    constexpr static MethodType type = MethodType::IMEX;
+    constexpr static int stages = 3;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 2;
     View2D<double> a_ex("a_ij_ex", stages, stages);
@@ -458,15 +458,15 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     auto c_ex_host = Kokkos::create_mirror_view(c_ex);
 
     constexpr static double a32 = (3.0 + 2.0 * std::numbers::sqrt2) / 6.0;
-    a_ex_host(1, 0)             = 2.0 - std::numbers::sqrt2;
-    a_ex_host(2, 0)             = 1.0 - a32;
-    a_ex_host(2, 1)             = a32;
-    b_ex_host(0)                = +1.0 / (2.0 * std::numbers::sqrt2);
-    b_ex_host(1)                = +1.0 / (2.0 * std::numbers::sqrt2);
-    b_ex_host(2)                = 1.0 - 1.0 / std::numbers::sqrt2;
-    c_ex_host(0)                = 0.0;
-    c_ex_host(1)                = 2.0 - std::numbers::sqrt2;
-    c_ex_host(2)                = 1.0;
+    a_ex_host(1, 0) = 2.0 - std::numbers::sqrt2;
+    a_ex_host(2, 0) = 1.0 - a32;
+    a_ex_host(2, 1) = a32;
+    b_ex_host(0) = +1.0 / (2.0 * std::numbers::sqrt2);
+    b_ex_host(1) = +1.0 / (2.0 * std::numbers::sqrt2);
+    b_ex_host(2) = 1.0 - 1.0 / std::numbers::sqrt2;
+    c_ex_host(0) = 0.0;
+    c_ex_host(1) = 2.0 - std::numbers::sqrt2;
+    c_ex_host(2) = 1.0;
 
     // copy to device
     Kokkos::deep_copy(a_ex, a_ex_host);
@@ -490,12 +490,12 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     a_im_host(1, 1) = 1.0 - 1.0 / std::numbers::sqrt2;
     a_im_host(2, 1) = +1.0 / (2.0 * std::numbers::sqrt2);
     a_im_host(2, 2) = 1.0 - 1.0 / std::numbers::sqrt2;
-    b_im_host(0)    = +1.0 / (2.0 * std::numbers::sqrt2);
-    b_im_host(1)    = +1.0 / (2.0 * std::numbers::sqrt2);
-    b_im_host(2)    = 1.0 - 1.0 / std::numbers::sqrt2;
-    c_im_host(0)    = 0.0;
-    c_im_host(1)    = 2.0 - std::numbers::sqrt2;
-    c_im_host(2)    = 1.0;
+    b_im_host(0) = +1.0 / (2.0 * std::numbers::sqrt2);
+    b_im_host(1) = +1.0 / (2.0 * std::numbers::sqrt2);
+    b_im_host(2) = 1.0 - 1.0 / std::numbers::sqrt2;
+    c_im_host(0) = 0.0;
+    c_im_host(1) = 2.0 - std::numbers::sqrt2;
+    c_im_host(2) = 1.0;
 
     Kokkos::deep_copy(a_im, a_im_host);
     Kokkos::deep_copy(b_im, b_im_host);
@@ -509,8 +509,8 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
   } // end IMEX_ARK32_ESDIRK
   case MethodID::IMEX_PDARS_ESDIRK: {
     // --- Ran Chu et al 2019 PD-ARS ESDIRK --- //
-    constexpr static MethodType type    = MethodType::IMEX;
-    constexpr static int stages         = 3;
+    constexpr static MethodType type = MethodType::IMEX;
+    constexpr static int stages = 3;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 2;
     View2D<double> a_ex("a_ij_ex", stages, stages);
@@ -525,12 +525,12 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     a_ex_host(1, 0) = 1.0;
     a_ex_host(2, 0) = 0.5;
     a_ex_host(2, 1) = 0.5;
-    b_ex_host(0)    = 0.5;
-    b_ex_host(1)    = 0.5;
-    b_ex_host(2)    = 0.0;
-    c_ex_host(0)    = 0.0;
-    c_ex_host(1)    = 1.0;
-    c_ex_host(2)    = 1.0;
+    b_ex_host(0) = 0.5;
+    b_ex_host(1) = 0.5;
+    b_ex_host(2) = 0.0;
+    c_ex_host(0) = 0.0;
+    c_ex_host(1) = 1.0;
+    c_ex_host(2) = 1.0;
 
     // copy to device
     Kokkos::deep_copy(a_ex, a_ex_host);
@@ -550,15 +550,15 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     auto c_im_host = Kokkos::create_mirror_view(c_im);
 
     constexpr static double eps = 0.0;
-    a_im_host(1, 1)             = 1.0;
-    a_im_host(2, 1)             = 0.5 - eps;
-    a_im_host(2, 2)             = 0.5 + eps;
-    b_im_host(0)                = 0.0;
-    b_im_host(1)                = 0.5 - eps;
-    b_im_host(2)                = 0.5 + eps;
-    c_im_host(0)                = 0.0;
-    c_im_host(1)                = 1.0;
-    c_im_host(2)                = 1.0;
+    a_im_host(1, 1) = 1.0;
+    a_im_host(2, 1) = 0.5 - eps;
+    a_im_host(2, 2) = 0.5 + eps;
+    b_im_host(0) = 0.0;
+    b_im_host(1) = 0.5 - eps;
+    b_im_host(2) = 0.5 + eps;
+    c_im_host(0) = 0.0;
+    c_im_host(1) = 1.0;
+    c_im_host(2) = 1.0;
 
     Kokkos::deep_copy(a_im, a_im_host);
     Kokkos::deep_copy(b_im, b_im_host);
@@ -614,7 +614,7 @@ void ButcherTableau::initialize_tableau() {
   for (int i = 0; i < nStages; i++) {
     for (int j = 0; j < nStages; j++) {
       a_ij(i, j) = 0.0;
-      b_i(i)     = 0.0;
+      b_i(i) = 0.0;
     }
   }
 
@@ -622,18 +622,18 @@ void ButcherTableau::initialize_tableau() {
     // Forward Euler //
     if (nStages == 1 and tOrder == 1) {
       a_ij(0, 0) = 0.0;
-      b_i(0)     = 1.0;
+      b_i(0) = 1.0;
     } else if (nStages == 2 && tOrder == 2) {
       a_ij(1, 0) = 1.0;
-      b_i(0)     = 0.5;
-      b_i(1)     = 0.5;
+      b_i(0) = 0.5;
+      b_i(1) = 0.5;
     } else if (nStages == 3 && tOrder == 3) {
       a_ij(1, 0) = 1.0;
       a_ij(2, 0) = 0.25;
       a_ij(2, 1) = 0.25;
-      b_i(0)     = 1.0 / 6.0;
-      b_i(1)     = 1.0 / 6.0;
-      b_i(2)     = 2.0 / 3.0;
+      b_i(0) = 1.0 / 6.0;
+      b_i(1) = 1.0 / 6.0;
+      b_i(2) = 2.0 / 3.0;
       // (pex, pim, plin) = (2,2,5)
     } else if (nStages == 5 && tOrder == 2) {
       a_ij(1, 0) = 1.0;
@@ -646,11 +646,11 @@ void ButcherTableau::initialize_tableau() {
       a_ij(3, 2) = 0.97387092;
       a_ij(4, 2) = 0.90549663;
       a_ij(4, 3) = 0.92979121;
-      b_i(0)     = 0.63253575;
-      b_i(1)     = 0.25781844;
-      b_i(2)     = 0.09173050;
-      b_i(3)     = 0.00863176;
-      b_i(4)     = 0.00928355;
+      b_i(0) = 0.63253575;
+      b_i(1) = 0.25781844;
+      b_i(2) = 0.09173050;
+      b_i(3) = 0.00863176;
+      b_i(4) = 0.00928355;
     } else if (nStages == 5 && tOrder == 3) {
       a_ij(1, 0) = 1.0;
       a_ij(2, 0) = 0.19736166;
@@ -662,11 +662,11 @@ void ButcherTableau::initialize_tableau() {
       a_ij(3, 2) = 0.33455230;
       a_ij(4, 2) = 0.14628314;
       a_ij(4, 3) = 0.43725043;
-      b_i(0)     = 0.15562497;
-      b_i(1)     = 0.13677868;
-      b_i(2)     = 0.29274344;
-      b_i(3)     = 0.12620947;
-      b_i(4)     = 0.28864344;
+      b_i(0) = 0.15562497;
+      b_i(1) = 0.13677868;
+      b_i(2) = 0.29274344;
+      b_i(3) = 0.12620947;
+      b_i(4) = 0.28864344;
     } else if (nStages == 5 && tOrder == 4) {
       a_ij(1, 0) = 0.51047914;
       a_ij(2, 0) = 0.08515080;
@@ -678,11 +678,11 @@ void ButcherTableau::initialize_tableau() {
       a_ij(3, 2) = 0.46190055;
       a_ij(4, 2) = 0.22219957;
       a_ij(4, 3) = 0.63274729;
-      b_i(0)     = 0.12051432;
-      b_i(1)     = 0.22614012;
-      b_i(2)     = 0.27630606;
-      b_i(3)     = 0.12246455;
-      b_i(4)     = 0.25457495;
+      b_i(0) = 0.12051432;
+      b_i(1) = 0.22614012;
+      b_i(2) = 0.27630606;
+      b_i(3) = 0.12246455;
+      b_i(4) = 0.25457495;
     } else {
       THROW_ATHELAS_ERROR(
           " ! ButcherTableau :: Explicit :: Please choose a valid "
@@ -695,7 +695,7 @@ void ButcherTableau::initialize_tableau() {
     // Backwards Euler //
     if (nStages == 1 && tOrder == 1) {
       a_ij(0, 0) = 1.0;
-      b_i(0)     = 1.0;
+      b_i(0) = 1.0;
       /*
     } else if ( nStages == 2 && tOrder == 2 ) {
       //const static double gam = 1.0 - ( 1.0 / std::sqrt( 2 ) );
@@ -712,16 +712,16 @@ void ButcherTableau::initialize_tableau() {
       a_ij(0, 0) = 0.25;
       a_ij(1, 0) = 0.5;
       a_ij(1, 1) = 0.25;
-      b_i(0)     = 0.5;
-      b_i(1)     = 0.5;
+      b_i(0) = 0.5;
+      b_i(1) = 0.5;
     } else if (nStages == 3 && tOrder == 3) {
       a_ij(2, 0) = 1.0 / 6.0;
       a_ij(1, 1) = 1.0;
       a_ij(2, 1) = -1.0 / 3.0;
       a_ij(2, 2) = 2.0 / 3.0;
-      b_i(0)     = 1.0 / 6.0;
-      b_i(1)     = 1.0 / 6.0;
-      b_i(2)     = 2.0 / 3.0;
+      b_i(0) = 1.0 / 6.0;
+      b_i(1) = 1.0 / 6.0;
+      b_i(2) = 2.0 / 3.0;
     } else if (nStages == 5 && tOrder == 4) {
       a_ij(0, 0) = 1.03217796e-16; // just 0?
       a_ij(1, 0) = 0.510479144;
@@ -738,11 +738,11 @@ void ButcherTableau::initialize_tableau() {
       a_ij(3, 3) = -3.84714236e-3;
       a_ij(4, 3) = 6.34597980e-1;
       a_ij(4, 4) = -7.22101223e-17;
-      b_i(0)     = 0.12051432;
-      b_i(1)     = 0.22614012;
-      b_i(2)     = 0.27630606;
-      b_i(3)     = 0.12246455;
-      b_i(4)     = 0.25457495;
+      b_i(0) = 0.12051432;
+      b_i(1) = 0.22614012;
+      b_i(2) = 0.27630606;
+      b_i(3) = 0.12246455;
+      b_i(4) = 0.25457495;
     } else {
       THROW_ATHELAS_ERROR(" ! ButcherTableau :: Implicit :: Please choose a "
                           "valid tableau! \n");

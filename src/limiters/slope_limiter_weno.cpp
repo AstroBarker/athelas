@@ -54,11 +54,11 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
             mult_(iC, iX) = U(iC, iX, 0);
           }
 
-          auto R_i     = Kokkos::subview(R_, Kokkos::ALL, Kokkos::ALL, iX);
+          auto R_i = Kokkos::subview(R_, Kokkos::ALL, Kokkos::ALL, iX);
           auto R_inv_i = Kokkos::subview(R_inv_, Kokkos::ALL, Kokkos::ALL, iX);
           auto U_c_T_i = Kokkos::subview(U_c_T_, Kokkos::ALL, iX);
           auto w_c_T_i = Kokkos::subview(w_c_T_, Kokkos::ALL, iX);
-          auto mult_i  = Kokkos::subview(mult_, Kokkos::ALL, iX);
+          auto mult_i = Kokkos::subview(mult_, Kokkos::ALL, iX);
           compute_characteristic_decomposition(mult_i, R_i, R_inv_i, eos);
           for (int k = 0; k < order_; k++) {
             // store w_.. = invR @ U_..
@@ -101,9 +101,9 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
 
             // nonlinear weights w
             const double dx_i = 0.1 * grid->get_widths(iX);
-            double w_l        = non_linear_weight(gamma_l_, beta_l, tau, dx_i);
-            double w_i        = non_linear_weight(gamma_i_, beta_i, tau, dx_i);
-            double w_r        = non_linear_weight(gamma_r_, beta_r, tau, dx_i);
+            double w_l = non_linear_weight(gamma_l_, beta_l, tau, dx_i);
+            double w_i = non_linear_weight(gamma_i_, beta_i, tau, dx_i);
+            double w_r = non_linear_weight(gamma_r_, beta_r, tau, dx_i);
 
             const double sum_w = w_l + w_i + w_r;
             w_l /= sum_w;
@@ -130,7 +130,7 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
         "SlopeLimiter :: WENO :: FromCharacteristic",
         Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_CLASS_LAMBDA(const int iX) {
           // --- Characteristic Limiting Matrices ---
-          auto R_i     = Kokkos::subview(R_, Kokkos::ALL, Kokkos::ALL, iX);
+          auto R_i = Kokkos::subview(R_, Kokkos::ALL, Kokkos::ALL, iX);
           auto U_c_T_i = Kokkos::subview(U_c_T_, Kokkos::ALL, iX);
           auto w_c_T_i = Kokkos::subview(w_c_T_, Kokkos::ALL, iX);
           for (int k = 0; k < order_; k++) {

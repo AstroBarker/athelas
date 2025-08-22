@@ -22,11 +22,11 @@
 #include "constants.hpp"
 
 enum AthelasExitCodes {
-  SUCCESS                       = 0,
-  FAILURE                       = 1,
+  SUCCESS = 0,
+  FAILURE = 1,
   PHYSICAL_CONSTRAINT_VIOLATION = 2,
-  MEMORY_ERROR                  = 3,
-  UNKNOWN_ERROR                 = 255
+  MEMORY_ERROR = 3,
+  UNKNOWN_ERROR = 255
 };
 
 inline void print_backtrace() {
@@ -86,7 +86,7 @@ inline void WARNING_ATHELAS(const std::string& message) {
 
 template <typename T>
 void check_state(T state, const int ihi, const bool do_rad) {
-  auto uCF       = state->u_cf();
+  auto uCF = state->u_cf();
   const double c = constants::c_cgs;
 
   // Create host mirrors of the views

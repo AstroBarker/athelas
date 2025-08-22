@@ -14,6 +14,7 @@
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
 #include "pgen/advection.hpp"
+#include "pgen/ejecta_csm.hpp"
 #include "pgen/hydrostatic_balance.hpp"
 #include "pgen/marshak.hpp"
 #include "pgen/moving_contact.hpp"
@@ -59,6 +60,8 @@ void initialize_fields(State* state, GridStructure* grid, const EOS* eos,
     shockless_noh_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "smooth_flow") {
     smooth_flow_init(state, grid, pin, eos, fluid_basis);
+  } else if (problem_name == "ejecta_csm") {
+    ejecta_csm_init(state, grid, pin, eos, fluid_basis);
   } else if (problem_name == "rad_equilibrium") {
     rad_equilibrium_init(state, grid, pin, eos, fluid_basis, radiation_basis);
   } else if (problem_name == "rad_advection") {

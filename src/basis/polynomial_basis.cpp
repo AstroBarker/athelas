@@ -42,10 +42,10 @@ ModalBasis::ModalBasis(poly_basis::poly_basis basis, const View3D<double> uPF,
   grid->compute_center_of_mass(uPF);
 
   if (basis == poly_basis::legendre) {
-    func_  = legendre;
+    func_ = legendre;
     dfunc_ = d_legendre;
   } else if (basis == poly_basis::taylor) {
-    func_  = taylor;
+    func_ = taylor;
     dfunc_ = d_taylor;
   } else {
     THROW_ATHELAS_ERROR(" ! Bad behavior in ModalBasis constructor !");
@@ -180,9 +180,9 @@ auto ModalBasis::inner_product(const int m, const int n, const int iX,
   double result = 0.0;
   for (int iN = 0; iN < nNodes_; iN++) {
     // include rho in integrand if necessary
-    const double rho   = density_weight_ ? uPF(0, iX, iN) : 1.0;
+    const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
     const double eta_q = grid->get_nodes(iN);
-    const double X     = grid->node_coordinate(iX, iN);
+    const double X = grid->node_coordinate(iX, iN);
     result += func_(n, eta_q, eta_c) * phi_(iX, iN + 1, m) *
               grid->get_weights(iN) * rho * grid->get_widths(iX) *
               grid->get_sqrt_gm(X);
@@ -204,7 +204,7 @@ auto ModalBasis::inner_product(const int n, const int iX,
   for (int iN = 0; iN < nNodes_; iN++) {
     // include rho in integrand if necessary
     const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
-    const double X   = grid->node_coordinate(iX, iN);
+    const double X = grid->node_coordinate(iX, iN);
     result += phi_(iX, iN + 1, n) * phi_(iX, iN + 1, n) *
               grid->get_weights(iN) * rho * grid->get_widths(iX) *
               grid->get_sqrt_gm(X);
@@ -232,7 +232,7 @@ auto ModalBasis::ortho(const int order, const int iX, const int i_eta,
 
   double phi_n = 0.0;
   for (int k = 0; k < order; k++) {
-    const double numerator   = inner_product(k, order, iX, eta_c, uPF, grid);
+    const double numerator = inner_product(k, order, iX, eta_c, uPF, grid);
     const double denominator = inner_product(k, iX, eta_c, uPF, grid);
     // ? Can this be cleaned up?
     if (!derivative_option) {
@@ -256,8 +256,8 @@ auto ModalBasis::ortho(const int order, const int iX, const int i_eta,
 void ModalBasis::initialize_basis(const Kokkos::View<double***> uPF,
                                   GridStructure* grid) {
   const int n_eta = nNodes_ + 2;
-  const int ilo   = grid->get_ilo();
-  const int ihi   = grid->get_ihi();
+  const int ilo = grid->get_ilo();
+  const int ihi = grid->get_ihi();
 
   double eta = 0.5;
   for (int iX = ilo; iX <= ihi; iX++) {
@@ -272,7 +272,7 @@ void ModalBasis::initialize_basis(const Kokkos::View<double***> uPF,
           eta = grid->get_nodes(i_eta - 1);
         }
 
-        phi_(iX, i_eta, k)  = ortho(k, iX, i_eta, eta, 0.0, uPF, grid, false);
+        phi_(iX, i_eta, k) = ortho(k, iX, i_eta, eta, 0.0, uPF, grid, false);
         dphi_(iX, i_eta, k) = ortho(k, iX, i_eta, eta, 0.0, uPF, grid, true);
       }
     }
@@ -320,7 +320,7 @@ void ModalBasis::check_orthogonality(const Kokkos::View<double***> uPF,
         for (int i_eta = 1; i_eta <= nNodes_; i_eta++) // loop over quadratures
         {
           const double rho = density_weight_ ? uPF(0, iX, i_eta - 1) : 1.0;
-          const double X   = grid->node_coordinate(iX, i_eta - 1);
+          const double X = grid->node_coordinate(iX, i_eta - 1);
           // Not using an inner_product function because their API is odd..
           result += phi_(iX, i_eta, k1) * phi_(iX, i_eta, k2) * rho *
                     grid->get_weights(i_eta - 1) * grid->get_widths(iX) *
@@ -350,8 +350,8 @@ void ModalBasis::check_orthogonality(const Kokkos::View<double***> uPF,
  **/
 void ModalBasis::compute_mass_matrix(const View3D<double> uPF,
                                      GridStructure* grid) {
-  const int ilo     = grid->get_ilo();
-  const int ihi     = grid->get_ihi();
+  const int ilo = grid->get_ilo();
+  const int ihi = grid->get_ihi();
   const int nNodes_ = grid->get_n_nodes();
 
   for (int iX = ilo; iX <= ihi; iX++) {
@@ -360,7 +360,7 @@ void ModalBasis::compute_mass_matrix(const View3D<double> uPF,
       for (int iN = 0; iN < nNodes_; iN++) {
         // include rho in integrand if necessary
         const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
-        const double X   = grid->node_coordinate(iX, iN);
+        const double X = grid->node_coordinate(iX, iN);
         result += phi_(iX, iN + 1, k) * phi_(iX, iN + 1, k) *
                   grid->get_weights(iN) * grid->get_widths(iX) *
                   grid->get_sqrt_gm(X) * rho;
@@ -447,14 +447,14 @@ void ModalBasis::project_nodal_to_modal(
 
   // Compute L2 projection: <nodal_func, phi_k> / <phi_k, phi_k>
   for (int k = 0; k < order_; k++) {
-    double numerator         = 0.0;
+    double numerator = 0.0;
     const double denominator = mass_matrix_(iX, k);
 
     // Compute <nodal_func, phi_k> using quadrature
     for (int iN = 0; iN < nNodes_; iN++) {
-      const double X         = grid->node_coordinate(iX, iN);
+      const double X = grid->node_coordinate(iX, iN);
       const double nodal_val = nodal_func(X, iX, iN);
-      const double rho       = density_weight_ ? uPF(0, iX, iN) : 1.0;
+      const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
 
       numerator += nodal_val * phi_(iX, iN + 1, k) * grid->get_weights(iN) *
                    grid->get_widths(iX) * grid->get_sqrt_gm(X) * rho;

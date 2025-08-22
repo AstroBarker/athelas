@@ -25,30 +25,30 @@ void gas_collapse_init(State* state, GridStructure* grid, ProblemIn* pin,
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
 
-  const int ilo    = 1;
-  const int ihi    = grid->get_ihi();
+  const int ilo = 1;
+  const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
   constexpr static int iCF_Tau = 0;
-  constexpr static int iCF_V   = 1;
-  constexpr static int iCF_E   = 2;
+  constexpr static int iCF_V = 1;
+  constexpr static int iCF_E = 2;
 
   constexpr static int iPF_D = 0;
 
-  const auto V0   = pin->param()->get<double>("problem.params.v0", 0.0);
+  const auto V0 = pin->param()->get<double>("problem.params.v0", 0.0);
   const auto rho0 = pin->param()->get<double>("problem.params.rho0", 1.0);
-  const auto p0   = pin->param()->get<double>("problem.params.p0", 10.0);
+  const auto p0 = pin->param()->get<double>("problem.params.p0", 10.0);
 
   const double gamma = get_gamma(eos);
-  const double gm1   = gamma - 1.0;
+  const double gm1 = gamma - 1.0;
 
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
         const int k = 0;
 
         uCF(iCF_Tau, iX, k) = rho0; // / rho0 * (1.0 / std::cosh(x / H));
-        uCF(iCF_V, iX, k)   = V0;
-        uCF(iCF_E, iX, k)   = (p0 / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
+        uCF(iCF_V, iX, k) = V0;
+        uCF(iCF_E, iX, k) = (p0 / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
           uPF(iPF_D, iX, iNodeX) = rho0;

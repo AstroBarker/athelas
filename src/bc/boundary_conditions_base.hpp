@@ -61,7 +61,7 @@ struct BoundaryConditionsData {
 };
 
 constexpr static int NUM_HYDRO_VARS = 3;
-constexpr static int NUM_RAD_VARS   = 2;
+constexpr static int NUM_RAD_VARS = 2;
 struct BoundaryConditions {
   // in the below arrays, 0 is inner boundary, 1 is outer
   std::array<BoundaryConditionsData<NUM_HYDRO_VARS>, 2> fluid_bc;

@@ -41,7 +41,7 @@ BcType parse_bc_type(const std::string& name) {
 
 auto make_boundary_conditions(const ProblemIn* pin) -> BoundaryConditions {
   BoundaryConditions my_bc;
-  const auto do_rad     = pin->param()->get<bool>("physics.rad_active");
+  const auto do_rad = pin->param()->get<bool>("physics.rad_active");
   const auto fluid_bc_i = pin->param()->get<std::string>("fluid.bc.i");
   const auto fluid_bc_o = pin->param()->get<std::string>("fluid.bc.o");
   const auto fluid_i_dirichlet_values =

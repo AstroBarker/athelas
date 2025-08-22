@@ -54,9 +54,9 @@ void limit_density(View3D<double> U, const ModalBasis* basis) {
   Kokkos::parallel_for(
       "BEL::Limit Density", Kokkos::RangePolicy<>(1, U.extent(1) - 1),
       KOKKOS_LAMBDA(const int iX) {
-        double theta1    = 100000.0; // big
-        double nodal     = 0.0;
-        double frac      = 0.0;
+        double theta1 = 100000.0; // big
+        double nodal = 0.0;
+        double frac = 0.0;
         const double avg = U(0, iX, 0);
 
         for (int iN = 0; iN <= order; iN++) {
@@ -65,7 +65,7 @@ void limit_density(View3D<double> U, const ModalBasis* basis) {
             theta1 = 0.0;
             break;
           }
-          frac   = std::abs((avg - EPSILON) / (avg - nodal));
+          frac = std::abs((avg - EPSILON) / (avg - nodal));
           theta1 = std::min(theta1, std::min(1.0, frac));
         }
 
@@ -113,8 +113,8 @@ void limit_internal_energy(View3D<double> U, const ModalBasis* basis) {
       "BEL::Limit Internal Energy", Kokkos::RangePolicy<>(1, U.extent(1) - 1),
       KOKKOS_LAMBDA(const int iX) {
         double theta2 = 10000000.0;
-        double nodal  = 0.0;
-        double temp   = 0.0;
+        double nodal = 0.0;
+        double temp = 0.0;
 
         for (int iN = 0; iN <= order + 1; iN++) {
           nodal = utilities::compute_internal_energy(U, basis, iX, iN);
@@ -165,8 +165,8 @@ void limit_rad_energy(View3D<double> U, const ModalBasis* basis) {
       "BEL::Limit Rad Energy", Kokkos::RangePolicy<>(1, U.extent(1) - 1),
       KOKKOS_LAMBDA(const int iX) {
         double theta2 = 10000000.0;
-        double nodal  = 0.0;
-        double temp   = 0.0;
+        double nodal = 0.0;
+        double temp = 0.0;
 
         for (int iN = 0; iN <= order + 1; iN++) {
           nodal = basis->basis_eval(U, iX, 3, iN);
@@ -197,8 +197,8 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis* basis) {
       "BEL::Limit Rad Momentum", Kokkos::RangePolicy<>(1, U.extent(1) - 1),
       KOKKOS_LAMBDA(const int iX) {
         double theta2 = 10000000.0;
-        double nodal  = 0.0;
-        double temp   = 0.0;
+        double nodal = 0.0;
+        double temp = 0.0;
 
         constexpr static double c = constants::c_cgs;
 
@@ -252,7 +252,7 @@ auto target_func(const double theta, const View3D<double> U,
 auto target_func_rad_flux(const double theta, const View3D<double> U,
                           const ModalBasis* basis, const int iX, const int iN)
     -> double {
-  const double w  = std::min(1.0e-13, U(4, iX, 0));
+  const double w = std::min(1.0e-13, U(4, iX, 0));
   const double s1 = compute_theta_state(U, basis, theta, 4, iX, iN);
 
   const double e = s1;
@@ -263,7 +263,7 @@ auto target_func_rad_flux(const double theta, const View3D<double> U,
 auto target_func_rad_energy(const double theta, const View3D<double> U,
                             const ModalBasis* basis, const int iX, const int iN)
     -> double {
-  const double w  = std::min(1.0e-13, U(3, iX, 0));
+  const double w = std::min(1.0e-13, U(3, iX, 0));
   const double s1 = compute_theta_state(U, basis, theta, 3, iX, iN);
 
   const double e = s1;

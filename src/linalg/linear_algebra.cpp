@@ -42,9 +42,9 @@ void tri_sym_diag(int n, std::vector<double>& d, std::vector<double>& e,
 
   // Parameters for LaPack
   lapack_int m = 0, ldz = 0, info = 0, work_dim = 0;
-  m              = n;
+  m = n;
   char const job = 'V';
-  ldz            = n;
+  ldz = n;
 
   if (n == 1) {
     work_dim = 1;

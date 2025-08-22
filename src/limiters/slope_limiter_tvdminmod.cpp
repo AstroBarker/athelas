@@ -39,7 +39,7 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
   constexpr static double EPS = 1.0e-10;
 
   static constexpr int ilo = 1;
-  const int& ihi           = grid->get_ihi();
+  const int& ihi = grid->get_ihi();
 
   const int nvars = nvars_;
 
@@ -65,11 +65,11 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
             mult_(iC, iX) = U(iC, iX, 0);
           }
 
-          auto R_i     = Kokkos::subview(R_, Kokkos::ALL, Kokkos::ALL, iX);
+          auto R_i = Kokkos::subview(R_, Kokkos::ALL, Kokkos::ALL, iX);
           auto R_inv_i = Kokkos::subview(R_inv_, Kokkos::ALL, Kokkos::ALL, iX);
           auto U_c_T_i = Kokkos::subview(U_c_T_, Kokkos::ALL, iX);
           auto w_c_T_i = Kokkos::subview(w_c_T_, Kokkos::ALL, iX);
-          auto Mult_i  = Kokkos::subview(mult_, Kokkos::ALL, iX);
+          auto Mult_i = Kokkos::subview(mult_, Kokkos::ALL, iX);
           compute_characteristic_decomposition(Mult_i, R_i, R_inv_i, eos);
           for (int k = 0; k <= 1; ++k) {
             // store w_.. = invR @ U_..
@@ -96,11 +96,11 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
           if (D_(iX) > tci_val_ || !tci_opt_) {
 
             // --- Begin TVD Minmod Limiter --- //
-            const double s_i       = U(iC, iX, 1); // target cell slope
-            const double c_i       = U(iC, iX, 0); // target cell avg
-            const double c_p       = U(iC, iX + 1, 0); // cell iX + 1 avg
-            const double c_m       = U(iC, iX - 1, 0); // cell iX - 1 avg
-            const double dx        = grid->get_widths(iX);
+            const double s_i = U(iC, iX, 1); // target cell slope
+            const double c_i = U(iC, iX, 0); // target cell avg
+            const double c_p = U(iC, iX + 1, 0); // cell iX + 1 avg
+            const double c_m = U(iC, iX - 1, 0); // cell iX - 1 avg
+            const double dx = grid->get_widths(iX);
             const double new_slope = MINMOD_B(s_i, b_tvd_ * (c_p - c_i),
                                               b_tvd_ * (c_i - c_m), dx, m_tvb_);
 
@@ -130,7 +130,7 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
         "SlopeLimiter :: Minmod :: FromCharacteristic",
         Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_CLASS_LAMBDA(const int iX) {
           // --- Characteristic Limiting Matrices ---
-          auto R_i     = Kokkos::subview(R_, Kokkos::ALL, Kokkos::ALL, iX);
+          auto R_i = Kokkos::subview(R_, Kokkos::ALL, Kokkos::ALL, iX);
           auto U_c_T_i = Kokkos::subview(U_c_T_, Kokkos::ALL, iX);
           auto w_c_T_i = Kokkos::subview(w_c_T_, Kokkos::ALL, iX);
           for (int k = 0; k < 2; ++k) {
