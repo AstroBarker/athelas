@@ -275,3 +275,9 @@ target_link_libraries(athelas PRIVATE
     ${HDF5_LIBRARIES}
     stdc++exp
 )
+
+if ( ATHELAS_ENABLE_UNIT_TESTS )
+  message("\nConfiguring tests")
+  enable_testing()
+  add_subdirectory( test )
+endif()
