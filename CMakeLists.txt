@@ -208,6 +208,8 @@ if (NOT TARGET Kokkos::kokkos)
   endif()
 endif()
 
+# Eigen
+add_subdirectory(external/eigen)
 
 # HDF5
 find_package ( HDF5 REQUIRED COMPONENTS CXX HL )
@@ -252,7 +254,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # Add specific Clang flags for Kokkos
     target_compile_options(libathelas PRIVATE -fopenmp=libomp)
 endif()
-target_link_libraries(libathelas kokkos)
+target_link_libraries(libathelas kokkos Eigen3::Eigen)
 
 # --- athelas executable ---
 add_executable(athelas src/main.cpp ${ATHELAS_SOURCES})
@@ -289,6 +291,7 @@ add_dependencies(athelas libathelas)
 target_link_libraries(athelas PRIVATE
     libathelas
     kokkos
+    Eigen3::Eigen
     git_version
     OpenMP::OpenMP_CXX
     ${HDF5_C_LIBRARIES}
