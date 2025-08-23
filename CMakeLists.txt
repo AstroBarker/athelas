@@ -60,8 +60,6 @@ option(ATHELAS_ENABLE_UNIT_TESTS "Enable unit tests" OFF)
 option(ATHELAS_ENABLE_INTEGRATION_TESTS "Enable integration tests" OFF) # Future
 option(ATHELAS_ENABLE_REGRESSION_TESTS "Enable regression tests" OFF)   # Future
 
-set( MACHINE "LINUX" CACHE STRING "Set OS")
-message( "Building On ${MACHINE} ")
 
 # Don't allow in-source builds
 file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
@@ -208,32 +206,13 @@ if (NOT TARGET Kokkos::kokkos)
   endif()
 endif()
 
+# Eigen
+add_subdirectory(external/eigen)
 
 # HDF5
 find_package ( HDF5 REQUIRED COMPONENTS CXX HL )
 message(STATUS "HDF5_LIBRARIES = ${HDF5_CXX_LIBRARIES}")
 include_directories(${HDF5_INCLUDE_DIRS}) # seems to be needed for compilation on github actions...
-
-# LAPACK
-# ubuntu's openblas does not include the necessary lapacke headers...
-if (${MACHINE} STREQUAL UBUNTU)
-    set(LAPACK_LIBRARIES "/usr/lib/x86_64-linux-gnu/liblapacke.so.3;-lm;-ldl")
-    message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
-    target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
-  elseif( ${MACHINE} STREQUAL MACOS )
-    set( LAPACK_LIBRARIES "/usr/local/Cellar/lapack/3.10.1/lib/liblapacke.3.dylib;-lm;-ldl;-llapack" )
-    set( LAPACK_INCLUDE "/usr/local/Cellar/lapack/3.10.1/include/" )
-    include_directories( ${LAPACK_INCLUDE} )
-    #set( LAPACK_LIBRARIES "/usr/local/Cellar/openblas/0.3.20/lib/libopenblas.dylib;-lm;-ldl;-llapack" )
-    message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
-    target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
-else()
-  find_package( LAPACK REQUIRED  )
-  message(STATUS "LAPACKE_LIBRARIES = ${LAPACK_LIBRARIES}")
-  include_directories(${LAPACK_INCLUDE_DIRS})
-	#    target_link_libraries( libathelas ${LAPACK_LIBRARIES} )
-endif()
-include_directories(${LAPACK_INCLUDE_DIRS})
 
 # toml++
 include_directories("external/tomlplusplus")
@@ -252,7 +231,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # Add specific Clang flags for Kokkos
     target_compile_options(libathelas PRIVATE -fopenmp=libomp)
 endif()
-target_link_libraries(libathelas kokkos)
+target_link_libraries(libathelas kokkos Eigen3::Eigen)
 
 # --- athelas executable ---
 add_executable(athelas src/main.cpp ${ATHELAS_SOURCES})
@@ -289,10 +268,16 @@ add_dependencies(athelas libathelas)
 target_link_libraries(athelas PRIVATE
     libathelas
     kokkos
+    Eigen3::Eigen
     git_version
     OpenMP::OpenMP_CXX
     ${HDF5_C_LIBRARIES}
     ${HDF5_LIBRARIES}
-    ${LAPACK_LIBRARIES}
     stdc++exp
 )
+
+if ( ATHELAS_ENABLE_UNIT_TESTS )
+  message("\nConfiguring tests")
+  enable_testing()
+  add_subdirectory( test )
+endif()

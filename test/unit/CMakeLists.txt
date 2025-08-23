@@ -15,12 +15,16 @@ add_executable( unit_tests
   unit_tests_main.cpp
 
   test_catch_integration.cpp
+  test_quadrature.cpp
+  ../../src/quadrature/quadrature.cpp
   test_parser.cpp
   )
 
 target_link_libraries( unit_tests
   PRIVATE
+    libathelas
     Catch2::Catch2
+    kokkos
 )
 
 # add_subdirectory( basis )
