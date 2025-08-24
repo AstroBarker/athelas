@@ -41,10 +41,16 @@ auto compute_theta_state(View3D<double> U, const ModalBasis* basis,
                          double theta, int iCF, int iX, int iN) -> double;
 auto target_func(double theta, View3D<double> U, const ModalBasis* basis,
                  int iX, int iN) -> double;
+auto target_func_deriv(double theta, View3D<double> U, const ModalBasis* basis,
+                 int iX, int iN) -> double;
 auto target_func_rad_flux(double theta, View3D<double> U,
                           const ModalBasis* basis, int iX, int iN) -> double;
+auto target_func_rad_flux_deriv(double theta, View3D<double> U, const ModalBasis* basis,
+                 int iX, int iN) -> double;
 auto target_func_rad_energy(double theta, View3D<double> U,
                             const ModalBasis* basis, int iX, int iN) -> double;
+auto target_func_rad_energy_deriv(double theta, View3D<double> U, const ModalBasis* basis,
+                 int iX, int iN) -> double;
 
 template <typename F>
 auto bisection(const View3D<double> U, F target, const ModalBasis* basis,
@@ -67,6 +73,7 @@ auto bisection(const View3D<double> U, F target, const ModalBasis* basis,
 
     fa = target(a, U, basis, iX, iN);
     fc = target(c, U, basis, iX, iN);
+    std::println("n fa fc a b {} {} {} {:.5e} {:.5e}", n, fa, fc, a, b);
 
     if (std::abs(fc) <= TOL || (b - a) / 2.0 < TOL) {
       return c - delta;

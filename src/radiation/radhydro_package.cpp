@@ -65,17 +65,18 @@ void RadHydroPackage::update_explicit(const View3D<double> state,
   radhydro_divergence(state, dU, grid, stage);
 
   // --- Divide update by mass mastrix ---
+  for (int q = 0; q < NUM_VARS_; ++q) {
   Kokkos::parallel_for(
       "RadHydro :: Divide Update / Mass Matrix",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
       KOKKOS_CLASS_LAMBDA(const int ix, const int k) {
-        for (int q = 0; q < 3; ++q) {
+        if (q < 3) {
           dU(q, ix, k) /= (fluid_basis_->get_mass_matrix(ix, k));
-        }
-        for (int q = 3; q < NUM_VARS_; ++q) {
+        } else {
           dU(q, ix, k) /= (rad_basis_->get_mass_matrix(ix, k));
         }
       });
+  }
 } // update_explicit
 
 /**
@@ -94,7 +95,7 @@ void RadHydroPackage::update_implicit(const View3D<double> state,
 
   // --- Zero out dU  ---
   Kokkos::parallel_for(
-      "RadHydro :: Zero dU",
+      "RadHydro :: Implicit :: Zero dU",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
                                              {NUM_VARS_, ihi + 1, order}),
       KOKKOS_LAMBDA(const int q, const int ix, const int k) {
@@ -150,9 +151,8 @@ void RadHydroPackage::update_implicit_iterative(const View3D<double> state,
             R_ix, dt_info.dt_a, scratch_sol_ix_k, scratch_sol_ix_km1,
             scratch_sol_ix, grid, fluid_basis_, rad_basis_, eos_, opac_, iX);
 
-        // TODO(astrobarker): invert loops
-        for (int k = 0; k < order; ++k) {
-          for (int q = 1; q < NUM_VARS_; ++q) {
+        for (int q = 1; q < NUM_VARS_; ++q) {
+          for (int k = 0; k < order; ++k) {
             state(q, iX, k) = scratch_sol_ix(q, k);
           }
         }
@@ -283,13 +283,13 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
           double local_sum3 = 0.0;
           double local_sum_e = 0.0;
           double local_sum_f = 0.0;
+          const double vstar = flux_u_(stage, iX);
           for (int iN = 0; iN < nNodes; ++iN) {
             const double weight = grid.get_weights(iN);
             const double dphi_rad = rad_basis_->get_d_phi(iX, iN + 1, k);
             const double dphi_fluid = fluid_basis_->get_d_phi(iX, iN + 1, k);
             const double X = grid.node_coordinate(iX, iN);
             const double sqrt_gm = grid.get_sqrt_gm(X);
-            const double vstar = flux_u_(stage, iX);
 
             auto lambda = nullptr;
             const double vel = fluid_basis_->basis_eval(state, iX, 1, iN + 1);

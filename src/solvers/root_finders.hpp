@@ -12,6 +12,8 @@
  *
  *          Both are implemented with an Anderson acceleration scheme.
  *          The contents here are in a state of mess..
+ *
+ *  TODO(astrobarker): this really should be made more flexible.
  */
 
 #include <algorithm>
@@ -163,8 +165,8 @@ class RadHydroConvergence {
  * Anderson accelerated fixed point solver templated on type, function, args...
  * Assumes target is in f(x) = x form
  **/
-/*
 template <typename T, typename F, typename... Args>
+KOKKOS_INLINE_FUNCTION
 auto fixed_point_aa( F target, T x0, Args... args ) -> T {
 
   unsigned int n = 0;
@@ -172,7 +174,6 @@ auto fixed_point_aa( F target, T x0, Args... args ) -> T {
   T error = 1.0;
   T xkm1  = 0.0;
   T xk    = 0.0;
-  T xkp   = 0.01;
   xk      = target( x0, args... ); // one fixed point step
   xkm1    = x0;
   if ( std::abs( xk - x0 ) <= root_finders::ABSTOL ) {
@@ -180,12 +181,16 @@ auto fixed_point_aa( F target, T x0, Args... args ) -> T {
   }
   while ( n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL ) {
     //--- Anderson acceleration step --- //
+    const T fk = target(xk, args...);
+    const T fkm1 = target(xkm1, args...);
+    const T rk = residual(fk, fk);
+    const T rkm1 = residual(fkm1, fkm1);
     T alpha =
-        -residual( target, xk, args... ) /
-        ( residual( target, xkm1, args... ) - residual( target, xk, args... ) );
+        -rk /
+        ( rkm1 - rk );
 
-    T xkp1 = ( alpha * target( xkm1, args... ) ) +
-             ( ( 1.0 - alpha ) * target( xk, args... ) );
+    T xkp1 = ( alpha * fkm1 ) +
+             ( ( 1.0 - alpha ) * fk );
     error = std::abs( xk - xkp1 );
 
     xkm1 = xk;
@@ -196,7 +201,51 @@ auto fixed_point_aa( F target, T x0, Args... args ) -> T {
 
   return xk;
 }
-*/
+
+/**
+ * Anderson accelerated fixed point solver templated on type, function, args...
+ * Assumes target is in f(x) = 0 form
+ **/
+template <typename T, typename F, typename... Args>
+KOKKOS_INLINE_FUNCTION
+auto fixed_point_aa_root( F target, T x0, Args... args ) -> T {
+
+  // puts f(x) = 0 into fixed point form
+  auto f = [&]( const double x, Args... args ) { return target( x, args... ) + x; };
+
+  unsigned int n = 0;
+
+  T error = 1.0;
+  T xkm1  = 0.0;
+  T xk    = 0.0;
+  xk      = f( x0, args... ); // one fixed point step
+  xkm1    = x0;
+  if ( std::abs( xk - x0 ) <= root_finders::ABSTOL ) {
+    return xk;
+  }
+  while ( n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL ) {
+    //--- Anderson acceleration step --- //
+    const T fk = f(xk, args...);
+    const T fkm1 = f(xkm1, args...);
+    //std::println("n fk fkm1 {} {:.5e} {:.5e}", n, fk, fkm1);
+    const T rk = residual(fk, fk);
+    const T rkm1 = residual(fkm1, fkm1);
+    const T alpha = alpha_aa(rk, rkm1);
+
+    const T xkp1 = ( alpha * fkm1 ) +
+             ( ( 1.0 - alpha ) * fk );
+    error = std::abs( xk - xkp1 );
+
+    std::println("FP:: n alpha xkm1, xkp1, fk, fkm1 {} {} {:.5e} {:.5e} {:.5e} {:.5e}", n, alpha, xkm1, xkp1, fk, fkm1);
+
+    xkm1 = xk;
+    xk   = xkp1;
+
+    ++n;
+  }
+
+  return xk;
+}
 
 template <typename T, typename... Args>
 KOKKOS_INLINE_FUNCTION void fixed_point_radhydro(T R, double dt_a_ii,
@@ -365,6 +414,26 @@ auto fixed_point(F target, T x0, Args... args) -> T {
   return x0;
 }
 
+/* Fixed point solver templated on type, function, and args for func */
+template <typename T, typename F, typename... Args>
+auto fixed_point_root(F target, T x0, Args... args) -> T {
+
+  // puts f(x) = 0 into fixed point form
+  auto f = [&]( const double x, Args... args ) { return target( x, args... ) + x; };
+
+  unsigned int n = 0;
+  T error = 1.0;
+  while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
+    T x1 = f(x0, args...);
+    std::println("FP:: n x0, x1 {} {:.5e} {:.5e}", n, x0, x1);
+    error = std::abs(x1 - x0);
+    x0 = x1;
+    ++n;
+  }
+
+  return x0;
+}
+
 template <typename T, typename F>
 auto fixed_point(F target, T x0) -> T {
 
@@ -382,14 +451,13 @@ auto fixed_point(F target, T x0) -> T {
 
 /* Newton iteration templated on type, function, args */
 template <typename T, typename F, typename... Args>
-auto newton(F target, F dTarget, T x0, Args... args) -> T {
+auto newton(F target, F d_target, T x0, Args... args) -> T {
 
   unsigned int n = 0;
-  T h = target(x0, args...) / dTarget(x0, args...);
   T error = 1.0;
   while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
     T xn = x0;
-    T h = target(xn, args...) / dTarget(xn, args...);
+    T h = target(xn, args...) / d_target(xn, args...);
     x0 = xn - h;
     error = std::abs(xn - x0);
     ++n;
@@ -399,11 +467,11 @@ auto newton(F target, F dTarget, T x0, Args... args) -> T {
 
 /* Anderson Accelerated newton iteration templated on type, function */
 template <typename T, typename F, typename... Args>
-auto newton_aa(F target, F dTarget, T x0, Args... args) -> T {
+auto newton_aa(F target, F d_target, T x0, Args... args) -> T {
 
-  unsigned int n = 0;
+  unsigned int n = 1;
 
-  T h = target(x0, args...) / dTarget(x0, args...);
+  T h = target(x0, args...) / d_target(x0, args...);
   T error = 1.0;
   T xkm1 = 0.0;
   T xk = 0.0;
@@ -415,12 +483,13 @@ auto newton_aa(F target, F dTarget, T x0, Args... args) -> T {
     return xk;
   }
   while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
-    T hp1 = target(xk, args...) / dTarget(xk, args...);
-    T h = target(xkm1, args...) / dTarget(xkm1, args...);
+    const T hp1 = target(xk, args...) / d_target(xk, args...);
+    const T h = target(xkm1, args...) / d_target(xkm1, args...);
     /* Anderson acceleration step */
-    T gamma = hp1 / (hp1 - h);
+    const T gamma = alpha_aa(hp1, h);
 
-    xkp1 = xk - hp1 - gamma * (xk - xkm1 - hp1 + h);
+    const double term = xk - xkm1 - hp1 + h;
+    xkp1 = std::fma(gamma, -term, xk - hp1);
     error = std::abs(xk - xkp1);
 
     xkm1 = xk;
