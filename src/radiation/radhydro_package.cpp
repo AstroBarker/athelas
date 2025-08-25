@@ -69,13 +69,19 @@ void RadHydroPackage::update_explicit(const View3D<double> state,
       "RadHydro :: Divide Update / Mass Matrix",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
       KOKKOS_CLASS_LAMBDA(const int ix, const int k) {
-      for (int q = 0; q < NUM_VARS_; ++q) {
-        if (q < 3) {
-          dU(ix, k, q) /= (fluid_basis_->get_mass_matrix(ix, k));
-        } else {
-          dU(ix, k, q) /= (rad_basis_->get_mass_matrix(ix, k));
+        // Cache mass matrix values to avoid repeated lookups
+        const double fluid_mm = fluid_basis_->get_mass_matrix(ix, k);
+        const double rad_mm = rad_basis_->get_mass_matrix(ix, k);
+
+        // Process fluid variables (q=0,1,2)
+        for (int q = 0; q < 3; ++q) {
+          dU(ix, k, q) /= fluid_mm;
         }
-      }
+
+        // Process radiation variables (q=3,4)
+        for (int q = 3; q < NUM_VARS_; ++q) {
+          dU(ix, k, q) /= rad_mm;
+        }
       });
 } // update_explicit
 
@@ -137,7 +143,6 @@ void RadHydroPackage::update_implicit_iterative(const View3D<double> state,
             Kokkos::subview(scratch_km1_, iX, Kokkos::ALL, Kokkos::ALL);
         auto R_ix = Kokkos::subview(dU, iX, Kokkos::ALL, Kokkos::ALL);
 
-        // TODO(astrobarker): invert loops
         for (int k = 0; k < order; ++k) {
           // set radhydro vars
           for (int i = 0; i < NUM_VARS_; ++i) {
@@ -179,12 +184,13 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
   Kokkos::parallel_for(
       "RadHydro :: Interface States", Kokkos::RangePolicy<>(ilo, ihi + 2),
       KOKKOS_CLASS_LAMBDA(const int i) {
+        const int nnp1 = nNodes + 1;
         for (int q = 0; q < 3; ++q) {
-          u_f_l_(i, q) = fluid_basis_->basis_eval(state, i - 1, q, nNodes + 1);
+          u_f_l_(i, q) = fluid_basis_->basis_eval(state, i - 1, q, nnp1);
           u_f_r_(i, q) = fluid_basis_->basis_eval(state, i, q, 0);
         }
         for (int q = 3; q < NUM_VARS_; ++q) {
-          u_f_l_(i, q) = rad_basis_->basis_eval(state, i - 1, q, nNodes + 1);
+          u_f_l_(i, q) = rad_basis_->basis_eval(state, i - 1, q, nnp1);
           u_f_r_(i, q) = rad_basis_->basis_eval(state, i, q, 0);
         }
       });
@@ -192,7 +198,7 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
   // --- Calc numerical flux at all faces ---
   Kokkos::parallel_for(
       "RadHydro :: Numerical Fluxes", Kokkos::RangePolicy<>(ilo, ihi + 2),
-      KOKKOS_CLASS_LAMBDA(int iX) {
+      KOKKOS_CLASS_LAMBDA(const int iX) {
         auto lambda = nullptr;
         const double Pgas_L =
             pressure_from_conserved(eos_, u_f_l_(iX, 0), u_f_l_(iX, 1), u_f_l_(iX, 2), lambda);
@@ -237,9 +243,9 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
         const double advective_flux_f =
             (vstar >= 0) ? vstar * F_L : vstar * F_R;
 
-        dFlux_num_(iX, 0) = -flux_u_(stage, iX);
+        dFlux_num_(iX, 0) = -flux_u;;
         dFlux_num_(iX, 1) = flux_p;
-        dFlux_num_(iX, 2) = +flux_u_(stage, iX) * flux_p;
+        dFlux_num_(iX, 2) = +flux_u * flux_p;
 
         dFlux_num_(iX, 3) = flux_e - advective_flux_e;
         dFlux_num_(iX, 4) = flux_f - advective_flux_f;
@@ -266,7 +272,7 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
                            dFlux_num_(iX + 0, q) * Poly_L * SqrtGm_L);
         });
 
-  if (order > 1) {
+  if (order > 1) [[likely]] {
     // --- Volume Term ---
     Kokkos::parallel_for(
         "RadHydro :: Volume Term",

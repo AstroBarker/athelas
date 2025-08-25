@@ -56,7 +56,7 @@ auto flux_rad(const double E, const double F, const double P, const double V,
 
 auto flux_rad(const double E, const double F, const double P, const double V)
     -> std::tuple<double, double> {
-  return {F - V * E, constants::c_cgs * constants::c_cgs * P - V * F};
+  return {F - E * V, constants::c_cgs * constants::c_cgs * P - F * V};
 }
 
 /**
