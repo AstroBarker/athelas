@@ -6,7 +6,6 @@ geometry = "planar"
 restart = false
 xl = 0.0
 xr = 1.0
-bc = "homogenous"
 cfl = 0.8
 nx = 512
 
@@ -42,11 +41,12 @@ porder = 3
 
 [fluid.limiter]
 do_limiter = true
-type = "weno"
+type = "minmod"
+b_tvd = 1.0
+m_tvb = 0.0
 tci_opt = false
 tci_val = 1.0
 characteristic = false
-gamma_i = 0.998
 
 [time]
 integrator = "EX_SSPRK33"
