@@ -116,27 +116,27 @@ void detect_troubled_cells(const View3D<double> U, View1D<double> D,
   const int ihi = grid->get_ihi();
   Kokkos::parallel_for(
       "SlopeLimiter :: TCI :: Zero", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int iX) { D(iX) = 0.0; });
+      KOKKOS_LAMBDA(const int ix) { D(ix) = 0.0; });
 
   // Cell averages by extrapolating L and R neighbors into current cell
 
   Kokkos::parallel_for(
       "SlopeLimiter :: TCI", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int iX) {
+      KOKKOS_LAMBDA(const int ix) {
         for (int iC : vars) {
           if (iC == 1 || iC == 4) {
             continue; /* skip momenta */
           }
-          const double cell_avg = U(iX, 0, iC);
+          const double cell_avg = U(ix, 0, iC);
 
           // Extrapolate neighboring poly representations into current cell
           // and compute the new cell averages
           const double cell_avg_L_T =
-              cell_average(U, grid, basis, iC, iX + 1, -1); // from right
+              cell_average(U, grid, basis, iC, ix + 1, -1); // from right
           const double cell_avg_R_T =
-              cell_average(U, grid, basis, iC, iX - 1, +1); // from left
-          const double cell_avg_L = U(iX - 1, 0, iC); // native left
-          const double cell_avg_R = U(iX + 1, 0, iC); // native right
+              cell_average(U, grid, basis, iC, ix - 1, +1); // from left
+          const double cell_avg_L = U(ix - 1, 0, iC); // native left
+          const double cell_avg_R = U(ix + 1, 0, iC); // native right
 
           const double result = (std::abs(cell_avg - cell_avg_L_T) +
                                  std::abs(cell_avg - cell_avg_R_T));
@@ -144,35 +144,35 @@ void detect_troubled_cells(const View3D<double> U, View1D<double> D,
           const double denominator = std::max(
               {std::abs(cell_avg_L), std::abs(cell_avg_R), cell_avg, 1.0e-10});
 
-          D(iX) = std::max(D(iX), result / denominator);
+          D(ix) = std::max(D(ix), result / denominator);
         } // loop iC;
-      }); // par_for iX
+      }); // par_for ix
 }
 
 /**
- * Return the cell average of a field iCF on cell iX.
+ * Return the cell average of a field q on cell ix.
  * The parameter `int extrapolate` designates how the cell average is
  *computed.
- *  0  : Return standard cell average on iX
- * -1 : Extrapolate left, e.g.,  polynomial from iX+1 into iX
- * +1 : Extrapolate right, e.g.,  polynomial from iX-1 into iX
+ *  0  : Return standard cell average on ix
+ * -1 : Extrapolate left, e.g.,  polynomial from ix+1 into ix
+ * +1 : Extrapolate right, e.g.,  polynomial from ix-1 into ix
  **/
 auto cell_average(View3D<double> U, const GridStructure* grid,
-                  const ModalBasis* basis, const int iCF, const int iX,
+                  const ModalBasis* basis, const int q, const int ix,
                   const int extrapolate) -> double {
   const int nNodes = grid->get_n_nodes();
 
   double avg = 0.0;
   double vol = 0.0;
-  const double dx = grid->get_widths(iX + extrapolate);
+  const double dx = grid->get_widths(ix + extrapolate);
 
   // NOTE: do mass or volume avg?
   for (int iN = 0; iN < nNodes; ++iN) {
-    const double X = grid->node_coordinate(iX + extrapolate, iN);
+    const double X = grid->node_coordinate(ix + extrapolate, iN);
     const double sqrt_gm = grid->get_sqrt_gm(X);
     const double weight = grid->get_weights(iN);
     vol += weight * sqrt_gm * dx; // TODO(astrobarker) rho
-    avg += weight * basis->basis_eval(U, iX, iCF, iN + 1) * sqrt_gm * dx;
+    avg += weight * basis->basis_eval(U, ix, q, iN + 1) * sqrt_gm * dx;
   }
 
   return avg / vol;
@@ -185,16 +185,16 @@ auto cell_average(View3D<double> U, const GridStructure* grid,
  **/
 void modify_polynomial(const View3D<double> U,
                        View2D<double> modified_polynomial, const double gamma_i,
-                       const double gamma_l, const double gamma_r, const int iX,
+                       const double gamma_l, const double gamma_r, const int ix,
                        const int q) {
-  const double Ubar_i = U(iX, 0, q);
+  const double Ubar_i = U(ix, 0, q);
   const double fac = 1.0;
   const int order = U.extent(2);
 
   const double modified_p_slope_mag =
-      fac * std::min({U(iX - 1, 1, 1), U(iX, 1, 1), U(iX + 1, 1, 1)});
-  const int sign_l = utilities::SGN(U(iX - 1, 1, 1));
-  const int sign_r = utilities::SGN(U(iX + 1, 1, 1));
+      fac * std::min({U(ix - 1, 1, 1), U(ix, 1, 1), U(ix + 1, 1, 1)});
+  const int sign_l = utilities::SGN(U(ix - 1, 1, 1));
+  const int sign_r = utilities::SGN(U(ix + 1, 1, 1));
 
   modified_polynomial(0, 0) = Ubar_i;
   modified_polynomial(2, 0) = Ubar_i;
@@ -208,7 +208,7 @@ void modify_polynomial(const View3D<double> U,
 
   for (int k = 0; k < order; k++) {
     modified_polynomial(1, k) =
-        U(iX, k, 1) / gamma_i -
+        U(ix, k, 1) / gamma_i -
         (gamma_l / gamma_i) * modified_polynomial(0, k) -
         (gamma_r / gamma_i) * modified_polynomial(2, k);
   }
@@ -218,7 +218,7 @@ void modify_polynomial(const View3D<double> U,
 auto smoothness_indicator(const View3D<double> U,
                           const View2D<double> modified_polynomial,
                           const GridStructure* grid, const ModalBasis* basis,
-                          const int iX, const int i, const int /*q*/)
+                          const int ix, const int i, const int /*q*/)
     -> double {
   const int k = U.extent(1);
 
@@ -227,12 +227,12 @@ auto smoothness_indicator(const View3D<double> U,
     // integrate mode on cell
     double local_sum = 0.0;
     for (int iN = 0; iN < k; iN++) {
-      auto X = grid->node_coordinate(iX, iN);
+      auto X = grid->node_coordinate(ix, iN);
       local_sum += grid->get_weights(iN) *
                    std::pow(modified_polynomial(s, i) *
                                 ModalBasis::d_legendre_n(k, s, X),
                             2.0) *
-                   std::pow(grid->get_widths(iX), 2.0 * s);
+                   std::pow(grid->get_widths(ix), 2.0 * s);
     }
     beta += local_sum;
   }

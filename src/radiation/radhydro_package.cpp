@@ -134,15 +134,15 @@ void RadHydroPackage::update_implicit_iterative(const View3D<double> state,
 
   Kokkos::parallel_for(
       "RadHydro :: implicit iterative", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_CLASS_LAMBDA(const int iX) {
-        auto state_i = Kokkos::subview(state, iX, Kokkos::ALL, Kokkos::ALL);
+      KOKKOS_CLASS_LAMBDA(const int ix) {
+        auto state_i = Kokkos::subview(state, ix, Kokkos::ALL, Kokkos::ALL);
         auto scratch_sol_ix =
-            Kokkos::subview(scratch_sol_, iX, Kokkos::ALL, Kokkos::ALL);
+            Kokkos::subview(scratch_sol_, ix, Kokkos::ALL, Kokkos::ALL);
         auto scratch_sol_ix_k =
-            Kokkos::subview(scratch_k_, iX, Kokkos::ALL, Kokkos::ALL);
+            Kokkos::subview(scratch_k_, ix, Kokkos::ALL, Kokkos::ALL);
         auto scratch_sol_ix_km1 =
-            Kokkos::subview(scratch_km1_, iX, Kokkos::ALL, Kokkos::ALL);
-        auto R_ix = Kokkos::subview(dU, iX, Kokkos::ALL, Kokkos::ALL);
+            Kokkos::subview(scratch_km1_, ix, Kokkos::ALL, Kokkos::ALL);
+        auto R_ix = Kokkos::subview(dU, ix, Kokkos::ALL, Kokkos::ALL);
 
         for (int k = 0; k < order; ++k) {
           // set radhydro vars
@@ -155,11 +155,11 @@ void RadHydroPackage::update_implicit_iterative(const View3D<double> state,
 
         root_finders::fixed_point_radhydro(
             R_ix, dt_info.dt_a, scratch_sol_ix_k, scratch_sol_ix_km1,
-            scratch_sol_ix, grid, fluid_basis_, rad_basis_, eos_, opac_, iX);
+            scratch_sol_ix, grid, fluid_basis_, rad_basis_, eos_, opac_, ix);
 
         for (int k = 0; k < order; ++k) {
           for (int q = 1; q < NUM_VARS_; ++q) {
-            state(iX, k, q) = scratch_sol_ix(k, q);
+            state(ix, k, q) = scratch_sol_ix(k, q);
           }
         }
       });
@@ -199,22 +199,22 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
   // --- Calc numerical flux at all faces ---
   Kokkos::parallel_for(
       "RadHydro :: Numerical Fluxes", Kokkos::RangePolicy<>(ilo, ihi + 2),
-      KOKKOS_CLASS_LAMBDA(const int iX) {
+      KOKKOS_CLASS_LAMBDA(const int ix) {
         auto lambda = nullptr;
         const double Pgas_L = pressure_from_conserved(
-            eos_, u_f_l_(iX, 0), u_f_l_(iX, 1), u_f_l_(iX, 2), lambda);
+            eos_, u_f_l_(ix, 0), u_f_l_(ix, 1), u_f_l_(ix, 2), lambda);
         const double Cs_L = sound_speed_from_conserved(
-            eos_, u_f_l_(iX, 0), u_f_l_(iX, 1), u_f_l_(iX, 2), lambda);
+            eos_, u_f_l_(ix, 0), u_f_l_(ix, 1), u_f_l_(ix, 2), lambda);
 
         const double Pgas_R = pressure_from_conserved(
-            eos_, u_f_r_(iX, 0), u_f_r_(iX, 1), u_f_r_(iX, 2), lambda);
+            eos_, u_f_r_(ix, 0), u_f_r_(ix, 1), u_f_r_(ix, 2), lambda);
         const double Cs_R = sound_speed_from_conserved(
-            eos_, u_f_r_(iX, 0), u_f_r_(iX, 1), u_f_r_(iX, 2), lambda);
+            eos_, u_f_r_(ix, 0), u_f_r_(ix, 1), u_f_r_(ix, 2), lambda);
 
-        const double E_L = u_f_l_(iX, 3);
-        const double F_L = u_f_l_(iX, 4);
-        const double E_R = u_f_r_(iX, 3);
-        const double F_R = u_f_r_(iX, 4);
+        const double E_L = u_f_l_(ix, 3);
+        const double F_L = u_f_l_(ix, 4);
+        const double E_R = u_f_r_(ix, 3);
+        const double F_R = u_f_r_(ix, 4);
 
         const double Prad_L = compute_closure(E_L, F_L);
         const double Prad_R = compute_closure(E_R, F_R);
@@ -223,13 +223,13 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
         static constexpr double c2 = constants::c_cgs * constants::c_cgs;
 
         // Riemann Problem
-        // auto [flux_u, flux_p] = numerical_flux_gudonov( u_f_l_(iX,  1 ),
-        // u_f_r_(iX,  1
+        // auto [flux_u, flux_p] = numerical_flux_gudonov( u_f_l_(ix,  1 ),
+        // u_f_r_(ix,  1
         // ), P_L, P_R, lam_L, lam_R);
         const auto [flux_u, flux_p] = numerical_flux_gudonov_positivity(
-            u_f_l_(iX, 0), u_f_r_(iX, 0), u_f_l_(iX, 1), u_f_r_(iX, 1), Pgas_L,
+            u_f_l_(ix, 0), u_f_r_(ix, 0), u_f_l_(ix, 1), u_f_r_(ix, 1), Pgas_L,
             Pgas_R, Cs_L, Cs_R);
-        flux_u_(stage, iX) = flux_u;
+        flux_u_(stage, ix) = flux_u;
 
         const double vstar = flux_u;
         // auto [flux_e, flux_f] =
@@ -246,13 +246,13 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
         const double advective_flux_f =
             (vstar >= 0) ? vstar * F_L : vstar * F_R;
 
-        dFlux_num_(iX, 0) = -flux_u;
+        dFlux_num_(ix, 0) = -flux_u;
         ;
-        dFlux_num_(iX, 1) = flux_p;
-        dFlux_num_(iX, 2) = +flux_u * flux_p;
+        dFlux_num_(ix, 1) = flux_p;
+        dFlux_num_(ix, 2) = +flux_u * flux_p;
 
-        dFlux_num_(iX, 3) = flux_e - advective_flux_e;
-        dFlux_num_(iX, 4) = flux_f - advective_flux_f;
+        dFlux_num_(ix, 3) = flux_e - advective_flux_e;
+        dFlux_num_(ix, 4) = flux_f - advective_flux_f;
       });
 
   flux_u_(stage, ilo - 1) = flux_u_(stage, ilo);
@@ -264,17 +264,17 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
       "RadHydro :: Surface Term",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0},
                                              {ihi + 1, order, NUM_VARS_}),
-      KOKKOS_CLASS_LAMBDA(const int iX, const int k, const int q) {
+      KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
         const auto* basis = (q < 3) ? fluid_basis_ : rad_basis_;
-        const auto& Poly_L = basis->get_phi(iX, 0, k);
-        const auto& Poly_R = basis->get_phi(iX, nNodes + 1, k);
-        const auto& X_L = grid.get_left_interface(iX);
-        const auto& X_R = grid.get_left_interface(iX + 1);
+        const auto& Poly_L = basis->get_phi(ix, 0, k);
+        const auto& Poly_R = basis->get_phi(ix, nNodes + 1, k);
+        const auto& X_L = grid.get_left_interface(ix);
+        const auto& X_R = grid.get_left_interface(ix + 1);
         const auto& SqrtGm_L = grid.get_sqrt_gm(X_L);
         const auto& SqrtGm_R = grid.get_sqrt_gm(X_R);
 
-        dU(iX, k, q) -= (+dFlux_num_(iX + 1, q) * Poly_R * SqrtGm_R -
-                         dFlux_num_(iX + 0, q) * Poly_L * SqrtGm_L);
+        dU(ix, k, q) -= (+dFlux_num_(ix + 1, q) * Poly_R * SqrtGm_R -
+                         dFlux_num_(ix + 0, q) * Poly_L * SqrtGm_L);
       });
 
   if (order > 1) [[likely]] {
@@ -282,27 +282,27 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
     Kokkos::parallel_for(
         "RadHydro :: Volume Term",
         Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
-        KOKKOS_CLASS_LAMBDA(const int iX, const int k) {
+        KOKKOS_CLASS_LAMBDA(const int ix, const int k) {
           double local_sum1 = 0.0;
           double local_sum2 = 0.0;
           double local_sum3 = 0.0;
           double local_sum_e = 0.0;
           double local_sum_f = 0.0;
-          const double vstar = flux_u_(stage, iX);
+          const double vstar = flux_u_(stage, ix);
           for (int iN = 0; iN < nNodes; ++iN) {
             const double weight = grid.get_weights(iN);
-            const double dphi_rad = rad_basis_->get_d_phi(iX, iN + 1, k);
-            const double dphi_fluid = fluid_basis_->get_d_phi(iX, iN + 1, k);
-            const double X = grid.node_coordinate(iX, iN);
+            const double dphi_rad = rad_basis_->get_d_phi(ix, iN + 1, k);
+            const double dphi_fluid = fluid_basis_->get_d_phi(ix, iN + 1, k);
+            const double X = grid.node_coordinate(ix, iN);
             const double sqrt_gm = grid.get_sqrt_gm(X);
 
             auto lambda = nullptr;
-            const double vel = fluid_basis_->basis_eval(state, iX, 1, iN + 1);
+            const double vel = fluid_basis_->basis_eval(state, ix, 1, iN + 1);
             const double P = pressure_from_conserved(
-                eos_, fluid_basis_->basis_eval(state, iX, 0, iN + 1), vel,
-                fluid_basis_->basis_eval(state, iX, 2, iN + 1), lambda);
-            const double e_rad = rad_basis_->basis_eval(state, iX, 3, iN + 1);
-            const double f_rad = rad_basis_->basis_eval(state, iX, 4, iN + 1);
+                eos_, fluid_basis_->basis_eval(state, ix, 0, iN + 1), vel,
+                fluid_basis_->basis_eval(state, ix, 2, iN + 1), lambda);
+            const double e_rad = rad_basis_->basis_eval(state, ix, 3, iN + 1);
+            const double f_rad = rad_basis_->basis_eval(state, ix, 4, iN + 1);
             const double p_rad = compute_closure(e_rad, f_rad);
             const auto [flux1, flux2, flux3] = fluid::flux_fluid(vel, P);
             const auto [flux_e, flux_f] = flux_rad(e_rad, f_rad, p_rad, vstar);
@@ -313,11 +313,11 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
             local_sum_f += weight * flux_f * dphi_rad * sqrt_gm;
           }
 
-          dU(iX, k, 0) += local_sum1;
-          dU(iX, k, 1) += local_sum2;
-          dU(iX, k, 2) += local_sum3;
-          dU(iX, k, 3) += local_sum_e;
-          dU(iX, k, 4) += local_sum_f;
+          dU(ix, k, 0) += local_sum1;
+          dU(ix, k, 1) += local_sum2;
+          dU(ix, k, 2) += local_sum3;
+          dU(ix, k, 3) += local_sum_e;
+          dU(ix, k, 4) += local_sum_f;
         });
   }
 } // radhydro_divergence
@@ -335,11 +335,11 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
  *     4: radiation flux F
  **/
 auto RadHydroPackage::radhydro_source(const View2D<double> state,
-                                      const GridStructure& grid, const int iX,
+                                      const GridStructure& grid, const int ix,
                                       const int k) const
     -> std::tuple<double, double, double, double> {
   return compute_increment_radhydro_source(state, k, grid, fluid_basis_,
-                                           rad_basis_, eos_, opac_, iX);
+                                           rad_basis_, eos_, opac_, ix);
 }
 
 // This is duplicate of above but used differently, in the root finder
@@ -349,13 +349,13 @@ auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
                                        const ModalBasis* fluid_basis,
                                        const ModalBasis* rad_basis,
                                        const EOS* eos, const Opacity* opac,
-                                       const int iX)
+                                       const int ix)
     -> std::tuple<double, double, double, double> {
   constexpr static double c = constants::c_cgs;
   constexpr static double c2 = c * c;
 
   const int nNodes = grid.get_n_nodes();
-  const double dx = grid.get_widths(iX);
+  const double dx = grid.get_widths(ix);
 
   double local_sum_e_r = 0.0; // radiation energy source
   double local_sum_m_r = 0.0; // radiation momentum (flux) source
@@ -363,15 +363,15 @@ auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
   double local_sum_m_g = 0.0; // gas momentum (velocity) source
   for (int iN = 0; iN < nNodes; ++iN) {
     const double weight = grid.get_weights(iN);
-    const double phi_rad = rad_basis->get_phi(iX, iN + 1, k);
-    const double phi_fluid = fluid_basis->get_phi(iX, iN + 1, k);
+    const double phi_rad = rad_basis->get_phi(ix, iN + 1, k);
+    const double phi_fluid = fluid_basis->get_phi(ix, iN + 1, k);
 
     // Note: basis evaluations are awkward here.
     // must be sure to use the correct basis functions.
-    const double tau = fluid_basis->basis_eval(uCRH, iX, 0, iN + 1);
+    const double tau = fluid_basis->basis_eval(uCRH, ix, 0, iN + 1);
     const double rho = 1.0 / tau;
-    const double vel = fluid_basis->basis_eval(uCRH, iX, 1, iN + 1);
-    const double em_t = fluid_basis->basis_eval(uCRH, iX, 2, iN + 1);
+    const double vel = fluid_basis->basis_eval(uCRH, ix, 1, iN + 1);
+    const double em_t = fluid_basis->basis_eval(uCRH, ix, 2, iN + 1);
 
     auto lambda = nullptr;
     const double t_g = temperature_from_conserved(eos, tau, vel, em_t, lambda);
@@ -384,8 +384,8 @@ auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
     const double kappa_r = rosseland_mean(opac, rho, t_g, X, Y, Z, lambda);
     const double kappa_p = planck_mean(opac, rho, t_g, X, Y, Z, lambda);
 
-    const double E_r = rad_basis->basis_eval(uCRH, iX, 3, iN + 1);
-    const double F_r = rad_basis->basis_eval(uCRH, iX, 4, iN + 1);
+    const double E_r = rad_basis->basis_eval(uCRH, ix, 3, iN + 1);
+    const double F_r = rad_basis->basis_eval(uCRH, ix, 4, iN + 1);
     const double P_r = compute_closure(E_r, F_r);
 
     // 4 force
@@ -404,8 +404,8 @@ auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
     local_sum_m_g += weight * phi_fluid * source_m_g;
   }
   // \Delta x / M_kk
-  const double dx_o_mkk_fluid = dx / fluid_basis->get_mass_matrix(iX, k);
-  const double dx_o_mkk_rad = dx / rad_basis->get_mass_matrix(iX, k);
+  const double dx_o_mkk_fluid = dx / fluid_basis->get_mass_matrix(ix, k);
+  const double dx_o_mkk_rad = dx / rad_basis->get_mass_matrix(ix, k);
 
   return {local_sum_m_g * dx_o_mkk_fluid, local_sum_e_g * dx_o_mkk_fluid,
           local_sum_e_r * dx_o_mkk_rad, local_sum_m_r * dx_o_mkk_rad};

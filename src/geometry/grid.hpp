@@ -35,9 +35,9 @@ class GridStructure {
   KOKKOS_FUNCTION
   [[nodiscard]] auto get_weights(int nN) const -> double;
   KOKKOS_FUNCTION
-  [[nodiscard]] auto get_mass(int iX) const -> double;
+  [[nodiscard]] auto get_mass(int ix) const -> double;
   KOKKOS_FUNCTION
-  [[nodiscard]] auto get_center_of_mass(int iX) const -> double;
+  [[nodiscard]] auto get_center_of_mass(int ix) const -> double;
   KOKKOS_FUNCTION
   [[nodiscard]] auto get_x_l() const noexcept -> double;
   KOKKOS_FUNCTION
@@ -45,7 +45,7 @@ class GridStructure {
   KOKKOS_FUNCTION
   [[nodiscard]] auto get_sqrt_gm(double X) const -> double;
   KOKKOS_FUNCTION
-  [[nodiscard]] auto get_left_interface(int iX) const -> double;
+  [[nodiscard]] auto get_left_interface(int ix) const -> double;
 
   KOKKOS_FUNCTION
   [[nodiscard]] auto do_geometry() const noexcept -> bool;
@@ -68,7 +68,7 @@ class GridStructure {
   KOKKOS_FUNCTION
   void compute_mass_r(View3D<double> uPF);
   KOKKOS_FUNCTION
-  auto enclosed_mass(int iX, int iN) const noexcept -> double;
+  auto enclosed_mass(int ix, int iN) const noexcept -> double;
   KOKKOS_FUNCTION
   void compute_center_of_mass(View3D<double> uPF);
   KOKKOS_FUNCTION

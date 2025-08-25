@@ -38,25 +38,25 @@ void apply_bound_enforcing_limiter(View3D<double> U, const ModalBasis* basis);
 void apply_bound_enforcing_limiter_rad(View3D<double> U,
                                        const ModalBasis* basis);
 auto compute_theta_state(View3D<double> U, const ModalBasis* basis,
-                         double theta, int iCF, int iX, int iN) -> double;
+                         double theta, int q, int ix, int iN) -> double;
 auto target_func(double theta, View3D<double> U, const ModalBasis* basis,
-                 int iX, int iN) -> double;
+                 int ix, int iN) -> double;
 auto target_func_deriv(double theta, View3D<double> U, const ModalBasis* basis,
-                       int iX, int iN) -> double;
+                       int ix, int iN) -> double;
 auto target_func_rad_flux(double theta, View3D<double> U,
-                          const ModalBasis* basis, int iX, int iN) -> double;
+                          const ModalBasis* basis, int ix, int iN) -> double;
 auto target_func_rad_flux_deriv(double theta, View3D<double> U,
-                                const ModalBasis* basis, int iX, int iN)
+                                const ModalBasis* basis, int ix, int iN)
     -> double;
 auto target_func_rad_energy(double theta, View3D<double> U,
-                            const ModalBasis* basis, int iX, int iN) -> double;
+                            const ModalBasis* basis, int ix, int iN) -> double;
 auto target_func_rad_energy_deriv(double theta, View3D<double> U,
-                                  const ModalBasis* basis, int iX, int iN)
+                                  const ModalBasis* basis, int ix, int iN)
     -> double;
 
 template <typename F>
 auto bisection(const View3D<double> U, F target, const ModalBasis* basis,
-               const int iX, const int iN) -> double {
+               const int ix, const int iN) -> double {
   constexpr static double TOL = 1e-10;
   constexpr static int MAX_ITERS = 100;
   constexpr static double delta = 1.0e-3; // reduce root by delta
@@ -73,8 +73,8 @@ auto bisection(const View3D<double> U, F target, const ModalBasis* basis,
   while (n <= MAX_ITERS) {
     c = (a + b) / 2.0;
 
-    fa = target(a, U, basis, iX, iN);
-    fc = target(c, U, basis, iX, iN);
+    fa = target(a, U, basis, ix, iN);
+    fc = target(c, U, basis, ix, iN);
 
     if (std::abs(fc) <= TOL || (b - a) / 2.0 < TOL) {
       return c - delta;
@@ -96,13 +96,13 @@ auto bisection(const View3D<double> U, F target, const ModalBasis* basis,
 
 template <typename F>
 auto backtrace(const View3D<double> U, F target, const ModalBasis* basis,
-               const int iX, const int iN) -> double {
+               const int ix, const int iN) -> double {
   constexpr static double EPSILON = 1.0e-10; // maybe make this smarter
   double theta = 1.0;
   double nodal = -1.0;
 
   while (theta >= 0.01 && nodal < EPSILON) {
-    nodal = target(theta, U, basis, iX, iN);
+    nodal = target(theta, U, basis, ix, iN);
 
     theta -= 0.05;
   }

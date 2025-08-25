@@ -1,10 +1,10 @@
 #include "state/state.hpp"
 
-State::State(const int nCF, const int nPF, const int nAF, const int nX_,
+State::State(const int nvar, const int nPF, const int nAF, const int nX_,
              const int nNodes_, const int pOrder,
              const bool composition_enabled, const int ncomps)
-    : nCF_(nCF), nPF_(nPF), nAF_(nAF), pOrder_(pOrder),
-      uCF_("uCF", nX_ + 2, pOrder_, nCF_), uPF_("uPF", nX_ + 2, nNodes_, nPF_),
+    : nvar_(nvar), nPF_(nPF), nAF_(nAF), pOrder_(pOrder),
+      uCF_("uCF", nX_ + 2, pOrder_, nvar_), uPF_("uPF", nX_ + 2, nNodes_, nPF_),
       uAF_("uAF", nX_ + 2, nNodes_, nAF_),
       composition_enabled_(composition_enabled) {
   if (composition_enabled) {
@@ -16,7 +16,7 @@ State::State(const int nCF, const int nPF, const int nAF, const int nX_,
 }
 
 // num var accessors
-auto State::n_cf() const noexcept -> int { return nCF_; }
+auto State::n_cf() const noexcept -> int { return nvar_; }
 auto State::n_pf() const noexcept -> int { return nPF_; }
 auto State::n_af() const noexcept -> int { return nAF_; }
 auto State::p_order() const noexcept -> int { return pOrder_; }

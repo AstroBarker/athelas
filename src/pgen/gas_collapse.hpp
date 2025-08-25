@@ -29,9 +29,9 @@ void gas_collapse_init(State* state, GridStructure* grid, ProblemIn* pin,
   const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
-  constexpr static int iCF_Tau = 0;
-  constexpr static int iCF_V = 1;
-  constexpr static int iCF_E = 2;
+  constexpr static int q_Tau = 0;
+  constexpr static int q_V = 1;
+  constexpr static int q_E = 2;
 
   constexpr static int iPF_D = 0;
 
@@ -43,24 +43,24 @@ void gas_collapse_init(State* state, GridStructure* grid, ProblemIn* pin,
   const double gm1 = gamma - 1.0;
 
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
         const int k = 0;
 
-        uCF(iX, k, iCF_Tau) = rho0; // / rho0 * (1.0 / std::cosh(x / H));
-        uCF(iX, k, iCF_V) = V0;
-        uCF(iX, k, iCF_E) = (p0 / gm1) * uCF(iX, k, iCF_Tau) + 0.5 * V0 * V0;
+        uCF(ix, k, q_Tau) = rho0; // / rho0 * (1.0 / std::cosh(x / H));
+        uCF(ix, k, q_V) = V0;
+        uCF(ix, k, q_E) = (p0 / gm1) * uCF(ix, k, q_Tau) + 0.5 * V0 * V0;
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          uPF(iX, iNodeX, iPF_D) = rho0;
+          uPF(ix, iNodeX, iPF_D) = rho0;
         }
       });
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int ix) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(ilo - 1 - iX, iN, 0) = uPF(ilo + iX, nNodes - iN - 1, 0);
-          uPF(ilo + 1 + iX, iN, 0) = uPF(ilo - iX, nNodes - iN - 1, 0);
+          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
+          uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, nNodes - iN - 1, 0);
         }
       });
 }

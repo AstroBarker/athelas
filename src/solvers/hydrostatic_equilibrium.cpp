@@ -38,10 +38,10 @@ void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure* grid,
   std::vector<double> pressure(1);
   std::vector<double> radius(1);
   Kokkos::parallel_for(
-      "copy grid", Kokkos::RangePolicy<>(0, ihi + 1), KOKKOS_LAMBDA(int iX) {
+      "copy grid", Kokkos::RangePolicy<>(0, ihi + 1), KOKKOS_LAMBDA(int ix) {
         for (int iN = 0; iN < nNodes; ++iN) {
-          const double r = grid->node_coordinate(iX + 1, iN);
-          d_r(iX * nNodes + iN) = r;
+          const double r = grid->node_coordinate(ix + 1, iN);
+          d_r(ix * nNodes + iN) = r;
         }
       });
   auto h_r = Kokkos::create_mirror_view(d_r);
@@ -92,22 +92,22 @@ void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure* grid,
   *grid = newgrid;
 
   // refill host radius array
-  for (int iX = 0; iX <= ihi; ++iX) {
+  for (int ix = 0; ix <= ihi; ++ix) {
     for (int iN = 0; iN < nNodes; ++iN) {
-      h_r(iX * nNodes + iN) = grid->node_coordinate(iX, iN);
+      h_r(ix * nNodes + iN) = grid->node_coordinate(ix, iN);
     }
   }
 
   // now we have to interpolate onto our grid
   // This is horrible but it's fine, only happens once.
-  for (int iX = 0; iX <= ihi; ++iX) {
+  for (int ix = 0; ix <= ihi; ++ix) {
     for (int iN = 0; iN < nNodes; ++iN) {
-      const double r = h_r(iX * nNodes + iN);
+      const double r = h_r(ix * nNodes + iN);
       for (size_t i = 0; i < pressure.size() - 2; ++i) {
         if (radius[i] <= r && radius[i + 1] >= r) { // search
           const double y = LINTERP(radius[i], radius[i + 1], pressure[i],
                                    pressure[i + 1], r);
-          h_uAF(iP_, iX, iN) = y;
+          h_uAF(iP_, ix, iN) = y;
           break;
         }
       }

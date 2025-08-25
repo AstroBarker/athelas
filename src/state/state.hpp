@@ -9,7 +9,7 @@
  */
 class State {
  public:
-  State(int nCF, int nPF, int nAF, int nX_, int nNodes_, int pOrder,
+  State(int nvar, int nPF, int nAF, int nX_, int nNodes_, int pOrder,
         bool composition_enabled, int ncomps = 0);
 
   [[nodiscard]] auto n_cf() const noexcept -> int;
@@ -33,7 +33,7 @@ class State {
   }
 
  private:
-  int nCF_;
+  int nvar_;
   int nPF_;
   int nAF_;
   int pOrder_;

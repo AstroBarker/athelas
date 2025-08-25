@@ -23,38 +23,38 @@ class ModalBasis {
              bool density_weight);
   static auto taylor(int order, double eta, double eta_c) -> double;
   static auto d_taylor(int order, double eta, double eta_c) -> double;
-  auto ortho(int order, int iX, int i_eta, double eta, double eta_c,
+  auto ortho(int order, int ix, int i_eta, double eta, double eta_c,
              View3D<double> uCF, GridStructure* grid, bool derivative_option)
       -> double;
-  auto inner_product(int m, int n, int iX, double eta_c, View3D<double> uPF,
+  auto inner_product(int m, int n, int ix, double eta_c, View3D<double> uPF,
                      GridStructure* grid) const -> double;
-  auto inner_product(int n, int iX, double eta_c, View3D<double> uPF,
+  auto inner_product(int n, int ix, double eta_c, View3D<double> uPF,
                      GridStructure* grid) const -> double;
   void initialize_taylor_basis(View3D<double> U, GridStructure* grid);
   void initialize_basis(View3D<double> uCF, GridStructure* grid);
   void check_orthogonality(View3D<double> uCF, GridStructure* grid) const;
-  [[nodiscard]] auto basis_eval(View3D<double> U, int iX, int iCF,
+  [[nodiscard]] auto basis_eval(View3D<double> U, int ix, int q,
                                 int i_eta) const -> double;
-  [[nodiscard]] auto basis_eval(View2D<double> U, int iX, int iCF,
+  [[nodiscard]] auto basis_eval(View2D<double> U, int ix, int q,
                                 int i_eta) const -> double;
-  [[nodiscard]] auto basis_eval(View1D<double> U, int iX, int i_eta) const
+  [[nodiscard]] auto basis_eval(View1D<double> U, int ix, int i_eta) const
       -> double;
   void compute_mass_matrix(View3D<double> uCF, GridStructure* grid);
 
-  [[nodiscard]] auto get_phi(int iX, int i_eta, int k) const -> double;
-  [[nodiscard]] auto get_d_phi(int iX, int i_eta, int k) const -> double;
-  [[nodiscard]] auto get_mass_matrix(int iX, int k) const -> double;
+  [[nodiscard]] auto get_phi(int ix, int i_eta, int k) const -> double;
+  [[nodiscard]] auto get_d_phi(int ix, int i_eta, int k) const -> double;
+  [[nodiscard]] auto get_mass_matrix(int ix, int k) const -> double;
 
   [[nodiscard]] auto get_order() const noexcept -> int;
 
   // L2 projection from nodal to modal representation
   void project_nodal_to_modal(
-      View3D<double> uCF, View3D<double> uPF, GridStructure* grid, int iCF,
-      int iX, const std::function<double(double, int, int)>& nodal_func) const;
+      View3D<double> uCF, View3D<double> uPF, GridStructure* grid, int q,
+      int ix, const std::function<double(double, int, int)>& nodal_func) const;
 
   // L2 projection from nodal to modal representation for all cells
   void project_nodal_to_modal_all_cells(
-      View3D<double> uCF, View3D<double> uPF, GridStructure* grid, int iCF,
+      View3D<double> uCF, View3D<double> uPF, GridStructure* grid, int q,
       const std::function<double(double, int, int)>& nodal_func) const;
 
   static auto legendre(int n, double x) -> double;

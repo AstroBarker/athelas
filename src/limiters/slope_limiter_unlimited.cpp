@@ -8,4 +8,4 @@ void Unlimited::apply_slope_limiter(View3D<double> /*U*/,
                                     const ModalBasis* /*basis*/,
                                     const EOS* /*eos*/) {}
 
-auto Unlimited::get_limited(const int /*iX*/) const -> int { return 0.0; }
+auto Unlimited::get_limited(const int /*ix*/) const -> int { return 0.0; }

@@ -48,16 +48,16 @@ void detect_troubled_cells(const View3D<double> U, View1D<double> D,
                            const std::vector<int>& vars);
 
 auto cell_average(View3D<double> U, const GridStructure* grid,
-                  const ModalBasis* basis, int iCF, int iX, int extrapolate)
+                  const ModalBasis* basis, int q, int ix, int extrapolate)
     -> double;
 
 void modify_polynomial(View3D<double> U, View2D<double> modified_polynomial,
-                       double gamma_i, double gamma_l, double gamma_r, int iX,
+                       double gamma_i, double gamma_l, double gamma_r, int ix,
                        int q);
 
 auto smoothness_indicator(View3D<double> U, View2D<double> modified_polynomial,
                           const GridStructure* grid, const ModalBasis* basis,
-                          int iX, int i, int iCQ) -> double;
+                          int ix, int i, int iCQ) -> double;
 
 auto non_linear_weight(double gamma, double beta, double tau, double eps)
     -> double;

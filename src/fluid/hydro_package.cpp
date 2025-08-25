@@ -84,40 +84,40 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
   Kokkos::parallel_for(
       "Hydro :: Interface States",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 2, NUM_VARS_}),
-      KOKKOS_CLASS_LAMBDA(const int iX, const int q) {
-        u_f_l_(iX, q) = basis_->basis_eval(state, iX - 1, q, nNodes + 1);
-        u_f_r_(iX, q) = basis_->basis_eval(state, iX, q, 0);
+      KOKKOS_CLASS_LAMBDA(const int ix, const int q) {
+        u_f_l_(ix, q) = basis_->basis_eval(state, ix - 1, q, nNodes + 1);
+        u_f_r_(ix, q) = basis_->basis_eval(state, ix, q, 0);
       });
 
   // --- Calc numerical flux at all faces ---
   Kokkos::parallel_for(
       "Hydro :: Numerical Fluxes", Kokkos::RangePolicy<>(ilo, ihi + 2),
-      KOKKOS_CLASS_LAMBDA(int iX) {
+      KOKKOS_CLASS_LAMBDA(int ix) {
         auto lambda = nullptr;
         const double P_L = pressure_from_conserved(
-            eos_, u_f_l_(iX, 0), u_f_l_(iX, 1), u_f_l_(iX, 2), lambda);
+            eos_, u_f_l_(ix, 0), u_f_l_(ix, 1), u_f_l_(ix, 2), lambda);
         const double Cs_L = sound_speed_from_conserved(
-            eos_, u_f_l_(iX, 0), u_f_l_(iX, 1), u_f_l_(iX, 2), lambda);
+            eos_, u_f_l_(ix, 0), u_f_l_(ix, 1), u_f_l_(ix, 2), lambda);
 
         const double P_R = pressure_from_conserved(
-            eos_, u_f_r_(iX, 0), u_f_r_(iX, 1), u_f_r_(iX, 2), lambda);
+            eos_, u_f_r_(ix, 0), u_f_r_(ix, 1), u_f_r_(ix, 2), lambda);
         const double Cs_R = sound_speed_from_conserved(
-            eos_, u_f_r_(iX, 0), u_f_r_(iX, 1), u_f_r_(iX, 2), lambda);
+            eos_, u_f_r_(ix, 0), u_f_r_(ix, 1), u_f_r_(ix, 2), lambda);
 
         // --- Numerical Fluxes ---
 
         // Riemann Problem
-        // auto [flux_u, flux_p] = numerical_flux_gudonov( u_f_l_(iX,  1 ),
-        // u_f_r_(iX,  1
+        // auto [flux_u, flux_p] = numerical_flux_gudonov( u_f_l_(ix,  1 ),
+        // u_f_r_(ix,  1
         // ), P_L, P_R, lam_L, lam_R);
         const auto [flux_u, flux_p] = numerical_flux_gudonov_positivity(
-            u_f_l_(iX, 0), u_f_r_(iX, 0), u_f_l_(iX, 1), u_f_r_(iX, 1), P_L,
+            u_f_l_(ix, 0), u_f_r_(ix, 0), u_f_l_(ix, 1), u_f_r_(ix, 1), P_L,
             P_R, Cs_L, Cs_R);
-        flux_u_(stage, iX) = flux_u;
+        flux_u_(stage, ix) = flux_u;
 
-        dFlux_num_(iX, 0) = -flux_u_(stage, iX);
-        dFlux_num_(iX, 1) = flux_p;
-        dFlux_num_(iX, 2) = +flux_u_(stage, iX) * flux_p;
+        dFlux_num_(ix, 0) = -flux_u_(stage, ix);
+        dFlux_num_(ix, 1) = flux_p;
+        dFlux_num_(ix, 2) = +flux_u_(stage, ix) * flux_p;
       });
 
   flux_u_(stage, ilo - 1) = flux_u_(stage, ilo);
@@ -128,16 +128,16 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
       "Hydro :: Surface Term",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0},
                                              {ihi + 1, order, NUM_VARS_}),
-      KOKKOS_CLASS_LAMBDA(const int iX, const int k, const int q) {
-        const auto& Poly_L = basis_->get_phi(iX, 0, k);
-        const auto& Poly_R = basis_->get_phi(iX, nNodes + 1, k);
-        const auto& X_L = grid.get_left_interface(iX);
-        const auto& X_R = grid.get_left_interface(iX + 1);
+      KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
+        const auto& Poly_L = basis_->get_phi(ix, 0, k);
+        const auto& Poly_R = basis_->get_phi(ix, nNodes + 1, k);
+        const auto& X_L = grid.get_left_interface(ix);
+        const auto& X_R = grid.get_left_interface(ix + 1);
         const auto& SqrtGm_L = grid.get_sqrt_gm(X_L);
         const auto& SqrtGm_R = grid.get_sqrt_gm(X_R);
 
-        dU(iX, k, q) -= (+dFlux_num_(iX + 1, q) * Poly_R * SqrtGm_R -
-                         dFlux_num_(iX + 0, q) * Poly_L * SqrtGm_L);
+        dU(ix, k, q) -= (+dFlux_num_(ix + 1, q) * Poly_R * SqrtGm_R -
+                         dFlux_num_(ix + 0, q) * Poly_L * SqrtGm_L);
       });
 
   if (order > 1) [[likely]] {
@@ -145,21 +145,21 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
     Kokkos::parallel_for(
         "Hydro :: Volume Term",
         Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
-        KOKKOS_CLASS_LAMBDA(const int iX, const int k) {
+        KOKKOS_CLASS_LAMBDA(const int ix, const int k) {
           double local_sum1 = 0.0;
           double local_sum2 = 0.0;
           double local_sum3 = 0.0;
           for (int iN = 0; iN < nNodes; ++iN) {
             const double weight = grid.get_weights(iN);
-            const double dphi = basis_->get_d_phi(iX, iN + 1, k);
-            const double X = grid.node_coordinate(iX, iN);
+            const double dphi = basis_->get_d_phi(ix, iN + 1, k);
+            const double X = grid.node_coordinate(ix, iN);
             const double sqrt_gm = grid.get_sqrt_gm(X);
 
             auto lambda = nullptr;
-            const double vel = basis_->basis_eval(state, iX, 1, iN + 1);
+            const double vel = basis_->basis_eval(state, ix, 1, iN + 1);
             const double P = pressure_from_conserved(
-                eos_, basis_->basis_eval(state, iX, 0, iN + 1), vel,
-                basis_->basis_eval(state, iX, 2, iN + 1), lambda);
+                eos_, basis_->basis_eval(state, ix, 0, iN + 1), vel,
+                basis_->basis_eval(state, ix, 2, iN + 1), lambda);
             const auto [flux1, flux2, flux3] = flux_fluid(vel, P);
 
             local_sum1 += weight * flux1 * dphi * sqrt_gm;
@@ -167,9 +167,9 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
             local_sum3 += weight * flux3 * dphi * sqrt_gm;
           }
 
-          dU(iX, k, 0) += local_sum1;
-          dU(iX, k, 1) += local_sum2;
-          dU(iX, k, 2) += local_sum3;
+          dU(ix, k, 0) += local_sum1;
+          dU(ix, k, 1) += local_sum2;
+          dU(ix, k, 2) += local_sum3;
         });
   }
 }
@@ -185,23 +185,23 @@ void HydroPackage::fluid_geometry(const View3D<double> state, View3D<double> dU,
   Kokkos::parallel_for(
       "Hydro :: Geometry Term",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
-      KOKKOS_CLASS_LAMBDA(const int iX, const int k) {
+      KOKKOS_CLASS_LAMBDA(const int ix, const int k) {
         double local_sum = 0.0;
         auto lambda = nullptr;
         for (int iN = 0; iN < nNodes; ++iN) {
           const double P = pressure_from_conserved(
-              eos_, basis_->basis_eval(state, iX, 0, iN + 1),
-              basis_->basis_eval(state, iX, 1, iN + 1),
-              basis_->basis_eval(state, iX, 2, iN + 1), lambda);
+              eos_, basis_->basis_eval(state, ix, 0, iN + 1),
+              basis_->basis_eval(state, ix, 1, iN + 1),
+              basis_->basis_eval(state, ix, 2, iN + 1), lambda);
 
-          const double X = grid.node_coordinate(iX, iN);
+          const double X = grid.node_coordinate(ix, iN);
 
           local_sum +=
-              grid.get_weights(iN) * P * basis_->get_phi(iX, iN + 1, k) * X;
+              grid.get_weights(iN) * P * basis_->get_phi(ix, iN + 1, k) * X;
         }
 
-        dU(iX, k, 1) += (2.0 * local_sum * grid.get_widths(iX)) /
-                        basis_->get_mass_matrix(iX, k);
+        dU(ix, k, 1) += (2.0 * local_sum * grid.get_widths(ix)) /
+                        basis_->get_mass_matrix(ix, k);
       });
 }
 /**

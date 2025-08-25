@@ -79,19 +79,19 @@ KOKKOS_INLINE_FUNCTION auto ratio(const A& a, const B& b) {
 template <class T>
 KOKKOS_INLINE_FUNCTION auto compute_internal_energy(T U,
                                                     const ModalBasis* basis,
-                                                    const int iX, const int iN)
+                                                    const int ix, const int iN)
     -> double {
-  const double Vel = basis->basis_eval(U, iX, 1, iN);
-  const double EmT = basis->basis_eval(U, iX, 2, iN);
+  const double Vel = basis->basis_eval(U, ix, 1, iN);
+  const double EmT = basis->basis_eval(U, ix, 2, iN);
 
   return EmT - (0.5 * Vel * Vel);
 }
 
 // cell average specific internal energy
 template <class T>
-KOKKOS_INLINE_FUNCTION auto compute_internal_energy(T U, const int iX)
+KOKKOS_INLINE_FUNCTION auto compute_internal_energy(T U, const int ix)
     -> double {
-  return U(iX, 0, 2) - (0.5 * U(iX, 0, 1) * U(iX, 0, 1));
+  return U(ix, 0, 2) - (0.5 * U(ix, 0, 1) * U(ix, 0, 1));
 }
 
 // string to_lower function
