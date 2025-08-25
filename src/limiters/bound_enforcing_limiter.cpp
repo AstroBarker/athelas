@@ -240,9 +240,9 @@ auto target_func(const double theta, const View3D<double> U,
 }
 auto target_func_deriv(const double theta, const View3D<double> U, const ModalBasis* basis,
                  const int iX, const int iN) -> double {
-  const double dE = basis->basis_eval(U, iX, 2, iN) - U(0, iX, 2);
+  const double dE = basis->basis_eval(U, iX, 2, iN) - U(iX, 0, 2);
   const double v_q = basis->basis_eval(U, iX, 1, iN);
-  const double dv = v_q - U(0, iX, 1);
+  const double dv = v_q - U(iX, 0, 1);
   return dE - (v_q + theta * dv) * dv;
 }
 
@@ -262,8 +262,8 @@ auto target_func_rad_flux(const double theta, const View3D<double> U,
 auto target_func_rad_flux_deriv(const double theta, const View3D<double> U,
                           const ModalBasis* basis, const int iX, const int iN)
     -> double {
-  const double dE = basis->basis_eval(U, iX, 3, iN) - U(3, iX, 0);
-  const double dF = basis->basis_eval(U, iX, 4, iN) - U(4, iX, 0);
+  const double dE = basis->basis_eval(U, iX, 3, iN) - U(iX, 0, 3);
+  const double dF = basis->basis_eval(U, iX, 4, iN) - U(iX, 0, 4);
   const double E_theta = compute_theta_state(U, basis, theta, 3, iX, iN);
   const double F_theta = compute_theta_state(U, basis, theta, 4, iX, iN);
   const double dfdE = - F_theta / (E_theta * E_theta * constants::c_cgs);
@@ -273,7 +273,7 @@ auto target_func_rad_flux_deriv(const double theta, const View3D<double> U,
 
 auto target_func_rad_energy_deriv(const double theta, const View3D<double> U, const ModalBasis* basis,
                  const int iX, const int iN) -> double {
-  return basis->basis_eval(U, iX, 3, iN) - U(0, iX, 3);
+  return basis->basis_eval(U, iX, 3, iN) - U(iX, 0, 3);
 }
 
 auto target_func_rad_energy(const double theta, const View3D<double> U,
