@@ -123,8 +123,9 @@ void limit_internal_energy(View3D<double> U, const ModalBasis* basis) {
             temp = 1.0;
           } else {
             const double theta_guess = 0.9;
-            //temp = bisection(U, target_func, basis, iX, iN);
-            temp = root_finders::newton_aa(target_func, target_func_deriv, theta_guess, U, basis, iX, iN);
+            // temp = bisection(U, target_func, basis, iX, iN);
+            temp = root_finders::newton_aa(target_func, target_func_deriv,
+                                           theta_guess, U, basis, iX, iN);
           }
           theta2 = std::min(theta2, temp);
         }
@@ -151,7 +152,7 @@ void apply_bound_enforcing_limiter_rad(View3D<double> U,
     return;
   }
   limit_rad_energy(U, basis);
-  //limit_rad_momentum(U, basis);
+  // limit_rad_momentum(U, basis);
 }
 
 void limit_rad_energy(View3D<double> U, const ModalBasis* basis) {
@@ -173,8 +174,10 @@ void limit_rad_energy(View3D<double> U, const ModalBasis* basis) {
             temp = 1.0;
           } else {
             const double theta_guess = 0.9;
-            //temp = bisection(U, target_func_rad_energy, basis, iX, iN);
-            temp = root_finders::newton_aa(target_func_rad_energy, target_func_rad_energy_deriv, theta_guess, U, basis, iX, iN);
+            // temp = bisection(U, target_func_rad_energy, basis, iX, iN);
+            temp = root_finders::newton_aa(target_func_rad_energy,
+                                           target_func_rad_energy_deriv,
+                                           theta_guess, U, basis, iX, iN);
           }
           theta2 = std::abs(std::min(theta2, temp));
         }
@@ -204,12 +207,14 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis* basis) {
           if (std::abs(nodal) <= c * U(iX, 0, 3)) {
             temp = 1.0;
           } else {
-             const double theta_guess = 0.9;
-             temp = root_finders::newton_aa(target_func_rad_flux, target_func_rad_flux_deriv, theta_guess, U, basis, iX, iN) - 1.0e-3;
+            const double theta_guess = 0.9;
+            temp = root_finders::newton_aa(target_func_rad_flux,
+                                           target_func_rad_flux_deriv,
+                                           theta_guess, U, basis, iX, iN) -
+                   1.0e-3;
             // temp = bisection(U, target_func_rad_flux, basis, iX, iN);
           }
           theta2 = std::abs(std::min(theta2, temp));
-
         }
 
         for (int k = 1; k < order; k++) {
@@ -224,7 +229,8 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis* basis) {
 auto compute_theta_state(const View3D<double> U, const ModalBasis* basis,
                          const double theta, const int iCF, const int iX,
                          const int iN) -> double {
-  return theta * (basis->basis_eval(U, iX, iCF, iN) - U(iX, 0, iCF)) + U(iX, 0, iCF);
+  return theta * (basis->basis_eval(U, iX, iCF, iN) - U(iX, 0, iCF)) +
+         U(iX, 0, iCF);
 }
 
 auto target_func(const double theta, const View3D<double> U,
@@ -238,8 +244,9 @@ auto target_func(const double theta, const View3D<double> U,
 
   return e - w;
 }
-auto target_func_deriv(const double theta, const View3D<double> U, const ModalBasis* basis,
-                 const int iX, const int iN) -> double {
+auto target_func_deriv(const double theta, const View3D<double> U,
+                       const ModalBasis* basis, const int iX, const int iN)
+    -> double {
   const double dE = basis->basis_eval(U, iX, 2, iN) - U(iX, 0, 2);
   const double v_q = basis->basis_eval(U, iX, 1, iN);
   const double dv = v_q - U(iX, 0, 1);
@@ -250,7 +257,7 @@ auto target_func_deriv(const double theta, const View3D<double> U, const ModalBa
 auto target_func_rad_flux(const double theta, const View3D<double> U,
                           const ModalBasis* basis, const int iX, const int iN)
     -> double {
-  const double w = 1.0e-13; 
+  const double w = 1.0e-13;
   const double s1 = compute_theta_state(U, basis, theta, 4, iX, iN);
   const double s2 = compute_theta_state(U, basis, theta, 3, iX, iN);
 
@@ -260,19 +267,21 @@ auto target_func_rad_flux(const double theta, const View3D<double> U,
 }
 
 auto target_func_rad_flux_deriv(const double theta, const View3D<double> U,
-                          const ModalBasis* basis, const int iX, const int iN)
-    -> double {
+                                const ModalBasis* basis, const int iX,
+                                const int iN) -> double {
   const double dE = basis->basis_eval(U, iX, 3, iN) - U(iX, 0, 3);
   const double dF = basis->basis_eval(U, iX, 4, iN) - U(iX, 0, 4);
   const double E_theta = compute_theta_state(U, basis, theta, 3, iX, iN);
   const double F_theta = compute_theta_state(U, basis, theta, 4, iX, iN);
-  const double dfdE = - F_theta / (E_theta * E_theta * constants::c_cgs);
-  const double dfdF = F_theta / (std::abs(F_theta) * E_theta * constants::c_cgs);
+  const double dfdE = -F_theta / (E_theta * E_theta * constants::c_cgs);
+  const double dfdF =
+      F_theta / (std::abs(F_theta) * E_theta * constants::c_cgs);
   return dfdE * dE + dfdF * dF;
 }
 
-auto target_func_rad_energy_deriv(const double theta, const View3D<double> U, const ModalBasis* basis,
-                 const int iX, const int iN) -> double {
+auto target_func_rad_energy_deriv(const double theta, const View3D<double> U,
+                                  const ModalBasis* basis, const int iX,
+                                  const int iN) -> double {
   return basis->basis_eval(U, iX, 3, iN) - U(iX, 0, 3);
 }
 

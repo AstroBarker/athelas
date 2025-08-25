@@ -166,35 +166,31 @@ class RadHydroConvergence {
  * Assumes target is in f(x) = x form
  **/
 template <typename T, typename F, typename... Args>
-KOKKOS_INLINE_FUNCTION
-auto fixed_point_aa( F target, T x0, Args... args ) -> T {
+KOKKOS_INLINE_FUNCTION auto fixed_point_aa(F target, T x0, Args... args) -> T {
 
   unsigned int n = 0;
 
   T error = 1.0;
-  T xkm1  = 0.0;
-  T xk    = 0.0;
-  xk      = target( x0, args... ); // one fixed point step
-  xkm1    = x0;
-  if ( std::abs( xk - x0 ) <= root_finders::ABSTOL ) {
+  T xkm1 = 0.0;
+  T xk = 0.0;
+  xk = target(x0, args...); // one fixed point step
+  xkm1 = x0;
+  if (std::abs(xk - x0) <= root_finders::ABSTOL) {
     return xk;
   }
-  while ( n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL ) {
+  while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
     //--- Anderson acceleration step --- //
     const T fk = target(xk, args...);
     const T fkm1 = target(xkm1, args...);
     const T rk = residual(fk, fk);
     const T rkm1 = residual(fkm1, fkm1);
-    T alpha =
-        -rk /
-        ( rkm1 - rk );
+    T alpha = -rk / (rkm1 - rk);
 
-    T xkp1 = ( alpha * fkm1 ) +
-             ( ( 1.0 - alpha ) * fk );
-    error = std::abs( xk - xkp1 );
+    T xkp1 = (alpha * fkm1) + ((1.0 - alpha) * fk);
+    error = std::abs(xk - xkp1);
 
     xkm1 = xk;
-    xk   = xkp1;
+    xk = xkp1;
 
     ++n;
   }
@@ -207,23 +203,23 @@ auto fixed_point_aa( F target, T x0, Args... args ) -> T {
  * Assumes target is in f(x) = 0 form
  **/
 template <typename T, typename F, typename... Args>
-KOKKOS_INLINE_FUNCTION
-auto fixed_point_aa_root( F target, T x0, Args... args ) -> T {
+KOKKOS_INLINE_FUNCTION auto fixed_point_aa_root(F target, T x0, Args... args)
+    -> T {
 
   // puts f(x) = 0 into fixed point form
-  auto f = [&]( const double x, Args... args ) { return target( x, args... ) + x; };
+  auto f = [&](const double x, Args... args) { return target(x, args...) + x; };
 
   unsigned int n = 0;
 
   T error = 1.0;
-  T xkm1  = 0.0;
-  T xk    = 0.0;
-  xk      = f( x0, args... ); // one fixed point step
-  xkm1    = x0;
-  if ( std::abs( xk - x0 ) <= root_finders::ABSTOL ) {
+  T xkm1 = 0.0;
+  T xk = 0.0;
+  xk = f(x0, args...); // one fixed point step
+  xkm1 = x0;
+  if (std::abs(xk - x0) <= root_finders::ABSTOL) {
     return xk;
   }
-  while ( n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL ) {
+  while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
     //--- Anderson acceleration step --- //
     const T fk = f(xk, args...);
     const T fkm1 = f(xkm1, args...);
@@ -231,12 +227,11 @@ auto fixed_point_aa_root( F target, T x0, Args... args ) -> T {
     const T rkm1 = residual(fkm1, fkm1);
     const T alpha = alpha_aa(rk, rkm1);
 
-    const T xkp1 = ( alpha * fkm1 ) +
-             ( ( 1.0 - alpha ) * fk );
-    error = std::abs( xk - xkp1 );
+    const T xkp1 = (alpha * fkm1) + ((1.0 - alpha) * fk);
+    error = std::abs(xk - xkp1);
 
     xkm1 = xk;
-    xk   = xkp1;
+    xk = xkp1;
 
     ++n;
   }
@@ -266,7 +261,6 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro(T R, double dt_a_ii,
       scratch_nm1(k, iC) = scratch_n(k, iC); // set to initial guess
     }
   }
-
 
   // Set up physical scales based on your problem
   PhysicalScales scales{};
@@ -417,7 +411,7 @@ template <typename T, typename F, typename... Args>
 auto fixed_point_root(F target, T x0, Args... args) -> T {
 
   // puts f(x) = 0 into fixed point form
-  auto f = [&]( const double x, Args... args ) { return target( x, args... ) + x; };
+  auto f = [&](const double x, Args... args) { return target(x, args...) + x; };
 
   unsigned int n = 0;
   T error = 1.0;
@@ -475,13 +469,11 @@ auto newton_aa(F target, F d_target, T x0, Args... args) -> T {
   T xkp1 = 0.0;
   xk = std::min(x0 - h, root_finders::ABSTOL); // keep positive definite
   xkm1 = x0;
-  T result;
   if (std::abs(xk - x0) <= root_finders::ABSTOL) {
     return xk;
   }
   while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
     const T hp1 = target(xk, args...) / d_target(xk, args...);
-    const T h = target(xkm1, args...) / d_target(xkm1, args...);
     /* Anderson acceleration step */
     const T gamma = alpha_aa(hp1, h);
 
@@ -491,11 +483,11 @@ auto newton_aa(F target, F d_target, T x0, Args... args) -> T {
 
     xkm1 = xk;
     xk = xkp1;
+    h = hp1;
 
     ++n;
-    result = xk;
   }
-  return result;
+  return xk;
 }
 
 } // namespace root_finders

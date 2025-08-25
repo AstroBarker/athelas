@@ -93,25 +93,26 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
   Kokkos::parallel_for(
       "Hydro :: Numerical Fluxes", Kokkos::RangePolicy<>(ilo, ihi + 2),
       KOKKOS_CLASS_LAMBDA(int iX) {
-
         auto lambda = nullptr;
-        const double P_L =
-            pressure_from_conserved(eos_, u_f_l_(iX, 0), u_f_l_(iX, 1), u_f_l_(iX, 2), lambda);
-        const double Cs_L = sound_speed_from_conserved(eos_, u_f_l_(iX, 0), u_f_l_(iX, 1),
-                                                       u_f_l_(iX, 2), lambda);
+        const double P_L = pressure_from_conserved(
+            eos_, u_f_l_(iX, 0), u_f_l_(iX, 1), u_f_l_(iX, 2), lambda);
+        const double Cs_L = sound_speed_from_conserved(
+            eos_, u_f_l_(iX, 0), u_f_l_(iX, 1), u_f_l_(iX, 2), lambda);
 
-        const double P_R =
-            pressure_from_conserved(eos_, u_f_r_(iX, 0), u_f_r_(iX, 1), u_f_r_(iX, 2), lambda);
-        const double Cs_R = sound_speed_from_conserved(eos_, u_f_r_(iX, 0), u_f_r_(iX, 1),
-                                                       u_f_r_(iX, 2), lambda);
+        const double P_R = pressure_from_conserved(
+            eos_, u_f_r_(iX, 0), u_f_r_(iX, 1), u_f_r_(iX, 2), lambda);
+        const double Cs_R = sound_speed_from_conserved(
+            eos_, u_f_r_(iX, 0), u_f_r_(iX, 1), u_f_r_(iX, 2), lambda);
 
         // --- Numerical Fluxes ---
 
         // Riemann Problem
-        // auto [flux_u, flux_p] = numerical_flux_gudonov( u_f_l_(iX,  1 ), u_f_r_(iX,  1
+        // auto [flux_u, flux_p] = numerical_flux_gudonov( u_f_l_(iX,  1 ),
+        // u_f_r_(iX,  1
         // ), P_L, P_R, lam_L, lam_R);
         const auto [flux_u, flux_p] = numerical_flux_gudonov_positivity(
-            u_f_l_(iX, 0), u_f_r_(iX, 0), u_f_l_(iX, 1), u_f_r_(iX, 1), P_L, P_R, Cs_L, Cs_R);
+            u_f_l_(iX, 0), u_f_r_(iX, 0), u_f_l_(iX, 1), u_f_r_(iX, 1), P_L,
+            P_R, Cs_L, Cs_R);
         flux_u_(stage, iX) = flux_u;
 
         dFlux_num_(iX, 0) = -flux_u_(stage, iX);
@@ -136,7 +137,7 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
         const auto& SqrtGm_R = grid.get_sqrt_gm(X_R);
 
         dU(iX, k, q) -= (+dFlux_num_(iX + 1, q) * Poly_R * SqrtGm_R -
-                           dFlux_num_(iX + 0, q) * Poly_L * SqrtGm_L);
+                         dFlux_num_(iX + 0, q) * Poly_L * SqrtGm_L);
       });
 
   if (order > 1) [[likely]] {

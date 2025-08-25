@@ -75,14 +75,14 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
         }); // par iX
   } // end map to characteristics
 
-  for (int iC : vars_) {
-    Kokkos::parallel_for(
-        "SlopeLimiter :: WENO", Kokkos::RangePolicy<>(ilo, ihi + 1),
-        KOKKOS_CLASS_LAMBDA(const int iX) {
-          limited_cell_(iX) = 0;
+  Kokkos::parallel_for(
+      "SlopeLimiter :: WENO", Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_CLASS_LAMBDA(const int iX) {
+        limited_cell_(iX) = 0;
 
-          // Do nothing we don't need to limit slopes
-          if (D_(iX) > tci_val_ || !tci_opt_) {
+        // Do nothing we don't need to limit slopes
+        if (D_(iX) > tci_val_ || !tci_opt_) {
+          for (int iC : vars_) {
             // get scratch modified_polynomial view for this cell's work
             auto modified_polynomial_i = Kokkos::subview(
                 modified_polynomial_, iX, Kokkos::ALL, Kokkos::ALL);
@@ -120,9 +120,9 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
             /* Note we have limited this cell */
             limited_cell_(iX) = 1;
 
-          } // end if "limit_this_cell"
-        }); // par_for iX
-  } // end loop iC
+          } // end loop iC
+        } // end if "limit_this_cell"
+      }); // par_for iX
 
   /* Map back to conserved variables */
   if (characteristic_) {

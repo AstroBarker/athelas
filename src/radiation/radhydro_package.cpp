@@ -112,7 +112,8 @@ void RadHydroPackage::update_implicit(const View3D<double> state,
       "RadHydro :: Implicit",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
       KOKKOS_CLASS_LAMBDA(const int i, const int k) {
-        const auto state_i = Kokkos::subview(state, i, Kokkos::ALL, Kokkos::ALL);
+        const auto state_i =
+            Kokkos::subview(state, i, Kokkos::ALL, Kokkos::ALL);
         const auto [du1, du2, du3, du4] = radhydro_source(state_i, grid, i, k);
         dU(i, k, 1) = du1;
         dU(i, k, 2) = du2;
@@ -200,15 +201,15 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
       "RadHydro :: Numerical Fluxes", Kokkos::RangePolicy<>(ilo, ihi + 2),
       KOKKOS_CLASS_LAMBDA(const int iX) {
         auto lambda = nullptr;
-        const double Pgas_L =
-            pressure_from_conserved(eos_, u_f_l_(iX, 0), u_f_l_(iX, 1), u_f_l_(iX, 2), lambda);
-        const double Cs_L = sound_speed_from_conserved(eos_, u_f_l_(iX, 0), u_f_l_(iX, 1),
-                                                       u_f_l_(iX, 2), lambda);
+        const double Pgas_L = pressure_from_conserved(
+            eos_, u_f_l_(iX, 0), u_f_l_(iX, 1), u_f_l_(iX, 2), lambda);
+        const double Cs_L = sound_speed_from_conserved(
+            eos_, u_f_l_(iX, 0), u_f_l_(iX, 1), u_f_l_(iX, 2), lambda);
 
-        const double Pgas_R =
-            pressure_from_conserved(eos_, u_f_r_(iX, 0), u_f_r_(iX, 1), u_f_r_(iX, 2), lambda);
-        const double Cs_R = sound_speed_from_conserved(eos_, u_f_r_(iX, 0), u_f_r_(iX, 1),
-                                                       u_f_r_(iX, 2), lambda);
+        const double Pgas_R = pressure_from_conserved(
+            eos_, u_f_r_(iX, 0), u_f_r_(iX, 1), u_f_r_(iX, 2), lambda);
+        const double Cs_R = sound_speed_from_conserved(
+            eos_, u_f_r_(iX, 0), u_f_r_(iX, 1), u_f_r_(iX, 2), lambda);
 
         const double E_L = u_f_l_(iX, 3);
         const double F_L = u_f_l_(iX, 4);
@@ -222,10 +223,12 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
         static constexpr double c2 = constants::c_cgs * constants::c_cgs;
 
         // Riemann Problem
-        // auto [flux_u, flux_p] = numerical_flux_gudonov( u_f_l_(iX,  1 ), u_f_r_(iX,  1
+        // auto [flux_u, flux_p] = numerical_flux_gudonov( u_f_l_(iX,  1 ),
+        // u_f_r_(iX,  1
         // ), P_L, P_R, lam_L, lam_R);
         const auto [flux_u, flux_p] = numerical_flux_gudonov_positivity(
-            u_f_l_(iX, 0), u_f_r_(iX, 0), u_f_l_(iX, 1), u_f_r_(iX, 1), Pgas_L, Pgas_R, Cs_L, Cs_R);
+            u_f_l_(iX, 0), u_f_r_(iX, 0), u_f_l_(iX, 1), u_f_r_(iX, 1), Pgas_L,
+            Pgas_R, Cs_L, Cs_R);
         flux_u_(stage, iX) = flux_u;
 
         const double vstar = flux_u;
@@ -243,7 +246,8 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
         const double advective_flux_f =
             (vstar >= 0) ? vstar * F_L : vstar * F_R;
 
-        dFlux_num_(iX, 0) = -flux_u;;
+        dFlux_num_(iX, 0) = -flux_u;
+        ;
         dFlux_num_(iX, 1) = flux_p;
         dFlux_num_(iX, 2) = +flux_u * flux_p;
 
@@ -256,21 +260,22 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
 
   // TODO(astrobarker): Is this pattern for the surface term okay?
   // --- Surface Term ---
-    Kokkos::parallel_for(
-        "RadHydro :: Surface Term",
-        Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0}, {ihi + 1, order, NUM_VARS_}),
-        KOKKOS_CLASS_LAMBDA(const int iX, const int k, const int q) {
-          const auto* basis = (q < 3) ? fluid_basis_ : rad_basis_;
-          const auto& Poly_L = basis->get_phi(iX, 0, k);
-          const auto& Poly_R = basis->get_phi(iX, nNodes + 1, k);
-          const auto& X_L = grid.get_left_interface(iX);
-          const auto& X_R = grid.get_left_interface(iX + 1);
-          const auto& SqrtGm_L = grid.get_sqrt_gm(X_L);
-          const auto& SqrtGm_R = grid.get_sqrt_gm(X_R);
+  Kokkos::parallel_for(
+      "RadHydro :: Surface Term",
+      Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0},
+                                             {ihi + 1, order, NUM_VARS_}),
+      KOKKOS_CLASS_LAMBDA(const int iX, const int k, const int q) {
+        const auto* basis = (q < 3) ? fluid_basis_ : rad_basis_;
+        const auto& Poly_L = basis->get_phi(iX, 0, k);
+        const auto& Poly_R = basis->get_phi(iX, nNodes + 1, k);
+        const auto& X_L = grid.get_left_interface(iX);
+        const auto& X_R = grid.get_left_interface(iX + 1);
+        const auto& SqrtGm_L = grid.get_sqrt_gm(X_L);
+        const auto& SqrtGm_R = grid.get_sqrt_gm(X_R);
 
-          dU(iX, k, q) -= (+dFlux_num_(iX + 1, q) * Poly_R * SqrtGm_R -
-                           dFlux_num_(iX + 0, q) * Poly_L * SqrtGm_L);
-        });
+        dU(iX, k, q) -= (+dFlux_num_(iX + 1, q) * Poly_R * SqrtGm_R -
+                         dFlux_num_(iX + 0, q) * Poly_L * SqrtGm_L);
+      });
 
   if (order > 1) [[likely]] {
     // --- Volume Term ---
@@ -386,7 +391,7 @@ auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
     // 4 force
     const auto [G0, G] =
         radiation_four_force(rho, vel, t_g, kappa_r, kappa_p, E_r, F_r, P_r);
-//    std::println("G0 G {} {} {} {} {}", G0, G, E_r, em_t, t_g);
+    //    std::println("G0 G {} {} {} {} {}", G0, G, E_r, em_t, t_g);
 
     const double source_e_r = -c * G0;
     const double source_m_r = -c2 * G;

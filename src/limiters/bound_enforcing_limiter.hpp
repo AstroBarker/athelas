@@ -42,15 +42,17 @@ auto compute_theta_state(View3D<double> U, const ModalBasis* basis,
 auto target_func(double theta, View3D<double> U, const ModalBasis* basis,
                  int iX, int iN) -> double;
 auto target_func_deriv(double theta, View3D<double> U, const ModalBasis* basis,
-                 int iX, int iN) -> double;
+                       int iX, int iN) -> double;
 auto target_func_rad_flux(double theta, View3D<double> U,
                           const ModalBasis* basis, int iX, int iN) -> double;
-auto target_func_rad_flux_deriv(double theta, View3D<double> U, const ModalBasis* basis,
-                 int iX, int iN) -> double;
+auto target_func_rad_flux_deriv(double theta, View3D<double> U,
+                                const ModalBasis* basis, int iX, int iN)
+    -> double;
 auto target_func_rad_energy(double theta, View3D<double> U,
                             const ModalBasis* basis, int iX, int iN) -> double;
-auto target_func_rad_energy_deriv(double theta, View3D<double> U, const ModalBasis* basis,
-                 int iX, int iN) -> double;
+auto target_func_rad_energy_deriv(double theta, View3D<double> U,
+                                  const ModalBasis* basis, int iX, int iN)
+    -> double;
 
 template <typename F>
 auto bisection(const View3D<double> U, F target, const ModalBasis* basis,

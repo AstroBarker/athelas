@@ -120,16 +120,14 @@ void detect_troubled_cells(const View3D<double> U, View1D<double> D,
 
   // Cell averages by extrapolating L and R neighbors into current cell
 
-  for (int iC : vars) {
-    if (iC == 1 || iC == 4) {
-      continue; /* skip momenta */
-    }
-    Kokkos::parallel_for(
-        "SlopeLimiter :: TCI", Kokkos::RangePolicy<>(ilo, ihi + 1),
-        KOKKOS_LAMBDA(const int iX) {
-          double denominator = 0.0;
-          double result = 0.0;
-          double cell_avg = U(iX, 0, iC);
+  Kokkos::parallel_for(
+      "SlopeLimiter :: TCI", Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_LAMBDA(const int iX) {
+        for (int iC : vars) {
+          if (iC == 1 || iC == 4) {
+            continue; /* skip momenta */
+          }
+          const double cell_avg = U(iX, 0, iC);
 
           // Extrapolate neighboring poly representations into current cell
           // and compute the new cell averages
@@ -140,17 +138,15 @@ void detect_troubled_cells(const View3D<double> U, View1D<double> D,
           const double cell_avg_L = U(iX - 1, 0, iC); // native left
           const double cell_avg_R = U(iX + 1, 0, iC); // native right
 
-          result += (std::abs(cell_avg - cell_avg_L_T) +
-                     std::abs(cell_avg - cell_avg_R_T));
+          const double result = (std::abs(cell_avg - cell_avg_L_T) +
+                                 std::abs(cell_avg - cell_avg_R_T));
 
-          denominator = std::max(
+          const double denominator = std::max(
               {std::abs(cell_avg_L), std::abs(cell_avg_R), cell_avg, 1.0e-10});
 
-          D(iX) = std::max(
-              D(iX),
-              result / denominator); // TODO(astrobarker): fix this index crap
-        }); // par_for iX
-  } // loop iC;
+          D(iX) = std::max(D(iX), result / denominator);
+        } // loop iC;
+      }); // par_for iX
 }
 
 /**
@@ -224,7 +220,7 @@ auto smoothness_indicator(const View3D<double> U,
                           const GridStructure* grid, const ModalBasis* basis,
                           const int iX, const int i, const int /*q*/)
     -> double {
-  const int k = U.extent(2);
+  const int k = U.extent(1);
 
   double beta = 0.0; // output var
   for (int s = 1; s < k; s++) { // loop over modes

@@ -94,9 +94,9 @@ class TimeStepper {
             Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
                                                    {ihi + 2, order, nvars}),
             KOKKOS_CLASS_LAMBDA(const int iX, const int k, const int q) {
-              SumVar_U_(iX, k, q) +=
-                  dt * integrator_.explicit_tableau.a_ij(iS, j) *
-                  dUs_j(iX, k, q);
+              SumVar_U_(iX, k, q) += dt *
+                                     integrator_.explicit_tableau.a_ij(iS, j) *
+                                     dUs_j(iX, k, q);
             });
 
         Kokkos::parallel_for(
@@ -203,11 +203,12 @@ class TimeStepper {
       dt_info.stage = iS;
       Kokkos::parallel_for(
           "Timestepper 3",
-          Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0}, {ihi + 2, order, nvars}),
+          Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
+                                                 {ihi + 2, order, nvars}),
           KOKKOS_CLASS_LAMBDA(const int iX, const int k, const int q) {
-//            for (int q = 0; q < nvars; ++q) {
-              SumVar_U_(iX, k, q) = uCF(iX, k, q);
-//            }
+            //            for (int q = 0; q < nvars; ++q) {
+            SumVar_U_(iX, k, q) = uCF(iX, k, q);
+            //            }
             stage_data_(iS, iX) = grid_s_[iS].get_left_interface(iX);
           });
 
@@ -228,7 +229,8 @@ class TimeStepper {
         // inner sum
         Kokkos::parallel_for(
             "Timestepper 4",
-            Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0}, {ihi + 2, order, nvars}),
+            Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
+                                                   {ihi + 2, order, nvars}),
             KOKKOS_CLASS_LAMBDA(const int iX, const int k, const int q) {
               SumVar_U_(iX, k, q) += dt_a * dUs_j(iX, k, q);
             });
@@ -237,7 +239,8 @@ class TimeStepper {
 
         Kokkos::parallel_for(
             "Timestepper 4",
-            Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 1}, {ihi + 2, order, nvars}),
+            Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 1},
+                                                   {ihi + 2, order, nvars}),
             KOKKOS_CLASS_LAMBDA(const int iX, const int k, const int q) {
               SumVar_U_(iX, k, q) += dt_a_im * dUs_j(iX, k, q);
             });
@@ -257,7 +260,8 @@ class TimeStepper {
       // set U_s
       Kokkos::parallel_for(
           "Timestepper 5",
-          Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0}, {ihi + 2, order, nvars}),
+          Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
+                                                 {ihi + 2, order, nvars}),
           KOKKOS_CLASS_LAMBDA(const int iX, const int k, const int q) {
             U_s_(iS, iX, k, q) = SumVar_U_(iX, k, q);
           });
@@ -304,7 +308,8 @@ class TimeStepper {
       // set U_s after iterative solve
       Kokkos::parallel_for(
           "Timestepper 5",
-          Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 1}, {ihi + 2, order, nvars}),
+          Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 1},
+                                                 {ihi + 2, order, nvars}),
           KOKKOS_CLASS_LAMBDA(const int iX, const int k, const int q) {
             U_s_(iS, iX, k, q) = Us_j(iX, k, q);
           });
@@ -346,9 +351,10 @@ class TimeStepper {
           KOKKOS_CLASS_LAMBDA(const int iX, const int k) {
             uCF(iX, k, 0) = std::fma(dt_b, dUs_ex_i(iX, k, 0), uCF(iX, k, 0));
             for (int q = 1; q < nvars; ++q) {
-            uCF(iX, k, q) = std::fma(dt_b, dUs_ex_i(iX, k, q), uCF(iX, k, q));
+              uCF(iX, k, q) = std::fma(dt_b, dUs_ex_i(iX, k, q), uCF(iX, k, q));
 
-            uCF(iX, k, q) = std::fma(dt_b_im, dUs_im_i(iX, k, q), uCF(iX, k, q));
+              uCF(iX, k, q) =
+                  std::fma(dt_b_im, dUs_im_i(iX, k, q), uCF(iX, k, q));
             }
           });
 

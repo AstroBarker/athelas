@@ -3,7 +3,6 @@
  * @file utilities.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Useful utilities
  *
  * @details Provides
@@ -28,11 +27,11 @@ namespace utilities {
  */
 KOKKOS_FUNCTION
 template <typename T>
-constexpr auto LINTERP(T x0, T x1, T y0, T y1, T x) -> T {
+constexpr auto LINTERP(T x0, T x1, T y0, T y1, T x) noexcept -> T {
   if (x0 == x1) {
     return y0;
   }
-  T t = (x - x0) / (x1 - x0);
+  const T t = (x - x0) / (x1 - x0);
   return std::fma(y1 - y0, t, y0);
 }
 
