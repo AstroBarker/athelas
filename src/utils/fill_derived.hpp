@@ -40,12 +40,12 @@ inline void fill_derived(const State* state, const EOS* eos,
           const double t_gas =
               temperature_from_conserved(eos, tau, vel, emt, lambda);
 
-          uPF(0, iX, iN) = rho;
-          uPF(1, iX, iN) = momentum;
-          uPF(2, iX, iN) = sie;
+          uPF(iX, iN, 0) = rho;
+          uPF(iX, iN, 1) = momentum;
+          uPF(iX, iN, 2) = sie;
 
-          uAF(0, iX, iN) = pressure;
-          uAF(1, iX, iN) = t_gas;
+          uAF(iX, iN, 0) = pressure;
+          uAF(iX, iN, 1) = t_gas;
         }
       });
 }

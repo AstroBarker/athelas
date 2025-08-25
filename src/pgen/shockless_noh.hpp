@@ -45,12 +45,12 @@ void shockless_noh_init(State* state, GridStructure* grid, ProblemIn* pin,
         const int k = 0;
         const double X1 = grid->get_centers(iX);
 
-        uCF(iCF_Tau, iX, k) = 1.0 / D;
-        uCF(iCF_V, iX, k) = -X1;
-        uCF(iCF_E, iX, k) = E_M + 0.5 * uCF(iCF_V, iX, k) * uCF(iCF_V, iX, k);
+        uCF(iX, k, iCF_Tau) = 1.0 / D;
+        uCF(iX, k, iCF_V) = -X1;
+        uCF(iX, k, iCF_E) = E_M + 0.5 * uCF(iX, k, iCF_V) * uCF(iX, k, iCF_V);
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          uPF(iPF_D, iX, iNodeX) = D;
+          uPF(iX, iNodeX, iPF_D) = D;
         }
       });
 
@@ -58,8 +58,8 @@ void shockless_noh_init(State* state, GridStructure* grid, ProblemIn* pin,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+          uPF(ilo - 1 - iX, iN, 0) = uPF(ilo + iX, nNodes - iN - 1, 0);
+          uPF(ilo + 1 + iX, iN, 0) = uPF(ilo - iX, nNodes - iN - 1, 0);
         }
       });
 }

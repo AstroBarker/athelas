@@ -1,22 +1,4 @@
-/**
- * @file fluid_utilities.cpp
- * --------------
- *
- * @author Brandon L. Barker
- * @brief Utilities for fluid evolution
- *
- * @details Contains functions necessary for fluid evolution
- */
-
-#include <algorithm> // std::min, std::max
-#include <cstdlib> /* abs */
-
-#include "constants.hpp"
-#include "eos_variant.hpp"
-#include "error.hpp"
-#include "fluid_utilities.hpp"
-#include "grid.hpp"
-#include "rad_utilities.hpp"
+#include "fluid/fluid_utilities.hpp"
 #include "utils/utilities.hpp"
 
 using utilities::pos_part;

@@ -53,7 +53,7 @@ auto cell_average(View3D<double> U, const GridStructure* grid,
 
 void modify_polynomial(View3D<double> U, View2D<double> modified_polynomial,
                        double gamma_i, double gamma_l, double gamma_r, int iX,
-                       int iCQ);
+                       int q);
 
 auto smoothness_indicator(View3D<double> U, View2D<double> modified_polynomial,
                           const GridStructure* grid, const ModalBasis* basis,

@@ -1,13 +1,4 @@
-/*
- * @file slope_limiter_unlimited.cpp
- * --------------
- *
- * @author Brandon L. Barker
- * @brief No-op slope limiter, used when limiting is disabled.
- * This does nothing.
- */
-
-#include "slope_limiter.hpp"
+#include "limiters/slope_limiter.hpp"
 
 /*
  * No op

@@ -24,8 +24,8 @@
 
 #include <print>
 
-#include "abstractions.hpp"
-#include "polynomial_basis.hpp"
+#include "basis/polynomial_basis.hpp"
+#include "utils/abstractions.hpp"
 #include "utils/utilities.hpp"
 
 namespace bel {
@@ -73,7 +73,6 @@ auto bisection(const View3D<double> U, F target, const ModalBasis* basis,
 
     fa = target(a, U, basis, iX, iN);
     fc = target(c, U, basis, iX, iN);
-    std::println("n fa fc a b {} {} {} {:.5e} {:.5e}", n, fa, fc, a, b);
 
     if (std::abs(fc) <= TOL || (b - a) / 2.0 < TOL) {
       return c - delta;

@@ -52,12 +52,12 @@ void limit_density(View3D<double> U, const ModalBasis* basis) {
   }
 
   Kokkos::parallel_for(
-      "BEL::Limit Density", Kokkos::RangePolicy<>(1, U.extent(1) - 1),
+      "BEL::Limit Density", Kokkos::RangePolicy<>(1, U.extent(0) - 1),
       KOKKOS_LAMBDA(const int iX) {
         double theta1 = 100000.0; // big
         double nodal = 0.0;
         double frac = 0.0;
-        const double avg = U(0, iX, 0);
+        const double avg = U(iX, 0, 0);
 
         for (int iN = 0; iN <= order; iN++) {
           nodal = basis->basis_eval(U, iX, 0, iN);
@@ -70,7 +70,7 @@ void limit_density(View3D<double> U, const ModalBasis* basis) {
         }
 
         for (int k = 1; k < order; k++) {
-          U(0, iX, k) *= theta1;
+          U(iX, k, 0) *= theta1;
         }
       });
 }
@@ -110,7 +110,7 @@ void limit_internal_energy(View3D<double> U, const ModalBasis* basis) {
   }
 
   Kokkos::parallel_for(
-      "BEL::Limit Internal Energy", Kokkos::RangePolicy<>(1, U.extent(1) - 2),
+      "BEL::Limit Internal Energy", Kokkos::RangePolicy<>(1, U.extent(0) - 2),
       KOKKOS_LAMBDA(const int iX) {
         double theta2 = 10000000.0;
         double nodal = 0.0;
@@ -130,9 +130,9 @@ void limit_internal_energy(View3D<double> U, const ModalBasis* basis) {
         }
 
         for (int k = 1; k < order; k++) {
-          U(0, iX, k) *= theta2;
-          U(1, iX, k) *= theta2;
-          U(2, iX, k) *= theta2;
+          U(iX, k, 0) *= theta2;
+          U(iX, k, 1) *= theta2;
+          U(iX, k, 2) *= theta2;
         }
       });
 }
@@ -160,7 +160,7 @@ void limit_rad_energy(View3D<double> U, const ModalBasis* basis) {
   const int order = basis->get_order();
 
   Kokkos::parallel_for(
-      "BEL::Limit Rad Energy", Kokkos::RangePolicy<>(1, U.extent(1) - 1),
+      "BEL::Limit Rad Energy", Kokkos::RangePolicy<>(1, U.extent(0) - 1),
       KOKKOS_LAMBDA(const int iX) {
         double theta2 = 10000000.0;
         double nodal = 0.0;
@@ -169,7 +169,7 @@ void limit_rad_energy(View3D<double> U, const ModalBasis* basis) {
         for (int iN = 0; iN <= order + 1; iN++) {
           nodal = basis->basis_eval(U, iX, 3, iN);
 
-          if (nodal > EPSILON + 0 * std::abs(U(4, iX, 0)) / constants::c_cgs) {
+          if (nodal > EPSILON + 0 * std::abs(U(iX, 0, 4)) / constants::c_cgs) {
             temp = 1.0;
           } else {
             const double theta_guess = 0.9;
@@ -180,8 +180,8 @@ void limit_rad_energy(View3D<double> U, const ModalBasis* basis) {
         }
 
         for (int k = 1; k < order; k++) {
-          U(3, iX, k) *= theta2;
-          U(4, iX, k) *= theta2;
+          U(iX, k, 3) *= theta2;
+          U(iX, k, 4) *= theta2;
         }
       });
 }
@@ -190,7 +190,7 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis* basis) {
   const int order = basis->get_order();
 
   Kokkos::parallel_for(
-      "BEL::Limit Rad Momentum", Kokkos::RangePolicy<>(1, U.extent(1) - 1),
+      "BEL::Limit Rad Momentum", Kokkos::RangePolicy<>(1, U.extent(2) - 1),
       KOKKOS_LAMBDA(const int iX) {
         double theta2 = 10000000.0;
         double nodal = 0.0;
@@ -201,7 +201,7 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis* basis) {
         for (int iN = 0; iN <= order + 1; iN++) {
           nodal = basis->basis_eval(U, iX, 4, iN);
 
-          if (std::abs(nodal) <= c * U(3, iX, 0)) {
+          if (std::abs(nodal) <= c * U(iX, 0, 3)) {
             temp = 1.0;
           } else {
              const double theta_guess = 0.9;
@@ -213,7 +213,7 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis* basis) {
         }
 
         for (int k = 1; k < order; k++) {
-          U(4, iX, k) *= theta2;
+          U(iX, k, 4) *= theta2;
         }
       });
 }
@@ -224,7 +224,7 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis* basis) {
 auto compute_theta_state(const View3D<double> U, const ModalBasis* basis,
                          const double theta, const int iCF, const int iX,
                          const int iN) -> double {
-  return theta * (basis->basis_eval(U, iX, iCF, iN) - U(iCF, iX, 0)) + U(iCF, iX, 0);
+  return theta * (basis->basis_eval(U, iX, iCF, iN) - U(iX, 0, iCF)) + U(iX, 0, iCF);
 }
 
 auto target_func(const double theta, const View3D<double> U,
@@ -240,9 +240,9 @@ auto target_func(const double theta, const View3D<double> U,
 }
 auto target_func_deriv(const double theta, const View3D<double> U, const ModalBasis* basis,
                  const int iX, const int iN) -> double {
-  const double dE = basis->basis_eval(U, iX, 2, iN) - U(2, iX, 0);
+  const double dE = basis->basis_eval(U, iX, 2, iN) - U(0, iX, 2);
   const double v_q = basis->basis_eval(U, iX, 1, iN);
-  const double dv = v_q - U(1, iX, 0);
+  const double dv = v_q - U(0, iX, 1);
   return dE - (v_q + theta * dv) * dv;
 }
 
@@ -273,7 +273,7 @@ auto target_func_rad_flux_deriv(const double theta, const View3D<double> U,
 
 auto target_func_rad_energy_deriv(const double theta, const View3D<double> U, const ModalBasis* basis,
                  const int iX, const int iN) -> double {
-  return basis->basis_eval(U, iX, 3, iN) - U(3, iX, 0);
+  return basis->basis_eval(U, iX, 3, iN) - U(0, iX, 3);
 }
 
 auto target_func_rad_energy(const double theta, const View3D<double> U,

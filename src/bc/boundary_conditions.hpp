@@ -66,7 +66,7 @@ apply_bc(const BoundaryConditionsData<N>& bc, View3D<double> U, const int q,
   switch (bc.type) {
   case BcType::Outflow:
     for (int k = 0; k < num_modes; k++) {
-      U(q, ghost_cell, k) = U(q, interior_cell, k);
+      U(ghost_cell, k, q) = U(interior_cell, k, q);
     }
     break;
 
@@ -77,7 +77,7 @@ apply_bc(const BoundaryConditionsData<N>& bc, View3D<double> U, const int q,
     // assert( interior_cell != ghost_cell + 1 && "Bad use of periodic BC!\n" );
     // assert( interior_cell != ghost_cell - 1 && "Bad use of periodic BC!\n" );
     for (int k = 0; k < num_modes; k++) {
-      U(q, ghost_cell, k) = U(q, interior_cell, k);
+      U(ghost_cell, k, q) = U(interior_cell, k, q);
     }
     break;
 
@@ -86,22 +86,22 @@ apply_bc(const BoundaryConditionsData<N>& bc, View3D<double> U, const int q,
       if (q == 1) { // Momentum (q == 1)
         // Reflect momentum in the cell average (k == 0) and leave higher modes
         // unchanged (k > 0)
-        U(q, ghost_cell, k) =
-            (k == 0) ? -U(q, interior_cell, k) : U(q, interior_cell, k);
+        U(ghost_cell, k, q) =
+            (k == 0) ? -U(interior_cell, k, q) : U(interior_cell, k, q);
       } else { // Non-momentum variables
         // Reflect cell averages (k == 0) and invert higher modes (k > 0)
-        U(q, ghost_cell, k) =
-            (k == 0) ? U(q, interior_cell, k) : -U(q, interior_cell, k);
+        U(ghost_cell, k, q) =
+            (k == 0) ? U(interior_cell, k, q) : -U(interior_cell, k, q);
       }
     }
     break;
 
   // TODO(astrobarker): could need extending. FIX
   case BcType::Dirichlet:
-    U(q, ghost_cell, 0) = 2.0 * bc.dirichlet_values[q] - U(q, interior_cell, 0);
+    U(ghost_cell, 0, q) = 2.0 * bc.dirichlet_values[q] - U(interior_cell, 0, q);
     // U(q, ghost_cell, 0) = bc.dirichlet_values[q];
     for (int k = 1; k < num_modes; k++) {
-      U(q, ghost_cell, k) = 0.0; // slopes++ set to 0
+      U(ghost_cell, k, q) = 0.0; // slopes++ set to 0
     }
     break;
 
@@ -112,13 +112,13 @@ apply_bc(const BoundaryConditionsData<N>& bc, View3D<double> U, const int q,
     for (int k = 0; k < 1; k++) {
       if (q == 3) {
         if (k == 0) {
-          U(q, ghost_cell, k) = (k == 0) ? Einc : 0;
+          U(ghost_cell, k, q) = (k == 0) ? Einc : 0;
         }
       } else if (q == 4) {
         constexpr static double c = constants::c_cgs;
-        const double E0 = U(3, interior_cell, k);
-        const double F0 = U(4, interior_cell, k);
-        U(q, ghost_cell, k) =
+        const double E0 = U(interior_cell, k, 3);
+        const double F0 = U(interior_cell, k, 4);
+        U(ghost_cell, k, q) =
             (k == 0) ? 0.5 * c * Einc - 0.5 * (c * E0 + 2.0 * F0) : 0.0;
       }
     }

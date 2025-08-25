@@ -92,7 +92,7 @@ KOKKOS_INLINE_FUNCTION auto compute_internal_energy(T U,
 template <class T>
 KOKKOS_INLINE_FUNCTION auto compute_internal_energy(T U, const int iX)
     -> double {
-  return U(2, iX, 0) - (0.5 * U(1, iX, 0) * U(1, iX, 0));
+  return U(iX, 0, 2) - (0.5 * U(iX, 0, 1) * U(iX, 0, 1));
 }
 
 // string to_lower function

@@ -66,10 +66,10 @@ void GravityPackage::gravity_update(const View3D<double> state,
           }
         }
 
-        dU(1, iX, k) -=
+        dU(iX, k, 1) -=
             (constants::G_GRAV * local_sum_v * grid.get_widths(iX)) /
             basis_->get_mass_matrix(iX, k);
-        dU(2, iX, k) -=
+        dU(iX, k, 2) -=
             (constants::G_GRAV * local_sum_e * grid.get_widths(iX)) /
             basis_->get_mass_matrix(iX, k);
       });

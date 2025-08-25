@@ -1,17 +1,17 @@
-#include "state.hpp"
+#include "state/state.hpp"
 
 State::State(const int nCF, const int nPF, const int nAF, const int nX_,
              const int nNodes_, const int pOrder,
              const bool composition_enabled, const int ncomps)
     : nCF_(nCF), nPF_(nPF), nAF_(nAF), pOrder_(pOrder),
-      uCF_("uCF", nCF_, nX_ + 2, pOrder_), uPF_("uPF", nPF_, nX_ + 2, nNodes_),
-      uAF_("uAF", nAF_, nX_ + 2, nNodes_),
+      uCF_("uCF", nX_ + 2, pOrder_, nCF_), uPF_("uPF", nX_ + 2, nNodes_, nPF_),
+      uAF_("uAF", nX_ + 2, nNodes_, nAF_),
       composition_enabled_(composition_enabled) {
   if (composition_enabled) {
     if (ncomps <= 0) {
       THROW_ATHELAS_ERROR("Composition enabled but ncomps <= 0!");
     }
-    uComp_ = View3D<double>("composition", ncomps, nX_, nNodes_);
+    uComp_ = View3D<double>("composition", nX_, nNodes_, ncomps);
   }
 }
 

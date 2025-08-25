@@ -180,7 +180,7 @@ auto ModalBasis::inner_product(const int m, const int n, const int iX,
   double result = 0.0;
   for (int iN = 0; iN < nNodes_; iN++) {
     // include rho in integrand if necessary
-    const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
+    const double rho = density_weight_ ? uPF(iX, iN, 0) : 1.0;
     const double eta_q = grid->get_nodes(iN);
     const double X = grid->node_coordinate(iX, iN);
     result += func_(n, eta_q, eta_c) * phi_(iX, iN + 1, m) *
@@ -203,7 +203,7 @@ auto ModalBasis::inner_product(const int n, const int iX,
   double result = 0.0;
   for (int iN = 0; iN < nNodes_; iN++) {
     // include rho in integrand if necessary
-    const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
+    const double rho = density_weight_ ? uPF(iX, iN, 0) : 1.0;
     const double X = grid->node_coordinate(iX, iN);
     result += phi_(iX, iN + 1, n) * phi_(iX, iN + 1, n) *
               grid->get_weights(iN) * rho * grid->get_widths(iX) *
@@ -359,7 +359,7 @@ void ModalBasis::compute_mass_matrix(const View3D<double> uPF,
       double result = 0.0;
       for (int iN = 0; iN < nNodes_; iN++) {
         // include rho in integrand if necessary
-        const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
+        const double rho = density_weight_ ? uPF(iX, iN, 0) : 1.0;
         const double X = grid->node_coordinate(iX, iN);
         result += phi_(iX, iN + 1, k) * phi_(iX, iN + 1, k) *
                   grid->get_weights(iN) * grid->get_widths(iX) *
@@ -377,7 +377,7 @@ auto ModalBasis::basis_eval(View3D<double> U, const int iX, const int iCF,
                             const int i_eta) const -> double {
   double result = 0.0;
   for (int k = 0; k < order_; k++) {
-    result += phi_(iX, i_eta, k) * U(iCF, iX, k);
+    result += phi_(iX, i_eta, k) * U(iX, k, iCF);
   }
   return result;
 }
@@ -388,13 +388,13 @@ auto ModalBasis::basis_eval(View2D<double> U, const int iX, const int iCF,
                             const int i_eta) const -> double {
   double result = 0.0;
   for (int k = 0; k < order_; k++) {
-    result += phi_(iX, i_eta, k) * U(iCF, k);
+    result += phi_(iX, i_eta, k) * U(k, iCF);
   }
   return result;
 }
 
 // Same as above, for a 1D vector U_k on a given cell and quantity
-// e.g., U(iCF, iX, :)
+// e.g., U(iX, :, iCF)
 auto ModalBasis::basis_eval(View1D<double> U, const int iX,
                             const int i_eta) const -> double {
   double result = 0.0;
@@ -442,7 +442,7 @@ void ModalBasis::project_nodal_to_modal(
     int iX, const std::function<double(double, int, int)>& nodal_func) const {
   // Clear existing modal coefficients
   for (int k = 0; k < order_; k++) {
-    uCF(iCF, iX, k) = 0.0;
+    uCF(iX, k, iCF) = 0.0;
   }
 
   // Compute L2 projection: <nodal_func, phi_k> / <phi_k, phi_k>
@@ -454,13 +454,13 @@ void ModalBasis::project_nodal_to_modal(
     for (int iN = 0; iN < nNodes_; iN++) {
       const double X = grid->node_coordinate(iX, iN);
       const double nodal_val = nodal_func(X, iX, iN);
-      const double rho = density_weight_ ? uPF(0, iX, iN) : 1.0;
+      const double rho = density_weight_ ? uPF(iX, iN, 0) : 1.0;
 
       numerator += nodal_val * phi_(iX, iN + 1, k) * grid->get_weights(iN) *
                    grid->get_widths(iX) * grid->get_sqrt_gm(X) * rho;
     }
 
-    uCF(iCF, iX, k) = numerator / denominator;
+    uCF(iX, k, iCF) = numerator / denominator;
   }
 }
 

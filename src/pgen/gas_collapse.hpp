@@ -46,12 +46,12 @@ void gas_collapse_init(State* state, GridStructure* grid, ProblemIn* pin,
       Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
         const int k = 0;
 
-        uCF(iCF_Tau, iX, k) = rho0; // / rho0 * (1.0 / std::cosh(x / H));
-        uCF(iCF_V, iX, k) = V0;
-        uCF(iCF_E, iX, k) = (p0 / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
+        uCF(iX, k, iCF_Tau) = rho0; // / rho0 * (1.0 / std::cosh(x / H));
+        uCF(iX, k, iCF_V) = V0;
+        uCF(iX, k, iCF_E) = (p0 / gm1) * uCF(iX, k, iCF_Tau) + 0.5 * V0 * V0;
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          uPF(iPF_D, iX, iNodeX) = rho0;
+          uPF(iX, iNodeX, iPF_D) = rho0;
         }
       });
 
@@ -59,8 +59,8 @@ void gas_collapse_init(State* state, GridStructure* grid, ProblemIn* pin,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+          uPF(ilo - 1 - iX, iN, 0) = uPF(ilo + iX, nNodes - iN - 1, 0);
+          uPF(ilo + 1 + iX, iN, 0) = uPF(ilo - iX, nNodes - iN - 1, 0);
         }
       });
 }

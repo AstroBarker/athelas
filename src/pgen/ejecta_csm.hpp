@@ -50,14 +50,12 @@ void ejecta_csm_init(State* state, GridStructure* grid, ProblemIn* pin,
   // Phase 1: Initialize nodal values (always done)
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
-        const double X1 = grid->get_centers(iX);
-
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
           const double x = grid->node_coordinate(iX, iNodeX);
           if (x <= rstar) {
-            uPF(iPF_D, iX, iNodeX) = 1.0 / (constants::FOURPI * rstar3 / 3.0);
+            uPF(iX, iNodeX, iPF_D) = 1.0 / (constants::FOURPI * rstar3 / 3.0);
           } else {
-            uPF(iPF_D, iX, iNodeX) = 1.0;
+            uPF(iX, iNodeX, iPF_D) = 1.0;
           }
         }
       });
@@ -73,15 +71,15 @@ void ejecta_csm_init(State* state, GridStructure* grid, ProblemIn* pin,
             const double rho = 1.0 / (constants::FOURPI * rstar3 / 3.0);
             const double pressure = (1.0e-5) * rho * vmax * vmax;
             const double vel = vmax * (X1 / rstar);
-            uCF(iCF_Tau, iX, k) = 1.0 / rho;
-            uCF(iCF_V, iX, k) = vel;
-            uCF(iCF_E, iX, k) = (pressure / gm1 / rho) + 0.5 * vel * vel;
+            uCF(iX, k, iCF_Tau) = 1.0 / rho;
+            uCF(iX, k, iCF_V) = vel;
+            uCF(iX, k, iCF_E) = (pressure / gm1 / rho) + 0.5 * vel * vel;
           } else {
             const double rho = 1.0;
             const double pressure = (1.0e-5) * rho * vmax * vmax;
-            uCF(iCF_Tau, iX, k) = 1.0 / rho;
-            uCF(iCF_V, iX, k) = 0.0;
-            uCF(iCF_E, iX, k) = (pressure / gm1 / rho);
+            uCF(iX, k, iCF_Tau) = 1.0 / rho;
+            uCF(iX, k, iCF_V) = 0.0;
+            uCF(iX, k, iCF_E) = (pressure / gm1 / rho);
           }
         });
   }
@@ -90,8 +88,8 @@ void ejecta_csm_init(State* state, GridStructure* grid, ProblemIn* pin,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+          uPF(ilo - 1 - iX, iN, 0) = uPF(ilo + iX, nNodes - iN - 1, 0);
+          uPF(ihi + 1 + iX, iN, 0) = uPF(ihi - iX, nNodes - iN - 1, 0);
         }
       });
 }

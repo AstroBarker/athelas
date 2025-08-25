@@ -56,22 +56,22 @@ void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin,
         const int k = 0;
         const double X1 = grid->get_centers(iX);
 
-        uCF(iCR_E, iX, k) =
+        uCF(iX, k, iCR_E) =
             amp * std::max(std::exp(-std::pow((X1 - 0.5) / width, 2.0) / 2.0),
                            1.0e-8);
-        uCF(iCR_F, iX, k) = 1.0 * constants::c_cgs * uCF(iCR_E, iX, k);
+        uCF(iX, k, iCR_F) = 1.0 * constants::c_cgs * uCF(iX, k, iCR_E);
 
-        const double Trad = std::pow(uCF(iCR_E, iX, k) / constants::a, 0.25);
+        const double Trad = std::pow(uCF(iX, k, iCR_E) / constants::a, 0.25);
         const double sie_fluid =
             constants::k_B * Trad / (gm1 * mu * constants::m_p);
-        uCF(iCF_Tau, iX, k) = 1.0 / D;
-        uCF(iCF_V, iX, k) = V0;
-        uCF(iCF_E, iX, k) =
+        uCF(iX, k, iCF_Tau) = 1.0 / D;
+        uCF(iX, k, iCF_V) = V0;
+        uCF(iX, k, iCF_E) =
             sie_fluid +
             0.5 * V0 * V0; // p0 / (gamma - 1.0) / D + 0.5 * V0 * V0;
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          uPF(iPF_D, iX, iNodeX) = D;
+          uPF(iX, iNodeX, iPF_D) = D;
         }
       });
 
@@ -79,8 +79,8 @@ void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+          uPF(ilo - 1 - iX, iN, 0) = uPF(ilo + iX, nNodes - iN - 1, 0);
+          uPF(ilo + 1 + iX, iN, 0) = uPF(ilo - iX, nNodes - iN - 1, 0);
         }
       });
 }

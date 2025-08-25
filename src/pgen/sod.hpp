@@ -53,11 +53,11 @@ void sod_init(State* state, GridStructure* grid, ProblemIn* pin, const EOS* eos,
 
         if (X1 <= x_d) {
           for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-            uPF(iPF_D, iX, iNodeX) = D_L;
+            uPF(iX, iNodeX, iPF_D) = D_L;
           }
         } else {
           for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-            uPF(iPF_D, iX, iNodeX) = D_R;
+            uPF(iX, iNodeX, iPF_D) = D_R;
           }
         }
       });
@@ -69,15 +69,15 @@ void sod_init(State* state, GridStructure* grid, ProblemIn* pin, const EOS* eos,
         const double X1 = grid->get_centers(iX);
 
         if (X1 <= x_d) {
-          uCF(iCF_Tau, iX, k) = 1.0 / D_L;
-          uCF(iCF_V, iX, k) = V_L;
-          uCF(iCF_E, iX, k) =
-              (P_L / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V_L * V_L;
+          uCF(iX, k, iCF_Tau) = 1.0 / D_L;
+          uCF(iX, k, iCF_V) = V_L;
+          uCF(iX, k, iCF_E) =
+              (P_L / gm1) * uCF(iX, k, iCF_Tau) + 0.5 * V_L * V_L;
         } else {
-          uCF(iCF_Tau, iX, k) = 1.0 / D_R;
-          uCF(iCF_V, iX, k) = V_R;
-          uCF(iCF_E, iX, k) =
-              (P_R / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V_R * V_R;
+          uCF(iX, k, iCF_Tau) = 1.0 / D_R;
+          uCF(iX, k, iCF_V) = V_R;
+          uCF(iX, k, iCF_E) =
+              (P_R / gm1) * uCF(iX, k, iCF_Tau) + 0.5 * V_R * V_R;
         }
       });
 
@@ -85,8 +85,8 @@ void sod_init(State* state, GridStructure* grid, ProblemIn* pin, const EOS* eos,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+          uPF(ilo - 1 - iX, iN, 0) = uPF(ilo + iX, nNodes - iN - 1, 0);
+          uPF(ilo + 1 + iX, iN, 0) = uPF(ilo - iX, nNodes - iN - 1, 0);
         }
       });
 }

@@ -129,16 +129,16 @@ void detect_troubled_cells(const View3D<double> U, View1D<double> D,
         KOKKOS_LAMBDA(const int iX) {
           double denominator = 0.0;
           double result = 0.0;
-          double cell_avg = U(iC, iX, 0);
+          double cell_avg = U(iX, 0, iC);
 
           // Extrapolate neighboring poly representations into current cell
           // and compute the new cell averages
-          double cell_avg_L_T =
+          const double cell_avg_L_T =
               cell_average(U, grid, basis, iC, iX + 1, -1); // from right
-          double cell_avg_R_T =
+          const double cell_avg_R_T =
               cell_average(U, grid, basis, iC, iX - 1, +1); // from left
-          double cell_avg_L = U(iC, iX - 1, 0); // native left
-          double cell_avg_R = U(iC, iX + 1, 0); // native right
+          const double cell_avg_L = U(iX - 1, 0, iC); // native left
+          const double cell_avg_R = U(iX + 1, 0, iC); // native right
 
           result += (std::abs(cell_avg - cell_avg_L_T) +
                      std::abs(cell_avg - cell_avg_R_T));
@@ -190,15 +190,15 @@ auto cell_average(View3D<double> U, const GridStructure* grid,
 void modify_polynomial(const View3D<double> U,
                        View2D<double> modified_polynomial, const double gamma_i,
                        const double gamma_l, const double gamma_r, const int iX,
-                       const int iCQ) {
-  const double Ubar_i = U(iCQ, iX, 0);
+                       const int q) {
+  const double Ubar_i = U(iX, 0, q);
   const double fac = 1.0;
   const int order = U.extent(2);
 
   const double modified_p_slope_mag =
-      fac * std::min({U(iCQ, iX - 1, 1), U(iCQ, iX, 1), U(iCQ, iX + 1, 1)});
-  const int sign_l = utilities::SGN(U(iCQ, iX - 1, 1));
-  const int sign_r = utilities::SGN(U(iCQ, iX + 1, 1));
+      fac * std::min({U(iX - 1, 1, 1), U(iX, 1, 1), U(iX + 1, 1, 1)});
+  const int sign_l = utilities::SGN(U(iX - 1, 1, 1));
+  const int sign_r = utilities::SGN(U(iX + 1, 1, 1));
 
   modified_polynomial(0, 0) = Ubar_i;
   modified_polynomial(2, 0) = Ubar_i;
@@ -212,7 +212,7 @@ void modify_polynomial(const View3D<double> U,
 
   for (int k = 0; k < order; k++) {
     modified_polynomial(1, k) =
-        U(iCQ, iX, k) / gamma_i -
+        U(iX, k, 1) / gamma_i -
         (gamma_l / gamma_i) * modified_polynomial(0, k) -
         (gamma_r / gamma_i) * modified_polynomial(2, k);
   }
@@ -222,7 +222,7 @@ void modify_polynomial(const View3D<double> U,
 auto smoothness_indicator(const View3D<double> U,
                           const View2D<double> modified_polynomial,
                           const GridStructure* grid, const ModalBasis* basis,
-                          const int iX, const int i, const int /*iCQ*/)
+                          const int iX, const int i, const int /*q*/)
     -> double {
   const int k = U.extent(2);
 
@@ -233,7 +233,7 @@ auto smoothness_indicator(const View3D<double> U,
     for (int iN = 0; iN < k; iN++) {
       auto X = grid->node_coordinate(iX, iN);
       local_sum += grid->get_weights(iN) *
-                   std::pow(modified_polynomial(i, s) *
+                   std::pow(modified_polynomial(s, i) *
                                 ModalBasis::d_legendre_n(k, s, X),
                             2.0) *
                    std::pow(grid->get_widths(iX), 2.0 * s);

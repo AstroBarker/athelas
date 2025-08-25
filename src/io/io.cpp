@@ -314,14 +314,14 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
       const int idx = i_local + (k * nX);
 
       data_arrays["grid/x_nodal"][idx] = grid.node_coordinate(iX, k);
-      data_arrays["conserved/tau"][idx] = uCF(0, iX, k);
-      data_arrays["conserved/velocity"][idx] = uCF(1, iX, k);
-      data_arrays["conserved/energy"][idx] = uCF(2, iX, k);
-      data_arrays["auxiliary/pressure"][idx] = uAF(0, iX, k);
+      data_arrays["conserved/tau"][idx] = uCF(iX, k, 0);
+      data_arrays["conserved/velocity"][idx] = uCF(iX, k, 1);
+      data_arrays["conserved/energy"][idx] = uCF(iX, k, 2);
+      data_arrays["auxiliary/pressure"][idx] = uAF(iX, k, 0);
 
       if (do_rad) {
-        data_arrays["conserved/rad_energy"][idx] = uCF(3, iX, k);
-        data_arrays["conserved/rad_momentum"][idx] = uCF(4, iX, k);
+        data_arrays["conserved/rad_energy"][idx] = uCF(iX, k, 3);
+        data_arrays["conserved/rad_momentum"][idx] = uCF(iX, k, 4);
       }
     }
   }

@@ -98,9 +98,9 @@ void check_state(T state, const int ihi, const bool do_rad) {
   // Check state on host
   for (int iX = 1; iX <= ihi; iX++) {
 
-    const double tau = uCF_h(0, iX, 0); // cell averages checked
-    const double vel = uCF_h(1, iX, 0);
-    const double e_m = uCF_h(2, iX, 0);
+    const double tau = uCF_h(iX, 0, 0); // cell averages checked
+    const double vel = uCF_h(iX, 0, 1);
+    const double e_m = uCF_h(iX, 0, 2);
 
     if (tau <= 0.0) {
       std::println("Error on cell {}", iX);
@@ -130,8 +130,8 @@ void check_state(T state, const int ihi, const bool do_rad) {
     }
 
     if (do_rad) {
-      const double e_rad = uCF_h(3, iX, 0);
-      const double f_rad = uCF_h(4, iX, 0);
+      const double e_rad = uCF_h(iX, 0, 3);
+      const double f_rad = uCF_h(iX, 0, 4);
 
       if (std::isnan(e_rad)) {
         std::println("Error on cell {}", iX);

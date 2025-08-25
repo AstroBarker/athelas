@@ -21,8 +21,8 @@ HydroPackage::HydroPackage(const ProblemIn* /*pin*/, int n_stages, EOS* eos,
                            ModalBasis* basis, BoundaryConditions* bcs,
                            double cfl, int nx, bool active)
     : active_(active), nx_(nx), cfl_(cfl), eos_(eos), basis_(basis), bcs_(bcs),
-      dFlux_num_("hydro::dFlux_num_", 3, nx + 2 + 1),
-      u_f_l_("hydro::u_f_l_", 3, nx + 2), u_f_r_("hydro::u_f_r_", 3, nx + 2),
+      dFlux_num_("hydro::dFlux_num_", nx + 2 + 1, 3),
+      u_f_l_("hydro::u_f_l_", nx + 2, 3), u_f_r_("hydro::u_f_r_", nx + 2, 3),
       flux_u_("hydro::flux_u_", n_stages + 1, nx + 2 + 1) {
 } // Need long term solution for flux_u_
 
@@ -43,9 +43,9 @@ void HydroPackage::update_explicit(const View3D<double> state,
   Kokkos::parallel_for(
       "Hydro :: Zero dU",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
-                                             {NUM_VARS_, ihi + 1, order}),
-      KOKKOS_LAMBDA(const int icf, const int ix, const int k) {
-        dU(icf, ix, k) = 0.0;
+                                             {ihi + 1, order, NUM_VARS_}),
+      KOKKOS_LAMBDA(const int ix, const int k, const int q) {
+        dU(ix, k, q) = 0.0;
       });
 
   // --- Fluid Increment : Divergence ---
@@ -54,10 +54,10 @@ void HydroPackage::update_explicit(const View3D<double> state,
   // --- Divide update by mass mastrix ---
   Kokkos::parallel_for(
       "Hydro :: Divide Update / Mass Matrix",
-      Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, ilo, 0},
-                                             {NUM_VARS_, ihi + 1, order}),
-      KOKKOS_CLASS_LAMBDA(const int icf, const int ix, const int k) {
-        dU(icf, ix, k) /= basis_->get_mass_matrix(ix, k);
+      Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0},
+                                             {ihi + 1, order, NUM_VARS_}),
+      KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
+        dU(ix, k, q) /= basis_->get_mass_matrix(ix, k);
       });
 
   // --- Increment from Geometry ---
@@ -83,48 +83,40 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
   // Left/Right face states
   Kokkos::parallel_for(
       "Hydro :: Interface States",
-      Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, ilo}, {NUM_VARS_, ihi + 2}),
-      KOKKOS_CLASS_LAMBDA(const int iCF, const int iX) {
-        u_f_l_(iCF, iX) = basis_->basis_eval(state, iX - 1, iCF, nNodes + 1);
-        u_f_r_(iCF, iX) = basis_->basis_eval(state, iX, iCF, 0);
+      Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 2, NUM_VARS_}),
+      KOKKOS_CLASS_LAMBDA(const int iX, const int q) {
+        u_f_l_(iX, q) = basis_->basis_eval(state, iX - 1, q, nNodes + 1);
+        u_f_r_(iX, q) = basis_->basis_eval(state, iX, q, 0);
       });
 
   // --- Calc numerical flux at all faces ---
   Kokkos::parallel_for(
       "Hydro :: Numerical Fluxes", Kokkos::RangePolicy<>(ilo, ihi + 2),
       KOKKOS_CLASS_LAMBDA(int iX) {
-        auto uCF_L = Kokkos::subview(u_f_l_, Kokkos::ALL, iX);
-        auto uCF_R = Kokkos::subview(u_f_r_, Kokkos::ALL, iX);
-
-        // Debug mode assertions.
-        assert(uCF_L(2) > 0.0 && !std::isnan(uCF_L(2)) &&
-               "fluid_discretization :: Numerical Fluxes bad energy.");
-        assert(uCF_R(2) > 0.0 && !std::isnan(uCF_R(2)) &&
-               "fluid_discretization :: Numerical Fluxes bad energy.");
 
         auto lambda = nullptr;
         const double P_L =
-            pressure_from_conserved(eos_, uCF_L(0), uCF_L(1), uCF_L(2), lambda);
-        const double Cs_L = sound_speed_from_conserved(eos_, uCF_L(0), uCF_L(1),
-                                                       uCF_L(2), lambda);
+            pressure_from_conserved(eos_, u_f_l_(iX, 0), u_f_l_(iX, 1), u_f_l_(iX, 2), lambda);
+        const double Cs_L = sound_speed_from_conserved(eos_, u_f_l_(iX, 0), u_f_l_(iX, 1),
+                                                       u_f_l_(iX, 2), lambda);
 
         const double P_R =
-            pressure_from_conserved(eos_, uCF_R(0), uCF_R(1), uCF_R(2), lambda);
-        const double Cs_R = sound_speed_from_conserved(eos_, uCF_R(0), uCF_R(1),
-                                                       uCF_R(2), lambda);
+            pressure_from_conserved(eos_, u_f_r_(iX, 0), u_f_r_(iX, 1), u_f_r_(iX, 2), lambda);
+        const double Cs_R = sound_speed_from_conserved(eos_, u_f_r_(iX, 0), u_f_r_(iX, 1),
+                                                       u_f_r_(iX, 2), lambda);
 
         // --- Numerical Fluxes ---
 
         // Riemann Problem
-        // auto [flux_u, flux_p] = numerical_flux_gudonov( uCF_L( 1 ), uCF_R( 1
+        // auto [flux_u, flux_p] = numerical_flux_gudonov( u_f_l_(iX,  1 ), u_f_r_(iX,  1
         // ), P_L, P_R, lam_L, lam_R);
         const auto [flux_u, flux_p] = numerical_flux_gudonov_positivity(
-            uCF_L(0), uCF_R(0), uCF_L(1), uCF_R(1), P_L, P_R, Cs_L, Cs_R);
+            u_f_l_(iX, 0), u_f_r_(iX, 0), u_f_l_(iX, 1), u_f_r_(iX, 1), P_L, P_R, Cs_L, Cs_R);
         flux_u_(stage, iX) = flux_u;
 
-        dFlux_num_(0, iX) = -flux_u_(stage, iX);
-        dFlux_num_(1, iX) = flux_p;
-        dFlux_num_(2, iX) = +flux_u_(stage, iX) * flux_p;
+        dFlux_num_(iX, 0) = -flux_u_(stage, iX);
+        dFlux_num_(iX, 1) = flux_p;
+        dFlux_num_(iX, 2) = +flux_u_(stage, iX) * flux_p;
       });
 
   flux_u_(stage, ilo - 1) = flux_u_(stage, ilo);
@@ -133,9 +125,9 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
   // --- Surface Term ---
   Kokkos::parallel_for(
       "Hydro :: Surface Term",
-      Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, ilo, 0},
-                                             {NUM_VARS_, ihi + 1, order}),
-      KOKKOS_CLASS_LAMBDA(const int iCF, const int iX, const int k) {
+      Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0},
+                                             {ihi + 1, order, NUM_VARS_}),
+      KOKKOS_CLASS_LAMBDA(const int iX, const int k, const int q) {
         const auto& Poly_L = basis_->get_phi(iX, 0, k);
         const auto& Poly_R = basis_->get_phi(iX, nNodes + 1, k);
         const auto& X_L = grid.get_left_interface(iX);
@@ -143,8 +135,8 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
         const auto& SqrtGm_L = grid.get_sqrt_gm(X_L);
         const auto& SqrtGm_R = grid.get_sqrt_gm(X_R);
 
-        dU(iCF, iX, k) -= (+dFlux_num_(iCF, iX + 1) * Poly_R * SqrtGm_R -
-                           dFlux_num_(iCF, iX + 0) * Poly_L * SqrtGm_L);
+        dU(iX, k, q) -= (+dFlux_num_(iX + 1, q) * Poly_R * SqrtGm_R -
+                           dFlux_num_(iX + 0, q) * Poly_L * SqrtGm_L);
       });
 
   if (order > 1) [[likely]] {
@@ -174,9 +166,9 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
             local_sum3 += weight * flux3 * dphi * sqrt_gm;
           }
 
-          dU(0, iX, k) += local_sum1;
-          dU(1, iX, k) += local_sum2;
-          dU(2, iX, k) += local_sum3;
+          dU(iX, k, 0) += local_sum1;
+          dU(iX, k, 1) += local_sum2;
+          dU(iX, k, 2) += local_sum3;
         });
   }
 }
@@ -207,7 +199,7 @@ void HydroPackage::fluid_geometry(const View3D<double> state, View3D<double> dU,
               grid.get_weights(iN) * P * basis_->get_phi(iX, iN + 1, k) * X;
         }
 
-        dU(1, iX, k) += (2.0 * local_sum * grid.get_widths(iX)) /
+        dU(iX, k, 1) += (2.0 * local_sum * grid.get_widths(iX)) /
                         basis_->get_mass_matrix(iX, k);
       });
 }
@@ -230,9 +222,9 @@ auto HydroPackage::min_timestep(const View3D<double> state,
       "Hydro::min_timestep", Kokkos::RangePolicy<>(ilo, ihi + 1),
       KOKKOS_CLASS_LAMBDA(const int ix, double& lmin) {
         // --- Using Cell Averages ---
-        const double tau_x = state(0, ix, 0);
-        const double vel_x = state(1, ix, 0);
-        const double eint_x = state(2, ix, 0);
+        const double tau_x = state(ix, 0, 0);
+        const double vel_x = state(ix, 0, 1);
+        const double eint_x = state(ix, 0, 2);
 
         const double dr = grid.get_widths(ix);
 

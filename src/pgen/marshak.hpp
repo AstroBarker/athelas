@@ -67,14 +67,14 @@ void marshak_init(State* state, GridStructure* grid, ProblemIn* pin,
       Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int iX) {
         const int k = 0;
 
-        uCF(iCF_Tau, iX, k) = 1.0 / rho0;
-        uCF(iCF_V, iX, k) = V0;
-        uCF(iCF_E, iX, k) = em_gas + 0.5 * V0 * V0;
-        uCF(iCR_E, iX, k) = e_rad;
-        uCF(iCR_F, iX, k) = 0.0;
+        uCF(iX, k, iCF_Tau) = 1.0 / rho0;
+        uCF(iX, k, iCF_V) = V0;
+        uCF(iX, k, iCF_E) = em_gas + 0.5 * V0 * V0;
+        uCF(iX, k, iCR_E) = e_rad;
+        uCF(iX, k, iCR_F) = 0.0;
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          uPF(iPF_D, iX, iNodeX) = rho0;
+          uPF(iX, iNodeX, iPF_D) = rho0;
         }
       });
 
@@ -82,8 +82,8 @@ void marshak_init(State* state, GridStructure* grid, ProblemIn* pin,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+          uPF(ilo - 1 - iX, iN, 0) = uPF(ilo + iX, nNodes - iN - 1, 0);
+          uPF(ilo + 1 + iX, iN, 0) = uPF(ilo - iX, nNodes - iN - 1, 0);
         }
       });
 }

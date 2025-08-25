@@ -51,25 +51,25 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
           // --- Characteristic Limiting Matrices ---
           // Note: using cell averages
           for (int iC = 0; iC < nvars; iC++) {
-            mult_(iC, iX) = U(iC, iX, 0);
+            mult_(iX, iC) = U(iX, 0, iC);
           }
 
-          auto R_i = Kokkos::subview(R_, Kokkos::ALL, Kokkos::ALL, iX);
-          auto R_inv_i = Kokkos::subview(R_inv_, Kokkos::ALL, Kokkos::ALL, iX);
-          auto U_c_T_i = Kokkos::subview(U_c_T_, Kokkos::ALL, iX);
-          auto w_c_T_i = Kokkos::subview(w_c_T_, Kokkos::ALL, iX);
-          auto mult_i = Kokkos::subview(mult_, Kokkos::ALL, iX);
+          auto R_i = Kokkos::subview(R_, iX, Kokkos::ALL, Kokkos::ALL);
+          auto R_inv_i = Kokkos::subview(R_inv_, iX, Kokkos::ALL, Kokkos::ALL);
+          auto U_c_T_i = Kokkos::subview(U_c_T_, iX, Kokkos::ALL);
+          auto w_c_T_i = Kokkos::subview(w_c_T_, iX, Kokkos::ALL);
+          auto mult_i = Kokkos::subview(mult_, iX, Kokkos::ALL);
           compute_characteristic_decomposition(mult_i, R_i, R_inv_i, eos);
           for (int k = 0; k < order_; k++) {
             // store w_.. = invR @ U_..
             for (int iC = 0; iC < nvars; iC++) {
-              U_c_T_i(iC) = U(iC, iX, k);
+              U_c_T_i(iC) = U(iX, k, iC);
               w_c_T_i(iC) = 0.0;
             }
             MAT_MUL<3>(1.0, R_inv_i, U_c_T_i, 1.0, w_c_T_i);
 
             for (int iC = 0; iC < nvars; iC++) {
-              U(iC, iX, k) = w_c_T_i(iC);
+              U(iX, k, iC) = w_c_T_i(iC);
             } // end loop vars
           } // end loop k
         }); // par iX
@@ -112,7 +112,7 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
 
             // update solution via WENO
             for (int k = 1; k < order_; k++) {
-              U(iC, iX, k) = w_l * modified_polynomial_i(0, k) +
+              U(iX, k, iC) = w_l * modified_polynomial_i(0, k) +
                              w_i * modified_polynomial_i(1, k) +
                              w_r * modified_polynomial_i(2, k);
             }
@@ -130,19 +130,19 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
         "SlopeLimiter :: WENO :: FromCharacteristic",
         Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_CLASS_LAMBDA(const int iX) {
           // --- Characteristic Limiting Matrices ---
-          auto R_i = Kokkos::subview(R_, Kokkos::ALL, Kokkos::ALL, iX);
-          auto U_c_T_i = Kokkos::subview(U_c_T_, Kokkos::ALL, iX);
-          auto w_c_T_i = Kokkos::subview(w_c_T_, Kokkos::ALL, iX);
+          auto R_i = Kokkos::subview(R_, Kokkos::ALL, iX, Kokkos::ALL);
+          auto U_c_T_i = Kokkos::subview(U_c_T_, iX, Kokkos::ALL);
+          auto w_c_T_i = Kokkos::subview(w_c_T_, iX, Kokkos::ALL);
           for (int k = 0; k < order_; k++) {
             // store w_.. = invR @ U_..
             for (int iC = 0; iC < nvars; iC++) {
-              U_c_T_i(iC) = U(iC, iX, k);
+              U_c_T_i(iC) = U(iX, k, iC);
               w_c_T_i(iC) = 0.0;
             }
             MAT_MUL<3>(1.0, R_i, U_c_T_i, 1.0, w_c_T_i);
 
             for (int iC = 0; iC < nvars; iC++) {
-              U(iC, iX, k) = w_c_T_i(iC);
+              U(iX, k, iC) = w_c_T_i(iC);
             } // end loop vars
           } // end loop k
         }); // par_for iX

@@ -60,13 +60,13 @@ void rad_equilibrium_init(State* state, GridStructure* grid, ProblemIn* pin,
       Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int iX) {
         const int k = 0;
 
-        uCF(iCF_Tau, iX, k) = 1.0 / D;
-        uCF(iCF_V, iX, k) = V0;
-        uCF(iCF_E, iX, k) = Ev_gas / D;
-        uCF(iCR_E, iX, k) = Ev_rad;
+        uCF(iX, k, iCF_Tau) = 1.0 / D;
+        uCF(iX, k, iCF_V) = V0;
+        uCF(iX, k, iCF_E) = Ev_gas / D;
+        uCF(iX, k, iCR_E) = Ev_rad;
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          uPF(iPF_D, iX, iNodeX) = D;
+          uPF(iX, iNodeX, iPF_D) = D;
         }
       });
 
@@ -74,8 +74,8 @@ void rad_equilibrium_init(State* state, GridStructure* grid, ProblemIn* pin,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+          uPF(ilo - 1 - iX, iN, 0) = uPF(ilo + iX, nNodes - iN - 1, 0);
+          uPF(ilo + 1 + iX, iN, 0) = uPF(ilo - iX, nNodes - iN - 1, 0);
         }
       });
 }

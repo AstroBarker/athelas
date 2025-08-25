@@ -82,9 +82,9 @@ class RadHydroConvergence {
   auto fluid_velocity_error(const t u_n, const t u_nm1, const int q) -> double {
     double max_error = 0.0;
     for (int k = 0; k < num_modes_; ++k) {
-      const double abs_err = std::abs(u_n(q, k) - u_nm1(q, k));
+      const double abs_err = std::abs(u_n(k, q) - u_nm1(k, q));
       const double scale = std::max(
-          {scales_.velocity_scale, std::abs(u_n(q, k)), std::abs(u_nm1(q, k))});
+          {scales_.velocity_scale, std::abs(u_n(k, q)), std::abs(u_nm1(k, q))});
       const double normalized_err = abs_err / scale;
       const double weighted_err = normalized_err * mode_weights_[k];
       max_error = std::max(max_error, weighted_err);
@@ -95,9 +95,9 @@ class RadHydroConvergence {
   auto fluid_energy_error(const t u_n, const t u_nm1, const int q) -> double {
     double max_error = 0.0;
     for (int k = 0; k < num_modes_; ++k) {
-      const double abs_err = std::abs(u_n(q, k) - u_nm1(q, k));
+      const double abs_err = std::abs(u_n(k, q) - u_nm1(k, q));
       const double scale = std::max(
-          {scales_.energy_scale, std::abs(u_n(q, k)), std::abs(u_nm1(q, k))});
+          {scales_.energy_scale, std::abs(u_n(k, q)), std::abs(u_nm1(k, q))});
       const double normalized_err = abs_err / scale;
       const double weighted_err = normalized_err * mode_weights_[k];
       max_error = std::max(max_error, weighted_err);
@@ -109,10 +109,10 @@ class RadHydroConvergence {
       -> double {
     double max_error = 0.0;
     for (int k = 0; k < num_modes_; ++k) {
-      const double abs_err = std::abs(u_n(q, k) - u_nm1(q, k));
+      const double abs_err = std::abs(u_n(k, q) - u_nm1(k, q));
       const double scale =
-          std::max({scales_.rad_energy_scale, std::abs(u_n(q, k)),
-                    std::abs(u_nm1(q, k))});
+          std::max({scales_.rad_energy_scale, std::abs(u_n(k, q)),
+                    std::abs(u_nm1(k, q))});
       const double normalized_err = abs_err / scale;
       const double weighted_err = normalized_err * mode_weights_[k];
       max_error = std::max(max_error, weighted_err);
@@ -123,9 +123,9 @@ class RadHydroConvergence {
   auto radiation_flux_error(const t u_n, const t u_nm1, const int q) -> double {
     double max_error = 0.0;
     for (int k = 0; k < num_modes_; ++k) {
-      const double abs_err = std::abs(u_n(q, k) - u_nm1(q, k));
+      const double abs_err = std::abs(u_n(k, q) - u_nm1(k, q));
       const double scale = std::max(
-          {scales_.rad_flux_scale, std::abs(u_n(q, k)), std::abs(u_nm1(q, k))});
+          {scales_.rad_flux_scale, std::abs(u_n(k, q)), std::abs(u_nm1(k, q))});
       const double normalized_err = abs_err / scale;
       const double weighted_err = normalized_err * mode_weights_[k];
       max_error = std::max(max_error, weighted_err);
@@ -227,7 +227,6 @@ auto fixed_point_aa_root( F target, T x0, Args... args ) -> T {
     //--- Anderson acceleration step --- //
     const T fk = f(xk, args...);
     const T fkm1 = f(xkm1, args...);
-    //std::println("n fk fkm1 {} {:.5e} {:.5e}", n, fk, fkm1);
     const T rk = residual(fk, fk);
     const T rkm1 = residual(fkm1, fkm1);
     const T alpha = alpha_aa(rk, rkm1);
@@ -235,8 +234,6 @@ auto fixed_point_aa_root( F target, T x0, Args... args ) -> T {
     const T xkp1 = ( alpha * fkm1 ) +
              ( ( 1.0 - alpha ) * fk );
     error = std::abs( xk - xkp1 );
-
-    std::println("FP:: n alpha xkm1, xkp1, fk, fkm1 {} {} {:.5e} {:.5e} {:.5e} {:.5e}", n, alpha, xkm1, xkp1, fk, fkm1);
 
     xkm1 = xk;
     xk   = xkp1;
@@ -254,21 +251,22 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro(T R, double dt_a_ii,
   static_assert(T::rank == 2, "fixed_point_radhydro expects rank-2 views.");
   static constexpr int nvars = 5;
 
-  const int num_modes = scratch_n.extent(1);
+  const int num_modes = scratch_n.extent(0);
 
   auto target = [&](T u, const int k) {
     const auto [s_1_k, s_2_k, s_3_k, s_4_k] =
         radiation::compute_increment_radhydro_source(u, k, args...);
-    return std::make_tuple(R(1, k) + dt_a_ii * s_1_k, R(2, k) + dt_a_ii * s_2_k,
-                           R(3, k) + dt_a_ii * s_3_k,
-                           R(4, k) + dt_a_ii * s_4_k);
+    return std::make_tuple(R(k, 1) + dt_a_ii * s_1_k, R(k, 2) + dt_a_ii * s_2_k,
+                           R(k, 3) + dt_a_ii * s_3_k,
+                           R(k, 4) + dt_a_ii * s_4_k);
   };
 
-  for (int iC = 0; iC < nvars; ++iC) {
-    for (int k = 0; k < num_modes; ++k) {
-      scratch_nm1(iC, k) = scratch_n(iC, k); // set to initial guess
+  for (int k = 0; k < num_modes; ++k) {
+    for (int iC = 0; iC < nvars; ++iC) {
+      scratch_nm1(k, iC) = scratch_n(k, iC); // set to initial guess
     }
   }
+
 
   // Set up physical scales based on your problem
   PhysicalScales scales{};
@@ -286,15 +284,15 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro(T R, double dt_a_ii,
     for (int k = 0; k < num_modes; ++k) {
       const auto [xkp1_1_k, xkp1_2_k, xkp1_3_k, xkp1_4_k] =
           target(scratch_n, k);
-      scratch(1, k) = xkp1_1_k; // fluid vel
-      scratch(2, k) = xkp1_2_k; // fluid energy
-      scratch(3, k) = xkp1_3_k; // rad energy
-      scratch(4, k) = xkp1_4_k; // rad flux
+      scratch(k, 1) = xkp1_1_k; // fluid vel
+      scratch(k, 2) = xkp1_2_k; // fluid energy
+      scratch(k, 3) = xkp1_3_k; // rad energy
+      scratch(k, 4) = xkp1_4_k; // rad flux
 
       // --- update ---
       for (int iC = 1; iC < nvars; ++iC) {
-        scratch_nm1(iC, k) = scratch_n(iC, k);
-        scratch_n(iC, k) = scratch(iC, k);
+        scratch_nm1(k, iC) = scratch_n(k, iC);
+        scratch_n(k, iC) = scratch(k, iC);
       }
     }
 
@@ -310,28 +308,28 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro_aa(T R, double dt_a_ii,
   static_assert(T::rank == 2, "fixed_point_radhydro expects rank-2 views.");
   constexpr static int nvars = 5;
 
-  const int num_modes = scratch_n.extent(1);
+  const int num_modes = scratch_n.extent(0);
 
   auto target = [&](T u, const int k) {
     const auto [s_1_k, s_2_k, s_3_k, s_4_k] =
         radiation::compute_increment_radhydro_source(u, k, args...);
-    return std::make_tuple(R(1, k) + dt_a_ii * s_1_k, R(2, k) + dt_a_ii * s_2_k,
-                           R(3, k) + dt_a_ii * s_3_k,
-                           R(4, k) + dt_a_ii * s_4_k);
+    return std::make_tuple(R(k, 1) + dt_a_ii * s_1_k, R(k, 2) + dt_a_ii * s_2_k,
+                           R(k, 3) + dt_a_ii * s_3_k,
+                           R(k, 4) + dt_a_ii * s_4_k);
   };
 
   // --- first fixed point iteration ---
   for (int k = 0; k < num_modes; ++k) {
     const auto [xnp1_1_k, xnp1_2_k, xnp1_3_k, xnp1_4_k] = target(scratch_n, k);
-    scratch(1, k) = xnp1_1_k;
-    scratch(2, k) = xnp1_2_k;
-    scratch(3, k) = xnp1_3_k;
-    scratch(4, k) = xnp1_4_k;
+    scratch(k, 1) = xnp1_1_k;
+    scratch(k, 2) = xnp1_2_k;
+    scratch(k, 3) = xnp1_3_k;
+    scratch(k, 4) = xnp1_4_k;
   }
-  for (int iC = 1; iC < nvars; ++iC) {
-    for (int k = 0; k < num_modes; ++k) {
-      scratch_nm1(iC, k) = scratch_n(iC, k);
-      scratch_n(iC, k) = scratch(iC, k);
+  for (int k = 0; k < num_modes; ++k) {
+    for (int iC = 1; iC < nvars; ++iC) {
+      scratch_nm1(k, iC) = scratch_n(k, iC);
+      scratch_n(k, iC) = scratch(k, iC);
     }
   }
 
@@ -359,14 +357,14 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro_aa(T R, double dt_a_ii,
       const auto [s_1_nm1, s_2_nm1, s_3_nm1, s_4_nm1] = target(scratch_nm1, k);
 
       // residuals
-      const auto r_1_n = residual(s_1_n, scratch_n(1, k));
-      const auto r_2_n = residual(s_2_n, scratch_n(2, k));
-      const auto r_3_n = residual(s_3_n, scratch_n(3, k));
-      const auto r_4_n = residual(s_4_n, scratch_n(4, k));
-      const auto r_1_nm1 = residual(s_1_nm1, scratch_nm1(1, k));
-      const auto r_2_nm1 = residual(s_2_nm1, scratch_nm1(2, k));
-      const auto r_3_nm1 = residual(s_3_nm1, scratch_nm1(3, k));
-      const auto r_4_nm1 = residual(s_4_nm1, scratch_nm1(4, k));
+      const auto r_1_n = residual(s_1_n, scratch_n(k, 1));
+      const auto r_2_n = residual(s_2_n, scratch_n(k, 2));
+      const auto r_3_n = residual(s_3_n, scratch_n(k, 3));
+      const auto r_4_n = residual(s_4_n, scratch_n(k, 4));
+      const auto r_1_nm1 = residual(s_1_nm1, scratch_nm1(k, 1));
+      const auto r_2_nm1 = residual(s_2_nm1, scratch_nm1(k, 2));
+      const auto r_3_nm1 = residual(s_3_nm1, scratch_nm1(k, 3));
+      const auto r_4_nm1 = residual(s_4_nm1, scratch_nm1(k, 4));
 
       // Anderson acceleration alpha
       const auto a_1 = alpha_aa(r_1_n, r_1_nm1);
@@ -380,15 +378,15 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro_aa(T R, double dt_a_ii,
       const auto xnp1_3_k = a_3 * s_3_nm1 + (1.0 - a_3) * s_3_n;
       const auto xnp1_4_k = a_4 * s_4_nm1 + (1.0 - a_4) * s_4_n;
 
-      scratch(1, k) = xnp1_1_k; // fluid vel
-      scratch(2, k) = xnp1_2_k; // fluid energy
-      scratch(3, k) = xnp1_3_k; // rad energy
-      scratch(4, k) = xnp1_4_k; // rad flux
+      scratch(k, 1) = xnp1_1_k; // fluid vel
+      scratch(k, 2) = xnp1_2_k; // fluid energy
+      scratch(k, 3) = xnp1_3_k; // rad energy
+      scratch(k, 4) = xnp1_4_k; // rad flux
 
       // --- update ---
       for (int iC = 1; iC < nvars; ++iC) {
-        scratch_nm1(iC, k) = scratch_n(iC, k);
-        scratch_n(iC, k) = scratch(iC, k);
+        scratch_nm1(k, iC) = scratch_n(k, iC);
+        scratch_n(k, iC) = scratch(k, iC);
       }
     }
 
@@ -425,7 +423,6 @@ auto fixed_point_root(F target, T x0, Args... args) -> T {
   T error = 1.0;
   while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
     T x1 = f(x0, args...);
-    std::println("FP:: n x0, x1 {} {:.5e} {:.5e}", n, x0, x1);
     error = std::abs(x1 - x0);
     x0 = x1;
     ++n;

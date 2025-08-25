@@ -2,7 +2,6 @@
  * @file grid.cpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Class for holding the spatial grid.
  *
  * @details This class GridStructure holds key pieces of the grid:
@@ -17,8 +16,8 @@
 
 #include <vector>
 
-#include "grid.hpp"
-#include "quadrature.hpp"
+#include "geometry/grid.hpp"
+#include "quadrature/quadrature.hpp"
 
 using namespace geometry;
 
@@ -196,7 +195,7 @@ void GridStructure::compute_mass(const View3D<double> uPF) {
     mass = 0.0;
     for (int iN = 0; iN < nNodes_; iN++) {
       X = node_coordinate(iX, iN);
-      mass += weights_(iN) * get_sqrt_gm(X) * uPF(0, iX, iN);
+      mass += weights_(iN) * get_sqrt_gm(X) * uPF(iX, iN, 0);
     }
     mass *= widths_(iX);
     mass_(iX) = mass;
@@ -227,7 +226,7 @@ void GridStructure::compute_mass_r(const View3D<double> uPF) {
   for (int iX = ilo; iX <= ihi; ++iX) {
     for (int iN = 0; iN < nNodes_; ++iN) {
       X = node_coordinate(iX, iN);
-      mass += weights_(iN) * get_sqrt_gm(X) * uPF(0, iX, iN);
+      mass += weights_(iN) * get_sqrt_gm(X) * uPF(iX, iN, 0);
       mass_r_(iX, iN) = mass * widths_(iX) * geom_fac;
     }
   }
@@ -255,7 +254,7 @@ void GridStructure::compute_center_of_mass(const View3D<double> uPF) {
     com = 0.0;
     for (int iN = 0; iN < nNodes_; iN++) {
       X = node_coordinate(iX, iN);
-      com += nodes_(iN) * weights_(iN) * get_sqrt_gm(X) * uPF(0, iX, iN);
+      com += nodes_(iN) * weights_(iN) * get_sqrt_gm(X) * uPF(iX, iN, 0);
     }
     com *= widths_(iX);
     center_of_mass_(iX) = com / mass_(iX);

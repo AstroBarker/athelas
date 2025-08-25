@@ -142,7 +142,7 @@ auto flux_rad(const double E, const double F, const double P, const double V)
 
 auto llf_flux(const double Fp, const double Fm, const double Up,
               const double Um, const double alpha) -> double {
-  return 0.5 * (Fp - alpha * Up + Fm + alpha * Um);
+  return 0.5 * std::fma(alpha, (Um - Up), (Fp + Fm));
 }
 
 /**

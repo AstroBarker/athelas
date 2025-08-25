@@ -62,25 +62,25 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
           // --- Characteristic Limiting Matrices ---
           // Note: using cell averages
           for (int iC = 0; iC < nvars; ++iC) {
-            mult_(iC, iX) = U(iC, iX, 0);
+            mult_(iX, iC) = U(iX, 0, iC);
           }
 
-          auto R_i = Kokkos::subview(R_, Kokkos::ALL, Kokkos::ALL, iX);
-          auto R_inv_i = Kokkos::subview(R_inv_, Kokkos::ALL, Kokkos::ALL, iX);
-          auto U_c_T_i = Kokkos::subview(U_c_T_, Kokkos::ALL, iX);
-          auto w_c_T_i = Kokkos::subview(w_c_T_, Kokkos::ALL, iX);
-          auto Mult_i = Kokkos::subview(mult_, Kokkos::ALL, iX);
+          auto R_i = Kokkos::subview(R_, iX, Kokkos::ALL, Kokkos::ALL);
+          auto R_inv_i = Kokkos::subview(R_inv_, iX, Kokkos::ALL, Kokkos::ALL);
+          auto U_c_T_i = Kokkos::subview(U_c_T_, iX, Kokkos::ALL);
+          auto w_c_T_i = Kokkos::subview(w_c_T_, iX, Kokkos::ALL);
+          auto Mult_i = Kokkos::subview(mult_, iX, Kokkos::ALL);
           compute_characteristic_decomposition(Mult_i, R_i, R_inv_i, eos);
           for (int k = 0; k <= 1; ++k) {
             // store w_.. = invR @ U_..
             for (int iC = 0; iC < nvars; ++iC) {
-              U_c_T_i(iC) = U(iC, iX, k);
+              U_c_T_i(iC) = U(iX, k, iC);
               w_c_T_i(iC) = 0.0;
             }
             MAT_MUL<3>(1.0, R_inv_i, U_c_T_i, 0.0, w_c_T_i);
 
             for (int iC = 0; iC < nvars; ++iC) {
-              U(iC, iX, k) = w_c_T_i(iC);
+              U(iX, k, iC) = w_c_T_i(iC);
             } // end loop vars
           } // end loop k
         }); // par iX
@@ -96,10 +96,10 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
           if (D_(iX) > tci_val_ || !tci_opt_) {
 
             // --- Begin TVD Minmod Limiter --- //
-            const double s_i = U(iC, iX, 1); // target cell slope
-            const double c_i = U(iC, iX, 0); // target cell avg
-            const double c_p = U(iC, iX + 1, 0); // cell iX + 1 avg
-            const double c_m = U(iC, iX - 1, 0); // cell iX - 1 avg
+            const double s_i = U(iX, 1, iC); // target cell slope
+            const double c_i = U(iX, 0, iC); // target cell avg
+            const double c_p = U(iX + 1, 0, iC); // cell iX + 1 avg
+            const double c_m = U(iX - 1, 0, iC); // cell iX - 1 avg
             const double dx = grid->get_widths(iX);
             const double new_slope = MINMOD_B(s_i, b_tvd_ * (c_p - c_i),
                                               b_tvd_ * (c_i - c_m), dx, m_tvb_);
@@ -108,10 +108,10 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
             if (std::abs(new_slope - s_i) >
                 sl_threshold_ * std::max(std::abs(s_i), EPS)) {
               // limit
-              U(iC, iX, 1) = new_slope;
+              U(iX, 1, iC) = new_slope;
               // remove any higher order contributions
               for (int k = 2; k < order_; ++k) {
-                U(iC, iX, k) = 0.0;
+                U(iX, k, iC) = 0.0;
               }
             }
             // --- End TVD Minmod Limiter --- //
@@ -130,19 +130,19 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
         "SlopeLimiter :: Minmod :: FromCharacteristic",
         Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_CLASS_LAMBDA(const int iX) {
           // --- Characteristic Limiting Matrices ---
-          auto R_i = Kokkos::subview(R_, Kokkos::ALL, Kokkos::ALL, iX);
-          auto U_c_T_i = Kokkos::subview(U_c_T_, Kokkos::ALL, iX);
-          auto w_c_T_i = Kokkos::subview(w_c_T_, Kokkos::ALL, iX);
+          auto R_i = Kokkos::subview(R_, iX, Kokkos::ALL, Kokkos::ALL);
+          auto U_c_T_i = Kokkos::subview(U_c_T_, iX, Kokkos::ALL);
+          auto w_c_T_i = Kokkos::subview(w_c_T_, iX, Kokkos::ALL);
           for (int k = 0; k < 2; ++k) {
             // store U.. = R @ w..
             for (int iC = 0; iC < nvars; ++iC) {
-              U_c_T_i(iC) = U(iC, iX, k);
+              U_c_T_i(iC) = U(iX, k, iC);
               w_c_T_i(iC) = 0.0;
             }
             MAT_MUL<3>(1.0, R_i, U_c_T_i, 0.0, w_c_T_i);
 
             for (int iC = 0; iC < nvars; ++iC) {
-              U(iC, iX, k) = w_c_T_i(iC);
+              U(iX, k, iC) = w_c_T_i(iC);
             } // end loop vars
           } // end loop k
         }); // par_for iX
