@@ -34,9 +34,9 @@ void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin,
   const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
-  const int iCF_Tau = 0;
-  const int iCF_V = 1;
-  const int iCF_E = 2;
+  const int q_Tau = 0;
+  const int q_V = 1;
+  const int q_E = 2;
 
   const int iPF_D = 0;
 
@@ -52,35 +52,35 @@ void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin,
   const double gm1 = gamma - 1.0;
 
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int ix) {
         const int k = 0;
-        const double X1 = grid->get_centers(iX);
+        const double X1 = grid->get_centers(ix);
 
-        uCF(iCR_E, iX, k) =
+        uCF(ix, k, iCR_E) =
             amp * std::max(std::exp(-std::pow((X1 - 0.5) / width, 2.0) / 2.0),
                            1.0e-8);
-        uCF(iCR_F, iX, k) = 1.0 * constants::c_cgs * uCF(iCR_E, iX, k);
+        uCF(ix, k, iCR_F) = 1.0 * constants::c_cgs * uCF(ix, k, iCR_E);
 
-        const double Trad = std::pow(uCF(iCR_E, iX, k) / constants::a, 0.25);
+        const double Trad = std::pow(uCF(ix, k, iCR_E) / constants::a, 0.25);
         const double sie_fluid =
             constants::k_B * Trad / (gm1 * mu * constants::m_p);
-        uCF(iCF_Tau, iX, k) = 1.0 / D;
-        uCF(iCF_V, iX, k) = V0;
-        uCF(iCF_E, iX, k) =
+        uCF(ix, k, q_Tau) = 1.0 / D;
+        uCF(ix, k, q_V) = V0;
+        uCF(ix, k, q_E) =
             sie_fluid +
             0.5 * V0 * V0; // p0 / (gamma - 1.0) / D + 0.5 * V0 * V0;
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          uPF(iPF_D, iX, iNodeX) = D;
+          uPF(ix, iNodeX, iPF_D) = D;
         }
       });
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int ix) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
+          uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, nNodes - iN - 1, 0);
         }
       });
 }

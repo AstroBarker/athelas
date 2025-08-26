@@ -2,7 +2,6 @@
  * @file grid.cpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Class for holding the spatial grid.
  *
  * @details This class GridStructure holds key pieces of the grid:
@@ -17,8 +16,8 @@
 
 #include <vector>
 
-#include "grid.hpp"
-#include "quadrature.hpp"
+#include "geometry/grid.hpp"
+#include "quadrature/quadrature.hpp"
 
 using namespace geometry;
 
@@ -81,12 +80,12 @@ auto GridStructure::get_widths(int iC) const -> double { return widths_(iC); }
 
 // Return cell mass
 KOKKOS_FUNCTION
-auto GridStructure::get_mass(int iX) const -> double { return mass_(iX); }
+auto GridStructure::get_mass(int ix) const -> double { return mass_(ix); }
 
 // Return cell reference Center of mass_
 KOKKOS_FUNCTION
-auto GridStructure::get_center_of_mass(int iX) const -> double {
-  return center_of_mass_(iX);
+auto GridStructure::get_center_of_mass(int ix) const -> double {
+  return center_of_mass_(ix);
 }
 
 // Return given quadrature node
@@ -116,8 +115,8 @@ auto GridStructure::get_sqrt_gm(double X) const -> double {
 
 // Accessor for x_l_
 KOKKOS_FUNCTION
-auto GridStructure::get_left_interface(int iX) const -> double {
-  return x_l_(iX);
+auto GridStructure::get_left_interface(int ix) const -> double {
+  return x_l_(ix);
 }
 
 // Return nNodes_
@@ -157,8 +156,8 @@ void GridStructure::create_grid() {
   }
 
   x_l_(1) = xL_;
-  for (int iX = 2; iX < nElements_ + 2; iX++) {
-    x_l_(iX) = x_l_(iX - 1) + widths_(iX - 1);
+  for (int ix = 2; ix < nElements_ + 2; ix++) {
+    x_l_(ix) = x_l_(ix - 1) + widths_(ix - 1);
   }
 
   centers_(ilo) = xL_ + 0.5 * widths_(ilo);
@@ -192,20 +191,20 @@ void GridStructure::compute_mass(const View3D<double> uPF) {
   double mass = 0.0;
   double X = 0.0;
 
-  for (int iX = ilo; iX <= ihi; iX++) {
+  for (int ix = ilo; ix <= ihi; ix++) {
     mass = 0.0;
     for (int iN = 0; iN < nNodes_; iN++) {
-      X = node_coordinate(iX, iN);
-      mass += weights_(iN) * get_sqrt_gm(X) * uPF(0, iX, iN);
+      X = node_coordinate(ix, iN);
+      mass += weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
     }
-    mass *= widths_(iX);
-    mass_(iX) = mass;
+    mass *= widths_(ix);
+    mass_(ix) = mass;
   }
 
   // Guard cells
-  for (int iX = 0; iX < ilo; iX++) {
-    mass_(ilo - 1 - iX) = mass_(ilo + iX);
-    mass_(ihi + 1 + iX) = mass_(ihi - iX);
+  for (int ix = 0; ix < ilo; ix++) {
+    mass_(ilo - 1 - ix) = mass_(ilo + ix);
+    mass_(ihi + 1 + ix) = mass_(ihi - ix);
   }
 }
 
@@ -224,19 +223,19 @@ void GridStructure::compute_mass_r(const View3D<double> uPF) {
   const double geom_fac = (do_geometry()) ? 4.0 * constants::PI : 1.0;
 
   mass = 0.0;
-  for (int iX = ilo; iX <= ihi; ++iX) {
+  for (int ix = ilo; ix <= ihi; ++ix) {
     for (int iN = 0; iN < nNodes_; ++iN) {
-      X = node_coordinate(iX, iN);
-      mass += weights_(iN) * get_sqrt_gm(X) * uPF(0, iX, iN);
-      mass_r_(iX, iN) = mass * widths_(iX) * geom_fac;
+      X = node_coordinate(ix, iN);
+      mass += weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
+      mass_r_(ix, iN) = mass * widths_(ix) * geom_fac;
     }
   }
 }
 
 KOKKOS_FUNCTION
-auto GridStructure::enclosed_mass(const int iX, const int iN) const noexcept
+auto GridStructure::enclosed_mass(const int ix, const int iN) const noexcept
     -> double {
-  return mass_r_(iX, iN);
+  return mass_r_(ix, iN);
 }
 
 /**
@@ -251,20 +250,20 @@ void GridStructure::compute_center_of_mass(const View3D<double> uPF) {
   double com = 0.0;
   double X = 0.0;
 
-  for (int iX = ilo; iX <= ihi; iX++) {
+  for (int ix = ilo; ix <= ihi; ix++) {
     com = 0.0;
     for (int iN = 0; iN < nNodes_; iN++) {
-      X = node_coordinate(iX, iN);
-      com += nodes_(iN) * weights_(iN) * get_sqrt_gm(X) * uPF(0, iX, iN);
+      X = node_coordinate(ix, iN);
+      com += nodes_(iN) * weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
     }
-    com *= widths_(iX);
-    center_of_mass_(iX) = com / mass_(iX);
+    com *= widths_(ix);
+    center_of_mass_(ix) = com / mass_(ix);
   }
 
   // Guard cells
-  for (int iX = 0; iX < ilo; iX++) {
-    center_of_mass_(ilo - 1 - iX) = center_of_mass_(ilo + iX);
-    center_of_mass_(ihi + 1 + iX) = center_of_mass_(ihi - iX);
+  for (int ix = 0; ix < ilo; ix++) {
+    center_of_mass_(ilo - 1 - ix) = center_of_mass_(ilo + ix);
+    center_of_mass_(ihi + 1 + ix) = center_of_mass_(ihi - ix);
   }
 }
 
@@ -279,17 +278,17 @@ void GridStructure::update_grid(const View1D<double> SData) {
 
   Kokkos::parallel_for(
       "Grid Update 1", Kokkos::RangePolicy<>(ilo, ihi + 2),
-      KOKKOS_CLASS_LAMBDA(int iX) {
-        x_l_(iX) = SData(iX);
-        widths_(iX) = SData(iX + 1) - SData(iX);
-        centers_(iX) = 0.5 * (SData(iX + 1) + SData(iX));
+      KOKKOS_CLASS_LAMBDA(int ix) {
+        x_l_(ix) = SData(ix);
+        widths_(ix) = SData(ix + 1) - SData(ix);
+        centers_(ix) = 0.5 * (SData(ix + 1) + SData(ix));
       });
 
   Kokkos::parallel_for(
       "Grid Update 2", Kokkos::RangePolicy<>(ilo, ihi + 2),
-      KOKKOS_CLASS_LAMBDA(int iX) {
+      KOKKOS_CLASS_LAMBDA(int ix) {
         for (int iN = 0; iN < nNodes_; iN++) {
-          grid_(iX, iN) = node_coordinate(iX, iN);
+          grid_(ix, iN) = node_coordinate(ix, iN);
         }
       });
 }

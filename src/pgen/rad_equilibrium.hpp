@@ -37,9 +37,9 @@ void rad_equilibrium_init(State* state, GridStructure* grid, ProblemIn* pin,
   const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
-  const int iCF_Tau = 0;
-  const int iCF_V = 1;
-  const int iCF_E = 2;
+  const int q_Tau = 0;
+  const int q_V = 1;
+  const int q_E = 2;
 
   const int iPF_D = 0;
 
@@ -57,25 +57,25 @@ void rad_equilibrium_init(State* state, GridStructure* grid, ProblemIn* pin,
   const double Ev_rad = std::pow(10.0, logE_rad);
 
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int ix) {
         const int k = 0;
 
-        uCF(iCF_Tau, iX, k) = 1.0 / D;
-        uCF(iCF_V, iX, k) = V0;
-        uCF(iCF_E, iX, k) = Ev_gas / D;
-        uCF(iCR_E, iX, k) = Ev_rad;
+        uCF(ix, k, q_Tau) = 1.0 / D;
+        uCF(ix, k, q_V) = V0;
+        uCF(ix, k, q_E) = Ev_gas / D;
+        uCF(ix, k, iCR_E) = Ev_rad;
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          uPF(iPF_D, iX, iNodeX) = D;
+          uPF(ix, iNodeX, iPF_D) = D;
         }
       });
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int ix) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
+          uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, nNodes - iN - 1, 0);
         }
       });
 }

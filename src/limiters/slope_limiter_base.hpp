@@ -27,7 +27,7 @@ class SlopeLimiterBase {
     return static_cast<SlopeLimiter const*>(this)->apply_slope_limiter(
         U, grid, basis, eos, vars);
   }
-  [[nodiscard]] auto get_limited(const int iX) const -> int {
-    return static_cast<SlopeLimiter const*>(this)->get_limited(iX);
+  [[nodiscard]] auto get_limited(const int ix) const -> int {
+    return static_cast<SlopeLimiter const*>(this)->get_limited(ix);
   }
 };

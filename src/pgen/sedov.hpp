@@ -32,9 +32,9 @@ void sedov_init(State* state, GridStructure* grid, ProblemIn* pin,
   const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
-  constexpr static int iCF_Tau = 0;
-  constexpr static int iCF_V = 1;
-  constexpr static int iCF_E = 2;
+  constexpr static int q_Tau = 0;
+  constexpr static int q_V = 1;
+  constexpr static int q_E = 2;
 
   constexpr static int iPF_D = 0;
 
@@ -52,29 +52,28 @@ void sedov_init(State* state, GridStructure* grid, ProblemIn* pin,
   const double P0 = gm1 * E0 / volume;
 
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
         const int k = 0;
 
-        uCF(iCF_Tau, iX, k) = 1.0 / D0;
-        uCF(iCF_V, iX, k) = V0;
-        if (iX == origin - 1 || iX == origin) {
-          uCF(iCF_E, iX, k) = (P0 / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
+        uCF(ix, k, q_Tau) = 1.0 / D0;
+        uCF(ix, k, q_V) = V0;
+        if (ix == origin - 1 || ix == origin) {
+          uCF(ix, k, q_E) = (P0 / gm1) * uCF(ix, k, q_Tau) + 0.5 * V0 * V0;
         } else {
-          uCF(iCF_E, iX, k) =
-              (1.0e-6 / gm1) * uCF(iCF_Tau, iX, k) + 0.5 * V0 * V0;
+          uCF(ix, k, q_E) = (1.0e-6 / gm1) * uCF(ix, k, q_Tau) + 0.5 * V0 * V0;
         }
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          uPF(iPF_D, iX, iNodeX) = D0;
+          uPF(ix, iNodeX, iPF_D) = D0;
         }
       });
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int ix) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
+          uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, nNodes - iN - 1, 0);
         }
       });
 }

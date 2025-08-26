@@ -24,11 +24,11 @@ inline void fill_derived(const State* state, const EOS* eos,
   const int nNodes = grid->get_n_nodes();
 
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
         for (int iN = 0; iN < nNodes; ++iN) {
-          const double tau = fluid_basis->basis_eval(uCF, iX, 0, iN + 1);
-          const double vel = fluid_basis->basis_eval(uCF, iX, 1, iN + 1);
-          const double emt = fluid_basis->basis_eval(uCF, iX, 2, iN + 1);
+          const double tau = fluid_basis->basis_eval(uCF, ix, 0, iN + 1);
+          const double vel = fluid_basis->basis_eval(uCF, ix, 1, iN + 1);
+          const double emt = fluid_basis->basis_eval(uCF, ix, 2, iN + 1);
 
           const double rho = 1.0 / tau;
           const double momentum = rho * vel;
@@ -40,12 +40,12 @@ inline void fill_derived(const State* state, const EOS* eos,
           const double t_gas =
               temperature_from_conserved(eos, tau, vel, emt, lambda);
 
-          uPF(0, iX, iN) = rho;
-          uPF(1, iX, iN) = momentum;
-          uPF(2, iX, iN) = sie;
+          uPF(ix, iN, 0) = rho;
+          uPF(ix, iN, 1) = momentum;
+          uPF(ix, iN, 2) = sie;
 
-          uAF(0, iX, iN) = pressure;
-          uAF(1, iX, iN) = t_gas;
+          uAF(ix, iN, 0) = pressure;
+          uAF(ix, iN, 1) = t_gas;
         }
       });
 }

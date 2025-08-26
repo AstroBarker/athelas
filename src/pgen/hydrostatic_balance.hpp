@@ -34,9 +34,9 @@ void hydrostatic_balance_init(State* state, GridStructure* grid, ProblemIn* pin,
   const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
-  constexpr static int iCF_Tau = 0;
-  constexpr static int iCF_V = 1;
-  constexpr static int iCF_E = 2;
+  constexpr static int q_Tau = 0;
+  constexpr static int q_V = 1;
+  constexpr static int q_E = 2;
 
   constexpr static int iPF_D = 0;
 
@@ -62,9 +62,9 @@ void hydrostatic_balance_init(State* state, GridStructure* grid, ProblemIn* pin,
 
     // Phase 1: Initialize nodal values (always done)
     Kokkos::parallel_for(
-        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
           for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-            uPF(iPF_D, iX, iNodeX) = rho_from_p(uAF(0, iX, iNodeX));
+            uPF(ix, iNodeX, iPF_D) = rho_from_p(uAF(0, ix, iNodeX));
           }
         });
   }
@@ -72,40 +72,37 @@ void hydrostatic_balance_init(State* state, GridStructure* grid, ProblemIn* pin,
   // Phase 2: Initialize modal coefficients
   if (fluid_basis != nullptr) {
     // Use L2 projection for accurate modal coefficients
-    auto tau_func = [&](double /*x*/, int iX, int iN) -> double {
-      return 1.0 / rho_from_p(uAF(0, iX, iN));
+    auto tau_func = [&](double /*x*/, int ix, int iN) -> double {
+      return 1.0 / rho_from_p(uAF(0, ix, iN));
     };
 
-    auto velocity_func = [](double /*x*/, int /*iX*/, int /*iN*/) -> double {
+    auto velocity_func = [](double /*x*/, int /*ix*/, int /*iN*/) -> double {
       return 0.0;
     };
 
-    auto energy_func = [&](double /*x*/, int iX, int iN) -> double {
-      const double rho = rho_from_p(uAF(0, iX, iN));
-      return (uAF(0, iX, iN) / gm1) / rho;
+    auto energy_func = [&](double /*x*/, int ix, int iN) -> double {
+      const double rho = rho_from_p(uAF(0, ix, iN));
+      return (uAF(0, ix, iN) / gm1) / rho;
     };
 
     Kokkos::parallel_for(
-        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
-          const int k = 0;
-          const double X1 = grid->get_centers(iX);
-
+        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
           // Project each conserved variable
-          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, iCF_Tau, iX,
+          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, q_Tau, ix,
                                               tau_func);
-          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, iCF_V, iX,
+          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, q_V, ix,
                                               velocity_func);
-          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, iCF_E, iX,
+          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, q_E, ix,
                                               energy_func);
         });
   }
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int ix) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
+          uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, nNodes - iN - 1, 0);
         }
       });
 }

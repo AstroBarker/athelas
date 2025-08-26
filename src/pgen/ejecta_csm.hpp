@@ -32,9 +32,9 @@ void ejecta_csm_init(State* state, GridStructure* grid, ProblemIn* pin,
   const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
 
-  constexpr static int iCF_Tau = 0;
-  constexpr static int iCF_V = 1;
-  constexpr static int iCF_E = 2;
+  constexpr static int q_Tau = 0;
+  constexpr static int q_V = 1;
+  constexpr static int q_E = 2;
 
   constexpr static int iPF_D = 0;
 
@@ -49,15 +49,13 @@ void ejecta_csm_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   // Phase 1: Initialize nodal values (always done)
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
-        const double X1 = grid->get_centers(iX);
-
+      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          const double x = grid->node_coordinate(iX, iNodeX);
+          const double x = grid->node_coordinate(ix, iNodeX);
           if (x <= rstar) {
-            uPF(iPF_D, iX, iNodeX) = 1.0 / (constants::FOURPI * rstar3 / 3.0);
+            uPF(ix, iNodeX, iPF_D) = 1.0 / (constants::FOURPI * rstar3 / 3.0);
           } else {
-            uPF(iPF_D, iX, iNodeX) = 1.0;
+            uPF(ix, iNodeX, iPF_D) = 1.0;
           }
         }
       });
@@ -65,33 +63,33 @@ void ejecta_csm_init(State* state, GridStructure* grid, ProblemIn* pin,
   // Phase 2: Initialize modal coefficients
   if (fluid_basis != nullptr) {
     Kokkos::parallel_for(
-        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
           const int k = 0;
-          const double X1 = grid->get_centers(iX);
+          const double X1 = grid->get_centers(ix);
 
           if (X1 <= rstar) {
             const double rho = 1.0 / (constants::FOURPI * rstar3 / 3.0);
             const double pressure = (1.0e-5) * rho * vmax * vmax;
             const double vel = vmax * (X1 / rstar);
-            uCF(iCF_Tau, iX, k) = 1.0 / rho;
-            uCF(iCF_V, iX, k) = vel;
-            uCF(iCF_E, iX, k) = (pressure / gm1 / rho) + 0.5 * vel * vel;
+            uCF(ix, k, q_Tau) = 1.0 / rho;
+            uCF(ix, k, q_V) = vel;
+            uCF(ix, k, q_E) = (pressure / gm1 / rho) + 0.5 * vel * vel;
           } else {
             const double rho = 1.0;
             const double pressure = (1.0e-5) * rho * vmax * vmax;
-            uCF(iCF_Tau, iX, k) = 1.0 / rho;
-            uCF(iCF_V, iX, k) = 0.0;
-            uCF(iCF_E, iX, k) = (pressure / gm1 / rho);
+            uCF(ix, k, q_Tau) = 1.0 / rho;
+            uCF(ix, k, q_V) = 0.0;
+            uCF(ix, k, q_E) = (pressure / gm1 / rho);
           }
         });
   }
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int iX) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int ix) {
         for (int iN = 0; iN < nNodes; iN++) {
-          uPF(0, ilo - 1 - iX, iN) = uPF(0, ilo + iX, nNodes - iN - 1);
-          uPF(0, ihi + 1 + iX, iN) = uPF(0, ihi - iX, nNodes - iN - 1);
+          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
+          uPF(ihi + 1 + ix, iN, 0) = uPF(ihi - ix, nNodes - iN - 1, 0);
         }
       });
 }

@@ -301,27 +301,27 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
   }
 
   // Fill data arrays
-  for (int iX = ilo; iX <= ihi; iX++) {
-    const int i_local = iX - ilo;
+  for (int ix = ilo; ix <= ihi; ix++) {
+    const int i_local = ix - ilo;
 
     // Cell-centered quantities (filled once per cell)
-    data_arrays["grid/x"][i_local] = grid.get_centers(iX);
-    data_arrays["grid/dx"][i_local] = grid.get_widths(iX);
-    data_arrays["diagnostic/limiter"][i_local] = get_limited(SL, iX);
+    data_arrays["grid/x"][i_local] = grid.get_centers(ix);
+    data_arrays["grid/dx"][i_local] = grid.get_widths(ix);
+    data_arrays["diagnostic/limiter"][i_local] = get_limited(SL, ix);
 
     // Modal quantities (filled for each mode in each cell)
     for (int k = 0; k < order; k++) {
       const int idx = i_local + (k * nX);
 
-      data_arrays["grid/x_nodal"][idx] = grid.node_coordinate(iX, k);
-      data_arrays["conserved/tau"][idx] = uCF(0, iX, k);
-      data_arrays["conserved/velocity"][idx] = uCF(1, iX, k);
-      data_arrays["conserved/energy"][idx] = uCF(2, iX, k);
-      data_arrays["auxiliary/pressure"][idx] = uAF(0, iX, k);
+      data_arrays["grid/x_nodal"][idx] = grid.node_coordinate(ix, k);
+      data_arrays["conserved/tau"][idx] = uCF(ix, k, 0);
+      data_arrays["conserved/velocity"][idx] = uCF(ix, k, 1);
+      data_arrays["conserved/energy"][idx] = uCF(ix, k, 2);
+      data_arrays["auxiliary/pressure"][idx] = uAF(ix, k, 0);
 
       if (do_rad) {
-        data_arrays["conserved/rad_energy"][idx] = uCF(3, iX, k);
-        data_arrays["conserved/rad_momentum"][idx] = uCF(4, iX, k);
+        data_arrays["conserved/rad_energy"][idx] = uCF(ix, k, 3);
+        data_arrays["conserved/rad_momentum"][idx] = uCF(ix, k, 4);
       }
     }
   }
@@ -388,11 +388,11 @@ void write_basis(ModalBasis* basis, const int ihi, const int nNodes,
   std::vector<double> data(total_size);
 
   // Fill data using vector indexing instead of pointer arithmetic
-  for (int iX = ilo; iX <= ihi; iX++) {
+  for (int ix = ilo; ix <= ihi; ix++) {
     for (int iN = 0; iN < nNodes + 2; iN++) {
       for (int k = 0; k < order; k++) {
-        const size_t idx = (((iX - ilo) * (nNodes + 2) + iN) * order) + k;
-        data[idx] = basis->get_phi(static_cast<int>(iX), static_cast<int>(iN),
+        const size_t idx = (((ix - ilo) * (nNodes + 2) + iN) * order) + k;
+        data[idx] = basis->get_phi(static_cast<int>(ix), static_cast<int>(iN),
                                    static_cast<int>(k));
       }
     }

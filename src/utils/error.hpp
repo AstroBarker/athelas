@@ -96,54 +96,54 @@ void check_state(T state, const int ihi, const bool do_rad) {
   Kokkos::deep_copy(uCF_h, uCF);
 
   // Check state on host
-  for (int iX = 1; iX <= ihi; iX++) {
+  for (int ix = 1; ix <= ihi; ix++) {
 
-    const double tau = uCF_h(0, iX, 0); // cell averages checked
-    const double vel = uCF_h(1, iX, 0);
-    const double e_m = uCF_h(2, iX, 0);
+    const double tau = uCF_h(ix, 0, 0); // cell averages checked
+    const double vel = uCF_h(ix, 0, 1);
+    const double e_m = uCF_h(ix, 0, 2);
 
     if (tau <= 0.0) {
-      std::println("Error on cell {}", iX);
+      std::println("Error on cell {}", ix);
       THROW_ATHELAS_ERROR("Negative or zero density!");
     }
     if (std::isnan(tau)) {
-      std::println("Error on cell {}", iX);
+      std::println("Error on cell {}", ix);
       THROW_ATHELAS_ERROR("Specific volume NaN!");
     }
 
     if (std::fabs(vel) >= c) {
-      std::println("Error on cell {}", iX);
+      std::println("Error on cell {}", ix);
       THROW_ATHELAS_ERROR("Velocity reached or exceeded speed of light!");
     }
     if (std::isnan(vel)) {
-      std::println("Error on cell {}", iX);
+      std::println("Error on cell {}", ix);
       THROW_ATHELAS_ERROR("Velocity NaN!");
     }
 
     if (e_m <= 0.0) {
-      std::println("Error on cell {}", iX);
+      std::println("Error on cell {}", ix);
       THROW_ATHELAS_ERROR("Negative or zero specific total energy!");
     }
     if (std::isnan(e_m)) {
-      std::println("Error on cell {}", iX);
+      std::println("Error on cell {}", ix);
       THROW_ATHELAS_ERROR("Specific energy NaN!");
     }
 
     if (do_rad) {
-      const double e_rad = uCF_h(3, iX, 0);
-      const double f_rad = uCF_h(4, iX, 0);
+      const double e_rad = uCF_h(ix, 0, 3);
+      const double f_rad = uCF_h(ix, 0, 4);
 
       if (std::isnan(e_rad)) {
-        std::println("Error on cell {}", iX);
+        std::println("Error on cell {}", ix);
         THROW_ATHELAS_ERROR("Radiation energy NaN!");
       }
       if (e_rad <= 0.0) {
-        std::println("Error on cell {}", iX);
+        std::println("Error on cell {}", ix);
         THROW_ATHELAS_ERROR("Negative or zero radiation energy density!");
       }
 
       if (std::isnan(f_rad)) {
-        std::println("Error on cell {}", iX);
+        std::println("Error on cell {}", ix);
         THROW_ATHELAS_ERROR("Radiation flux NaN!");
       }
     }

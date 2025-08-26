@@ -3,7 +3,6 @@
  * @file utilities.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Useful utilities
  *
  * @details Provides
@@ -28,11 +27,11 @@ namespace utilities {
  */
 KOKKOS_FUNCTION
 template <typename T>
-constexpr auto LINTERP(T x0, T x1, T y0, T y1, T x) -> T {
+constexpr auto LINTERP(T x0, T x1, T y0, T y1, T x) noexcept -> T {
   if (x0 == x1) {
     return y0;
   }
-  T t = (x - x0) / (x1 - x0);
+  const T t = (x - x0) / (x1 - x0);
   return std::fma(y1 - y0, t, y0);
 }
 
@@ -80,19 +79,19 @@ KOKKOS_INLINE_FUNCTION auto ratio(const A& a, const B& b) {
 template <class T>
 KOKKOS_INLINE_FUNCTION auto compute_internal_energy(T U,
                                                     const ModalBasis* basis,
-                                                    const int iX, const int iN)
+                                                    const int ix, const int iN)
     -> double {
-  const double Vel = basis->basis_eval(U, iX, 1, iN);
-  const double EmT = basis->basis_eval(U, iX, 2, iN);
+  const double Vel = basis->basis_eval(U, ix, 1, iN);
+  const double EmT = basis->basis_eval(U, ix, 2, iN);
 
   return EmT - (0.5 * Vel * Vel);
 }
 
 // cell average specific internal energy
 template <class T>
-KOKKOS_INLINE_FUNCTION auto compute_internal_energy(T U, const int iX)
+KOKKOS_INLINE_FUNCTION auto compute_internal_energy(T U, const int ix)
     -> double {
-  return U(2, iX, 0) - (0.5 * U(1, iX, 0) * U(1, iX, 0));
+  return U(ix, 0, 2) - (0.5 * U(ix, 0, 1) * U(ix, 0, 1));
 }
 
 // string to_lower function
