@@ -43,10 +43,10 @@ def plot_rad_shock(chk):
 
   fig, ax = plt.subplots(figsize=(3.5, 3.5))
   plt.minorticks_on()
-  pre_color = "#94a76f"
-  vel_color = "#d08c60"
-  # sie_color = "#b07aa1"
-  # rho_color = "#7095b8"
+  #rho_color = "#86e3a1"  # green
+  #vel_color = "#ff9a8b"  # orange
+  sie_color = "#d287ef"  # purple
+  pre_color = "#8cc8f3"  # blue
 
   ## --- analytic solution ---
   # EV_TO_K = 1.0 / consts.k_B.to("eV / K").value
@@ -84,7 +84,7 @@ def plot_rad_shock(chk):
   # )
 
   # --- athelas ---
-  ax.plot(r, T_g / T_g[0], label="Fluid", color=vel_color)
+  ax.plot(r, T_g / T_g[0], label="Fluid", color=sie_color)
   ax.plot(r, T_r / T_r[0], label="Radiation", color=pre_color, ls="--")
   #  ax.plot(r, p, label="Pressure", color=pre_color)
 
@@ -94,11 +94,11 @@ def plot_rad_shock(chk):
   #    ax.axvline(r[i], color="#7c8c8c", alpha=0.25)
 
   ax.legend(frameon=False)
-  ax.set(ylabel=r"Temperature [K]", xlabel="x [cm]")
+  ax.set(ylabel=r"Temperature [K]", xlabel="x [cm]", xlim=[0.0, 0.005])
 
   svname = f"{problem}_{chk}.png"
   print(f"Saving figure {svname}")
-  plt.savefig(svname)
+  plt.savefig(svname, dpi=300)
   plt.close(fig)
 
 

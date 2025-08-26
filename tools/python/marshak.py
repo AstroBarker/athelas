@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from astropy import constants as consts
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -43,8 +44,10 @@ def plot_marshak(chk):
 
   fig, ax = plt.subplots(figsize=(3.5, 3.5))
   plt.minorticks_on()
-  pre_color = "#94a76f"
-  vel_color = "#d08c60"
+  rho_color = "#86e3a1"  # green
+  vel_color = "#ff9a8b"  # orange
+  sie_color = "#d287ef"  # purple
+  pre_color = "#8cc8f3"  # blue
 
   # --- analytic solution ---
   kappa = 577.0
@@ -53,44 +56,23 @@ def plot_marshak(chk):
     "marshak.dat", unpack=True, usecols=(1, 4, 5)
   )
   x_sol = np.sqrt(3) * x_sol / chi
-  ax.semilogx(
-    x_sol,
-    t_rad_sol * t_bndry,
-    ls=" ",
-    marker="o",
-    color=pre_color,
-    alpha=0.5,
-    markersize=2.0,
+  plt.scatter(
+      (x_sol),
+      t_fluid_sol * t_bndry,
+      s=12,
+      facecolor=mcolors.to_rgba(sie_color, alpha=0.05),
+      edgecolor=mcolors.to_rgba(sie_color, alpha=0.5),
+      linewidth=0.5,
+      label='Analytic Solution',
   )
-  ax.semilogx(
-    x_sol,
-    t_fluid_sol * t_bndry,
-    ls=" ",
-    marker="o",
-    color=vel_color,
-    alpha=0.5,
-    markersize=2.0,
-  )
-
-  ax.semilogx(
-    x_sol,
-    t_rad_sol * t_bndry,
-    ls=" ",
-    marker="o",
-    color=pre_color,
-    alpha=0.75,
-    fillstyle="none",
-    markersize=2.0,
-  )
-  ax.semilogx(
-    x_sol,
-    t_fluid_sol * t_bndry,
-    ls=" ",
-    marker="o",
-    color=vel_color,
-    alpha=0.75,
-    fillstyle="none",
-    markersize=2.0,
+  plt.scatter(
+      (x_sol),
+      t_rad_sol * t_bndry,
+      s=12,
+      facecolor=mcolors.to_rgba(pre_color, alpha=0.05),
+      edgecolor=mcolors.to_rgba(pre_color, alpha=0.5),
+      linewidth=0.5,
+      label='Analytic Solution',
   )
 
   # --- athelas ---
@@ -98,7 +80,7 @@ def plot_marshak(chk):
   new_r = np.zeros_like(r)
   for i in range(len(r)):
     new_r[i] = np.sqrt(3) * r[i]
-  ax.semilogx(new_r, T_g, label="Fluid", color=vel_color)
+  ax.semilogx(new_r, T_g, label="Fluid", color=sie_color)
   ax.semilogx(new_r, T_r, label="Radiation", color=pre_color, ls="--")
 
   ax.legend(frameon=False)
@@ -106,7 +88,7 @@ def plot_marshak(chk):
 
   svname = f"{problem}_{chk}.png"
   print(f"Saving figure {svname}")
-  plt.savefig(svname)
+  plt.savefig(svname, dpi=300)
   plt.close(fig)
 
 

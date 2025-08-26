@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -27,10 +28,10 @@ def plot_sedov(chk):
 
   fig, ax = plt.subplots(figsize=(3.5, 3.5))
   plt.minorticks_on()
-  #  pre_color = "#94a76f"
-  #  vel_color = "#d08c60"
-  #  sie_color = "#b07aa1"
-  rho_color = "#7095b8"
+  rho_color = "#86e3a1"  # green
+  #vel_color = "#ff9a8b"  # orange
+  #sie_color = "#d287ef"  # purple
+  #pre_color = "#8cc8f3"  # blue
 
   # --- analytic solution ---
   t_final = a.time
@@ -43,49 +44,18 @@ def plot_sedov(chk):
 
   xsol = np.linspace(0.0, 1.0, 64)
   sol = solver._run(xsol, t_final)
-  #  ax.plot(xsol, sol["pressure"], color=pre_color, ls=" ", marker="o", alpha=0.75)
-  #  ax.plot(xsol, sol["pressure"], color=pre_color, ls=" ", marker="o", alpha=1.0, fillstyle="none")
-  ax.plot(xsol, sol["density"], color=rho_color, ls=" ", marker="o", alpha=0.75)
-  # ax.plot(xsol, sol["velocity"], color=vel_color, ls=" ", marker="o", alpha=0.75)
-  # ax.plot(xsol, sol["pressure"], color=pre_color, ls=" ", marker="o", alpha=0.75)
-  ax.plot(
-    xsol,
-    sol["density"],
-    color=rho_color,
-    ls=" ",
-    marker="o",
-    alpha=1.0,
-    fillstyle="none",
+  plt.scatter(
+      xsol,
+      sol["density"],
+      s=18,
+      facecolor=mcolors.to_rgba(rho_color, alpha=0.25),
+      edgecolor=mcolors.to_rgba(rho_color, alpha=1.0),
+      linewidth=0.5,
+      label='Analytic Solution',
   )
-  # ax.plot(
-  #  xsol,
-  #  sol["velocity"],
-  #  color=vel_color,
-  #  ls=" ",
-  #  marker="o",
-  #  alpha=1.0,
-  #  fillstyle="none",
-  # )
-  # ax.plot(
-  #  xsol,
-  #  sol["pressure"],
-  #  color=pre_color,
-  #  ls=" ",
-  #  marker="o",
-  #  alpha=1.0,
-  #  fillstyle="none",
-  # )
 
   # --- athelas ---
   ax.plot(r, rho, label="Density", color=rho_color)
-  # ax.plot(r, vel, label="Velocity", color=vel_color)
-  # ax.plot(r, p, label="Pressure", color=pre_color)
-  #  ax.plot(r, p, label="Pressure", color=pre_color)
-
-  ## limiting
-  # for i in range(len(r)):
-  #  if a.slope_limiter[i] == 1:
-  #    ax.axvline(r[i], color="#7c8c8c", alpha=0.25)
 
   ax.legend(frameon=False)
   ax.set(ylabel=r"$\rho$ [a.u.]", xlabel="x [a.u.]")
