@@ -16,11 +16,13 @@ class Athelas:
   def __init__(self, fn, basis_fn=None):
     self.uCF: Optional[np.ndarray] = None
     self.uCR: Optional[np.ndarray] = None
+    self.uAF: Optional[np.ndarray] = None
     self.time = None
     self.sOrder = None  # spatial order
     self.nX = None  # number of cells
 
     self.r = None  # spatial grid
+    self.r_nodal = None # nodal spatial grid
     self.dr = None  # widths
 
     # indices
@@ -39,6 +41,7 @@ class Athelas:
       self.basis = ModalBasis(basis_fn)
 
     assert self.uCF is not None
+    assert self.uAF is not None
     assert self.uCR is not None
 
   # End __init__
@@ -58,7 +61,7 @@ class Athelas:
   def _load_variable(self, f, name, shape):
     """Load a variable from HDF5 and reshape into (nX, sOrder)"""
     flat = f[f"{name}"][:]
-    return flat.reshape((self.sOrder, self.nX)).T  # shape: (nX, sOrder)
+    return flat.reshape(shape).T  # shape: (nX, sOrder)
 
   def _load(self, fn):
     """
@@ -72,29 +75,34 @@ class Athelas:
         self.nX = f["metadata/nx"][0]
 
         self.r = f["grid/x"][:]
+        self.r_nodal = f["grid/x_nodal"][:]
         self.dr = f["grid/dx"][:]
 
         nvars = 3
         self.uCF = np.zeros((nvars, self.nX, self.sOrder))
         self.uCR = np.zeros((2, self.nX, self.sOrder))
+        self.uAF = np.zeros((2, self.nX * self.sOrder))
         assert self.uCF is not None
         assert self.uCR is not None
 
         self.uCF[0] = self._load_variable(
-          f, "conserved/tau", (self.nX, self.sOrder)
+          f, "conserved/tau", (self.sOrder, self.nX)
         )
         self.uCF[1] = self._load_variable(
-          f, "conserved/velocity", (self.nX, self.sOrder)
+          f, "conserved/velocity", (self.sOrder, self.nX)
         )
         self.uCF[2] = self._load_variable(
-          f, "conserved/energy", (self.nX, self.sOrder)
+          f, "conserved/energy", (self.sOrder, self.nX)
+        )
+        self.uAF[0] = self._load_variable(
+          f, "auxiliary/pressure", -1
         )
         try:
           self.uCR[0] = self._load_variable(
-            f, "conserved/rad_energy", (self.nX, self.sOrder)
+            f, "conserved/rad_energy", (self.sOrder, self.nX)
           )
           self.uCR[1] = self._load_variable(
-            f, "conserved/rad_momentum", (self.nX, self.sOrder)
+            f, "conserved/rad_momentum", (self.sOrder, self.nX)
           )
         except KeyError as e:
           print(f"KeyError: {e}")

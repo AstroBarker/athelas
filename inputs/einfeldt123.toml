@@ -7,16 +7,16 @@ geometry = "planar"
 restart = false
 xl = 0.0
 xr = 1.0
-cfl = 0.7
-nx = 256
+cfl = 0.5
+nx = 2048
 
 [problem.params]
 vL = -2.0
 vR = +2.0
 rhoL = 1.0
 rhoR = 1.0
-pL = 1.2
-pR = 1.2
+pL = 0.4
+pR = 0.4
 x_d = 0.5
 
 [physics]
@@ -36,31 +36,26 @@ ncycle_out = 100
 dt_init_frac = 1.25
 
 [output.history]
-fn = "athelas.hst"
+fn = "einfeldt.hst"
 #dt = 0.001 # default: dt_hdf5 / 10
 
 [fluid]
 basis = "legendre"
-nnodes = 2
-porder = 2
+nnodes = 3
+porder = 3
 
 [fluid.limiter]
 do_limiter = true
 type = "minmod"
-m_tvb = 100.0
+m_tvb = 5.0
 b_tvd = 1.0
 tci_opt = true
 tci_val = 1.0e-1
 characteristic = false
 gamma_i = 0.998
-weno_r = 1
-#gamma_r = 0.005
-#gamma_l = 0.005
-#b_tvd = 2.0 #minmod
-#m_tvb = 1.0 #minmod
 
 [time]
-integrator = "EX_SSPRK33"
+integrator = "EX_SSPRK22"
 
 [eos]
 type = "ideal"

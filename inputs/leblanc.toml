@@ -5,7 +5,7 @@ nlim = -1
 geometry = "planar"
 xl = 0.0
 xr = 10.0
-cfl = 0.1
+cfl = 0.6
 nx = 2048
 
 [problem.params]
@@ -39,8 +39,8 @@ fn = "leblanc.hst"
 
 [fluid]
 basis = "legendre"
-nnodes = 1
-porder = 1
+nnodes = 2
+porder = 2
 
 
 [fluid.limiter]
@@ -48,9 +48,9 @@ do_limiter = true
 type = "minmod"
 m_tvb = 0.0
 b_tvd = 1.0
-tci_opt = false
+tci_opt = true
 tci_val = 1.0e-5
-characteristic = true
+characteristic = false
 gamma_i = 0.1
 #gamma_r = 0.005
 #gamma_l = 0.005
