@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+
+#include "composition/composition.hpp"
 #include "utils/abstractions.hpp"
 #include "utils/error.hpp"
 
@@ -10,7 +13,7 @@
 class State {
  public:
   State(int nvar, int nPF, int nAF, int nX_, int nNodes_, int pOrder,
-        bool composition_enabled, int ncomps = 0);
+        bool composition_enabled);
 
   [[nodiscard]] auto n_cf() const noexcept -> int;
   [[nodiscard]] auto n_pf() const noexcept -> int;
@@ -21,16 +24,14 @@ class State {
   [[nodiscard]] auto u_pf() const noexcept -> View3D<double>;
   [[nodiscard]] auto u_af() const noexcept -> View3D<double>;
 
-  [[nodiscard]] auto has_composition() const noexcept -> bool {
+
+  [[nodiscard]] auto composition_enabled() const noexcept -> bool {
     return composition_enabled_;
   }
 
-  [[nodiscard]] auto u_comp() const -> View3D<double> {
-    if (!composition_enabled_) {
-      THROW_ATHELAS_ERROR("Composition not enabled!");
-    }
-    return uComp_;
-  }
+  [[nodiscard]] auto comps() const -> CompositionData*;
+
+  void setup_composition(std::shared_ptr<CompositionData> comps);
 
  private:
   int nvar_;
@@ -41,7 +42,9 @@ class State {
   View3D<double> uCF_; // Conserved fluid
   View3D<double> uPF_; // primitive fluid
   View3D<double> uAF_; // auxiliary fluid
-  View3D<double> uComp_; // Composition. Default constructed = no allocation
+ 
+  std::shared_ptr<CompositionData> comps_;
+
 
   bool composition_enabled_;
 };

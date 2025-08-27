@@ -256,8 +256,7 @@ Driver::Driver(std::shared_ptr<ProblemIn> pin) // NOLINT
              pin->param()->get<int>("problem.nx"),
              pin->param()->get<int>("fluid.nnodes"),
              pin->param()->get<int>("fluid.porder"),
-             pin_->param()->get<bool>("physics.composition_enabled"),
-             pin->param()->get<int>("composition.ncomps", 0)),
+             pin_->param()->get<bool>("physics.composition_enabled")),
       sl_hydro_(
           initialize_slope_limiter("fluid", &grid_, pin.get(), {0, 1, 2}, 3)),
       sl_rad_(initialize_slope_limiter("radiation", &grid_, pin.get(), {3, 4},
