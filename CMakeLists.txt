@@ -91,6 +91,7 @@ if(ATHELAS_ENABLE_SANITIZERS)
 endif()
 
 include_directories(src)
+include_directories("src/composition")
 include_directories("src/concepts")
 include_directories("src/geometry")
 include_directories("src/history")
@@ -119,6 +120,7 @@ include_directories(athelas PUBLIC
 set( ATHELAS_SOURCES 
   "generated/build_info.cpp"
   "src/driver.cpp"
+  "src/composition/composition.cpp"
   "src/pgen/problem_in.cpp"
   "src/basis/polynomial_basis.cpp"
   "src/bc/boundary_conditions.cpp"

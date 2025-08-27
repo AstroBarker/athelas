@@ -410,10 +410,18 @@ auto ModalBasis::get_phi(const int ix, const int i_eta, const int k) const
   return phi_(ix, i_eta, k);
 }
 
+[[nodiscard]] auto ModalBasis::phi() const noexcept -> View3D<double> {
+  return phi_;
+}
+
 // Accessor for dphi_
 auto ModalBasis::get_d_phi(const int ix, const int i_eta, const int k) const
     -> double {
   return dphi_(ix, i_eta, k);
+}
+
+[[nodiscard]] auto ModalBasis::dphi() const noexcept -> View3D<double> {
+  return dphi_;
 }
 
 // Accessor for mass matrix
