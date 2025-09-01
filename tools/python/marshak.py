@@ -44,8 +44,8 @@ def plot_marshak(chk):
 
   fig, ax = plt.subplots(figsize=(3.5, 3.5))
   plt.minorticks_on()
-  rho_color = "#86e3a1"  # green
-  vel_color = "#ff9a8b"  # orange
+  # rho_color = "#86e3a1"  # green
+  # vel_color = "#ff9a8b"  # orange
   sie_color = "#d287ef"  # purple
   pre_color = "#8cc8f3"  # blue
 

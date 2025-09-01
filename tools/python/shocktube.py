@@ -31,7 +31,7 @@ def plot_shocktube(chk):
   plt.minorticks_on()
   rho_color = "#86e3a1"  # green
   vel_color = "#ff9a8b"  # orange
-  sie_color = "#d287ef"  # purple
+  # sie_color = "#d287ef"  # purple
   pre_color = "#8cc8f3"  # blue
 
   # --- analytic solution ---
