@@ -24,8 +24,8 @@ def plot_rad_shock(chk):
   r = a.r
   # tau = a.uCF[0, :, 0]
   # rho = 1.0 / tau
-  vel = a.uCF[1, :, 0]
-  emT = a.uCF[2, :, 0]
+  vel = a.uCF[:, 0, 1]
+  emT = a.uCF[:, 0, 2]
   em = emT - 0.5 * vel * vel
   # ev = em * rho
   gamma = 5.0 / 3.0
@@ -38,7 +38,7 @@ def plot_rad_shock(chk):
   T_g = (gamma - 1.0) * mu * m_p * em / kb
 
   # rad
-  ev_r = a.uCR[0, :, 0]
+  ev_r = a.uCF[:, 0, 3]
   T_r = np.power(ev_r / a_rad, 0.25)
 
   fig, ax = plt.subplots(figsize=(3.5, 3.5))

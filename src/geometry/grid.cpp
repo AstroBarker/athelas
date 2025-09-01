@@ -301,3 +301,11 @@ KOKKOS_FUNCTION
 auto GridStructure::operator()(int i, int j) const -> double {
   return grid_(i, j);
 }
+
+[[nodiscard]] auto GridStructure::widths() -> View1D<double> { return widths_; }
+[[nodiscard]] auto GridStructure::centers() -> View1D<double> {
+  return centers_;
+}
+[[nodiscard]] auto GridStructure::nodal_grid() -> View2D<double> {
+  return grid_;
+}

@@ -88,9 +88,9 @@ def main():
   te = ThermalEquilibrium(e_gas, kappa, T, e_rad, t_end)
   te.evolve()
 
-  files = sorted(glob.glob("rad_eq*.h5"))[1:]
-  athelas_time = np.zeros(len(files))
-  athelas_ener = np.zeros(len(files))
+  files = sorted(glob.glob("rad_eq*.h5"))[:]
+  athelas_time = np.zeros(len(files) - 1)
+  athelas_ener = np.zeros(len(files) - 1)
 
   fig, ax = plt.subplots()
   i = 0
@@ -99,10 +99,12 @@ def main():
       continue
     a = Athelas(fn)
     athelas_time[i] = a.time
-    athelas_ener[i] = a.uCF[2, 0, 0] / a.uCF[0, 0, 0]
+    athelas_ener[i] = a.uCF[0, 0, 2] / a.uCF[0, 0, 0]
     i += 1
+  print(athelas_time)
+  print(athelas_ener)
   ax.loglog(
-    athelas_time, athelas_ener, marker="x", color="#98A785", label="Athelas"
+    athelas_time, athelas_ener, marker="x", color="#98A785", label="Athelas", ls=" "
   )
   ax.loglog(te.t, te.sol, color="k", ls="--", label="Analytic")
   ax.legend(frameon=False)

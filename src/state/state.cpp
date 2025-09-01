@@ -1,4 +1,5 @@
 #include "state/state.hpp"
+#include "utils/error.hpp"
 
 State::State(const int nvar, const int nPF, const int nAF, const int nX_,
              const int nNodes_, const int pOrder,
@@ -6,12 +7,12 @@ State::State(const int nvar, const int nPF, const int nAF, const int nX_,
     : nvar_(nvar), nPF_(nPF), nAF_(nAF), pOrder_(pOrder),
       uCF_("uCF", nX_ + 2, pOrder_, nvar_), uPF_("uPF", nX_ + 2, nNodes_, nPF_),
       uAF_("uAF", nX_ + 2, nNodes_, nAF_),
-      composition_enabled_(composition_enabled) {
-}
+      composition_enabled_(composition_enabled) {}
 
 void State::setup_composition(std::shared_ptr<CompositionData> comps) {
   if (!composition_enabled_) {
-    THROW_ATHELAS_ERROR("Trying to set composition but composition is not enabled!");
+    THROW_ATHELAS_ERROR(
+        "Trying to set composition but composition is not enabled!");
   }
   comps_ = std::move(comps);
 }

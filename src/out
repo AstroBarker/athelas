@@ -1,0 +1,58 @@
+radiation/radhydro_package.cpp:      Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
+radiation/radhydro_package.cpp:      Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
+radiation/radhydro_package.cpp:      "RadHydro :: implicit iterative", Kokkos::RangePolicy<>(ilo, ihi + 1),
+radiation/radhydro_package.cpp:        Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0}, {ihi + 1, order, NUM_VARS_}),
+radiation/radhydro_package.cpp:        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
+radiation/radhydro_package.cpp:      "RadHydro::min_timestep", Kokkos::RangePolicy<>(ilo, ihi + 1),
+timestepper/timestepper.hpp:            Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 1}, {ihi + 2, order, nvars}),
+timestepper/timestepper.hpp:          Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 1}, {ihi + 2, order, nvars}),
+basis/polynomial_basis.cpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_CLASS_LAMBDA(int iX) {
+bc/boundary_conditions.hpp:      "Fill ghost zones", Kokkos::RangePolicy<>(start, stop + 1),
+geometry/grid.cpp:      "Grid Update 1", Kokkos::RangePolicy<>(ilo, ihi + 2),
+limiters/slope_limiter_utilities.cpp:      "SlopeLimiter :: TCI :: Zero", Kokkos::RangePolicy<>(ilo, ihi + 1),
+limiters/slope_limiter_utilities.cpp:        "SlopeLimiter :: TCI", Kokkos::RangePolicy<>(ilo, ihi + 1),
+limiters/slope_limiter_weno.cpp:        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_CLASS_LAMBDA(const int iX) {
+limiters/slope_limiter_weno.cpp:        "SlopeLimiter :: WENO", Kokkos::RangePolicy<>(ilo, ihi + 1),
+limiters/slope_limiter_weno.cpp:        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_CLASS_LAMBDA(const int iX) {
+limiters/bound_enforcing_limiter.cpp:      "BEL::Limit Density", Kokkos::RangePolicy<>(1, U.extent(1) - 1),
+limiters/bound_enforcing_limiter.cpp:      "BEL::Limit Internal Energy", Kokkos::RangePolicy<>(1, U.extent(1) - 2),
+limiters/bound_enforcing_limiter.cpp:      "BEL::Limit Rad Energy", Kokkos::RangePolicy<>(1, U.extent(1) - 1),
+limiters/bound_enforcing_limiter.cpp:      "BEL::Limit Rad Momentum", Kokkos::RangePolicy<>(1, U.extent(1) - 1),
+limiters/slope_limiter_tvdminmod.cpp:      Kokkos::RangePolicy<>(ilo, ihi + 1),
+limiters/slope_limiter_tvdminmod.cpp:        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_CLASS_LAMBDA(const int iX) {
+limiters/slope_limiter_tvdminmod.cpp:        "SlopeLimiter :: Minmod", Kokkos::RangePolicy<>(ilo, ihi + 1),
+limiters/slope_limiter_tvdminmod.cpp:        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_CLASS_LAMBDA(const int iX) {
+utils/fill_derived.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+fluid/hydro_package.cpp:        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
+fluid/hydro_package.cpp:      Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
+fluid/hydro_package.cpp:      "Hydro::min_timestep", Kokkos::RangePolicy<>(ilo, ihi + 1),
+history/quantities.hpp:      "History :: TotalEnergyFluid", Kokkos::RangePolicy<>(ilo, ihi + 1),
+history/quantities.hpp:      "History :: TotalMomentumFluid", Kokkos::RangePolicy<>(ilo, ihi + 1),
+history/quantities.hpp:      "History :: TotalInternalEnergy", Kokkos::RangePolicy<>(ilo, ihi + 1),
+history/quantities.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1),
+history/quantities.hpp:      "History :: TotalKineticEnergy", Kokkos::RangePolicy<>(ilo, ihi + 1),
+history/quantities.hpp:      "History :: TotalEnergyRad", Kokkos::RangePolicy<>(ilo, ihi + 1),
+history/quantities.hpp:      "History :: TotalRadMomentum", Kokkos::RangePolicy<>(ilo, ihi + 1),
+history/quantities.hpp:      "History :: TotalEnergy", Kokkos::RangePolicy<>(ilo, ihi + 1),
+history/quantities.hpp:      "History :: TotalMomentum", Kokkos::RangePolicy<>(ilo, ihi + 1),
+history/quantities.hpp:      "History :: TotalMass", Kokkos::RangePolicy<>(ilo, ihi + 1),
+gravity/gravity_package.cpp:      Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
+pgen/shockless_noh.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/advection.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/advection.hpp:        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/sod.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/sod.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/shu_osher.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/shu_osher.hpp:        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/shu_osher.hpp:        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/gas_collapse.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/noh.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/moving_contact.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/ejecta_csm.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/ejecta_csm.hpp:        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/hydrostatic_balance.hpp:        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/hydrostatic_balance.hpp:        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/smooth_flow.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/smooth_flow.hpp:        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+pgen/sedov.hpp:      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int iX) {
+solvers/hydrostatic_equilibrium.cpp:      "copy grid", Kokkos::RangePolicy<>(0, ihi + 1), KOKKOS_LAMBDA(int iX) {

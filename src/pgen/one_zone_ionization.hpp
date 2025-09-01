@@ -12,9 +12,13 @@
  * Initialize one_zone_ionization test
  **/
 void one_zone_ionization_init(State* state, GridStructure* grid, ProblemIn* pin,
-                          const EOS* /*eos*/,
-                          ModalBasis* /*fluid_basis = nullptr*/,
-                          ModalBasis* /*radiation_basis = nullptr*/) {
+                              const EOS* eos,
+                              ModalBasis* /*fluid_basis = nullptr*/) {
+  const bool ionization_active =
+      pin->param()->get<bool>("physics.ionization_enabled");
+  if (!ionization_active) {
+    THROW_ATHELAS_ERROR("One zone ionization requires ionization enabled!");
+  }
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("One zone ionization requires ideal gas eos!");
   }
@@ -32,32 +36,55 @@ void one_zone_ionization_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   const int iPF_D = 0;
 
-  const int iCR_E = 3;
+  const auto temperature =
+      pin->param()->get<double>("problem.params.temperature", 5800); // K
+  const auto rho =
+      pin->param()->get<double>("problem.params.rho", 1000.0); // g/cc
+  const auto ncomps = pin->param()->get<int>("problem.params.ncomps", 1);
+  const double vel = 0.0;
+  const double tau = 1.0 / rho;
 
-  const auto V0 = pin->param()->get<double>("problem.params.v0", 0.0);
-  const auto logD = pin->param()->get<double>("problem.params.logrho", -7.0);
-  const auto logE_gas =
-      pin->param()->get<double>("problem.params.logE_gas", 10.0);
-  const auto logE_rad =
-      pin->param()->get<double>("problem.params.logE_rad", 12.0);
+  if (temperature <= 0.0 || rho <= 0.0) {
+    THROW_ATHELAS_ERROR("Temperature and denisty must be positive definite!");
+  }
 
-  const double D = std::pow(10.0, logD);
-  const double Ev_gas = std::pow(10.0, logE_gas);
-  const double Ev_rad = std::pow(10.0, logE_rad);
+  const double mu = 1.0 + constants::m_e / constants::m_p;
+  const double gamma = get_gamma(eos);
+  const double gm1 = gamma - 1.0;
+  const double sie = constants::k_B * temperature / (gm1 * mu * constants::m_p);
 
+  std::shared_ptr<CompositionData> comps = std::make_shared<CompositionData>(
+      grid->get_n_elements() + 2, nNodes, ncomps, ncomps + 1);
+  auto mass_fractions = comps->mass_fractions();
+  auto ionization_states = comps->ionization_fractions();
+  auto charges = comps->charge();
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int ix) {
         const int k = 0;
 
-        uCF(ix, k, q_Tau) = 1.0 / D;
-        uCF(ix, k, q_V) = V0;
-        uCF(ix, k, q_E) = Ev_gas / D;
-        uCF(ix, k, iCR_E) = Ev_rad;
+        uCF(ix, k, q_Tau) = tau;
+        uCF(ix, k, q_V) = vel;
+        uCF(ix, k, q_E) = sie;
 
         for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          uPF(ix, iNodeX, iPF_D) = D;
+          uPF(ix, iNodeX, iPF_D) = rho;
+        }
+
+        // set up comps
+        // For this problem we set up a contiguous list of species
+        // form Z = 1 to ncomps. Mass fractions are uniform.
+        for (int node = 0; node < nNodes; ++node) {
+          for (int elem = 0; elem < ncomps; ++elem) {
+            charges(elem) = elem + 1;
+            mass_fractions(ix, node, elem) = 1.0 / ncomps;
+            for (int z = 0; z < elem + 1; ++z) {
+              ionization_states(ix, node, elem, z) = 0.0; // unnecessary
+            }
+          }
         }
       });
+
+  state->setup_composition(comps);
 
   // Fill density in guard cells
   Kokkos::parallel_for(

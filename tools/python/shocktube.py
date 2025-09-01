@@ -19,9 +19,9 @@ def plot_shocktube(chk):
 
   a = Athelas(fn, basis_fn)
   r = a.r
-  tau = a.uCF[0, :, 0]
-  vel = a.uCF[1, :, 0]
-  emT = a.uCF[2, :, 0]
+  tau = a.uCF[:, 0, 0]
+  vel = a.uCF[:, 0, 1]
+  emT = a.uCF[:, 0, 2]
   em = emT - 0.5 * vel * vel
   rho = 1.0 / tau
   gamma = 1.4

@@ -4,7 +4,6 @@
 
 #include "composition/composition.hpp"
 #include "utils/abstractions.hpp"
-#include "utils/error.hpp"
 
 /**
  * @class State
@@ -24,7 +23,6 @@ class State {
   [[nodiscard]] auto u_pf() const noexcept -> View3D<double>;
   [[nodiscard]] auto u_af() const noexcept -> View3D<double>;
 
-
   [[nodiscard]] auto composition_enabled() const noexcept -> bool {
     return composition_enabled_;
   }
@@ -42,9 +40,8 @@ class State {
   View3D<double> uCF_; // Conserved fluid
   View3D<double> uPF_; // primitive fluid
   View3D<double> uAF_; // auxiliary fluid
- 
-  std::shared_ptr<CompositionData> comps_;
 
+  std::shared_ptr<CompositionData> comps_;
 
   bool composition_enabled_;
 };

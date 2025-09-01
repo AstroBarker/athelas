@@ -30,4 +30,7 @@ class SlopeLimiterBase {
   [[nodiscard]] auto get_limited(const int ix) const -> int {
     return static_cast<SlopeLimiter const*>(this)->get_limited(ix);
   }
+  [[nodiscard]] auto limited() const -> View1D<int> {
+    return static_cast<SlopeLimiter const*>(this)->limited();
+  }
 };

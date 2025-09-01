@@ -109,28 +109,39 @@ ProblemIn::ProblemIn(const std::string& fn) {
   if (!config_["problem"]["params"].is_table()) {
     THROW_ATHELAS_ERROR("No [params] block in [problem]!");
   }
+
   auto* pparams = config_["problem"]["params"].as_table();
   for (auto&& [key, node] : *pparams) {
-    // There must be a better way to do this...
-    if (auto val = node.value<int>()) {
-      std::string this_key = std::string{key};
-      std::string out = "problem.params." + this_key;
-      params_->add(out, val.value());
-    }
-    if (auto val = node.value<double>()) {
-      std::string this_key = std::string{key};
-      std::string out = "problem.params." + this_key;
-      params_->add(out, val.value());
-    }
-    if (auto val = node.value<bool>()) {
-      std::string this_key = std::string{key};
-      std::string out = "problem.params." + this_key;
-      params_->add(out, val.value());
-    }
-    if (auto val = node.value<std::string>()) {
-      std::string this_key = std::string{key};
-      std::string out = "problem.params." + this_key;
-      params_->add(out, val.value());
+    std::string out_key = "problem.params." + std::string(key);
+
+    using toml::node_type;
+    switch (node.type()) {
+    case node_type::integer:
+      if (auto val = node.value<int64_t>()) {
+        params_->add(out_key, static_cast<int>(*val)); // or int64_t
+      }
+      break;
+
+    case node_type::floating_point:
+      if (auto val = node.value<double>()) {
+        params_->add(out_key, *val);
+      }
+      break;
+
+    case node_type::boolean:
+      if (auto val = node.value<bool>()) {
+        params_->add(out_key, *val);
+      }
+      break;
+
+    case node_type::string:
+      if (auto val = node.value<std::string>()) {
+        params_->add(out_key, *val);
+      }
+      break;
+
+    default:
+      THROW_ATHELAS_ERROR("Unsupported TOML type for key: " + std::string(key));
     }
   }
 
@@ -491,18 +502,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
   // ---------------------------------
   // ---------- composition ----------
   // ---------------------------------
-  if (!config_["composition"].is_table() && comps.value()) {
-    THROW_ATHELAS_ERROR(
-        "Composition enabled but no [composition] block provided!");
-  }
-  std::optional<int> ncomps = config_["composition"]["ncomps"].value<int>();
-  if (comps.value() && !ncomps) {
-    THROW_ATHELAS_ERROR(
-        "Composition enabled but [composition.ncomps] not provided!");
-  }
-  if (comps.value()) {
-    params_->add("composition.ncomps", ncomps.value());
-  }
+  // not sure if anything goes here.
 
   // --------------------------------
   // ---------- ionization ----------

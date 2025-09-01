@@ -74,6 +74,10 @@ class GridStructure {
   KOKKOS_FUNCTION
   void compute_center_of_mass_radius(View3D<double> uPF);
 
+  [[nodiscard]] auto widths() -> View1D<double>;
+  [[nodiscard]] auto centers() -> View1D<double>;
+  [[nodiscard]] auto nodal_grid() -> View2D<double>;
+
   KOKKOS_FUNCTION
   auto operator()(int i, int j) -> double&;
   KOKKOS_FUNCTION

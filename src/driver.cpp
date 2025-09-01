@@ -25,9 +25,7 @@ auto Driver::execute() -> int {
   const auto problem_name = pin_->param()->get<std::string>("problem.problem");
 
   // some startup io
-  write_basis(fluid_basis_.get(), pin_->param()->get<int>("problem.nx"),
-              pin_->param()->get<int>("fluid.nnodes"),
-              pin_->param()->get<int>("fluid.porder"),
+  write_basis(fluid_basis_.get(),
               pin_->param()->get<std::string>("problem.problem"));
   print_simulation_parameters(grid_, pin_.get());
   write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
