@@ -29,9 +29,9 @@ def plot_sedov(chk):
   fig, ax = plt.subplots(figsize=(3.5, 3.5))
   plt.minorticks_on()
   rho_color = "#86e3a1"  # green
-  #vel_color = "#ff9a8b"  # orange
-  #sie_color = "#d287ef"  # purple
-  #pre_color = "#8cc8f3"  # blue
+  # vel_color = "#ff9a8b"  # orange
+  # sie_color = "#d287ef"  # purple
+  # pre_color = "#8cc8f3"  # blue
 
   # --- analytic solution ---
   t_final = a.time
@@ -45,13 +45,13 @@ def plot_sedov(chk):
   xsol = np.linspace(0.0, 1.0, 64)
   sol = solver._run(xsol, t_final)
   plt.scatter(
-      xsol,
-      sol["density"],
-      s=18,
-      facecolor=mcolors.to_rgba(rho_color, alpha=0.25),
-      edgecolor=mcolors.to_rgba(rho_color, alpha=1.0),
-      linewidth=0.5,
-      label='Analytic Solution',
+    xsol,
+    sol["density"],
+    s=18,
+    facecolor=mcolors.to_rgba(rho_color, alpha=0.25),
+    edgecolor=mcolors.to_rgba(rho_color, alpha=1.0),
+    linewidth=0.5,
+    label="Analytic Solution",
   )
 
   # --- athelas ---

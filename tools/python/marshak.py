@@ -57,22 +57,22 @@ def plot_marshak(chk):
   )
   x_sol = np.sqrt(3) * x_sol / chi
   plt.scatter(
-      (x_sol),
-      t_fluid_sol * t_bndry,
-      s=12,
-      facecolor=mcolors.to_rgba(sie_color, alpha=0.05),
-      edgecolor=mcolors.to_rgba(sie_color, alpha=0.5),
-      linewidth=0.5,
-      label='Analytic Solution',
+    (x_sol),
+    t_fluid_sol * t_bndry,
+    s=12,
+    facecolor=mcolors.to_rgba(sie_color, alpha=0.05),
+    edgecolor=mcolors.to_rgba(sie_color, alpha=0.5),
+    linewidth=0.5,
+    label="Analytic Solution",
   )
   plt.scatter(
-      (x_sol),
-      t_rad_sol * t_bndry,
-      s=12,
-      facecolor=mcolors.to_rgba(pre_color, alpha=0.05),
-      edgecolor=mcolors.to_rgba(pre_color, alpha=0.5),
-      linewidth=0.5,
-      label='Analytic Solution',
+    (x_sol),
+    t_rad_sol * t_bndry,
+    s=12,
+    facecolor=mcolors.to_rgba(pre_color, alpha=0.05),
+    edgecolor=mcolors.to_rgba(pre_color, alpha=0.5),
+    linewidth=0.5,
+    label="Analytic Solution",
   )
 
   # --- athelas ---

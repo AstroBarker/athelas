@@ -104,7 +104,12 @@ def main():
   print(athelas_time)
   print(athelas_ener)
   ax.loglog(
-    athelas_time, athelas_ener, marker="x", color="#98A785", label="Athelas", ls=" "
+    athelas_time,
+    athelas_ener,
+    marker="x",
+    color="#98A785",
+    label="Athelas",
+    ls=" ",
   )
   ax.loglog(te.t, te.sol, color="k", ls="--", label="Analytic")
   ax.legend(frameon=False)

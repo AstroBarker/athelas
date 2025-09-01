@@ -55,31 +55,30 @@ def plot_shocktube(chk):
   sol = solver._run(xsol, t_final)
   # streakplot(solver=solver, soln=sol, xs=xsol, t=t_final, N=101, var_str="pressure")
   plt.scatter(
-      xsol,
-      sol["density"],
-      s=18,
-      facecolor=mcolors.to_rgba(rho_color, alpha=0.25),
-      edgecolor=mcolors.to_rgba(rho_color, alpha=1.0),
-      linewidth=0.5,
-      label='Analytic Solution',
+    xsol,
+    sol["density"],
+    s=18,
+    facecolor=mcolors.to_rgba(rho_color, alpha=0.25),
+    edgecolor=mcolors.to_rgba(rho_color, alpha=1.0),
+    linewidth=0.5,
+    label="Analytic Solution",
   )
   plt.scatter(
-      xsol,
-      sol["pressure"],
-      s=18,
-      facecolor=mcolors.to_rgba(pre_color, alpha=0.25),
-      edgecolor=mcolors.to_rgba(pre_color, alpha=1.0),
-      linewidth=0.5,
+    xsol,
+    sol["pressure"],
+    s=18,
+    facecolor=mcolors.to_rgba(pre_color, alpha=0.25),
+    edgecolor=mcolors.to_rgba(pre_color, alpha=1.0),
+    linewidth=0.5,
   )
   plt.scatter(
-      xsol,
-      sol["velocity"],
-      s=18,
-      facecolor=mcolors.to_rgba(vel_color, alpha=0.25),
-      edgecolor=mcolors.to_rgba(vel_color, alpha=1.0),
-      linewidth=0.5,
+    xsol,
+    sol["velocity"],
+    s=18,
+    facecolor=mcolors.to_rgba(vel_color, alpha=0.25),
+    edgecolor=mcolors.to_rgba(vel_color, alpha=1.0),
+    linewidth=0.5,
   )
-
 
   ax.plot(r, rho, label="Density", color=rho_color)
   ax.plot(r, vel, label="Velocity", color=vel_color)
