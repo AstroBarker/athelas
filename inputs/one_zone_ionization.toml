@@ -1,0 +1,57 @@
+[problem]
+problem = "one_zone_ionization"
+t_end = 1.0
+nlim = 2
+geometry = "planar"
+restart = false
+xl = 0.0
+xr = 1.0
+cfl = 0.8
+nx = 1
+
+[problem.params]
+temperature = 5800.0
+rho = 1000.0
+ncomps = 6
+
+[physics]
+radiation = false
+gravity = false
+composition = true
+ionization = true
+
+[ionization]
+fn_ionization = "../data/atomic_data_ionization.dat"
+fn_degeneracy = "../data/atomic_data_degeneracy_factors.dat"
+
+[bc]
+[bc.fluid]
+bc_i = "outflow"
+bc_o = "outflow"
+
+[output]
+ncycle_out = 1
+#dt_hdf5 = 1.0e-12 # default: 100 outputs
+dt_init_frac = 1.005
+
+[output.history]
+fn = "one_zone_ionization.hst"
+#dt = 0.001 # default: dt_hdf5 / 10
+
+[fluid]
+basis = "legendre"
+nnodes = 2
+porder = 2
+
+[fluid.limiter]
+do_limiter = false
+tci_opt = false
+tci_val = 0.1
+characteristic = false
+
+[time]
+integrator = "EX_SSPRK11"
+
+[eos]
+type = "ideal"
+gamma = 1.66666666666667 # default: 1.4
