@@ -53,8 +53,9 @@ void one_zone_ionization_init(State* state, GridStructure* grid, ProblemIn* pin,
   const double gm1 = gamma - 1.0;
   const double sie = constants::k_B * temperature / (gm1 * mu * constants::m_p);
 
-  std::shared_ptr<CompositionData> comps = std::make_shared<CompositionData>(
-      grid->get_n_elements() + 2, nNodes, ncomps, ncomps + 1);
+  std::shared_ptr<CompositionData> comps =
+      std::make_shared<CompositionData>(grid->get_n_elements() + 2, nNodes,
+                                        ncomps, ncomps + 1, ionization_active);
   auto mass_fractions = comps->mass_fractions();
   auto ionization_states = comps->ionization_fractions();
   auto charges = comps->charge();
@@ -77,8 +78,12 @@ void one_zone_ionization_init(State* state, GridStructure* grid, ProblemIn* pin,
           for (int elem = 0; elem < ncomps; ++elem) {
             charges(elem) = elem + 1;
             mass_fractions(ix, node, elem) = 1.0 / ncomps;
-            for (int z = 0; z < elem + 1; ++z) {
-              ionization_states(ix, node, elem, z) = 0.0; // unnecessary
+
+            // overkill
+            if (ionization_active) {
+              for (int z = 0; z < elem + 1; ++z) {
+                ionization_states(ix, node, elem, z) = 0.0; // unnecessary
+              }
             }
           }
         }
