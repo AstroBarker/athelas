@@ -128,7 +128,7 @@ class AtomicData {
     Kokkos::deep_copy(atomic_numbers_, atomic_numbers_host);
   }
 
-  [[nodiscard]] KOKKOS_INLINE_FUNCTION auto species_data(int species) const {
+  [[nodiscard]] KOKKOS_INLINE_FUNCTION auto species_data(size_t species) const {
     const size_t offset = offsets_(species);
     const size_t next_offset = (species + 1 < num_species_)
                                    ? offsets_(species + 1)

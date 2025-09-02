@@ -95,7 +95,7 @@ auto electron_density(const View3D<double> mass_fractions,
   double n_e = 0.0;
   const size_t n_species = charges.size();
 
-  for (int elem = 0; elem < n_species; ++elem) {
+  for (size_t elem = 0; elem < n_species; ++elem) {
     const double ne_elem = element_number_density(
         mass_fractions(ix, node, elem), charges(elem), rho);
 
