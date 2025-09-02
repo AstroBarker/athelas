@@ -18,16 +18,13 @@
 #include "timestepper/timestepper.hpp"
 #include "utils/abstractions.hpp"
 #include "utils/error.hpp"
-#include "utils/fill_derived.hpp"
 
 auto Driver::execute() -> int {
   const auto nx = pin_->param()->get<int>("problem.nx");
-  const auto problem_name = pin_->param()->get<std::string>("problem.problem");
 
   // some startup io
-  write_basis(fluid_basis_.get(), pin_->param()->get<int>("problem.nx"),
-              pin_->param()->get<int>("fluid.nnodes"),
-              pin_->param()->get<int>("fluid.porder"),
+  manager_->fill_derived(&state_, grid_);
+  write_basis(fluid_basis_.get(),
               pin_->param()->get<std::string>("problem.problem"));
   print_simulation_parameters(grid_, pin_.get());
   write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
@@ -93,7 +90,7 @@ auto Driver::execute() -> int {
 
     // Write state, other io
     if (time_ >= i_out_h5 * dt_hdf5) {
-      fill_derived(&state_, eos_.get(), &grid_, fluid_basis_.get());
+      manager_->fill_derived(&state_, grid_);
       write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
                   fluid_basis_->get_order(), i_out_h5, opts_.do_rad);
       i_out_h5 += 1;
@@ -116,7 +113,7 @@ auto Driver::execute() -> int {
     iStep++;
   }
 
-  fill_derived(&state_, eos_.get(), &grid_, fluid_basis_.get());
+  manager_->fill_derived(&state_, grid_);
   write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
               pin_->param()->get<int>("fluid.porder"), -1, opts_.do_rad);
 
@@ -256,8 +253,7 @@ Driver::Driver(std::shared_ptr<ProblemIn> pin) // NOLINT
              pin->param()->get<int>("problem.nx"),
              pin->param()->get<int>("fluid.nnodes"),
              pin->param()->get<int>("fluid.porder"),
-             pin_->param()->get<bool>("physics.composition_enabled"),
-             pin->param()->get<int>("composition.ncomps", 0)),
+             pin_->param()->get<bool>("physics.composition_enabled")),
       sl_hydro_(
           initialize_slope_limiter("fluid", &grid_, pin.get(), {0, 1, 2}, 3)),
       sl_rad_(initialize_slope_limiter("radiation", &grid_, pin.get(), {3, 4},

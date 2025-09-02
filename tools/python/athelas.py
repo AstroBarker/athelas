@@ -11,18 +11,19 @@ import numpy as np
 class Athelas:
   """
   Athelas Python class
+  TODO: allow for loading ghost cells.
+  Make not horrible
   """
 
   def __init__(self, fn, basis_fn=None):
     self.uCF: Optional[np.ndarray] = None
-    self.uCR: Optional[np.ndarray] = None
     self.uAF: Optional[np.ndarray] = None
-    self.time = None
-    self.sOrder = None  # spatial order
-    self.nX = None  # number of cells
+    self.time = None  # type: Optional[float]
+    self.sOrder = None  # type: Optional[int]
+    self.nX = None  # type: Optional[int]
 
     self.r = None  # spatial grid
-    self.r_nodal = None # nodal spatial grid
+    self.r_nodal = None  # nodal spatial grid
     self.dr = None  # widths
 
     # indices
@@ -30,8 +31,8 @@ class Athelas:
       "tau": 0,
       "velocity": 1,
       "energy": 2,
-      "rad_energy": 0,
-      "rad_flux": 1,
+      "rad_energy": 3,
+      "rad_flux": 4,
     }
 
     self._load(fn)
@@ -42,7 +43,6 @@ class Athelas:
 
     assert self.uCF is not None
     assert self.uAF is not None
-    assert self.uCR is not None
 
   # End __init__
 
@@ -52,16 +52,14 @@ class Athelas:
       f"Time: {self.time}\n"
       f"Order: {self.sOrder}\n"
       f"Cells: {self.nX}\n"
-      f"Grid range: {self.r[0]} - {self.r[-1]} (Δr ~ {np.mean(self.dr)})\n"
       f"Basis loaded: {self.basis is not None}\n"
     )
 
   # End __str__
 
-  def _load_variable(self, f, name, shape):
+  def _load_variable(self, f, name):
     """Load a variable from HDF5 and reshape into (nX, sOrder)"""
-    flat = f[f"{name}"][:]
-    return flat.reshape(shape).T  # shape: (nX, sOrder)
+    return f[name][:]
 
   def _load(self, fn):
     """
@@ -70,61 +68,32 @@ class Athelas:
 
     try:
       with h5py.File(fn, "r") as f:
-        self.time = f["metadata/time"][0]
-        self.sOrder = f["metadata/order"][0]
-        self.nX = f["metadata/nx"][0]
+        self.time = f["metadata/time"][0]  # type: ignore
+        self.sOrder = f["metadata/order"][0]  # type: ignore
+        self.nX = f["metadata/nx"][0]  # type: ignore
 
-        self.r = f["grid/x"][:]
-        self.r_nodal = f["grid/x_nodal"][:]
-        self.dr = f["grid/dx"][:]
+        self.r = f["grid/x"][1:-1]  # type: ignore
+        self.r_nodal = f["grid/x_nodal"][1:-1]  # type: ignore
+        self.dr = f["grid/dx"][1:-1]  # type: ignore
 
-        nvars = 3
-        self.uCF = np.zeros((nvars, self.nX, self.sOrder))
-        self.uCR = np.zeros((2, self.nX, self.sOrder))
-        self.uAF = np.zeros((2, self.nX * self.sOrder))
-        assert self.uCF is not None
-        assert self.uCR is not None
-
-        self.uCF[0] = self._load_variable(
-          f, "conserved/tau", (self.sOrder, self.nX)
-        )
-        self.uCF[1] = self._load_variable(
-          f, "conserved/velocity", (self.sOrder, self.nX)
-        )
-        self.uCF[2] = self._load_variable(
-          f, "conserved/energy", (self.sOrder, self.nX)
-        )
-        self.uAF[0] = self._load_variable(
-          f, "auxiliary/pressure", -1
-        )
-        try:
-          self.uCR[0] = self._load_variable(
-            f, "conserved/rad_energy", (self.sOrder, self.nX)
-          )
-          self.uCR[1] = self._load_variable(
-            f, "conserved/rad_momentum", (self.sOrder, self.nX)
-          )
-        except KeyError as e:
-          print(f"KeyError: {e}")
-          self.uCR = np.zeros_like(self.uCR[0])
+        self.uCF = self._load_variable(f, "variables/conserved")[1:-1, ...]  # type: ignore
+        self.uAF = self._load_variable(f, "variables/auxiliary")[1:-1, ...]  # type: ignore
     except (OSError, KeyError) as e:
       raise RuntimeError(f"Failed to load file '{fn}': {e}")
 
-#    self.slope_limiter = f["diagnostic/limiter"][:]
+  #    self.slope_limiter = f["diagnostic/limiter"][:]
 
-    # TODO:
-    # uPF, uAF, uCR
+  # TODO:
 
-    # End _load
+  # End _load
 
   def get(self, var, k=0):
     assert self.uCF is not None
-    assert self.uCR is not None
     idx = self.idx.get(var)
     if idx is None:
       raise KeyError(f"Unknown variable '{var}'")
 
-    return self.uCR[idx, :, k] if "rad" in var else self.uCF[idx, :, k]
+    return self.uCF[:, k, idx]
 
   # End get_
 
@@ -133,12 +102,11 @@ class Athelas:
     Evaluate polynomial for quantity iQ at quadrature point iEta on cell iX
     """
     assert self.uCF is not None
-    assert self.uCR is not None
     assert self.basis is not None
 
     result = 0.0
     for k in range(self.basis.order):
-      result += self.basis.phi[iX, iEta, k] * self.uCF[iQ, iX, k]
+      result += self.basis.phi[iX, iEta, k] * self.uCF[iX, k, iQ]
     return result
 
   def plot(self, ax, var, logx=False, logy=False, label=None, color="#b07aa1"):

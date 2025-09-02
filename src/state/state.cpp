@@ -1,18 +1,27 @@
 #include "state/state.hpp"
+#include "utils/error.hpp"
 
 State::State(const int nvar, const int nPF, const int nAF, const int nX_,
              const int nNodes_, const int pOrder,
-             const bool composition_enabled, const int ncomps)
+             const bool composition_enabled)
     : nvar_(nvar), nPF_(nPF), nAF_(nAF), pOrder_(pOrder),
       uCF_("uCF", nX_ + 2, pOrder_, nvar_), uPF_("uPF", nX_ + 2, nNodes_, nPF_),
       uAF_("uAF", nX_ + 2, nNodes_, nAF_),
-      composition_enabled_(composition_enabled) {
-  if (composition_enabled) {
-    if (ncomps <= 0) {
-      THROW_ATHELAS_ERROR("Composition enabled but ncomps <= 0!");
-    }
-    uComp_ = View3D<double>("composition", nX_, nNodes_, ncomps);
+      composition_enabled_(composition_enabled) {}
+
+void State::setup_composition(std::shared_ptr<CompositionData> comps) {
+  if (!composition_enabled_) {
+    THROW_ATHELAS_ERROR(
+        "Trying to set composition but composition is not enabled!");
   }
+  comps_ = std::move(comps);
+}
+
+[[nodiscard]] auto State::comps() const -> CompositionData* {
+  if (!composition_enabled_) {
+    THROW_ATHELAS_ERROR("Composition not enabled!");
+  }
+  return comps_.get();
 }
 
 // num var accessors

@@ -30,5 +30,6 @@ static constexpr double hbar = 1.05457182e-27; // cgs
 static constexpr double N_A = 6.02214076e+23; // 1 / mol
 static constexpr double c_cgs = 2.99792458e+10; // cgs
 static constexpr double c = 1.0; // natural
+static constexpr double amu_to_g = 1.66053906660e-24;
 
 } // namespace constants

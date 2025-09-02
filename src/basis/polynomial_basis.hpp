@@ -42,7 +42,9 @@ class ModalBasis {
   void compute_mass_matrix(View3D<double> uCF, GridStructure* grid);
 
   [[nodiscard]] auto get_phi(int ix, int i_eta, int k) const -> double;
+  [[nodiscard]] auto phi() const noexcept -> View3D<double>;
   [[nodiscard]] auto get_d_phi(int ix, int i_eta, int k) const -> double;
+  [[nodiscard]] auto dphi() const noexcept -> View3D<double>;
   [[nodiscard]] auto get_mass_matrix(int ix, int k) const -> double;
 
   [[nodiscard]] auto get_order() const noexcept -> int;

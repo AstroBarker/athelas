@@ -28,10 +28,10 @@ def plot_marshak(chk):
 
   a = Athelas(fn, basis_fn)
   r = a.r
-  tau = a.uCF[0, :, 0]
+  tau = a.uCF[:, 0, 0]
   rho = 1.0 / tau
-  vel = a.uCF[1, :, 0]
-  emT = a.uCF[2, :, 0]
+  vel = a.uCF[:, 0, 1]
+  emT = a.uCF[:, 0, 2]
   em = emT - 0.5 * vel * vel
   ev = em * rho
 
@@ -39,13 +39,13 @@ def plot_marshak(chk):
   T_g = np.power(4.0 * ev / alpha_so, 0.25)
 
   # rad
-  ev_r = a.uCR[0, :, 0]
+  ev_r = a.uCF[:, 0, 3]
   T_r = np.power(ev_r / a_rad, 0.25)
 
   fig, ax = plt.subplots(figsize=(3.5, 3.5))
   plt.minorticks_on()
-  rho_color = "#86e3a1"  # green
-  vel_color = "#ff9a8b"  # orange
+  # rho_color = "#86e3a1"  # green
+  # vel_color = "#ff9a8b"  # orange
   sie_color = "#d287ef"  # purple
   pre_color = "#8cc8f3"  # blue
 
@@ -57,22 +57,22 @@ def plot_marshak(chk):
   )
   x_sol = np.sqrt(3) * x_sol / chi
   plt.scatter(
-      (x_sol),
-      t_fluid_sol * t_bndry,
-      s=12,
-      facecolor=mcolors.to_rgba(sie_color, alpha=0.05),
-      edgecolor=mcolors.to_rgba(sie_color, alpha=0.5),
-      linewidth=0.5,
-      label='Analytic Solution',
+    (x_sol),
+    t_fluid_sol * t_bndry,
+    s=12,
+    facecolor=mcolors.to_rgba(sie_color, alpha=0.05),
+    edgecolor=mcolors.to_rgba(sie_color, alpha=0.5),
+    linewidth=0.5,
+    label="Analytic Solution",
   )
   plt.scatter(
-      (x_sol),
-      t_rad_sol * t_bndry,
-      s=12,
-      facecolor=mcolors.to_rgba(pre_color, alpha=0.05),
-      edgecolor=mcolors.to_rgba(pre_color, alpha=0.5),
-      linewidth=0.5,
-      label='Analytic Solution',
+    (x_sol),
+    t_rad_sol * t_bndry,
+    s=12,
+    facecolor=mcolors.to_rgba(pre_color, alpha=0.05),
+    edgecolor=mcolors.to_rgba(pre_color, alpha=0.5),
+    linewidth=0.5,
+    label="Analytic Solution",
   )
 
   # --- athelas ---

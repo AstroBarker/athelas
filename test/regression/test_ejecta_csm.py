@@ -38,9 +38,7 @@ class EjectaCSMTest(AthelasRegressionTest):
     varlist = [
       "grid/x",
       "grid/dx",
-      "conserved/energy",
-      "conserved/tau",
-      "conserved/velocity",
+      "variables/conserved",
     ]
 
     # Initialize the parent class with test-specific parameters
@@ -58,8 +56,7 @@ class EjectaCSMTest(AthelasRegressionTest):
       upgold=False,
       tolerance=1.0e-5,
       build_required=build_required,
-      compression_factor=10,
-      test_high_order=True,
+      compression_factor=4,
     )
 
   def test_ejecta_csm(self):

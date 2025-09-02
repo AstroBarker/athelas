@@ -11,6 +11,7 @@ class ModalBasis:
   def __init__(self, fn):
     self.order = None  # spatial order
     self.phi = None
+    self.dphi = None
 
     self.load_(fn)
 
@@ -29,7 +30,8 @@ class ModalBasis:
     """
 
     with h5py.File(fn, "r") as f:
-      self.phi = f["basis"][:, :, :]  # nX, order + 2, order
+      self.phi = f["basis/phi"][:, :, :]  # nX, order + 2, order
+      self.dphi = f["basis/dphi"][:, :, :]  # nX, order + 2, order
 
     self.order = len(self.phi[0, 0, :])
 

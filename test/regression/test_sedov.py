@@ -38,9 +38,7 @@ class SedovBlastWaveTest(AthelasRegressionTest):
     varlist = [
       "grid/x",
       "grid/dx",
-      "conserved/energy",
-      "conserved/tau",
-      "conserved/velocity",
+      "variables/conserved",
     ]
 
     # Initialize the parent class with test-specific parameters
@@ -59,7 +57,6 @@ class SedovBlastWaveTest(AthelasRegressionTest):
       tolerance=1.0e-5,
       build_required=build_required,
       compression_factor=2,
-      test_high_order=False,
     )
 
   def test_sedov(self):

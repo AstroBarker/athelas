@@ -13,6 +13,7 @@
 
 #include "concepts/packages.hpp"
 #include "geometry/grid.hpp"
+#include "state/state.hpp"
 
 // Package wrapper that erases types while maintaining performance
 // TODO(astrobarker) move to a CRTP pattern
@@ -71,6 +72,12 @@ class PackageWrapper {
     return std::numeric_limits<double>::max();
   }
 
+  void fill_derived(State* state, const GridStructure& grid) const {
+    if (package_->is_active()) {
+      package_->fill_derived(state, grid);
+    }
+  }
+
   [[nodiscard]] auto name() const noexcept -> std::string_view {
     return package_->name();
   }
@@ -98,6 +105,9 @@ class PackageWrapper {
                                             const GridStructure& grid,
                                             const TimeStepInfo& dt_info) const
         -> double = 0;
+
+    virtual void fill_derived(State* state,
+                              const GridStructure& grid) const = 0;
 
     [[nodiscard]] virtual auto name() const noexcept -> std::string_view = 0;
     [[nodiscard]] virtual auto is_active() const noexcept -> bool = 0;
@@ -141,6 +151,10 @@ class PackageWrapper {
                                     const TimeStepInfo& dt_info) const
         -> double override {
       return package_.min_timestep(state, grid, dt_info);
+    }
+
+    void fill_derived(State* state, const GridStructure& grid) const override {
+      package_.fill_derived(state, grid);
     }
 
     [[nodiscard]] auto name() const noexcept -> std::string_view override {
@@ -227,6 +241,14 @@ class PackageManager {
       }
     }
     return min_dt;
+  }
+
+  void fill_derived(State* state, const GridStructure& grid) const {
+    for (const auto& pkg : all_packages_) {
+      if (pkg->is_active()) {
+        pkg->fill_derived(state, grid);
+      }
+    }
   }
 
   void clear() {

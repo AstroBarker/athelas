@@ -15,10 +15,7 @@ def discover_tests(test_dir):
 
   # Get all Python files in the test directory
   for filename in os.listdir(test_dir):
-    if (
-      filename.startswith("test_")
-      and filename.endswith(".py")
-    ):
+    if filename.startswith("test_") and filename.endswith(".py"):
       module_name = filename[:-3]  # Remove .py extension
       test_modules.append(module_name)
 

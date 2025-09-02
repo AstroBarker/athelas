@@ -54,7 +54,6 @@ class RadiationEquilibriumTest(AthelasRegressionTest):
       tolerance=1.0e-5,
       build_required=build_required,
       compression_factor=1,
-      test_high_order=False,  # slopes not well behaved for comparison
     )
 
   def test_radeq(self):
@@ -63,7 +62,7 @@ class RadiationEquilibriumTest(AthelasRegressionTest):
 
     # vars to test
     varlist = [
-      "conserved/energy",
+      "variables/conserved",
     ]
     fn = "rad_equilibrium_final.h5"
     data = self.load_output(fn, varlist)
@@ -79,7 +78,8 @@ class RadiationEquilibriumTest(AthelasRegressionTest):
     te.evolve()
     sol = te.sol[-1]  # scale by density
 
-    self.assertTrue(soft_equiv(sol, data[0] * rho, tol=1.0e-2)) # low tol
+    print(data)
+    self.assertTrue(soft_equiv(sol, data[2] * rho, tol=1.0e-2))  # low tol
 
 
 def create_test_suite(executable_path=None):

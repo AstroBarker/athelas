@@ -26,13 +26,12 @@
 #include "geometry/grid.hpp"
 #include "io/io.hpp"
 #include "limiters/slope_limiter.hpp"
-#include "timestepper/tableau.hpp"
 
 /**
  * Write to standard output some initialization info
  * for the current simulation.
  **/
-void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
+void print_simulation_parameters(GridStructure& grid, ProblemIn* pin) {
   const int nX = grid.get_n_elements();
   const int nNodes = grid.get_n_nodes();
   // NOTE: If I properly support more bases again, adjust here.
@@ -125,14 +124,6 @@ void print_simulation_parameters(GridStructure grid, ProblemIn* pin) {
  * Write simulation output to disk
  **/
 
-// Structure to hold variable metadata
-struct VariableInfo {
-  std::string path;
-  std::string description;
-  bool is_modal; // true if variable has modal structure (nX * order), false if
-                 // cell-centered (nX)
-};
-
 // Helper class for HDF5 output management
 class HDF5Writer {
  private:
@@ -140,17 +131,20 @@ class HDF5Writer {
   std::map<std::string, H5::Group> groups_;
 
  public:
-  HDF5Writer(const std::string& filename) : file_(filename, H5F_ACC_TRUNC) {}
+  explicit HDF5Writer(const std::string& filename)
+      : file_(filename, H5F_ACC_TRUNC) {}
 
   // Create group hierarchy
-  void createGroup(const std::string& path) {
-    if (groups_.find(path) != groups_.end()) return;
+  void create_group(const std::string& path) {
+    if (groups_.contains(path)) {
+      return;
+    };
 
     // Create parent groups recursively
     size_t pos = path.find_last_of('/');
     if (pos != std::string::npos && pos > 0) {
       std::string parent = path.substr(0, pos);
-      createGroup(parent);
+      create_group(parent);
     }
 
     groups_[path] = file_.createGroup(path);
@@ -175,21 +169,36 @@ class HDF5Writer {
     dataset.write(value, stringtype);
   }
 
-  // Write vector data
-  void write_vector(const std::string& path, const std::vector<double>& data,
-                    const std::string& description = "") {
-    std::array<hsize_t, 1> dim = {data.size()};
-    H5::DataSpace space(1, dim.data());
-    H5::DataSet dataset =
-        file_.createDataSet(path, H5::PredType::NATIVE_DOUBLE, space);
-    dataset.write(data.data(), H5::PredType::NATIVE_DOUBLE);
+  template <typename ViewType>
+  void write_view(const ViewType& view, const std::string& dataset_name) {
+    static_assert(Kokkos::is_view<ViewType>::value,
+                  "write_view expects a Kokkos::View");
 
-    if (!description.empty()) {
-      H5::StrType str_type(H5::PredType::C_S1, description.length());
-      H5::Attribute attr = dataset.createAttribute("description", str_type,
-                                                   H5::DataSpace(H5S_SCALAR));
-      attr.write(str_type, description);
+    using value_type = typename ViewType::value_type;
+
+    // ----- 1️⃣ Build the HDF5 dataspace from the View's extents ------------
+    std::vector<hsize_t> dims(view.rank());
+    for (size_t r = 0; r < view.rank(); ++r) {
+      dims[r] = static_cast<hsize_t>(view.extent(r));
     }
+    H5::DataSpace file_space(view.rank(), dims.data());
+
+    // ----- 2️⃣ Open (or create) the file and the dataset -------------------
+    //   - H5F_ACC_TRUNC overwrites any existing file with the same name.
+    H5::DataSet dataset = file_.createDataSet(
+        dataset_name, h5_predtype<value_type>(), file_space);
+
+    // ----- 3️⃣ Mirror the view to host (contiguous memory) -----------------
+    using HostMirror = typename ViewType::HostMirror;
+    HostMirror host_view = Kokkos::create_mirror_view(view);
+    Kokkos::deep_copy(host_view, view);
+
+    // ----- 4️⃣ Write the data ---------------------------------------------
+    // The memory dataspace is identical to the file dataspace because the
+    // host mirror is stored contiguously in C‑order (row‑major).
+    dataset.write(host_view.data(), h5_predtype<value_type>(),
+                  file_space, // mem space
+                  file_space); // file space
   }
 };
 
@@ -209,24 +218,30 @@ auto generate_filename(const std::string& problem_name, int i_write,
   return oss.str();
 }
 
-// @brief write to hdf5
+/**
+ * @brief write to hdf5
+ *
+ * Bad stuff in here.
+ */
 void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
                  ProblemIn* pin, double time, int order, int i_write,
                  bool do_rad) {
 
+  const bool ionization_active =
+      pin->param()->get<bool>("physics.ionization_enabled");
+  const bool composition_active =
+      pin->param()->get<bool>("physics.composition_enabled");
+
   // Get views
-  View3D<double> uCF = state->u_cf();
-  View3D<double> uPF = state->u_pf();
-  View3D<double> uAF = state->u_af();
+  const View3D<double> uCF = state->u_cf();
+  const View3D<double> uPF = state->u_pf();
+  const View3D<double> uAF = state->u_af();
 
   // Grid parameters
   const int nX = grid.get_n_elements();
-  const int ilo = grid.get_ilo();
-  const int ihi = grid.get_ihi();
-  const int modal_size = nX * order;
 
   // Generate filename
-  constexpr int max_digits = 6;
+  static constexpr int max_digits = 6;
   const auto& problem_name =
       pin->param()->get_ref<std::string>("problem.problem");
   std::string filename = generate_filename(problem_name, i_write, max_digits);
@@ -235,95 +250,41 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
   HDF5Writer writer(filename);
 
   // Create group structure
-  writer.createGroup("/metadata");
-  writer.createGroup("/metadata/build");
-  writer.createGroup("/grid");
-  writer.createGroup("/conserved");
-  writer.createGroup("/auxiliary");
-  writer.createGroup("/diagnostic");
-  writer.createGroup("/parameters");
+  writer.create_group("/metadata");
+  writer.create_group("/metadata/build");
+  writer.create_group("/grid");
+  writer.create_group("/variables");
+  writer.create_group("/parameters");
 
-  // Define variable configuration
-  std::map<std::string, VariableInfo> variables{
-      // Grid variables
-      {"grid/x",
-       {.path = "/grid/x", .description = "Cell centers", .is_modal = false}},
-      {"grid/dx",
-       {.path = "/grid/dx", .description = "Cell widths", .is_modal = false}},
-      {"grid/x_nodal",
-       {.path = "/grid/x_nodal",
-        .description = "Nodal coordinates",
-        .is_modal = true}},
+  // TODO(astrobarker): Figure out what to do with fluid vs rad limiters
+  //  if (order > 1 && limiter_active) {
+  //    writer.create_group("/limiter");
+  //    writer.write_view(limited(SL), filename, "limiter/limited");
+  //  }
 
-      // Conserved variables
-      {"conserved/tau",
-       {.path = "/conserved/tau",
-        .description = "Mass density",
-        .is_modal = true}},
-      {"conserved/velocity",
-       {.path = "/conserved/velocity",
-        .description = "Velocity",
-        .is_modal = true}},
-      {"conserved/energy",
-       {.path = "/conserved/energy",
-        .description = "Internal energy",
-        .is_modal = true}},
-
-      // Auxiliary variables
-      {"auxiliary/pressure",
-       {.path = "/auxiliary/pressure",
-        .description = "Pressure",
-        .is_modal = true}},
-
-      // Diagnostic variables
-      {"diagnostic/limiter",
-       {.path = "/diagnostic/limiter",
-        .description = "Slope limiter values",
-        .is_modal = false}}};
-
-  // Add radiation variables if needed
-  if (do_rad) {
-    variables["conserved/rad_energy"] = {.path = "/conserved/rad_energy",
-                                         .description = "Radiation energy",
-                                         .is_modal = true};
-    variables["conserved/rad_momentum"] = {.path = "/conserved/rad_momentum",
-                                           .description = "Radiation momentum",
-                                           .is_modal = true};
+  if (composition_active) {
+    writer.create_group("/composition");
   }
 
-  // Prepare data containers
-  std::map<std::string, std::vector<double>> data_arrays;
+  // write views
+  writer.write_view(uCF, "/variables/conserved");
+  writer.write_view(uPF, "/variables/primitive");
+  writer.write_view(uAF, "/variables/auxiliary");
+  writer.write_view(grid.widths(), "/grid/dx");
+  writer.write_view(grid.centers(), "/grid/x");
+  writer.write_view(grid.nodal_grid(), "/grid/x_nodal");
 
-  // Initialize arrays based on variable type
-  for (const auto& [key, var_info] : variables) {
-    const int size = var_info.is_modal ? modal_size : nX;
-    data_arrays[key] = std::vector<double>(size);
+  if (composition_active) {
+    const auto mass_fractions = state->comps()->mass_fractions();
+    const auto charges = state->comps()->charge();
+    writer.write_view(charges, "/composition/species");
+    writer.write_view(mass_fractions, "/composition/mass_fractions");
   }
 
-  // Fill data arrays
-  for (int ix = ilo; ix <= ihi; ix++) {
-    const int i_local = ix - ilo;
-
-    // Cell-centered quantities (filled once per cell)
-    data_arrays["grid/x"][i_local] = grid.get_centers(ix);
-    data_arrays["grid/dx"][i_local] = grid.get_widths(ix);
-    data_arrays["diagnostic/limiter"][i_local] = get_limited(SL, ix);
-
-    // Modal quantities (filled for each mode in each cell)
-    for (int k = 0; k < order; k++) {
-      const int idx = i_local + (k * nX);
-
-      data_arrays["grid/x_nodal"][idx] = grid.node_coordinate(ix, k);
-      data_arrays["conserved/tau"][idx] = uCF(ix, k, 0);
-      data_arrays["conserved/velocity"][idx] = uCF(ix, k, 1);
-      data_arrays["conserved/energy"][idx] = uCF(ix, k, 2);
-      data_arrays["auxiliary/pressure"][idx] = uAF(ix, k, 0);
-
-      if (do_rad) {
-        data_arrays["conserved/rad_energy"][idx] = uCF(ix, k, 3);
-        data_arrays["conserved/rad_momentum"][idx] = uCF(ix, k, 4);
-      }
-    }
+  if (ionization_active) {
+    const auto ionization_fractions = state->comps()->ionization_fractions();
+    writer.write_view(ionization_fractions,
+                      "/composition/ionization_fractions");
   }
 
   // metadata
@@ -338,14 +299,6 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
   writer.write_string("/metadata/build/arch", build_info::ARCH);
   writer.write_string("/metadata/build/os", build_info::OS);
   writer.write_string("/metadata/build/optimization", build_info::OPTIMIZATION);
-
-  // Write all variable data
-  for (const auto& [key, var_info] : variables) {
-    if (key.find("rad_") != std::string::npos && !do_rad) {
-      continue;
-    }
-    writer.write_vector(var_info.path, data_arrays[key], var_info.description);
-  }
 
   // deal with params
   const auto keys = pin->param()->keys();
@@ -371,42 +324,19 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
 /**
  * Write Modal basis coefficients and mass matrix
  **/
-void write_basis(ModalBasis* basis, const int ihi, const int nNodes,
-                 const int order, const std::string& problem_name) {
+void write_basis(ModalBasis* basis, const std::string& problem_name) {
   std::string fn = problem_name;
   fn.append("_basis");
   fn.append(".h5");
 
-  const char* fn2 = fn.c_str();
+  const char* filename = fn.c_str();
 
-  static constexpr int ilo = 1;
+  // Create HDF5 writer
+  HDF5Writer writer(filename);
 
-  // Calculate total size needed
-  const size_t total_size = static_cast<size_t>(ihi) * (nNodes + 2) * order;
+  // Create group structure
+  writer.create_group("/basis");
 
-  // Use std::vector instead of raw pointer for automatic memory management
-  std::vector<double> data(total_size);
-
-  // Fill data using vector indexing instead of pointer arithmetic
-  for (int ix = ilo; ix <= ihi; ix++) {
-    for (int iN = 0; iN < nNodes + 2; iN++) {
-      for (int k = 0; k < order; k++) {
-        const size_t idx = (((ix - ilo) * (nNodes + 2) + iN) * order) + k;
-        data[idx] = basis->get_phi(static_cast<int>(ix), static_cast<int>(iN),
-                                   static_cast<int>(k));
-      }
-    }
-  }
-
-  // Create HDF5 file and dataset
-  H5::H5File const file(fn2, H5F_ACC_TRUNC);
-  std::array<hsize_t, 3> dimsf = {static_cast<hsize_t>(ihi),
-                                  static_cast<hsize_t>(nNodes + 2),
-                                  static_cast<hsize_t>(order)};
-  H5::DataSpace dataspace(3, dimsf.data());
-  H5::DataSet basisDataset =
-      file.createDataSet("basis", H5::PredType::NATIVE_DOUBLE, dataspace);
-
-  // Write to File
-  basisDataset.write(data.data(), H5::PredType::NATIVE_DOUBLE);
+  writer.write_view(basis->phi(), "/basis/phi");
+  writer.write_view(basis->dphi(), "/basis/dphi");
 }

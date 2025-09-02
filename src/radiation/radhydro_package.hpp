@@ -12,6 +12,7 @@
 #include "geometry/grid.hpp"
 #include "opacity/opac_variant.hpp"
 #include "pgen/problem_in.hpp"
+#include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
 namespace radiation {
@@ -53,6 +54,8 @@ class RadHydroPackage {
   [[nodiscard]] KOKKOS_FUNCTION auto name() const noexcept -> std::string_view;
 
   [[nodiscard]] KOKKOS_FUNCTION auto is_active() const noexcept -> bool;
+
+  void fill_derived(State* state, const GridStructure& grid) const;
 
   KOKKOS_FUNCTION
   void set_active(bool active);

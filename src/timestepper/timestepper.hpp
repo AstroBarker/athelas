@@ -74,7 +74,6 @@ class TimeStepper {
           KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
             SumVar_U_(ix, k, q) = U(ix, k, q);
             stage_data_(iS, ix) = grid.get_left_interface(ix);
-            // stage_data_( iS, ix )    = grid_s_[iS].get_left_interface( ix );
           });
 
       // --- Inner update loop ---
