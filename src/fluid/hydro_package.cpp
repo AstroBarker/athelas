@@ -246,6 +246,52 @@ auto HydroPackage::min_timestep(const View3D<double> state,
   return dt_out;
 }
 
+/**
+ * @brief fill Hydro derived quantities for output
+ *
+ * TODO(astrobarker): extend
+ */
+void HydroPackage::fill_derived(State* state, const GridStructure& grid) const {
+
+  View3D<double> uCF = state->u_cf();
+  View3D<double> uPF = state->u_pf();
+  View3D<double> uAF = state->u_af();
+
+  const int ilo = 1;
+  const int ihi = grid.get_ihi() + 2;
+  const int nNodes = grid.get_n_nodes();
+
+  // --- Apply BC ---
+  bc::fill_ghost_zones<3>(uCF, &grid, basis_, bcs_, {0, 2});
+
+  Kokkos::parallel_for(
+      "Hydro::fill_derived", Kokkos::RangePolicy<>(ilo, ihi),
+      KOKKOS_CLASS_LAMBDA(int ix) {
+        for (int iN = 0; iN < nNodes; ++iN) {
+          const double tau = basis_->basis_eval(uCF, ix, 0, iN + 1);
+          const double vel = basis_->basis_eval(uCF, ix, 1, iN + 1);
+          const double emt = basis_->basis_eval(uCF, ix, 2, iN + 1);
+
+          const double rho = 1.0 / tau;
+          const double momentum = rho * vel;
+          const double sie = (emt - 0.5 * vel * vel);
+
+          auto lambda = nullptr;
+          const double pressure =
+              pressure_from_conserved(eos_, tau, vel, emt, lambda);
+          const double t_gas =
+              temperature_from_conserved(eos_, tau, vel, emt, lambda);
+
+          uPF(ix, iN, 0) = rho;
+          uPF(ix, iN, 1) = momentum;
+          uPF(ix, iN, 2) = sie;
+
+          uAF(ix, iN, 0) = pressure;
+          uAF(ix, iN, 1) = t_gas;
+        }
+      });
+}
+
 [[nodiscard]] KOKKOS_FUNCTION auto HydroPackage::name() const noexcept
     -> std::string_view {
   return "Hydro";

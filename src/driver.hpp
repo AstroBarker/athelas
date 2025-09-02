@@ -22,7 +22,6 @@ using bc::BoundaryConditions;
 class Driver {
  public:
   explicit Driver(std::shared_ptr<ProblemIn> pin);
-  // explicit Driver(ProblemIn* pin);
 
   auto execute() -> int;
 
@@ -45,7 +44,7 @@ class Driver {
   double t_end_;
 
   // core bits
-  // TODO(astrobarker): kepe eos_, opac_ in packages.
+  // TODO(astrobarker): keep eos_, opac_ in packages.
   std::unique_ptr<EOS> eos_;
   std::unique_ptr<Opacity> opac_;
   GridStructure grid_;
@@ -69,7 +68,7 @@ class Driver {
   // The rest
   std::optional<AtomicData> atomic_data_;
 }; // class Driver
-//
+
 namespace {
 
 /**

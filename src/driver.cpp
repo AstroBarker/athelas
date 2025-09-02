@@ -18,13 +18,12 @@
 #include "timestepper/timestepper.hpp"
 #include "utils/abstractions.hpp"
 #include "utils/error.hpp"
-#include "utils/fill_derived.hpp"
 
 auto Driver::execute() -> int {
   const auto nx = pin_->param()->get<int>("problem.nx");
-  const auto problem_name = pin_->param()->get<std::string>("problem.problem");
 
   // some startup io
+  manager_->fill_derived(&state_, grid_);
   write_basis(fluid_basis_.get(),
               pin_->param()->get<std::string>("problem.problem"));
   print_simulation_parameters(grid_, pin_.get());
@@ -91,7 +90,7 @@ auto Driver::execute() -> int {
 
     // Write state, other io
     if (time_ >= i_out_h5 * dt_hdf5) {
-      fill_derived(&state_, eos_.get(), &grid_, fluid_basis_.get());
+      manager_->fill_derived(&state_, grid_);
       write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
                   fluid_basis_->get_order(), i_out_h5, opts_.do_rad);
       i_out_h5 += 1;
@@ -114,7 +113,7 @@ auto Driver::execute() -> int {
     iStep++;
   }
 
-  fill_derived(&state_, eos_.get(), &grid_, fluid_basis_.get());
+  manager_->fill_derived(&state_, grid_);
   write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
               pin_->param()->get<int>("fluid.porder"), -1, opts_.do_rad);
 
