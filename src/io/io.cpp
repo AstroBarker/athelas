@@ -170,8 +170,7 @@ class HDF5Writer {
   }
 
   template <typename ViewType>
-  void write_view(const ViewType& view, const std::string& filename,
-                  const std::string& dataset_name) {
+  void write_view(const ViewType& view, const std::string& dataset_name) {
     static_assert(Kokkos::is_view<ViewType>::value,
                   "write_view expects a Kokkos::View");
 
@@ -232,7 +231,6 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
       pin->param()->get<bool>("physics.ionization_enabled");
   const bool composition_active =
       pin->param()->get<bool>("physics.composition_enabled");
-  const bool limiter_active = pin->param()->get<bool>("limiter.do_limiter");
 
   // Get views
   const View3D<double> uCF = state->u_cf();
@@ -269,23 +267,23 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
   }
 
   // write views
-  writer.write_view(uCF, filename, "/variables/conserved");
-  writer.write_view(uPF, filename, "/variables/primitive");
-  writer.write_view(uAF, filename, "/variables/auxiliary");
-  writer.write_view(grid.widths(), filename, "/grid/dx");
-  writer.write_view(grid.centers(), filename, "/grid/x");
-  writer.write_view(grid.nodal_grid(), filename, "/grid/x_nodal");
+  writer.write_view(uCF, "/variables/conserved");
+  writer.write_view(uPF, "/variables/primitive");
+  writer.write_view(uAF, "/variables/auxiliary");
+  writer.write_view(grid.widths(), "/grid/dx");
+  writer.write_view(grid.centers(), "/grid/x");
+  writer.write_view(grid.nodal_grid(), "/grid/x_nodal");
 
   if (composition_active) {
     const auto mass_fractions = state->comps()->mass_fractions();
     const auto charges = state->comps()->charge();
-    writer.write_view(charges, filename, "/composition/species");
-    writer.write_view(mass_fractions, filename, "/composition/mass_fractions");
+    writer.write_view(charges, "/composition/species");
+    writer.write_view(mass_fractions, "/composition/mass_fractions");
   }
 
   if (ionization_active) {
     const auto ionization_fractions = state->comps()->ionization_fractions();
-    writer.write_view(ionization_fractions, filename,
+    writer.write_view(ionization_fractions,
                       "/composition/ionization_fractions");
   }
 
@@ -339,6 +337,6 @@ void write_basis(ModalBasis* basis, const std::string& problem_name) {
   // Create group structure
   writer.create_group("/basis");
 
-  writer.write_view(basis->phi(), filename, "/basis/phi");
-  writer.write_view(basis->dphi(), filename, "/basis/dphi");
+  writer.write_view(basis->phi(), "/basis/phi");
+  writer.write_view(basis->dphi(), "/basis/dphi");
 }
