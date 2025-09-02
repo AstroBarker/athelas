@@ -35,15 +35,7 @@ class MarshakTest(AthelasRegressionTest):
       build_required = True
 
     # vars to test
-    varlist = [
-      "grid/x",
-      "grid/dx",
-      "conserved/energy",
-      "conserved/tau",
-      "conserved/velocity",
-      "conserved/rad_energy",
-      "conserved/rad_momentum",
-    ]
+    varlist = ["grid/x", "grid/dx", "variables/conserved"]
 
     # Initialize the parent class with test-specific parameters
     super().__init__(
@@ -61,7 +53,6 @@ class MarshakTest(AthelasRegressionTest):
       tolerance=1.0e-5,
       build_required=build_required,
       compression_factor=8,
-      test_high_order=False,
     )
 
   def test_marshak(self):

@@ -35,13 +35,7 @@ class NohShockTubeTest(AthelasRegressionTest):
       build_required = True
 
     # vars to test
-    varlist = [
-      "grid/x",
-      "grid/dx",
-      "conserved/energy",
-      "conserved/tau",
-      "conserved/velocity",
-    ]
+    varlist = ["grid/x", "grid/dx", "variables/conserved"]
 
     # Initialize the parent class with test-specific parameters
     super().__init__(
@@ -59,7 +53,6 @@ class NohShockTubeTest(AthelasRegressionTest):
       tolerance=1.0e-5,
       build_required=build_required,
       compression_factor=2,
-      test_high_order=False,
     )
 
   def test_noh(self):

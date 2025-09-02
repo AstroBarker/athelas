@@ -5,7 +5,7 @@ import os
 import sys
 import warnings
 
-import h5py
+import h5py  # type: ignore[import]
 import numpy as np
 
 
@@ -38,7 +38,6 @@ class AthelasRegressionTest(unittest.TestCase):
     tolerance=1.0e-5,
     build_required=True,
     compression_factor=2,
-    test_high_order=False,
   ):
     super().__init__(test_name)
     self.src_dir = src_dir
@@ -54,7 +53,6 @@ class AthelasRegressionTest(unittest.TestCase):
     self.tolerance = tolerance
     self.build_required = build_required
     self.compression_factor = compression_factor
-    self.test_high_order = test_high_order
 
   # End __init__
 
@@ -187,12 +185,9 @@ class AthelasRegressionTest(unittest.TestCase):
     load athelas output
     """
     with h5py.File(fn, "r") as f:
-      nx = f["metadata/nx"][0]
-      order = f["metadata/order"][0]
-      ie = nx * order if self.test_high_order else nx
       outs = []
       for v in varlist:
-        outs.append(f[v][:ie])
+        outs.append(f[v][1:-1, ...].flatten())  # type: ignore
     return np.concatenate(outs)
 
   # End load_output

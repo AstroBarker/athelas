@@ -38,9 +38,7 @@ class SodShockTubeTest(AthelasRegressionTest):
     varlist = [
       "grid/x",
       "grid/dx",
-      "conserved/energy",
-      "conserved/tau",
-      "conserved/velocity",
+      "variables/conserved",
     ]
 
     # Initialize the parent class with test-specific parameters
@@ -58,8 +56,7 @@ class SodShockTubeTest(AthelasRegressionTest):
       upgold=False,
       tolerance=1.0e-5,
       build_required=build_required,
-      compression_factor=10,
-      test_high_order=True,
+      compression_factor=16,
     )
 
   def test_sod(self):
