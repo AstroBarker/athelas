@@ -11,6 +11,8 @@ import numpy as np
 class Athelas:
   """
   Athelas Python class
+  TODO: allow for loading ghost cells.
+  Make not horrible
   """
 
   def __init__(self, fn, basis_fn=None):
@@ -66,16 +68,16 @@ class Athelas:
 
     try:
       with h5py.File(fn, "r") as f:
-        self.time = f["metadata/time"][0]
-        self.sOrder = f["metadata/order"][0]
-        self.nX = f["metadata/nx"][0]
+        self.time = f["metadata/time"][0]  # type: ignore
+        self.sOrder = f["metadata/order"][0]  # type: ignore
+        self.nX = f["metadata/nx"][0]  # type: ignore
 
-        self.r = f["grid/x"][:]
-        self.r_nodal = f["grid/x_nodal"][:]
-        self.dr = f["grid/dx"][:]
+        self.r = f["grid/x"][1:-1]  # type: ignore
+        self.r_nodal = f["grid/x_nodal"][1:-1]  # type: ignore
+        self.dr = f["grid/dx"][1:-1]  # type: ignore
 
-        self.uCF = self._load_variable(f, "variables/conserved")
-        self.uAF = self._load_variable(f, "variables/auxiliary")
+        self.uCF = self._load_variable(f, "variables/conserved")[1:-1, ...]  # type: ignore
+        self.uAF = self._load_variable(f, "variables/auxiliary")[1:-1, ...]  # type: ignore
     except (OSError, KeyError) as e:
       raise RuntimeError(f"Failed to load file '{fn}': {e}")
 
