@@ -17,6 +17,20 @@
 namespace atom {
 
 /**
+ * @struct IonLevel
+ * @brief Holds ionization energy and degeneracy weights for ionization level
+ * Note sure if this layout is optimal or ideal. It will have some
+ * data duplication.
+ * Chi is the ionization potential to go form ionization state n -> n+1
+ * g_lower and g_upper are the degeneracy weights of states n, n+1.
+ */
+struct IonLevel {
+  double chi; // ionization potential
+  double g_lower; // degeneracy of lower state (n-1)
+  double g_upper; // degeneracy of upper state (n)
+};
+
+/**
  * @class AtomicData
  * @brief Class for holding atomic data -- ionization potentials and
  *   degeneracy factors for many species.
@@ -25,20 +39,6 @@ namespace atom {
  */
 class AtomicData {
  public:
-  /**
-   * @struct IonLevel
-   * @brief Holds ionization energy and degeneracy weights for ionization level
-   * Note sure if this layout is optimal or ideal. It will have some
-   * data duplication.
-   * Chi is the ionization potential to go form ionization state n -> n+1
-   * g_lower and g_upper are the degeneracy weights of states n, n+1.
-   */
-  struct IonLevel {
-    double chi; // ionization potential
-    double g_lower; // degeneracy of lower state (n-1)
-    double g_upper; // degeneracy of upper state (n)
-  };
-
  private:
   View1D<IonLevel> ion_data_;
   View1D<int> offsets_;
@@ -46,6 +46,8 @@ class AtomicData {
   size_t num_species_;
 
  public:
+  AtomicData() = default;
+
   AtomicData(const std::string& fn_ionization,
              const std::string& fn_degeneracy) {
 

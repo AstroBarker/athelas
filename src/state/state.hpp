@@ -12,7 +12,7 @@
 class State {
  public:
   State(int nvar, int nPF, int nAF, int nX_, int nNodes_, int pOrder,
-        bool composition_enabled);
+        bool composition_enabled, bool ionization_enabled);
 
   [[nodiscard]] auto n_cf() const noexcept -> int;
   [[nodiscard]] auto n_pf() const noexcept -> int;
@@ -28,8 +28,10 @@ class State {
   }
 
   [[nodiscard]] auto comps() const -> CompositionData*;
+  [[nodiscard]] auto ionization_state() const -> IonizationState*;
 
   void setup_composition(std::shared_ptr<CompositionData> comps);
+  void setup_ionization(std::shared_ptr<IonizationState> ion);
 
  private:
   int nvar_;
@@ -42,6 +44,8 @@ class State {
   View3D<double> uAF_; // auxiliary fluid
 
   std::shared_ptr<CompositionData> comps_;
+  std::shared_ptr<IonizationState> ionization_state_;
 
   bool composition_enabled_;
+  bool ionization_enabled_;
 };
