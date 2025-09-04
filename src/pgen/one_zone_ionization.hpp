@@ -98,7 +98,7 @@ void one_zone_ionization_init(State* state, GridStructure* grid, ProblemIn* pin,
           mass_fractions(ix, k, elem) = 1.0 / ncomps;
         }
 
-        for (int node = 0; node < nNodes; ++node) {
+        for (int node = 0; node < nNodes + 2; ++node) {
 
           // overkill
           if (ionization_active) {

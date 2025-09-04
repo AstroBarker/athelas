@@ -29,11 +29,14 @@ CompositionData::CompositionData(const int nX, const int order,
 // states
 //  when constructing the comps object
 //  We allocate in general more data than necessary
+//
+//  TODO(astrobarker): flatten last two dimensions to reduce memory footprint.
+//  See atom.hpp
 IonizationState::IonizationState(const int nX, const int nNodes,
                                  const int n_species, const int n_states,
                                  const std::string& fn_ionization,
                                  const std::string& fn_degeneracy)
-    : ionization_fractions_("ionization_fractions", nX, nNodes, n_species,
+    : ionization_fractions_("ionization_fractions", nX, nNodes + 2, n_species,
                             n_states),
       atomic_data_(std::make_unique<AtomicData>(fn_ionization, fn_degeneracy)) {
   if (n_species <= 0) {
