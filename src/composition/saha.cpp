@@ -79,27 +79,24 @@ auto saha_f(const double T, const IonLevel& ion_data) -> double {
   return prefix * suffix;
 }
 
+/**
+ * @brief Compute neutral ionization fraction. Eq 8 of Zaghloul et al 2000.
+ */
 KOKKOS_FUNCTION
-auto ion_frac(const int p, const double Zbar, const double temperature,
-              const View1D<const IonLevel> ion_datas, const double nh,
-              const int min_state, const int max_state) -> double {
-  if (p == 0) {
+auto ion_frac0(const double Zbar, const double temperature,
+               const View1D<const IonLevel> ion_datas, const double nh,
+               const int min_state, const int max_state) -> double {
 
-    double denominator = 0.0;
-    for (int i = min_state; i < max_state; i++) {
-      double inner_num = 1.0;
-      for (int j = min_state; j <= i; j++) {
-        inner_num *= (i * saha_f(temperature, ion_datas(j - 1)));
-      }
-      denominator += inner_num / std::pow(Zbar * nh, i);
+  double denominator = 0.0;
+  for (int i = min_state; i < max_state; i++) {
+    double inner_num = 1.0;
+    for (int j = min_state; j <= i; j++) {
+      inner_num *= (i * saha_f(temperature, ion_datas(j - 1)));
     }
-    denominator += (min_state - 1.0);
-    return Zbar / denominator;
-  } else {
-    return ion_frac(p - 1, Zbar, temperature, ion_datas, nh, min_state,
-                    max_state) *
-           saha_f(temperature, ion_datas(p - 1)) / (Zbar * nh);
+    denominator += inner_num / std::pow(Zbar * nh, i);
   }
+  denominator += (min_state - 1.0);
+  return Zbar / denominator;
 }
 
 KOKKOS_FUNCTION
@@ -136,8 +133,8 @@ void saha_solve(View1D<double> ionization_states, const int Z,
     Zbar = 1.0e-16; // uncharged (but don't want division by 0)
   } else if (min_state == num_states) { // TODO:
     ionization_states(0) =
-        ion_frac(0, Zbar, temperature, ion_datas, nk, min_state,
-                 max_state); // TODO: array
+        ion_frac0(Zbar, temperature, ion_datas, nk, min_state,
+                  max_state); // TODO: array
     ionization_states(num_states - 1) = 1.0; // full ionization
     Zbar = Z;
   } else if (min_state == max_state) {
@@ -151,10 +148,12 @@ void saha_solve(View1D<double> ionization_states, const int Z,
         root_finders::newton_aa(saha_target, saha_d_target, guess, temperature,
                                 ion_datas, nk, min_state, max_state);
 
-    // TODO(astrobarker): compute 0 state, build up in loop
-    for (int i = 0; i <= Z; ++i) {
+    ionization_states(0) =
+        ion_frac0(Zbar, temperature, ion_datas, nk, min_state, max_state);
+    for (int i = 1; i <= Z; ++i) {
       ionization_states(i) =
-          ion_frac(i, Zbar, temperature, ion_datas, nk, min_state, max_state);
+          ionization_states(i - 1) *
+          (saha_f(temperature, ion_datas(i - 1)) / (Zbar * nk));
     }
   }
 }
