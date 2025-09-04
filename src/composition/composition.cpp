@@ -4,14 +4,14 @@
 #include "utils/error.hpp"
 #include <memory>
 
-CompositionData::CompositionData(const int nX, const int nNodes,
+CompositionData::CompositionData(const int nX, const int order,
                                  const int n_species)
-    : nX_(nX), nNodes_(nNodes), n_species_(n_species) {
+    : nX_(nX), order_(order), n_species_(n_species) {
 
   if (n_species <= 0) {
     THROW_ATHELAS_ERROR("CompositionData :: n_species must be > 0!");
   }
-  mass_fractions_ = View3D<double>("mass_fractions", nX_, nNodes_, n_species);
+  mass_fractions_ = View3D<double>("mass_fractions", nX_, order, n_species);
   charge_ = View1D<int>("charge", n_species);
 }
 
@@ -21,18 +21,6 @@ CompositionData::CompositionData(const int nX, const int nNodes,
 }
 [[nodiscard]] auto CompositionData::charge() const noexcept -> View1D<int> {
   return charge_;
-}
-
-// Validate mass fractions sum to 1 across elements, convenience
-[[nodiscard]] KOKKOS_INLINE_FUNCTION auto
-CompositionData::sum_mass_fractions(const int i, const int node) const
-    -> double {
-  double total_X = 0.0;
-
-  for (int elem = 0; elem < n_species_; ++elem) {
-    total_X += mass_fractions_(i, node, elem);
-  }
-  return total_X; // Should be ~1.0
 }
 
 // --- end CompositionData ---

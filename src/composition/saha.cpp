@@ -54,9 +54,11 @@ void solve_saha_ionization(State& state, const GridStructure& grid,
         const double temperature =
             temperature_from_conserved(&eos, tau, vel, emt, lambda);
 
+        const double x_e = fluid_basis.basis_eval(mass_fractions, ix, e, node);
+
         const int z = e + 1;
         const double nk =
-            element_number_density(mass_fractions(ix, node, e), z, 1.0 / tau);
+            element_number_density(x_e, z, 1.0 / tau);
 
         // pull out element info
         const auto species_atomic_data =

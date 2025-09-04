@@ -40,6 +40,7 @@ void one_zone_ionization_init(State* state, GridStructure* grid, ProblemIn* pin,
   const int ilo = 1;
   const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
+  const int order = nNodes;
 
   const int q_Tau = 0;
   const int q_V = 1;
@@ -69,7 +70,7 @@ void one_zone_ionization_init(State* state, GridStructure* grid, ProblemIn* pin,
   const double sie = constants::k_B * temperature / (gm1 * mu * constants::m_p);
 
   std::shared_ptr<CompositionData> comps = std::make_shared<CompositionData>(
-      grid->get_n_elements() + 2, nNodes, ncomps);
+      grid->get_n_elements() + 2, order, ncomps);
   std::shared_ptr<IonizationState> ionization_state =
       std::make_shared<IonizationState>(grid->get_n_elements() + 2, nNodes,
                                         saha_ncomps, saha_ncomps + 1,
@@ -91,12 +92,13 @@ void one_zone_ionization_init(State* state, GridStructure* grid, ProblemIn* pin,
 
         // set up comps
         // For this problem we set up a contiguous list of species
-        // form Z = 1 to ncomps. Mass fractions are uniform.
+        // form Z = 1 to ncomps. Mass fractions are uniform with no slopes.
+        for (int elem = 0; elem < ncomps; ++elem) {
+          charges(elem) = elem + 1;
+          mass_fractions(ix, k, elem) = 1.0 / ncomps;
+        }
+
         for (int node = 0; node < nNodes; ++node) {
-          for (int elem = 0; elem < ncomps; ++elem) {
-            charges(elem) = elem + 1;
-            mass_fractions(ix, node, elem) = 1.0 / ncomps;
-          }
 
           // overkill
           if (ionization_active) {
