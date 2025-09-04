@@ -24,25 +24,20 @@ class IonizationState {
 // Composition data handler - manages mass fractions and ionization fractions
 class CompositionData {
  public:
-  CompositionData(int nX, int nNodes, int n_species);
+  CompositionData(int nX, int order, int n_species);
 
   [[nodiscard]] auto mass_fractions() const noexcept -> View3D<double>;
 
   [[nodiscard]] auto charge() const noexcept -> View1D<int>;
-
-  // Validate mass fractions sum to 1 across elements, convenience
-  [[nodiscard]] KOKKOS_INLINE_FUNCTION auto sum_mass_fractions(int i,
-                                                               int node) const
-      -> double;
 
   [[nodiscard]] auto n_species() const noexcept -> size_t {
     return mass_fractions_.extent(2);
   }
 
  private:
-  int nX_, nNodes_, n_species_;
+  int nX_, order_, n_species_;
 
-  View3D<double> mass_fractions_; // [nX][nNodes][n_species]
+  View3D<double> mass_fractions_; // [nX][order][n_species]
   View1D<int> charge_; // n_species
 }; // class CompositionData
 

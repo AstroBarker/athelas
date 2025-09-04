@@ -7,16 +7,11 @@
 <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL-blue.svg"></a>
 </p>
 
-Currently, `athelas` solves the 1D Lagrangian equation of non-relativistic radiation hydrodynamics using a discontinuous Galerkin scheme. It includes planar geometry and spherical symmetry. Self gravity is included.
+`Athelas` solves the 1D Lagrangian equation of non-relativistic radiation hydrodynamics using a discontinuous Galerkin scheme. 
+LTE Saha ionization is included.
+It includes planar geometry and spherical symmetry. Self gravity is included.
 It will be extended to special relativistic hydrodynamics.
 
-# Kokkos
-We use [Kokkos](https://github.com/kokkos) for shared memory parallelism. 
-Currently, most significant data structures use `Kokkos::Views` and loops are parallelised with `Kokkos`.
-More work to port other parts of the code.
-
-# TOML++
-We use [toml++](https://github.com/marzer/tomlplusplus) for parsing input files in the `.toml` format.
 
 # Installation
 `athelas` uses submodules to include dependencies. 
@@ -44,8 +39,11 @@ avoid rebuilding each test. To run a specific test, run
 `python run_regression_tests.py --test test_sod -e /path/to/athelas/executable` etc.
 
 
-## NOTE: 
-The build system may not be perfect yet. Your mileage may vary.
+# Kokkos
+We use [Kokkos](https://github.com/kokkos) for shared memory parallelism. 
+
+# TOML++
+We use [toml++](https://github.com/marzer/tomlplusplus) for parsing input files in the `.toml` format.
 
 # Code Style
 

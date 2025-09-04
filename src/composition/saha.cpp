@@ -35,8 +35,8 @@ void solve_saha_ionization(State& state, const GridStructure& grid,
   const auto ion_data = atomic_data->ion_data();
   const auto species_offsets = atomic_data->offsets();
 
-  static constexpr int ilo = 1;
-  const auto& ihi = grid.get_ihi();
+  static constexpr int ilo = 0;
+  const auto& ihi = grid.get_ihi() + 1;
   const auto& nNodes = grid.get_n_nodes();
   assert(ionization_fractions.extent(2) <=
          static_cast<size_t>(std::numeric_limits<int>::max()));
@@ -45,7 +45,7 @@ void solve_saha_ionization(State& state, const GridStructure& grid,
   Kokkos::parallel_for(
       "Saha :: Solve Ionization All",
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0},
-                                             {ihi + 1, nNodes, ncomps}),
+                                             {ihi + 1, nNodes + 2, ncomps}),
       KOKKOS_LAMBDA(const int ix, const int node, const int e) {
         auto lambda = nullptr;
         const double tau = fluid_basis.basis_eval(uCF, ix, 0, node);
@@ -54,9 +54,10 @@ void solve_saha_ionization(State& state, const GridStructure& grid,
         const double temperature =
             temperature_from_conserved(&eos, tau, vel, emt, lambda);
 
+        const double x_e = fluid_basis.basis_eval(mass_fractions, ix, e, node);
+
         const int z = e + 1;
-        const double nk =
-            element_number_density(mass_fractions(ix, node, e), z, 1.0 / tau);
+        const double nk = element_number_density(x_e, z, 1.0 / tau);
 
         // pull out element info
         const auto species_atomic_data =
