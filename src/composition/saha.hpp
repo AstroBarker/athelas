@@ -14,9 +14,9 @@ void solve_saha_ionization(State& state, const GridStructure& grid,
 KOKKOS_FUNCTION
 auto saha_f(double T, const IonLevel& ion_data) -> double;
 KOKKOS_FUNCTION
-auto ion_frac(int p, double Zbar, double temperature,
-              const View1D<const IonLevel> ion_datas, double nh, int min_state,
-              int max_state) -> double;
+auto ion_frac0(double Zbar, double temperature,
+               const View1D<const IonLevel> ion_datas, double nh, int min_state,
+               int max_state) -> double;
 KOKKOS_FUNCTION
 auto saha_target(double Zbar, double T, const View1D<const IonLevel> ion_datas,
                  double nh, int min_state, int max_state) -> double;

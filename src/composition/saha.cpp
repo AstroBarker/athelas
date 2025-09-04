@@ -79,27 +79,24 @@ auto saha_f(const double T, const IonLevel& ion_data) -> double {
   return prefix * suffix;
 }
 
+/**
+ * @brief Compute neutral ionization fraction. Eq 8 of Zaghloul et al 2000.
+ */
 KOKKOS_FUNCTION
-auto ion_frac(const int p, const double Zbar, const double temperature,
-              const View1D<const IonLevel> ion_datas, const double nh,
-              const int min_state, const int max_state) -> double {
-  if (p == 0) {
+auto ion_frac0(const double Zbar, const double temperature,
+               const View1D<const IonLevel> ion_datas, const double nh,
+               const int min_state, const int max_state) -> double {
 
-    double denominator = 0.0;
-    for (int i = min_state; i < max_state; i++) {
-      double inner_num = 1.0;
-      for (int j = min_state; j <= i; j++) {
-        inner_num *= (i * saha_f(temperature, ion_datas(j - 1)));
-      }
-      denominator += inner_num / std::pow(Zbar * nh, i);
+  double denominator = 0.0;
+  for (int i = min_state; i < max_state; ++i) {
+    double inner_num = 1.0;
+    for (int j = min_state; j <= i; ++j) {
+      inner_num *= (i * saha_f(temperature, ion_datas(j - 1)));
     }
-    denominator += (min_state - 1.0);
-    return Zbar / denominator;
-  } else {
-    return ion_frac(p - 1, Zbar, temperature, ion_datas, nh, min_state,
-                    max_state) *
-           saha_f(temperature, ion_datas(p - 1)) / (Zbar * nh);
+    denominator += inner_num / std::pow(Zbar * nh, i);
   }
+  denominator += (min_state - 1.0);
+  return Zbar / denominator;
 }
 
 KOKKOS_FUNCTION
@@ -107,13 +104,12 @@ void saha_solve(View1D<double> ionization_states, const int Z,
                 const double temperature,
                 const View1D<const IonLevel> ion_datas, const double nk) {
 
-  const int num_states = Z + 1; // TODO: plus 1 correct?
-  int min_state = 0 + 1;
-  int max_state = num_states - 1 + 1;
+  const int num_states = Z + 1;
+  int min_state = 1;
+  int max_state = num_states;
 
   const double Zbar_nk_inv = 1.0 / (Z * nk);
 
-  // TODO: check indices..
   for (int i = 0; i < num_states - 1; ++i) {
     const double f_saha = std::abs(saha_f(temperature, ion_datas(i)));
 
@@ -123,7 +119,7 @@ void saha_solve(View1D<double> ionization_states, const int Z,
     }
     if (f_saha * Zbar_nk_inv < root_finders::ZBARTOL) {
       max_state = i;
-      for (int j = i + 1; j < num_states; j++) {
+      for (int j = i + 1; j < num_states; ++j) {
         ionization_states(j) = 0.0;
       }
       break;
@@ -134,27 +130,28 @@ void saha_solve(View1D<double> ionization_states, const int Z,
   if (max_state == 0) {
     ionization_states(0) = 1.0; // neutral
     Zbar = 1.0e-16; // uncharged (but don't want division by 0)
-  } else if (min_state == num_states) { // TODO:
+  } else if (min_state == num_states) {
     ionization_states(0) =
-        ion_frac(0, Zbar, temperature, ion_datas, nk, min_state,
-                 max_state); // TODO: array
+        ion_frac0(Zbar, temperature, ion_datas, nk, min_state, max_state);
     ionization_states(num_states - 1) = 1.0; // full ionization
     Zbar = Z;
   } else if (min_state == max_state) {
     Zbar = min_state - 1.0;
     ionization_states(min_state) = 1.0; // only one state possible
-  } else { // fixed point solver
-    const double guess = 1.0 * Z;
+  } else { // iterative solve
+    const double guess = 0.5 * Z;
 
     // we use an Anderson acclerated Newton Raphson iteration
     Zbar =
         root_finders::newton_aa(saha_target, saha_d_target, guess, temperature,
                                 ion_datas, nk, min_state, max_state);
 
-    // TODO(astrobarker): compute 0 state, build up in loop
-    for (int i = 0; i <= Z; ++i) {
+    ionization_states(0) =
+        ion_frac0(Zbar, temperature, ion_datas, nk, min_state, max_state);
+    for (int i = 1; i <= Z; ++i) {
       ionization_states(i) =
-          ion_frac(i, Zbar, temperature, ion_datas, nk, min_state, max_state);
+          ionization_states(i - 1) *
+          (saha_f(temperature, ion_datas(i - 1)) / (Zbar * nk));
     }
   }
 }
@@ -163,29 +160,23 @@ KOKKOS_FUNCTION
 auto saha_target(const double Zbar, const double T,
                  const View1D<const IonLevel> ion_datas, const double nh,
                  const int min_state, const int max_state) -> double {
-  // TODO(astrobarker) no need for two outer loops
   double result = Zbar;
   double numerator = 1.0;
-  for (int i = min_state; i < max_state; ++i) { // TODO: <= or <?
+  double denominator = 0.0;
+  for (int i = min_state; i < max_state; ++i) {
+    double inner_denom = 1.0;
     double inner_num = 1.0;
     for (int j = min_state; j <= i; ++j) {
       inner_num *= saha_f(T, ion_datas(j - 1));
+      inner_denom *= (i * saha_f(T, ion_datas(j - 1)));
     }
     numerator += inner_num / std::pow(Zbar * nh, i);
-  }
-
-  double denominator = 0.0;
-  for (int i = min_state; i < max_state; ++i) {
-    double inner_num = 1.0;
-    for (int j = min_state; j <= i; ++j) {
-      inner_num *= (i * saha_f(T, ion_datas(j - 1)));
-    }
-    denominator += inner_num / std::pow(Zbar * nh, i);
+    denominator += inner_denom / std::pow(Zbar * nh, i);
   }
   denominator += (min_state - 1.0);
 
   result *= (numerator / denominator);
-  result = 1 - result;
+  result = 1.0 - result;
   return result;
 }
 
@@ -200,7 +191,7 @@ auto saha_d_target(const double Zbar, const double T,
   double sigma2 = 0.0;
   double sigma3 = 0.0;
 
-  for (int i = min_state; i < max_state; ++i) { // TODO: <= or <?
+  for (int i = min_state; i < max_state; ++i) {
     product *= saha_f(T, ion_datas(i - 1)) / (Zbar * nh);
     sigma0 += product;
     sigma1 += i * product;
@@ -209,6 +200,5 @@ auto saha_d_target(const double Zbar, const double T,
   }
 
   const double denom = 1.0 / (min_state - 1.0 + sigma1);
-  double out = (sigma2 - (1.0 + sigma1) * (1.0 + sigma3 * denom)) * denom;
-  return out;
+  return (sigma2 - (1.0 + sigma1) * (1.0 + sigma3 * denom)) * denom;
 }
