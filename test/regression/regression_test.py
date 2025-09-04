@@ -10,12 +10,12 @@ import numpy as np
 
 
 # -- Compare two values up to some floating point tolerance
-def soft_equiv(val: float, ref: float, tol: float = 1.0e-5) -> bool:
-  numerator = np.fabs(val - ref)
-  denominator = max(np.fabs(ref), 1.0e-8)
+def soft_equiv(val: float, ref: float, rtol: float = 1.0e-5) -> bool:
+  atol = ref / 1000.0 + np.finfo(float).eps
+  error = abs(val - ref) / (atol + rtol * abs(ref))
 
-  if numerator / denominator > tol:
-    print(f"val ref ratio {val}, {ref}, {numerator / denominator}")
+  if abs(error) > 1.0:
+    print(f"val ref error  {val}, {ref}, {error}")
     return False
   else:
     return True
@@ -232,7 +232,7 @@ class AthelasRegressionTest(unittest.TestCase):
       else:
         for n in range(len(gold_variables)):
           if not soft_equiv(
-            variables_data[n], gold_variables[n], tol=self.tolerance
+            variables_data[n], gold_variables[n], rtol=self.tolerance
           ):
             success = False
 
