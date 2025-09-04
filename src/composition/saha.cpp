@@ -35,8 +35,8 @@ void solve_saha_ionization(State& state, const GridStructure& grid,
   const auto ion_data = atomic_data->ion_data();
   const auto species_offsets = atomic_data->offsets();
 
-  static constexpr int ilo = 1;
-  const auto& ihi = grid.get_ihi();
+  static constexpr int ilo = 0;
+  const auto& ihi = grid.get_ihi() + 1;
   const auto& nNodes = grid.get_n_nodes();
   assert(ionization_fractions.extent(2) <=
          static_cast<size_t>(std::numeric_limits<int>::max()));
