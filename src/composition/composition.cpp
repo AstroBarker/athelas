@@ -2,6 +2,7 @@
 
 #include "atom/atom.hpp"
 #include "utils/error.hpp"
+#include <memory>
 
 CompositionData::CompositionData(const int nX, const int nNodes,
                                  const int n_species)
@@ -46,7 +47,7 @@ IonizationState::IonizationState(const int nX, const int nNodes,
                                  const std::string& fn_degeneracy)
     : ionization_fractions_("ionization_fractions", nX, nNodes, n_species,
                             n_states),
-      atomic_data_(fn_ionization, fn_degeneracy) {
+      atomic_data_(std::make_unique<AtomicData>(fn_ionization, fn_degeneracy)) {
   if (n_species <= 0) {
     THROW_ATHELAS_ERROR("IonizationState :: n_species must be > 0!");
   }
@@ -60,14 +61,15 @@ IonizationState::IonizationState(const int nX, const int nNodes,
   return ionization_fractions_;
 }
 
-[[nodiscard]] auto IonizationState::atomic_data() const noexcept -> AtomicData {
-  return atomic_data_;
+[[nodiscard]] auto IonizationState::atomic_data() const noexcept
+    -> AtomicData* {
+  return atomic_data_.get();
 }
 
 // Compute total element number density (all ionization states)
-KOKKOS_INLINE_FUNCTION
-auto element_number_density(double mass_frac, double atomic_mass, double rho)
-    -> double {
+KOKKOS_FUNCTION
+auto element_number_density(const double mass_frac, const double atomic_mass,
+                            const double rho) -> double {
   return (mass_frac * rho) / (atomic_mass * constants::amu_to_g);
 }
 

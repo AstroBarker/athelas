@@ -25,7 +25,7 @@ namespace atom {
  * g_lower and g_upper are the degeneracy weights of states n, n+1.
  */
 struct IonLevel {
-  double chi; // ionization potential
+  double chi; // ionization potential (n-1)
   double g_lower; // degeneracy of lower state (n-1)
   double g_upper; // degeneracy of upper state (n)
 };
@@ -38,7 +38,6 @@ struct IonLevel {
  * contiguous. If that assumption is broken then this will be as well.
  */
 class AtomicData {
- public:
  private:
   View1D<IonLevel> ion_data_;
   View1D<int> offsets_;
@@ -70,7 +69,7 @@ class AtomicData {
     std::vector<int> offs(num_species_);
 
     for (size_t s = 0; s < num_species_; ++s) {
-      int Z = s;
+      int Z = s + 1;
       offs[s] = total_levels;
       total_levels += Z; // Z ionization levels
     }
@@ -116,6 +115,9 @@ class AtomicData {
         ion_data_host(level_idx).chi = ionization_energies[chi_idx + n];
         ion_data_host(level_idx).g_lower = weights[g_idx + n]; // g[n]
         ion_data_host(level_idx).g_upper = weights[g_idx + n + 1]; // g[n+1]
+        //        std::println(" ATOM Z={}, n = {}. gup = {}, glo = {}, chi =
+        //        {}", Z, n, weights[g_idx + n + 1], weights[g_idx + n],
+        //        ionization_energies[chi_idx + n]);
 
         level_idx++;
       }
@@ -130,13 +132,20 @@ class AtomicData {
     Kokkos::deep_copy(atomic_numbers_, atomic_numbers_host);
   }
 
-  [[nodiscard]] KOKKOS_INLINE_FUNCTION auto species_data(size_t species) const {
-    const size_t offset = offsets_(species);
-    const size_t next_offset = (species + 1 < num_species_)
-                                   ? offsets_(species + 1)
-                                   : ion_data_.extent(0);
-    return Kokkos::subview(ion_data_, Kokkos::make_pair(offset, next_offset));
-  }
+  [[nodiscard]] auto offsets() const noexcept { return offsets_; }
+
+  [[nodiscard]] auto ion_data() const noexcept { return ion_data_; }
 };
+
+[[nodiscard]] KOKKOS_INLINE_FUNCTION auto
+species_data(const View1D<IonLevel> ion_data, const View1D<int> offsets,
+             const size_t species) {
+  const size_t num_species = offsets.size();
+  const size_t offset = offsets(species);
+  const size_t next_offset = (species + 1 < num_species)
+                                 ? offsets(species + 1) + 1
+                                 : ion_data.extent(0);
+  return Kokkos::subview(ion_data, Kokkos::make_pair(offset, next_offset));
+}
 
 } // namespace atom

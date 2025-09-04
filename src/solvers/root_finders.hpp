@@ -440,7 +440,7 @@ auto fixed_point(F target, T x0) -> T {
   return x0;
 }
 
-/* Newton iteration templated on type, function, args */
+// Newton iteration templated on type, function, args
 template <typename T, typename F, typename... Args>
 auto newton(F target, F d_target, T x0, Args... args) -> T {
 
@@ -456,7 +456,7 @@ auto newton(F target, F d_target, T x0, Args... args) -> T {
   return x0;
 }
 
-/* Anderson Accelerated newton iteration templated on type, function */
+// Anderson Accelerated newton iteration templated on type, function
 template <typename T, typename F, typename... Args>
 auto newton_aa(F target, F d_target, T x0, Args... args) -> T {
 
@@ -467,14 +467,15 @@ auto newton_aa(F target, F d_target, T x0, Args... args) -> T {
   T xkm1 = 0.0;
   T xk = 0.0;
   T xkp1 = 0.0;
-  xk = std::min(x0 - h, root_finders::ABSTOL); // keep positive definite
+  xk = x0 - h; // kickstart with one iteration of standard newton raphson
   xkm1 = x0;
   if (std::abs(xk - x0) <= root_finders::ABSTOL) {
     return xk;
   }
   while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
     const T hp1 = target(xk, args...) / d_target(xk, args...);
-    /* Anderson acceleration step */
+
+    // Anderson acceleration step
     const T gamma = alpha_aa(hp1, h);
 
     const double term = xk - xkm1 - hp1 + h;

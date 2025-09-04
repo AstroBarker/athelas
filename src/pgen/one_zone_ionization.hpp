@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "basis/polynomial_basis.hpp"
+#include "composition/saha.hpp"
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
 #include "state/state.hpp"
@@ -13,7 +14,7 @@
  **/
 void one_zone_ionization_init(State* state, GridStructure* grid, ProblemIn* pin,
                               const EOS* eos,
-                              ModalBasis* /*fluid_basis = nullptr*/) {
+                              ModalBasis* fluid_basis = nullptr) {
   const bool ionization_active =
       pin->param()->get<bool>("physics.ionization_enabled");
   const int saha_ncomps =
@@ -112,6 +113,9 @@ void one_zone_ionization_init(State* state, GridStructure* grid, ProblemIn* pin,
 
   state->setup_composition(comps);
   state->setup_ionization(ionization_state);
+  if (fluid_basis != nullptr) {
+    solve_saha_ionization(*state, *grid, *eos, *fluid_basis);
+  }
 
   // Fill density in guard cells
   Kokkos::parallel_for(

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "atom/atom.hpp"
 #include "utils/abstractions.hpp"
 
@@ -12,11 +14,11 @@ class IonizationState {
                   const std::string& fn_degeneracy);
 
   [[nodiscard]] auto ionization_fractions() const noexcept -> View4D<double>;
-  [[nodiscard]] auto atomic_data() const noexcept -> AtomicData;
+  [[nodiscard]] auto atomic_data() const noexcept -> AtomicData*;
 
  private:
   View4D<double> ionization_fractions_; // [nX][nNodes][n_species][max_charge+1]
-  AtomicData atomic_data_;
+  std::unique_ptr<AtomicData> atomic_data_;
 };
 
 // Composition data handler - manages mass fractions and ionization fractions
@@ -45,7 +47,7 @@ class CompositionData {
 }; // class CompositionData
 
 // Compute total element number density (all ionization states)
-KOKKOS_INLINE_FUNCTION
+KOKKOS_FUNCTION
 auto element_number_density(double mass_frac, double atomic_mass, double rho)
     -> double;
 
