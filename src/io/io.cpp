@@ -282,7 +282,8 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
   }
 
   if (ionization_active) {
-    const auto ionization_fractions = state->comps()->ionization_fractions();
+    const auto ionization_fractions =
+        state->ionization_state()->ionization_fractions();
     writer.write_view(ionization_fractions,
                       "/composition/ionization_fractions");
   }

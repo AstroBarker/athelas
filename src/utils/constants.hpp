@@ -3,7 +3,6 @@
  * @file constants.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Physical constants
  *
  * Hopefully consistent with astropy
@@ -11,6 +10,7 @@
  * unit systems
  */
 
+#include <cmath>
 #include <numbers>
 
 namespace constants {
@@ -23,6 +23,7 @@ static constexpr double M_sun = 1.98840987e+33; // cgs
 static constexpr double sigma_sb = 5.670374419184431e-5; // cgs
 static constexpr double a = 7.5657332502800007e-15; // cgs
 static constexpr double k_B = 1.380649e-16; // cgs
+static constexpr double k_Bev = 8.61733326e-5; // eV / K
 static constexpr double m_e = 9.1093837015e-28; // cgs
 static constexpr double m_p = 1.67262192369e-24; // cgs
 static constexpr double h = 6.62607015e-27; // cgs
@@ -32,4 +33,5 @@ static constexpr double c_cgs = 2.99792458e+10; // cgs
 static constexpr double c = 1.0; // natural
 static constexpr double amu_to_g = 1.66053906660e-24;
 
+static const double k_saha = std::pow(2. * 3. * m_e * k_B / (h * h), 1.5);
 } // namespace constants

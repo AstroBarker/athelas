@@ -265,7 +265,7 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0},
                                              {ihi + 1, order, NUM_VARS_}),
       KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
-        const auto* basis = (q < 3) ? fluid_basis_ : rad_basis_;
+        const auto* const basis = (q < 3) ? fluid_basis_ : rad_basis_;
         const auto& Poly_L = basis->get_phi(ix, 0, k);
         const auto& Poly_R = basis->get_phi(ix, nNodes + 1, k);
         const auto& X_L = grid.get_left_interface(ix);
