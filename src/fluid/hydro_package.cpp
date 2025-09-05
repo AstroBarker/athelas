@@ -31,8 +31,8 @@ void HydroPackage::update_explicit(const View3D<double> state,
                                    View3D<double> dU, const GridStructure& grid,
                                    const TimeStepInfo& dt_info) const {
   const auto& order = basis_->get_order();
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
+  static constexpr int ilo = 1;
+  static const auto& ihi = grid.get_ihi();
 
   const auto stage = dt_info.stage;
 
@@ -75,8 +75,8 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
                                     const int stage) const {
   const auto& nNodes = grid.get_n_nodes();
   const auto& order = basis_->get_order();
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
+  static constexpr int ilo = 1;
+  static const auto& ihi = grid.get_ihi();
 
   // --- Interpolate Conserved Variable to Interfaces ---
 
@@ -179,8 +179,8 @@ void HydroPackage::fluid_geometry(const View3D<double> state, View3D<double> dU,
                                   const GridStructure& grid) const {
   const int& nNodes = grid.get_n_nodes();
   const int& order = basis_->get_order();
-  const int& ilo = grid.get_ilo();
-  const int& ihi = grid.get_ihi();
+  static constexpr int ilo = 1;
+  static const int& ihi = grid.get_ihi();
 
   Kokkos::parallel_for(
       "Hydro :: Geometry Term",
@@ -215,8 +215,8 @@ auto HydroPackage::min_timestep(const View3D<double> state,
   static constexpr double MAX_DT = std::numeric_limits<double>::max();
   static constexpr double MIN_DT = 100.0 * std::numeric_limits<double>::min();
 
-  const int& ilo = grid.get_ilo();
-  const int& ihi = grid.get_ihi();
+  static constexpr int ilo = 1;
+  static const int& ihi = grid.get_ihi();
 
   double dt_out = 0.0;
   Kokkos::parallel_reduce(
@@ -257,8 +257,8 @@ void HydroPackage::fill_derived(State* state, const GridStructure& grid) const {
   View3D<double> uPF = state->u_pf();
   View3D<double> uAF = state->u_af();
 
-  const int ilo = 1;
-  const int ihi = grid.get_ihi() + 2;
+  static constexpr int ilo = 1;
+  static const int ihi = grid.get_ihi() + 2;
   const int nNodes = grid.get_n_nodes();
 
   // --- Apply BC ---

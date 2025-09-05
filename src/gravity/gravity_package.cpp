@@ -38,8 +38,8 @@ void GravityPackage::gravity_update(const View3D<double> state,
                                     const GridStructure& grid) const {
   const int& nNodes = grid.get_n_nodes();
   const int& order = basis_->get_order();
-  const int& ilo = grid.get_ilo();
-  const int& ihi = grid.get_ihi();
+  static constexpr int ilo = 1;
+  static const int& ihi = grid.get_ihi();
 
   // This can probably be simplified.
   Kokkos::parallel_for(

@@ -176,7 +176,7 @@ auto ModalBasis::d_legendre_n(const int poly_order, const int deriv_order,
  **/
 auto ModalBasis::inner_product(const int m, const int n, const int ix,
                                const double eta_c, const View3D<double> uPF,
-                               GridStructure* grid) const -> double {
+                               const GridStructure* grid) const -> double {
   double result = 0.0;
   for (int iN = 0; iN < nNodes_; iN++) {
     // include rho in integrand if necessary
@@ -199,7 +199,7 @@ auto ModalBasis::inner_product(const int m, const int n, const int ix,
  **/
 auto ModalBasis::inner_product(const int n, const int ix,
                                const double /*eta_c*/, const View3D<double> uPF,
-                               GridStructure* grid) const -> double {
+                               const GridStructure* grid) const -> double {
   double result = 0.0;
   for (int iN = 0; iN < nNodes_; iN++) {
     // include rho in integrand if necessary
@@ -216,7 +216,7 @@ auto ModalBasis::inner_product(const int n, const int ix,
 // Gram-Schmidt orthogonalization of basis
 auto ModalBasis::ortho(const int order, const int ix, const int i_eta,
                        const double eta, const double eta_c,
-                       const View3D<double> uPF, GridStructure* grid,
+                       const View3D<double> uPF, const GridStructure* grid,
                        bool const derivative_option) -> double {
 
   double result = 0.0;
@@ -253,11 +253,11 @@ auto ModalBasis::ortho(const int order, const int ix, const int i_eta,
  * We store: (-0.5, {GL nodes}, 0.5) for a total of nNodes+2
  * TODO: Incorporate COM centering?
  **/
-void ModalBasis::initialize_basis(const Kokkos::View<double***> uPF,
-                                  GridStructure* grid) {
-  const int n_eta = nNodes_ + 2;
-  const int ilo = grid->get_ilo();
-  const int ihi = grid->get_ihi();
+void ModalBasis::initialize_basis(const View3D<double> uPF,
+                                  const GridStructure* grid) {
+  static const int n_eta = nNodes_ + 2;
+  static const int ilo = 1;
+  static const int ihi = grid->get_ihi();
 
   double eta = 0.5;
   for (int ix = ilo; ix <= ihi; ix++) {
@@ -307,11 +307,11 @@ void ModalBasis::initialize_basis(const Kokkos::View<double***> uPF,
  * The following checks orthogonality of basis functions on each cell.
  * Returns error if orthogonality is not met.
  **/
-void ModalBasis::check_orthogonality(const Kokkos::View<double***> uPF,
-                                     GridStructure* grid) const {
+void ModalBasis::check_orthogonality(const View3D<double> uPF,
+                                     const GridStructure* grid) const {
 
-  const int ilo = grid->get_ilo();
-  const int ihi = grid->get_ihi();
+  static const int ilo = 1;
+  static const int ihi = grid->get_ihi();
 
   for (int ix = ilo; ix <= ihi; ix++) {
     for (int k1 = 0; k1 < order_; k1++) {
@@ -349,9 +349,9 @@ void ModalBasis::check_orthogonality(const Kokkos::View<double***> uPF,
  * ? I would need to compute and store more GL nodes, weights ?
  **/
 void ModalBasis::compute_mass_matrix(const View3D<double> uPF,
-                                     GridStructure* grid) {
-  const int ilo = grid->get_ilo();
-  const int ihi = grid->get_ihi();
+                                     const GridStructure* grid) {
+  static const int ilo = 1;
+  static const int ihi = grid->get_ihi();
   const int nNodes_ = grid->get_n_nodes();
 
   for (int ix = ilo; ix <= ihi; ix++) {
@@ -487,8 +487,8 @@ void ModalBasis::project_nodal_to_modal(
 void ModalBasis::project_nodal_to_modal_all_cells(
     View3D<double> uCF, View3D<double> uPF, GridStructure* grid, int q,
     const std::function<double(double, int, int)>& nodal_func) const {
-  const int ilo = grid->get_ilo();
-  const int ihi = grid->get_ihi();
+  static const int ilo = 1;
+  static const int ihi = grid->get_ihi();
 
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_CLASS_LAMBDA(int ix) {

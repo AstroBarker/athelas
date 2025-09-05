@@ -40,10 +40,10 @@ class TimeStepper {
    * Update fluid solution with SSPRK methods
    **/
   void step(PackageManager* pkgs, State* state, GridStructure& grid,
-            const double dt, SlopeLimiter* sl_hydro, const Options* opts) {
+            const double dt, SlopeLimiter* sl_hydro) {
 
     // hydro explicit update
-    update_fluid_explicit(pkgs, state, grid, dt, sl_hydro, opts);
+    update_fluid_explicit(pkgs, state, grid, dt, sl_hydro);
   }
 
   /**
@@ -51,9 +51,9 @@ class TimeStepper {
    **/
   void update_fluid_explicit(PackageManager* pkgs, State* state,
                              GridStructure& grid, const double dt,
-                             SlopeLimiter* sl_hydro, const Options* opts) {
+                             SlopeLimiter* sl_hydro) {
 
-    const auto& order = opts->max_order;
+    const auto& order = grid.get_n_nodes();
     const auto& ihi = grid.get_ihi();
 
     auto U = state->u_cf();
@@ -172,10 +172,10 @@ class TimeStepper {
    * Update rad hydro solution with SSPRK methods
    **/
   void step_imex(PackageManager* pkgs, State* state, GridStructure& grid,
-                 const double dt, SlopeLimiter* sl_hydro, SlopeLimiter* sl_rad,
-                 const Options* opts) {
+                 const double dt, SlopeLimiter* sl_hydro,
+                 SlopeLimiter* sl_rad) {
 
-    update_rad_hydro_imex(pkgs, state, grid, dt, sl_hydro, sl_rad, opts);
+    update_rad_hydro_imex(pkgs, state, grid, dt, sl_hydro, sl_rad);
   }
 
   /**
@@ -183,10 +183,9 @@ class TimeStepper {
    **/
   void update_rad_hydro_imex(PackageManager* pkgs, State* state,
                              GridStructure& grid, const double dt,
-                             SlopeLimiter* sl_hydro, SlopeLimiter* sl_rad,
-                             const Options* opts) {
+                             SlopeLimiter* sl_hydro, SlopeLimiter* sl_rad) {
 
-    const auto& order = opts->max_order;
+    const auto& order = grid.get_n_nodes();
     const auto& ihi = grid.get_ihi();
 
     auto uCF = state->u_cf();
@@ -382,7 +381,7 @@ class TimeStepper {
         uCF, pkgs->get_package<RadHydroPackage>("RadHydro")->get_rad_basis());
   }
 
-  [[nodiscard]] auto get_n_stages() const noexcept -> int;
+  [[nodiscard]] auto n_stages() const noexcept -> int;
 
  private:
   int mSize_;

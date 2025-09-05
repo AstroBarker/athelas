@@ -17,18 +17,6 @@
 #include "interface/params.hpp"
 #include "utils/error.hpp"
 
-// hold various program options
-// should be removed eventually.
-struct Options {
-  bool do_rad = false;
-  bool do_grav = false;
-  bool restart = false;
-
-  int max_order = 1;
-};
-
-// TODO(astrobarker): Long term solution for this thing.
-// "Params" style wrapper over config with GetOrAdd?
 class ProblemIn {
 
  public:

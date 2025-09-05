@@ -25,9 +25,9 @@ void sod_init(State* state, GridStructure* grid, ProblemIn* pin, const EOS* eos,
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
 
-  const int ilo = 1;
-  const int ihi = grid->get_ihi();
-  const int nNodes = grid->get_n_nodes();
+  static const int ilo = 1;
+  static const int ihi = grid->get_ihi();
+  static const int nNodes = grid->get_n_nodes();
 
   constexpr static int q_Tau = 0;
   constexpr static int q_V = 1;
