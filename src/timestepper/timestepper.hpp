@@ -381,7 +381,7 @@ class TimeStepper {
         uCF, pkgs->get_package<RadHydroPackage>("RadHydro")->get_rad_basis());
   }
 
-  [[nodiscard]] auto get_n_stages() const noexcept -> int;
+  [[nodiscard]] auto n_stages() const noexcept -> int;
 
  private:
   int mSize_;

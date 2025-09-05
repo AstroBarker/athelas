@@ -35,12 +35,6 @@ class Driver {
         eos_(std::make_unique<EOS>(initialize_eos(pin.get()))),
         opac_(std::make_unique<Opacity>(initialize_opacity(pin.get()))),
         grid_(pin.get()),
-        state_(3 + 2 * (pin->param()->get<bool>("physics.rad_active")), 3, 2,
-               pin->param()->get<int>("problem.nx"),
-               pin->param()->get<int>("fluid.nnodes"),
-               pin->param()->get<int>("fluid.porder"),
-               pin_->param()->get<bool>("physics.composition_enabled"),
-               pin_->param()->get<bool>("physics.ionization_enabled")),
         sl_hydro_(
             initialize_slope_limiter("fluid", &grid_, pin.get(), {0, 1, 2}, 3)),
         sl_rad_(initialize_slope_limiter("radiation", &grid_, pin.get(), {3, 4},
@@ -49,6 +43,18 @@ class Driver {
         history_(std::make_unique<HistoryOutput>(
             pin->param()->get<std::string>("output.hist_fn"),
             pin->param()->get<bool>("output.history_enabled"))) {
+        static const bool rad_enabled = pin->param()->get<bool>("physics.rad_active");
+        static const bool composition_enabled = pin->param()->get<bool>("physics.composition_enabled");
+        static const bool ionization_enabled = pin->param()->get<bool>("physics.ionization_enabled");
+        static const int nvars_cons = (rad_enabled) ? 5 : 3;
+        static const int nvars_prim = 3; // Maybe this can be smarter
+        static const int nvars_aux = (rad_enabled) ? 4 : 2;
+        static const int n_stages = ssprk_.n_stages();
+        static const int nx = pin->param()->get<int>("problem.nx");
+        static const int n_nodes = pin->param()->get<int>("fluid.nnodes");
+        static const int porder = pin->param()->get<int>("fluid.porder");
+        state_ = std::make_unique<State>(nvars_cons, nvars_prim, nvars_aux,
+               nx, n_nodes, porder, composition_enabled, ionization_enabled);
     initialize(pin.get());
   }
 
@@ -68,7 +74,7 @@ class Driver {
 
   std::unique_ptr<BoundaryConditions> bcs_;
 
-  double time_;
+  double time_{};
   double dt_;
   double t_end_;
 
@@ -77,7 +83,6 @@ class Driver {
   std::unique_ptr<EOS> eos_;
   std::unique_ptr<Opacity> opac_;
   GridStructure grid_;
-  State state_;
 
   // slope limiters
   SlopeLimiter sl_hydro_;
@@ -93,8 +98,7 @@ class Driver {
   std::unique_ptr<ModalBasis> fluid_basis_; // init in constr body
   std::unique_ptr<ModalBasis> radiation_basis_; // init in constr body
 
-  // The rest
-  std::optional<AtomicData> atomic_data_;
+  std::unique_ptr<State> state_;
 }; // class Driver
 
 namespace {

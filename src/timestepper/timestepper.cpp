@@ -41,6 +41,6 @@ TimeStepper::TimeStepper(const ProblemIn* pin, GridStructure* grid, EOS* eos)
   }
 }
 
-[[nodiscard]] auto TimeStepper::get_n_stages() const noexcept -> int {
+[[nodiscard]] auto TimeStepper::n_stages() const noexcept -> int {
   return integrator_.num_stages;
 }
