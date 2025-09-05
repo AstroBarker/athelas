@@ -1,5 +1,4 @@
 #include "driver.hpp"
-#include "atom/atom.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
 #include "fluid/hydro_package.hpp"
@@ -10,7 +9,6 @@
 #include "interface/packages_base.hpp"
 #include "io/io.hpp"
 #include "limiters/slope_limiter.hpp"
-#include "limiters/slope_limiter_utilities.hpp"
 #include "opacity/opac_variant.hpp"
 #include "pgen/problem_in.hpp"
 #include "radiation/radhydro_package.hpp"
@@ -20,7 +18,8 @@
 #include "utils/error.hpp"
 
 auto Driver::execute() -> int {
-  const auto nx = pin_->param()->get<int>("problem.nx");
+  static const auto nx = pin_->param()->get<int>("problem.nx");
+  static const bool rad_active = pin_->param()->get<bool>("physics.rad_active");
 
   // some startup io
   manager_->fill_derived(&state_, grid_);
@@ -28,7 +27,7 @@ auto Driver::execute() -> int {
               pin_->param()->get<std::string>("problem.problem"));
   print_simulation_parameters(grid_, pin_.get());
   write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
-              pin_->param()->get<int>("fluid.porder"), 0, opts_.do_rad);
+              pin_->param()->get<int>("fluid.porder"), 0, rad_active);
 
   // --- Timer ---
   Kokkos::Timer timer_zone_cycles;
@@ -59,12 +58,12 @@ auto Driver::execute() -> int {
       dt_ = t_end_ - time_;
     }
 
-    if (!opts_.do_rad) {
-      ssprk_.step(manager_.get(), &state_, grid_, dt_, &sl_hydro_, &opts_);
+    if (!rad_active) {
+      ssprk_.step(manager_.get(), &state_, grid_, dt_, &sl_hydro_);
     } else {
       try {
         ssprk_.step_imex(manager_.get(), &state_, grid_, dt_, &sl_hydro_,
-                         &sl_rad_, &opts_);
+                         &sl_rad_);
       } catch (const AthelasError& e) {
         std::cerr << e.what() << "\n";
         return AthelasExitCodes::FAILURE;
@@ -76,12 +75,12 @@ auto Driver::execute() -> int {
 
 #ifdef ATHELAS_DEBUG
     try {
-      check_state(&state_, grid_.get_ihi(), opts_.do_rad);
+      check_state(&state_, grid_.get_ihi(), rad_active);
     } catch (const AthelasError& e) {
       std::cerr << e.what() << std::endl;
       std::println("!!! Bad State found, writing _final_ output file ...");
       write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
-                  pin_->param()->get<int>("fluid.porder"), -1, opts_.do_rad);
+                  pin_->param()->get<int>("fluid.porder"), -1, rad_active);
       return AthelasExitCodes::FAILURE;
     }
 #endif
@@ -92,7 +91,7 @@ auto Driver::execute() -> int {
     if (time_ >= i_out_h5 * dt_hdf5) {
       manager_->fill_derived(&state_, grid_);
       write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
-                  fluid_basis_->get_order(), i_out_h5, opts_.do_rad);
+                  fluid_basis_->get_order(), i_out_h5, rad_active);
       i_out_h5 += 1;
     }
 
@@ -115,7 +114,7 @@ auto Driver::execute() -> int {
 
   manager_->fill_derived(&state_, grid_);
   write_state(&state_, grid_, &sl_hydro_, pin_.get(), time_,
-              pin_->param()->get<int>("fluid.porder"), -1, opts_.do_rad);
+              pin_->param()->get<int>("fluid.porder"), -1, rad_active);
 
   return AthelasExitCodes::SUCCESS;
 }
@@ -146,12 +145,14 @@ void Driver::initialize(ProblemIn* pin) { // NOLINT
     initialize_fields(&state_, &grid_, eos_.get(), pin);
 
     // --- Datastructure for modal basis ---
+    static const bool rad_active =
+        pin_->param()->get<bool>("physics.rad_active");
     fluid_basis_ = std::make_unique<ModalBasis>(
         poly_basis::poly_basis::legendre, state_.u_pf(), &grid_,
         pin->param()->get<int>("fluid.porder"),
         pin->param()->get<int>("fluid.nnodes"),
         pin->param()->get<int>("problem.nx"), true);
-    if (opts_.do_rad) {
+    if (rad_active) {
       radiation_basis_ = std::make_unique<ModalBasis>(
           poly_basis::poly_basis::legendre, state_.u_pf(), &grid_,
           pin->param()->get<int>("radiation.porder"),
@@ -172,6 +173,7 @@ void Driver::initialize(ProblemIn* pin) { // NOLINT
   // --- Init physics package manager ---
   // NOTE: Hydro/RadHydro should be registered first
   if (rad_active) {
+    std::println("WHAT");
     manager_->add_package(RadHydroPackage{
         pin, ssprk_.get_n_stages(), eos_.get(), opac_.get(), fluid_basis_.get(),
         radiation_basis_.get(), bcs_.get(), cfl, nx, true});
@@ -232,36 +234,4 @@ void Driver::initialize(ProblemIn* pin) { // NOLINT
   }
   history_->add_quantity("Total Fluid Momentum [g cm / s]",
                          analysis::total_fluid_momentum);
-}
-
-using limiter_utilities::initialize_slope_limiter;
-// Driver
-Driver::Driver(std::shared_ptr<ProblemIn> pin) // NOLINT
-    : pin_(pin), manager_(std::make_unique<PackageManager>()),
-      restart_(pin->param()->get<bool>("problem.restart")),
-      bcs_(std::make_unique<BoundaryConditions>(
-          bc::make_boundary_conditions(pin.get()))),
-      time_(0.0), dt_(pin_->param()->get<double>("output.initial_dt")),
-      t_end_(pin->param()->get<double>("problem.tf")),
-      eos_(std::make_unique<EOS>(initialize_eos(pin.get()))),
-      opac_(std::make_unique<Opacity>(initialize_opacity(pin.get()))),
-      grid_(pin.get()),
-      opts_(pin->param()->get<bool>("physics.rad_active"),
-            pin->param()->get<bool>("physics.gravity_active"), restart_,
-            pin->param()->get<int>("fluid.porder", 0)),
-      state_(3 + 2 * (pin->param()->get<bool>("physics.rad_active")), 3, 2,
-             pin->param()->get<int>("problem.nx"),
-             pin->param()->get<int>("fluid.nnodes"),
-             pin->param()->get<int>("fluid.porder"),
-             pin_->param()->get<bool>("physics.composition_enabled"),
-             pin_->param()->get<bool>("physics.ionization_enabled")),
-      sl_hydro_(
-          initialize_slope_limiter("fluid", &grid_, pin.get(), {0, 1, 2}, 3)),
-      sl_rad_(initialize_slope_limiter("radiation", &grid_, pin.get(), {3, 4},
-                                       2)), // update
-      ssprk_(pin.get(), &grid_, eos_.get()),
-      history_(std::make_unique<HistoryOutput>(
-          pin->param()->get<std::string>("output.hist_fn"),
-          pin->param()->get<bool>("output.history_enabled"))) {
-  initialize(pin.get());
 }
