@@ -34,27 +34,30 @@ class Driver {
         t_end_(pin->param()->get<double>("problem.tf")),
         eos_(std::make_unique<EOS>(initialize_eos(pin.get()))),
         opac_(std::make_unique<Opacity>(initialize_opacity(pin.get()))),
-        grid_(pin.get()),
-        sl_hydro_(
-            initialize_slope_limiter("fluid", &grid_, pin.get(), {0, 1, 2}, 3)),
+        grid_(pin.get()), sl_hydro_(initialize_slope_limiter(
+                              "fluid", &grid_, pin.get(), {0, 1, 2}, 3)),
         sl_rad_(initialize_slope_limiter("radiation", &grid_, pin.get(), {3, 4},
                                          2)), // update
         ssprk_(pin.get(), &grid_, eos_.get()),
         history_(std::make_unique<HistoryOutput>(
             pin->param()->get<std::string>("output.hist_fn"),
             pin->param()->get<bool>("output.history_enabled"))) {
-        static const bool rad_enabled = pin->param()->get<bool>("physics.rad_active");
-        static const bool composition_enabled = pin->param()->get<bool>("physics.composition_enabled");
-        static const bool ionization_enabled = pin->param()->get<bool>("physics.ionization_enabled");
-        static const int nvars_cons = (rad_enabled) ? 5 : 3;
-        static const int nvars_prim = 3; // Maybe this can be smarter
-        static const int nvars_aux = (rad_enabled) ? 4 : 2;
-        static const int n_stages = ssprk_.n_stages();
-        static const int nx = pin->param()->get<int>("problem.nx");
-        static const int n_nodes = pin->param()->get<int>("fluid.nnodes");
-        static const int porder = pin->param()->get<int>("fluid.porder");
-        state_ = std::make_unique<State>(nvars_cons, nvars_prim, nvars_aux,
-               nx, n_nodes, porder, composition_enabled, ionization_enabled);
+    static const bool rad_enabled =
+        pin->param()->get<bool>("physics.rad_active");
+    static const bool composition_enabled =
+        pin->param()->get<bool>("physics.composition_enabled");
+    static const bool ionization_enabled =
+        pin->param()->get<bool>("physics.ionization_enabled");
+    static const int nvars_cons = (rad_enabled) ? 5 : 3;
+    static const int nvars_prim = 3; // Maybe this can be smarter
+    static const int nvars_aux = (rad_enabled) ? 4 : 2;
+    static const int n_stages = ssprk_.n_stages();
+    static const int nx = pin->param()->get<int>("problem.nx");
+    static const int n_nodes = pin->param()->get<int>("fluid.nnodes");
+    static const int porder = pin->param()->get<int>("fluid.porder");
+    state_ = std::make_unique<State>(nvars_cons, nvars_prim, nvars_aux, nx,
+                                     n_nodes, porder, composition_enabled,
+                                     ionization_enabled);
     initialize(pin.get());
   }
 

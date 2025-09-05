@@ -96,8 +96,8 @@ auto Driver::execute() -> int {
     }
 
     if (time_ >= i_out_hist * pin_->param()->get<double>("output.hist_dt")) {
-      history_->write(*state_, grid_, fluid_basis_.get(), radiation_basis_.get(),
-                      time_);
+      history_->write(*state_, grid_, fluid_basis_.get(),
+                      radiation_basis_.get(), time_);
       i_out_hist += 1;
     }
 

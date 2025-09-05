@@ -24,22 +24,23 @@ class ModalBasis {
   static auto taylor(int order, double eta, double eta_c) -> double;
   static auto d_taylor(int order, double eta, double eta_c) -> double;
   auto ortho(int order, int ix, int i_eta, double eta, double eta_c,
-             View3D<double> uCF, GridStructure* grid, bool derivative_option)
-      -> double;
+             const View3D<double> uCF, const GridStructure* grid,
+             bool derivative_option) -> double;
   auto inner_product(int m, int n, int ix, double eta_c, View3D<double> uPF,
-                     GridStructure* grid) const -> double;
+                     const GridStructure* grid) const -> double;
   auto inner_product(int n, int ix, double eta_c, View3D<double> uPF,
-                     GridStructure* grid) const -> double;
+                     const GridStructure* grid) const -> double;
   void initialize_taylor_basis(View3D<double> U, GridStructure* grid);
-  void initialize_basis(View3D<double> uCF, GridStructure* grid);
-  void check_orthogonality(View3D<double> uCF, GridStructure* grid) const;
+  void initialize_basis(const View3D<double> uPF, const GridStructure* grid);
+  void check_orthogonality(const View3D<double> uPF,
+                           const GridStructure* grid) const;
   [[nodiscard]] auto basis_eval(View3D<double> U, int ix, int q,
                                 int i_eta) const -> double;
   [[nodiscard]] auto basis_eval(View2D<double> U, int ix, int q,
                                 int i_eta) const -> double;
   [[nodiscard]] auto basis_eval(View1D<double> U, int ix, int i_eta) const
       -> double;
-  void compute_mass_matrix(View3D<double> uCF, GridStructure* grid);
+  void compute_mass_matrix(const View3D<double> uPF, const GridStructure* grid);
 
   [[nodiscard]] auto get_phi(int ix, int i_eta, int k) const -> double;
   [[nodiscard]] auto phi() const noexcept -> View3D<double>;

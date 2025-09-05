@@ -43,8 +43,8 @@ void RadHydroPackage::update_explicit(const View3D<double> state,
                                       const TimeStepInfo& dt_info) const {
   // TODO(astrobarker) handle separate fluid and rad orders
   const auto& order = fluid_basis_->get_order();
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
+  static constexpr int ilo = 1;
+  static const auto& ihi = grid.get_ihi();
 
   const auto stage = dt_info.stage;
 
@@ -96,8 +96,8 @@ void RadHydroPackage::update_implicit(const View3D<double> state,
                                       const TimeStepInfo& dt_info) const {
   // TODO(astrobarker) handle separate fluid and rad orders
   const auto& order = fluid_basis_->get_order();
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
+  static constexpr int ilo = 1;
+  static const auto& ihi = grid.get_ihi();
 
   // --- Zero out dU  ---
   Kokkos::parallel_for(
@@ -129,8 +129,8 @@ void RadHydroPackage::update_implicit_iterative(const View3D<double> state,
                                                 const TimeStepInfo& dt_info) {
   // TODO(astrobarker) handle separate fluid and rad orders
   const auto& order = fluid_basis_->get_order();
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
+  static constexpr int ilo = 1;
+  static const auto& ihi = grid.get_ihi();
 
   Kokkos::parallel_for(
       "RadHydro :: implicit iterative", Kokkos::RangePolicy<>(ilo, ihi + 1),
@@ -175,8 +175,8 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
                                           const int stage) const {
   const auto& nNodes = grid.get_n_nodes();
   const auto& order = rad_basis_->get_order();
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
+  static constexpr int ilo = 1;
+  static const auto& ihi = grid.get_ihi();
 
   // --- Interpolate Conserved Variable to Interfaces ---
 
@@ -391,7 +391,6 @@ auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
     // 4 force
     const auto [G0, G] =
         radiation_four_force(rho, vel, t_g, kappa_r, kappa_p, E_r, F_r, P_r);
-    //    std::println("G0 G {} {} {} {} {}", G0, G, E_r, em_t, t_g);
 
     const double source_e_r = -c * G0;
     const double source_m_r = -c2 * G;
@@ -422,8 +421,8 @@ auto RadHydroPackage::min_timestep(const View3D<double> /*state*/,
   static constexpr double MAX_DT = std::numeric_limits<double>::max();
   static constexpr double MIN_DT = 100.0 * std::numeric_limits<double>::min();
 
-  const int& ilo = grid.get_ilo();
-  const int& ihi = grid.get_ihi();
+  static constexpr int ilo = 1;
+  static const int& ihi = grid.get_ihi();
 
   double dt_out = 0.0;
   Kokkos::parallel_reduce(
@@ -455,8 +454,8 @@ void RadHydroPackage::fill_derived(State* state,
   View3D<double> uPF = state->u_pf();
   View3D<double> uAF = state->u_af();
 
-  const int ilo = 1;
-  const int ihi = grid.get_ihi() + 2;
+  static constexpr int ilo = 1;
+  static const int ihi = grid.get_ihi() + 2;
   const int nNodes = grid.get_n_nodes();
 
   // --- Apply BC ---
