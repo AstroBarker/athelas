@@ -33,7 +33,7 @@ void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure* grid,
   // host data
   auto h_uAF = Kokkos::create_mirror_view(uAF);
 
-  const int size = grid->get_n_elements() * grid->get_n_nodes() + 2;
+  const int size = grid->get_n_elements() * nNodes + 2 * nNodes;
   View1D<double> d_r("host radius", size);
   std::vector<double> pressure(1);
   std::vector<double> radius(1);
@@ -84,7 +84,6 @@ void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure* grid,
 
   // update domain boundary and grid
   auto& xr = pin->param()->get_mutable_ref<double>("problem.xr");
-  ;
   xr = radius.back();
   // this is awful
   // TODO(astrobarker): when cleaning up grid, get this
@@ -107,7 +106,7 @@ void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure* grid,
         if (radius[i] <= r && radius[i + 1] >= r) { // search
           const double y = LINTERP(radius[i], radius[i + 1], pressure[i],
                                    pressure[i + 1], r);
-          h_uAF(iP_, ix, iN) = y;
+          h_uAF(ix, iN, iP_) = y;
           break;
         }
       }

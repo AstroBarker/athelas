@@ -58,13 +58,13 @@ void hydrostatic_balance_init(State* state, GridStructure* grid, ProblemIn* pin,
     auto solver = HydrostaticEquilibrium(rho_c, p_thresh, eos,
                                          pin->param()->get<double>("eos.k"),
                                          pin->param()->get<double>("eos.n"));
-    solver.solve(state->u_af(), grid, pin);
+    solver.solve(uAF, grid, pin);
 
     // Phase 1: Initialize nodal values (always done)
     Kokkos::parallel_for(
         Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
           for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-            uPF(ix, iNodeX, iPF_D) = rho_from_p(uAF(0, ix, iNodeX));
+            uPF(ix, iNodeX, iPF_D) = rho_from_p(uAF(ix, iNodeX, 0));
           }
         });
   }
@@ -73,7 +73,7 @@ void hydrostatic_balance_init(State* state, GridStructure* grid, ProblemIn* pin,
   if (fluid_basis != nullptr) {
     // Use L2 projection for accurate modal coefficients
     auto tau_func = [&](double /*x*/, int ix, int iN) -> double {
-      return 1.0 / rho_from_p(uAF(0, ix, iN));
+      return 1.0 / rho_from_p(uAF(ix, iN, 0));
     };
 
     auto velocity_func = [](double /*x*/, int /*ix*/, int /*iN*/) -> double {
@@ -81,8 +81,8 @@ void hydrostatic_balance_init(State* state, GridStructure* grid, ProblemIn* pin,
     };
 
     auto energy_func = [&](double /*x*/, int ix, int iN) -> double {
-      const double rho = rho_from_p(uAF(0, ix, iN));
-      return (uAF(0, ix, iN) / gm1) / rho;
+      const double rho = rho_from_p(uAF(ix, iN, 0));
+      return (uAF(ix, iN, 0) / gm1) / rho;
     };
 
     Kokkos::parallel_for(
