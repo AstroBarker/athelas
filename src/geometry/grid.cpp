@@ -144,39 +144,50 @@ auto GridStructure::do_geometry() const noexcept -> bool {
 }
 
 // Equidistant mesh
-// TODO(astrobarker): We will need to replace centers_ here, right?
+// NOTE: It might be worthwhile to refactor this to remove the mirros/copies.
 KOKKOS_FUNCTION
 void GridStructure::create_grid() {
 
   const int ilo = 1; // first real zone
   const int ihi = nElements_; // last real zone
 
+  auto widths_h = Kokkos::create_mirror_view(widths_);
+  auto centers_h = Kokkos::create_mirror_view(centers_);
+  auto x_l_h = Kokkos::create_mirror_view(x_l_);
+
   for (int i = 0; i < nElements_ + 2; i++) {
-    widths_(i) = (xR_ - xL_) / nElements_;
+    widths_h(i) = (xR_ - xL_) / nElements_;
   }
 
-  x_l_(1) = xL_;
+  x_l_h(1) = xL_;
   for (int ix = 2; ix < nElements_ + 2; ix++) {
-    x_l_(ix) = x_l_(ix - 1) + widths_(ix - 1);
+    x_l_h(ix) = x_l_h(ix - 1) + widths_h(ix - 1);
   }
 
-  centers_(ilo) = xL_ + 0.5 * widths_(ilo);
+  centers_h(ilo) = xL_ + 0.5 * widths_h(ilo);
   for (int i = ilo + 1; i <= ihi; i++) {
-    centers_(i) = centers_(i - 1) + widths_(i - 1);
+    centers_h(i) = centers_h(i - 1) + widths_h(i - 1);
   }
 
   for (int i = ilo - 1; i >= 0; i--) {
-    centers_(i) = centers_(i + 1) - widths_(i + 1);
+    centers_h(i) = centers_h(i + 1) - widths_h(i + 1);
   }
   for (int i = ihi + 1; i < nElements_ + 1 + 1; i++) {
-    centers_(i) = centers_(i - 1) + widths_(i - 1);
+    centers_h(i) = centers_h(i - 1) + widths_h(i - 1);
   }
 
-  for (int iC = ilo; iC <= ihi; iC++) {
-    for (int iN = 0; iN < nNodes_; iN++) {
-      grid_(iC, iN) = node_coordinate(iC, iN);
-    }
-  }
+  // copy back to device mirrors
+  Kokkos::deep_copy(widths_, widths_h);
+  Kokkos::deep_copy(centers_, centers_h);
+  Kokkos::deep_copy(x_l_, x_l_h);
+
+  Kokkos::parallel_for(
+      "Grid :: create_grid", Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_CLASS_LAMBDA(const int ix) {
+        for (int iN = 0; iN < nNodes_; iN++) {
+          grid_(ix, iN) = node_coordinate(ix, iN);
+        }
+      });
 }
 
 /**
@@ -188,24 +199,25 @@ void GridStructure::compute_mass(const View3D<double> uPF) {
   const int ilo = get_ilo();
   const int ihi = get_ihi();
 
-  double mass = 0.0;
-  double X = 0.0;
-
-  for (int ix = ilo; ix <= ihi; ix++) {
-    mass = 0.0;
-    for (int iN = 0; iN < nNodes_; iN++) {
-      X = node_coordinate(ix, iN);
-      mass += weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
-    }
-    mass *= widths_(ix);
-    mass_(ix) = mass;
-  }
+  Kokkos::parallel_for(
+      "Grid :: compute_mass", Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_CLASS_LAMBDA(const int ix) {
+        double mass = 0.0;
+        for (int iN = 0; iN < nNodes_; iN++) {
+          const double X = node_coordinate(ix, iN);
+          mass += weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
+        }
+        mass *= widths_(ix);
+        mass_(ix) = mass;
+      });
 
   // Guard cells
-  for (int ix = 0; ix < ilo; ix++) {
-    mass_(ilo - 1 - ix) = mass_(ilo + ix);
-    mass_(ihi + 1 + ix) = mass_(ihi - ix);
-  }
+  Kokkos::parallel_for(
+      "Grid :: compute_mass (ghost cells)", Kokkos::RangePolicy<>(0, ilo),
+      KOKKOS_CLASS_LAMBDA(const int ix) {
+        mass_(ilo - 1 - ix) = mass_(ilo + ix);
+        mass_(ihi + 1 + ix) = mass_(ihi - ix);
+      });
 }
 
 /**
@@ -221,46 +233,44 @@ void GridStructure::compute_mass_r(const View3D<double> uPF) {
   const int ilo = get_ilo();
   const int ihi = get_ihi();
 
-  double mass = 0.0;
-  double X = 0.0;
-
   static const double geom_fac = (do_geometry()) ? 4.0 * constants::PI : 1.0;
 
   const int total_points = (ihi - ilo + 1) * nNodes_;
   View1D<double> mass_contrib("mass_contrib", total_points);
   View1D<double> cumulative_mass("cumulative_mass", total_points);
-  
+
   // 1: Compute individual mass contributions in parallel
-  Kokkos::parallel_for("compute_mass_contributions",
-    Kokkos::RangePolicy<>(0, total_points),
-    KOKKOS_CLASS_LAMBDA(const int idx) {
-      const int ix = ilo + idx / nNodes_;
-      const int iN = idx % nNodes_;
-      const double X = node_coordinate(ix, iN);
-      mass_contrib(idx) = weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
-    });
+  Kokkos::parallel_for(
+      "compute_mass_contributions", Kokkos::RangePolicy<>(0, total_points),
+      KOKKOS_CLASS_LAMBDA(const int idx) {
+        const int ix = ilo + idx / nNodes_;
+        const int iN = idx % nNodes_;
+        const double X = node_coordinate(ix, iN);
+        mass_contrib(idx) = weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
+      });
 
   // 2: Perform parallel inclusive scan (cumulative sum)
-  Kokkos::parallel_scan("compute_enclosed_mass",
-    Kokkos::RangePolicy<>(0, total_points),
-    KOKKOS_LAMBDA(const int idx, double& partial_sum, const bool is_final) {
-      partial_sum += mass_contrib(idx);
-      if (is_final) {
-        cumulative_mass(idx) = partial_sum;
-      }
-    });
+  Kokkos::parallel_scan(
+      "compute_enclosed_mass", Kokkos::RangePolicy<>(0, total_points),
+      KOKKOS_LAMBDA(const int idx, double& partial_sum, const bool is_final) {
+        partial_sum += mass_contrib(idx);
+        if (is_final) {
+          cumulative_mass(idx) = partial_sum;
+        }
+      });
 
   // 3: sort into mass_r_
-  Kokkos::parallel_for("store_enclosed_mass",
-    Kokkos::RangePolicy<>(0, total_points),
-    KOKKOS_CLASS_LAMBDA(const int idx) {
-      const int ix = ilo + idx / nNodes_;
-      const int iN = idx % nNodes_;
-      mass_r_(ix, iN) = cumulative_mass(idx) * widths_(ix) * geom_fac;
-    });
-  
+  Kokkos::parallel_for(
+      "store_enclosed_mass", Kokkos::RangePolicy<>(0, total_points),
+      KOKKOS_CLASS_LAMBDA(const int idx) {
+        const int ix = ilo + idx / nNodes_;
+        const int iN = idx % nNodes_;
+        mass_r_(ix, iN) = cumulative_mass(idx) * widths_(ix) * geom_fac;
+      });
+
   // Get total mass
-  // auto h_cumulative = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), cumulative_mass);
+  // auto h_cumulative =
+  // Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), cumulative_mass);
   // mass = h_cumulative(total_points - 1);
 }
 
@@ -279,27 +289,27 @@ void GridStructure::compute_center_of_mass(const View3D<double> uPF) {
   const int ilo = get_ilo();
   const int ihi = get_ihi();
 
-  Kokkos::parallel_for("Grid :: compute_center_of_mass", 
-  Kokkos::RangePolicy<>(ilo, ihi + 1),
-  KOKKOS_CLASS_LAMBDA(const int ix) {
-    double com = 0.0;
+  Kokkos::parallel_for(
+      "Grid :: compute_center_of_mass", Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_CLASS_LAMBDA(const int ix) {
+        double com = 0.0;
 
-    for (int iN = 0; iN < nNodes_; iN++) {
-      const double X = node_coordinate(ix, iN);
-      com += nodes_(iN) * weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
-    }
-    
-    com *= widths_(ix);
-    center_of_mass_(ix) = com / mass_(ix);
-  });
+        for (int iN = 0; iN < nNodes_; iN++) {
+          const double X = node_coordinate(ix, iN);
+          com += nodes_(iN) * weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
+        }
+
+        com *= widths_(ix);
+        center_of_mass_(ix) = com / mass_(ix);
+      });
 
   // Guard cells
-  Kokkos::parallel_for("Grid :: compute_center_of_mass (ghost cells)", 
-  Kokkos::RangePolicy<>(0, ilo),
-  KOKKOS_CLASS_LAMBDA(const int ix) {
-    center_of_mass_(ilo - 1 - ix) = center_of_mass_(ilo + ix);
-    center_of_mass_(ihi + 1 + ix) = center_of_mass_(ihi - ix);
-  });
+  Kokkos::parallel_for(
+      "Grid :: compute_center_of_mass (ghost cells)",
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_CLASS_LAMBDA(const int ix) {
+        center_of_mass_(ilo - 1 - ix) = center_of_mass_(ilo + ix);
+        center_of_mass_(ihi + 1 + ix) = center_of_mass_(ihi - ix);
+      });
 }
 
 /**
