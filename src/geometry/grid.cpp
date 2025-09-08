@@ -18,6 +18,7 @@
 
 #include "geometry/grid.hpp"
 #include "quadrature/quadrature.hpp"
+#include "utils/utilities.hpp"
 
 using namespace geometry;
 
@@ -27,6 +28,7 @@ GridStructure::GridStructure(const ProblemIn* pin)
       xL_(pin->param()->get<double>("problem.xl")),
       xR_(pin->param()->get<double>("problem.xr")),
       geometry_(pin->param()->get<Geometry>("problem.geometry_model")),
+      grid_type_(pin->param()->get<std::string>("problem.grid_type")),
       nodes_("Nodes", nNodes_), weights_("weights_", nNodes_),
       centers_("Cetners", mSize_), widths_("widths_", mSize_),
       x_l_("Left Interface", mSize_ + 1), mass_("Cell mass_", mSize_),
@@ -106,8 +108,8 @@ auto GridStructure::get_x_r() const noexcept -> double { return xR_; }
 
 // Accessor for SqrtGm
 KOKKOS_FUNCTION
-auto GridStructure::get_sqrt_gm(double X) const -> double {
-  if (geometry_ == geometry::Spherical) {
+auto GridStructure::get_sqrt_gm(const double X) const -> double {
+  if (geometry_ == geometry::Spherical) [[likely]] {
     return X * X;
   }
   return 1.0;
@@ -143,10 +145,20 @@ auto GridStructure::do_geometry() const noexcept -> bool {
   return geometry_ == geometry::Spherical;
 }
 
+// grid creation logic
+void GridStructure::create_grid() {
+  if (utilities::to_lower(grid_type_) == "uniform") {
+    create_uniform_grid();
+  } else if (utilities::to_lower(grid_type_) == "logarithmic") {
+    create_log_grid();
+  } else {
+    THROW_ATHELAS_ERROR("Unknown grid type '" + grid_type_ + "' provided!");
+  }
+}
+
 // Equidistant mesh
 // NOTE: It might be worthwhile to refactor this to remove the mirros/copies.
-KOKKOS_FUNCTION
-void GridStructure::create_grid() {
+void GridStructure::create_uniform_grid() {
 
   const int ilo = 1; // first real zone
   const int ihi = nElements_; // last real zone
@@ -183,6 +195,62 @@ void GridStructure::create_grid() {
 
   Kokkos::parallel_for(
       "Grid :: create_grid", Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_CLASS_LAMBDA(const int ix) {
+        for (int iN = 0; iN < nNodes_; iN++) {
+          grid_(ix, iN) = node_coordinate(ix, iN);
+        }
+      });
+}
+// Logarithmic mesh
+void GridStructure::create_log_grid() {
+
+  const int ilo = 1; // first real zone
+  const int ihi = nElements_; // last real zone
+
+  auto widths_h = Kokkos::create_mirror_view(widths_);
+  auto centers_h = Kokkos::create_mirror_view(centers_);
+  auto x_l_h = Kokkos::create_mirror_view(x_l_);
+
+  // For logarithmic grid, we need to calculate the growth factor
+  // such that r_max/r_min = growth_factor^(nElements-1)
+  const double log_ratio = std::log(xR_ / xL_);
+  const double growth_factor = std::exp(log_ratio / (nElements_ - 1));
+
+  // Set up the first cell width
+  widths_h(0) = xL_ * (growth_factor - 1.0);
+
+  // Calculate remaining widths with geometric progression
+  for (int i = 1; i < nElements_ + 2; i++) {
+    widths_h(i) = widths_h(i - 1) * growth_factor;
+  }
+
+  // Set up left edges
+  x_l_h(1) = xL_;
+  for (int ix = 2; ix < nElements_ + 2; ix++) {
+    x_l_h(ix) = x_l_h(ix - 1) + widths_h(ix - 1);
+  }
+
+  // Set up cell centers
+  centers_h(ilo) = xL_ + 0.5 * widths_h(ilo);
+  for (int i = ilo + 1; i <= ihi; i++) {
+    centers_h(i) = centers_h(i - 1) + widths_h(i - 1);
+  }
+
+  // Handle ghost cells
+  for (int i = ilo - 1; i >= 0; i--) {
+    centers_h(i) = centers_h(i + 1) - widths_h(i + 1);
+  }
+  for (int i = ihi + 1; i < nElements_ + 1 + 1; i++) {
+    centers_h(i) = centers_h(i - 1) + widths_h(i - 1);
+  }
+
+  // copy back to device mirrors
+  Kokkos::deep_copy(widths_, widths_h);
+  Kokkos::deep_copy(centers_, centers_h);
+  Kokkos::deep_copy(x_l_, x_l_h);
+
+  Kokkos::parallel_for(
+      "Grid :: create_log_grid", Kokkos::RangePolicy<>(ilo, ihi + 1),
       KOKKOS_CLASS_LAMBDA(const int ix) {
         for (int iN = 0; iN < nNodes_; iN++) {
           grid_(ix, iN) = node_coordinate(ix, iN);
