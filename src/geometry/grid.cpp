@@ -209,7 +209,11 @@ void GridStructure::compute_mass(const View3D<double> uPF) {
 }
 
 /**
- * Compute enclosed masses
+ * @brief Compute enclosed masses
+ *
+ * NOTE: This function is intended only to be called once, as it allocated.
+ * If we find ourselves for any reason calling this repeatedly,
+ * it should be refactored.
  **/
 KOKKOS_FUNCTION
 void GridStructure::compute_mass_r(const View3D<double> uPF) {
@@ -220,16 +224,44 @@ void GridStructure::compute_mass_r(const View3D<double> uPF) {
   double mass = 0.0;
   double X = 0.0;
 
-  const double geom_fac = (do_geometry()) ? 4.0 * constants::PI : 1.0;
+  static const double geom_fac = (do_geometry()) ? 4.0 * constants::PI : 1.0;
 
-  mass = 0.0;
-  for (int ix = ilo; ix <= ihi; ++ix) {
-    for (int iN = 0; iN < nNodes_; ++iN) {
-      X = node_coordinate(ix, iN);
-      mass += weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
-      mass_r_(ix, iN) = mass * widths_(ix) * geom_fac;
-    }
-  }
+  const int total_points = (ihi - ilo + 1) * nNodes_;
+  View1D<double> mass_contrib("mass_contrib", total_points);
+  View1D<double> cumulative_mass("cumulative_mass", total_points);
+  
+  // 1: Compute individual mass contributions in parallel
+  Kokkos::parallel_for("compute_mass_contributions",
+    Kokkos::RangePolicy<>(0, total_points),
+    KOKKOS_CLASS_LAMBDA(const int idx) {
+      const int ix = ilo + idx / nNodes_;
+      const int iN = idx % nNodes_;
+      const double X = node_coordinate(ix, iN);
+      mass_contrib(idx) = weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
+    });
+
+  // 2: Perform parallel inclusive scan (cumulative sum)
+  Kokkos::parallel_scan("compute_enclosed_mass",
+    Kokkos::RangePolicy<>(0, total_points),
+    KOKKOS_LAMBDA(const int idx, double& partial_sum, const bool is_final) {
+      partial_sum += mass_contrib(idx);
+      if (is_final) {
+        cumulative_mass(idx) = partial_sum;
+      }
+    });
+
+  // 3: sort into mass_r_
+  Kokkos::parallel_for("store_enclosed_mass",
+    Kokkos::RangePolicy<>(0, total_points),
+    KOKKOS_CLASS_LAMBDA(const int idx) {
+      const int ix = ilo + idx / nNodes_;
+      const int iN = idx % nNodes_;
+      mass_r_(ix, iN) = cumulative_mass(idx) * widths_(ix) * geom_fac;
+    });
+  
+  // Get total mass
+  // auto h_cumulative = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), cumulative_mass);
+  // mass = h_cumulative(total_points - 1);
 }
 
 KOKKOS_FUNCTION
@@ -247,24 +279,27 @@ void GridStructure::compute_center_of_mass(const View3D<double> uPF) {
   const int ilo = get_ilo();
   const int ihi = get_ihi();
 
-  double com = 0.0;
-  double X = 0.0;
+  Kokkos::parallel_for("Grid :: compute_center_of_mass", 
+  Kokkos::RangePolicy<>(ilo, ihi + 1),
+  KOKKOS_CLASS_LAMBDA(const int ix) {
+    double com = 0.0;
 
-  for (int ix = ilo; ix <= ihi; ix++) {
-    com = 0.0;
     for (int iN = 0; iN < nNodes_; iN++) {
-      X = node_coordinate(ix, iN);
+      const double X = node_coordinate(ix, iN);
       com += nodes_(iN) * weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
     }
+    
     com *= widths_(ix);
     center_of_mass_(ix) = com / mass_(ix);
-  }
+  });
 
   // Guard cells
-  for (int ix = 0; ix < ilo; ix++) {
+  Kokkos::parallel_for("Grid :: compute_center_of_mass (ghost cells)", 
+  Kokkos::RangePolicy<>(0, ilo),
+  KOKKOS_CLASS_LAMBDA(const int ix) {
     center_of_mass_(ilo - 1 - ix) = center_of_mass_(ilo + ix);
     center_of_mass_(ihi + 1 + ix) = center_of_mass_(ihi - ix);
-  }
+  });
 }
 
 /**
