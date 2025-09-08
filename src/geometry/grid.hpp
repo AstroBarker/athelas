@@ -59,7 +59,7 @@ class GridStructure {
   KOKKOS_FUNCTION
   [[nodiscard]] auto get_n_elements() const noexcept -> int;
 
-  void create_grid();
+  void create_grid(const ProblemIn* pin);
   void create_uniform_grid();
   void create_log_grid();
 

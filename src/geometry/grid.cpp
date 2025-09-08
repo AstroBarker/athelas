@@ -14,6 +14,7 @@
  *          ihi = nElements_ - nGhost_ + 1
  */
 
+#include <limits>
 #include <vector>
 
 #include "geometry/grid.hpp"
@@ -50,7 +51,7 @@ GridStructure::GridStructure(const ProblemIn* pin)
     weights_(iN) = tmp_weights[iN];
   }
 
-  create_grid();
+  create_grid(pin);
 }
 
 // linear shape function on the reference element
@@ -146,10 +147,29 @@ auto GridStructure::do_geometry() const noexcept -> bool {
 }
 
 // grid creation logic
-void GridStructure::create_grid() {
+void GridStructure::create_grid(const ProblemIn* pin) {
   if (utilities::to_lower(grid_type_) == "uniform") {
     create_uniform_grid();
   } else if (utilities::to_lower(grid_type_) == "logarithmic") {
+    // Need to be careful of coordinates with log grid!
+    if (xL_ < 0.0 || xR_ < 0.0) {
+      THROW_ATHELAS_ERROR(
+          "Negative coordinates are not supported with logarithmic gridding!");
+    }
+    if (xL_ == 0.0) {
+      const double new_xl = 10.0 * std::numeric_limits<double>::min() * xR_;
+      std::stringstream ss;
+      ss << std::scientific << std::setprecision(3) << new_xl;
+      WARNING_ATHELAS("Logarithmic grid requestion with XL = 0.0. This does "
+                      "not work. Setting xL = 10 * epsilon * xR = " +
+                      ss.str() +
+                      ". You might consider setting a more appropriate value.");
+
+      // update outer boundary in params and in class
+      auto& xl_pin = pin->param()->get_mutable_ref<double>("problem.xl");
+      xl_pin = new_xl;
+      xL_ = new_xl;
+    }
     create_log_grid();
   } else {
     THROW_ATHELAS_ERROR("Unknown grid type '" + grid_type_ + "' provided!");
@@ -213,8 +233,8 @@ void GridStructure::create_log_grid() {
 
   // For logarithmic grid, we need to calculate the growth factor
   // such that r_max/r_min = growth_factor^(nElements-1)
-  const double log_ratio = std::log(xR_ / xL_);
-  const double growth_factor = std::exp(log_ratio / (nElements_ - 1));
+  const double log_ratio = std::log10(utilities::ratio(xR_, xL_));
+  const double growth_factor = std::pow(10.0, log_ratio / (nElements_));
 
   // Set up the first cell width
   widths_h(0) = xL_ * (growth_factor - 1.0);
@@ -242,6 +262,12 @@ void GridStructure::create_log_grid() {
   }
   for (int i = ihi + 1; i < nElements_ + 1 + 1; i++) {
     centers_h(i) = centers_h(i - 1) + widths_h(i - 1);
+  }
+
+  // map from log to linear coordinates
+  for (int i = 1; i < nElements_ + 2; i++) {
+    centers_h(i) = std::pow(10.0, centers_h(i));
+    x_l_h(i) = std::pow(10.0, x_l_h(i));
   }
 
   // copy back to device mirrors
