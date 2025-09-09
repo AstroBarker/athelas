@@ -157,7 +157,7 @@ void GridStructure::create_grid(const ProblemIn* pin) {
           "Negative coordinates are not supported with logarithmic gridding!");
     }
     if (xL_ == 0.0) {
-      const double new_xl = 10.0 * std::numeric_limits<double>::min() * xR_;
+      const double new_xl = 1.0e-4 * xR_;
       std::stringstream ss;
       ss << std::scientific << std::setprecision(3) << new_xl;
       WARNING_ATHELAS("Logarithmic grid requestion with XL = 0.0. This does "
@@ -176,8 +176,9 @@ void GridStructure::create_grid(const ProblemIn* pin) {
   }
 }
 
-// Equidistant mesh
-// NOTE: It might be worthwhile to refactor this to remove the mirros/copies.
+/**
+ * @brief uniform mesh
+ */ 
 void GridStructure::create_uniform_grid() {
 
   const int ilo = 1; // first real zone
@@ -221,7 +222,13 @@ void GridStructure::create_uniform_grid() {
         }
       });
 }
-// Logarithmic mesh
+
+/**
+ * @brief logarithmic radial mesh generation
+ *
+ * Sets up logarithmic mesh with cell centers:
+ * x_i = x_l * (x_r / x_l)^(i/(nx - 1))
+ */ 
 void GridStructure::create_log_grid() {
 
   const int ilo = 1; // first real zone
@@ -231,29 +238,14 @@ void GridStructure::create_log_grid() {
   auto centers_h = Kokkos::create_mirror_view(centers_);
   auto x_l_h = Kokkos::create_mirror_view(x_l_);
 
-  // For logarithmic grid, we need to calculate the growth factor
-  // such that r_max/r_min = growth_factor^(nElements-1)
+  const double log_xl = std::log10(xL_);
   const double log_ratio = std::log10(utilities::ratio(xR_, xL_));
-  const double growth_factor = std::pow(10.0, log_ratio / (nElements_));
-
-  // Set up the first cell width
-  widths_h(0) = xL_ * (growth_factor - 1.0);
-
-  // Calculate remaining widths with geometric progression
-  for (int i = 1; i < nElements_ + 2; i++) {
-    widths_h(i) = widths_h(i - 1) * growth_factor;
-  }
-
-  // Set up left edges
-  x_l_h(1) = xL_;
-  for (int ix = 2; ix < nElements_ + 2; ix++) {
-    x_l_h(ix) = x_l_h(ix - 1) + widths_h(ix - 1);
-  }
+  const double dx = log_ratio / (nElements_ - 1);
 
   // Set up cell centers
-  centers_h(ilo) = xL_ + 0.5 * widths_h(ilo);
-  for (int i = ilo + 1; i <= ihi; i++) {
-    centers_h(i) = centers_h(i - 1) + widths_h(i - 1);
+  for (int i = ilo; i <= ihi; i++) {
+    const double log_xi = log_xl + i * dx;
+    centers_h(i) = std::pow(10.0, log_xi);
   }
 
   // Handle ghost cells
@@ -264,10 +256,15 @@ void GridStructure::create_log_grid() {
     centers_h(i) = centers_h(i - 1) + widths_h(i - 1);
   }
 
-  // map from log to linear coordinates
-  for (int i = 1; i < nElements_ + 2; i++) {
-    centers_h(i) = std::pow(10.0, centers_h(i));
-    x_l_h(i) = std::pow(10.0, x_l_h(i));
+  // Set up left edges
+  x_l_h(1) = xL_;
+  for (int i = 2; i < nElements_ + 2; i++) {
+    x_l_h(i) = 0.5 * (centers_h(i - 1) + centers_h(i));
+  }
+
+  // Calculate remaining widths with geometric progression
+  for (int i = 0; i < nElements_ + 2; i++) {
+    widths_h(i) = x_l_h(i + 1) - x_l_h(i);
   }
 
   // copy back to device mirrors
