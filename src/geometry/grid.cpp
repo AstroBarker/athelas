@@ -157,11 +157,16 @@ void GridStructure::create_grid(const ProblemIn* pin) {
           "Negative coordinates are not supported with logarithmic gridding!");
     }
     if (xL_ == 0.0) {
+      // We cannot have a boundary at 0 with a log grid. We replace the inner
+      // boundary arbitrarily with 1.0e-4 * xR and warn the user to perhaps
+      // consider asetting a better inner boundary.
+      // This logic is not very general and might be made smarter.
+      // It also is not an important edge case.
       const double new_xl = 1.0e-4 * xR_;
       std::stringstream ss;
       ss << std::scientific << std::setprecision(3) << new_xl;
       WARNING_ATHELAS("Logarithmic grid requestion with XL = 0.0. This does "
-                      "not work. Setting xL = 10 * epsilon * xR = " +
+                      "not work. Setting xL = 10^-4 * xR = " +
                       ss.str() +
                       ". You might consider setting a more appropriate value.");
 
