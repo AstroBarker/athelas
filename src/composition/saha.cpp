@@ -200,5 +200,5 @@ auto saha_d_target(const double Zbar, const double T,
   }
 
   const double denom = 1.0 / (min_state - 1.0 + sigma1);
-  return (sigma2 - (1.0 + sigma1) * (1.0 + sigma3 * denom)) * denom;
+  return (sigma2 - (1.0 + sigma0) * (1.0 + sigma3 * denom)) * denom;
 }
