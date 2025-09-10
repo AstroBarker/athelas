@@ -183,7 +183,7 @@ void GridStructure::create_grid(const ProblemIn* pin) {
 
 /**
  * @brief uniform mesh
- */ 
+ */
 void GridStructure::create_uniform_grid() {
 
   const int ilo = 1; // first real zone
@@ -233,7 +233,7 @@ void GridStructure::create_uniform_grid() {
  *
  * Sets up logarithmic mesh with cell centers:
  * x_i = x_l * (x_r / x_l)^(i/(nx - 1))
- */ 
+ */
 void GridStructure::create_log_grid() {
 
   const int ilo = 1; // first real zone
