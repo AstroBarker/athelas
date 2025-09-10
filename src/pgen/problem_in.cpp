@@ -102,6 +102,14 @@ ProblemIn::ProblemIn(const std::string& fn) {
   if (geom.value() == "spherical") {
     params_->add("problem.geometry_model", Geometry::Spherical);
   }
+  // TODO(astrobarker): move grid stuff into own section, not problem
+  // Begs the question: what is "problem" and what is "grid"? xl and xr?
+  std::optional<std::string> grid_type =
+      config_["problem"]["grid_type"].value<std::string>();
+  if (!grid_type.has_value()) {
+    THROW_ATHELAS_ERROR("Missing or invalid 'grid_type' in [problem] block.");
+  }
+  params_->add("problem.grid_type", grid_type.value());
 
   // ---------------------------------------------
   // ---------- handle [problem.params] ----------

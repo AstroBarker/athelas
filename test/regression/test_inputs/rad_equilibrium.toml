@@ -9,6 +9,7 @@ xr = 1.0
 bc = "homogenous"
 cfl = 0.9
 nx = 1
+grid_type = "uniform"
 
 [problem.params]
 v0 = 0.0

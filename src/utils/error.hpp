@@ -30,7 +30,7 @@ enum AthelasExitCodes {
 };
 
 inline void print_backtrace() {
-  std::cout << std::stacktrace::current() << std::endl;
+  std::cerr << std::stacktrace::current() << "\n";
 }
 
 [[noreturn]] inline void segfault_handler(int sig) {
@@ -82,6 +82,7 @@ template <typename... Args>
 
 inline void WARNING_ATHELAS(const std::string& message) {
   std::println("!!! Athelas Warning: {}", message);
+  std::println(std::cerr, "!!! Athelas Warning: {}", message);
 }
 
 template <typename T>

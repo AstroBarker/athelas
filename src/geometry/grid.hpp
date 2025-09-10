@@ -59,8 +59,10 @@ class GridStructure {
   KOKKOS_FUNCTION
   [[nodiscard]] auto get_n_elements() const noexcept -> int;
 
-  KOKKOS_FUNCTION
-  void create_grid();
+  void create_grid(const ProblemIn* pin);
+  void create_uniform_grid();
+  void create_log_grid();
+
   KOKKOS_FUNCTION
   void update_grid(View1D<double> SData);
   KOKKOS_FUNCTION
@@ -92,6 +94,7 @@ class GridStructure {
   double xR_;
 
   geometry::Geometry geometry_;
+  std::string grid_type_; // uniform or logarithmic
 
   View1D<double> nodes_{};
   View1D<double> weights_{};

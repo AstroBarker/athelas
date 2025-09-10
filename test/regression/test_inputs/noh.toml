@@ -9,6 +9,7 @@ xr = 1.0
 bc = "reflecting"
 cfl = 0.1
 nx = 128
+grid_type = "uniform"
 
 [problem.params]
 v0 = -1.0
