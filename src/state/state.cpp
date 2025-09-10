@@ -2,11 +2,12 @@
 #include "utils/error.hpp"
 
 State::State(const int nvar, const int nPF, const int nAF, const int nX_,
-             const int nNodes_, const int pOrder,
+             const int nNodes_, const int pOrder, const int nstages,
              const bool composition_enabled, const bool ionization_enabled)
     : nvar_(nvar), nPF_(nPF), nAF_(nAF), pOrder_(pOrder),
-      uCF_("uCF", nX_ + 2, pOrder_, nvar_), uPF_("uPF", nX_ + 2, nNodes_, nPF_),
-      uAF_("uAF", nX_ + 2, nNodes_, nAF_),
+      uCF_("uCF", nX_ + 2, pOrder_, nvar_),
+      uCF_s_("uCF_s", nstages, nX_ + 2, pOrder_, nvar_),
+      uPF_("uPF", nX_ + 2, nNodes_, nPF_), uAF_("uAF", nX_ + 2, nNodes_, nAF_),
       composition_enabled_(composition_enabled),
       ionization_enabled_(ionization_enabled) {}
 
@@ -48,5 +49,6 @@ auto State::p_order() const noexcept -> int { return pOrder_; }
 
 // view accessors
 auto State::u_cf() const noexcept -> View3D<double> { return uCF_; }
+auto State::u_cf_stages() const noexcept -> View4D<double> { return uCF_s_; }
 auto State::u_pf() const noexcept -> View3D<double> { return uPF_; }
 auto State::u_af() const noexcept -> View3D<double> { return uAF_; }
