@@ -8,6 +8,7 @@ xl = 0.0
 xr = 5.0
 cfl = 0.8
 nx = 256
+grid_type = "uniform"
 
 [physics]
 radiation = false

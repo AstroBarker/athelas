@@ -8,6 +8,7 @@ xl = 0.0
 xr = 1.0
 cfl = 0.35
 nx = 128
+grid_type = "uniform"
 
 [problem.params]
 rho = 1.0

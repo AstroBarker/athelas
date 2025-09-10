@@ -9,6 +9,7 @@ xl = 0.0
 xr = 1.0
 cfl = 0.5
 nx = 2048
+grid_type = "uniform"
 
 [problem.params]
 vL = -2.0

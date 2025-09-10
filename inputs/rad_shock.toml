@@ -9,6 +9,7 @@ xr = 0.01575
 x_d = 0.0132
 cfl = 0.95
 nx = 256
+grid_type = "uniform"
 
 # Mach 3 Case:
 # - Left side (pre-shock):

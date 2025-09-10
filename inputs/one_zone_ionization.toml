@@ -8,6 +8,7 @@ xl = 0.0
 xr = 1.0
 cfl = 0.8
 nx = 1
+grid_type = "uniform"
 
 [problem.params]
 temperature = 10036.0
