@@ -12,7 +12,7 @@
 class State {
  public:
   State(int nvar, int nPF, int nAF, int nX_, int nNodes_, int pOrder,
-        bool composition_enabled, bool ionization_enabled);
+        int nstages, bool composition_enabled, bool ionization_enabled);
 
   [[nodiscard]] auto n_cf() const noexcept -> int;
   [[nodiscard]] auto n_pf() const noexcept -> int;
@@ -20,6 +20,7 @@ class State {
   [[nodiscard]] auto p_order() const noexcept -> int;
 
   [[nodiscard]] auto u_cf() const noexcept -> View3D<double>;
+  [[nodiscard]] auto u_cf_stages() const noexcept -> View4D<double>;
   [[nodiscard]] auto u_pf() const noexcept -> View3D<double>;
   [[nodiscard]] auto u_af() const noexcept -> View3D<double>;
 
@@ -40,6 +41,7 @@ class State {
   int pOrder_;
 
   View3D<double> uCF_; // Conserved fluid
+  View4D<double> uCF_s_; // Conserved fluid (stage storage)
   View3D<double> uPF_; // primitive fluid
   View3D<double> uAF_; // auxiliary fluid
 

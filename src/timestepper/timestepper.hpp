@@ -57,6 +57,7 @@ class TimeStepper {
     const auto& ihi = grid.get_ihi();
 
     auto U = state->u_cf();
+    auto U_s = state->u_cf_stages();
 
     const int nvars = U.extent(2);
 
@@ -81,7 +82,7 @@ class TimeStepper {
       for (int j = 0; j < iS; ++j) {
         dt_info.stage = j;
         auto Us_j =
-            Kokkos::subview(U_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+            Kokkos::subview(U_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
         auto dUs_j =
             Kokkos::subview(dU_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
         auto flux_u_j = Kokkos::subview(flux_u_, j, Kokkos::ALL);
@@ -113,7 +114,7 @@ class TimeStepper {
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
                                                  {ihi + 2, order, nvars}),
           KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
-            U_s_(iS, ix, k, q) = SumVar_U_(ix, k, q);
+            U_s(iS, ix, k, q) = SumVar_U_(ix, k, q);
           });
 
       auto stage_data_j = Kokkos::subview(stage_data_, iS, Kokkos::ALL);
@@ -121,7 +122,7 @@ class TimeStepper {
       grid_s_[iS].update_grid(stage_data_j);
 
       auto Us_j =
-          Kokkos::subview(U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+          Kokkos::subview(U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
       apply_slope_limiter(sl_hydro, Us_j, &grid_s_[iS],
                           pkgs->get_package<HydroPackage>("Hydro")->get_basis(),
                           eos_);
@@ -132,7 +133,7 @@ class TimeStepper {
     for (int iS = 0; iS < nStages_; ++iS) {
       dt_info.stage = iS;
       auto Us_j =
-          Kokkos::subview(U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+          Kokkos::subview(U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
       auto dUs_j =
           Kokkos::subview(dU_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
       auto flux_u_j = Kokkos::subview(flux_u_, iS, Kokkos::ALL);
@@ -189,6 +190,7 @@ class TimeStepper {
     const auto& ihi = grid.get_ihi();
 
     auto uCF = state->u_cf();
+    auto U_s = state->u_cf_stages();
 
     const int nvars = uCF.extent(2);
 
@@ -204,9 +206,7 @@ class TimeStepper {
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
                                                  {ihi + 2, order, nvars}),
           KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
-            //            for (int q = 0; q < nvars; ++q) {
             SumVar_U_(ix, k, q) = uCF(ix, k, q);
-            //            }
             stage_data_(iS, ix) = grid_s_[iS].get_left_interface(ix);
           });
 
@@ -217,7 +217,7 @@ class TimeStepper {
         const double dt_a = dt * integrator_.explicit_tableau.a_ij(iS, j);
         const double dt_a_im = dt * integrator_.implicit_tableau.a_ij(iS, j);
         auto Us_j =
-            Kokkos::subview(U_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+            Kokkos::subview(U_s, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
         auto dUs_j =
             Kokkos::subview(dU_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
         auto flux_u_j = Kokkos::subview(flux_u_, j, Kokkos::ALL);
@@ -261,13 +261,13 @@ class TimeStepper {
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
                                                  {ihi + 2, order, nvars}),
           KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
-            U_s_(iS, ix, k, q) = SumVar_U_(ix, k, q);
+            U_s(iS, ix, k, q) = SumVar_U_(ix, k, q);
           });
 
       // NOTE: The limiting strategies in this function will fail if
       // the pkg does not have access to a rad_basis and fluid_basis
       auto Us_j =
-          Kokkos::subview(U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+          Kokkos::subview(U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
       // limiting madness
       apply_slope_limiter(
           sl_hydro, Us_j, &grid_s_[iS],
@@ -309,7 +309,7 @@ class TimeStepper {
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 1},
                                                  {ihi + 2, order, nvars}),
           KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
-            U_s_(iS, ix, k, q) = Us_j(ix, k, q);
+            U_s(iS, ix, k, q) = Us_j(ix, k, q);
           });
 
       // TODO(astrobarker): slope limit rad
@@ -334,7 +334,7 @@ class TimeStepper {
       const double dt_b = dt * integrator_.explicit_tableau.b_i(iS);
       const double dt_b_im = dt * integrator_.implicit_tableau.b_i(iS);
       auto Us_i =
-          Kokkos::subview(U_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+          Kokkos::subview(U_s, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
       auto dUs_ex_i =
           Kokkos::subview(dU_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
       auto dUs_im_i = Kokkos::subview(dU_s_implicit_, iS, Kokkos::ALL,
@@ -393,7 +393,6 @@ class TimeStepper {
   int tOrder_;
 
   // Hold stage data
-  View4D<double> U_s_;
   View4D<double> dU_s_;
   View4D<double> dU_s_implicit_;
   View3D<double> SumVar_U_;

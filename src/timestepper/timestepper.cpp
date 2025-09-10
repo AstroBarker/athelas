@@ -22,9 +22,6 @@ TimeStepper::TimeStepper(const ProblemIn* pin, GridStructure* grid, EOS* eos)
       integrator_(
           create_tableau(pin->param()->get<MethodID>("time.integrator"))),
       nStages_(integrator_.num_stages), tOrder_(integrator_.explicit_order),
-      U_s_("U_s", nStages_ + 1, mSize_ + 1,
-           pin->param()->get<int>("fluid.porder"),
-           3 + (pin->param()->get<bool>("physics.rad_active")) * 2),
       dU_s_("dU_s", nStages_ + 1, mSize_ + 1,
             pin->param()->get<int>("fluid.porder"),
             3 + (pin->param()->get<bool>("physics.rad_active")) * 2),

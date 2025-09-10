@@ -56,8 +56,8 @@ class Driver {
     static const int n_nodes = pin->param()->get<int>("fluid.nnodes");
     static const int porder = pin->param()->get<int>("fluid.porder");
     state_ = std::make_unique<State>(nvars_cons, nvars_prim, nvars_aux, nx,
-                                     n_nodes, porder, composition_enabled,
-                                     ionization_enabled);
+                                     n_nodes, porder, n_stages,
+                                     composition_enabled, ionization_enabled);
     initialize(pin.get());
   }
 
