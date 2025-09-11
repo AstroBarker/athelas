@@ -20,14 +20,20 @@ GravityPackage::GravityPackage(const ProblemIn* /*pin*/, GravityModel model,
     : active_(active), model_(model), gval_(gval), basis_(basis), cfl_(cfl) {}
 
 KOKKOS_FUNCTION
-void GravityPackage::update_explicit(const View3D<double> state,
+void GravityPackage::update_explicit(const State* const state,
                                      View3D<double> dU,
                                      const GridStructure& grid,
-                                     const TimeStepInfo& /*dt_info*/) const {
+                                     const TimeStepInfo& dt_info) const {
+  const auto u_stages = state->u_cf_stages();
+
+  const auto stage = dt_info.stage;
+  const auto ucf =
+      Kokkos::subview(u_stages, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+
   if (model_ == GravityModel::Spherical) {
-    gravity_update<GravityModel::Spherical>(state, dU, grid);
+    gravity_update<GravityModel::Spherical>(ucf, dU, grid);
   } else [[unlikely]] {
-    gravity_update<GravityModel::Constant>(state, dU, grid);
+    gravity_update<GravityModel::Constant>(ucf, dU, grid);
   }
 }
 

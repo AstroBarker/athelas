@@ -27,15 +27,15 @@ class RadHydroPackage {
                   bool active = true);
 
   KOKKOS_FUNCTION
-  void update_explicit(View3D<double> state, View3D<double> dU,
+  void update_explicit(const State* const state, View3D<double> dU,
                        const GridStructure& grid,
                        const TimeStepInfo& dt_info) const;
   KOKKOS_FUNCTION
-  void update_implicit(View3D<double> state, View3D<double> dU,
+  void update_implicit(const State* const state, View3D<double> dU,
                        const GridStructure& grid,
                        const TimeStepInfo& dt_info) const;
   KOKKOS_FUNCTION
-  void update_implicit_iterative(View3D<double> state, View3D<double> dU,
+  void update_implicit_iterative(const State* const state, View3D<double> dU,
                                  const GridStructure& grid,
                                  const TimeStepInfo& dt_info);
   KOKKOS_FUNCTION
