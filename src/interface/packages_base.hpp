@@ -35,7 +35,7 @@ class PackageWrapper {
   }
 
   // Explicit update
-  void update_explicit(View3D<double> state, View3D<double> dU,
+  void update_explicit(const State* const state, View3D<double> dU,
                        const GridStructure& grid, const TimeStepInfo& dt_info) {
     if (package_->has_explicit()) {
       package_->update_explicit(state, dU, grid, dt_info);
@@ -43,7 +43,7 @@ class PackageWrapper {
   }
 
   // Implicit update
-  void update_implicit(View3D<double> state, View3D<double> dU,
+  void update_implicit(const State* const state, View3D<double> dU,
                        const GridStructure& grid, const TimeStepInfo& dt_info) {
     if (package_->has_implicit()) {
       package_->update_implicit(state, dU, grid, dt_info);
@@ -55,7 +55,7 @@ class PackageWrapper {
    * Solves:
    * u^i = R^i + dt a_ii S(u^i)
    **/
-  void update_implicit_iterative(View3D<double> state, View3D<double> dU,
+  void update_implicit_iterative(const State* const state, View3D<double> dU,
                                  const GridStructure& grid,
                                  const TimeStepInfo& dt_info) {
     if (package_->has_implicit()) {
@@ -63,11 +63,10 @@ class PackageWrapper {
     }
   }
 
-  [[nodiscard]] auto min_timestep(View3D<double> state,
-                                  const GridStructure& grid,
+  [[nodiscard]] auto min_timestep(View3D<double> ucf, const GridStructure& grid,
                                   const TimeStepInfo& dt_info) const -> double {
     if (package_->is_active()) {
-      return package_->min_timestep(state, grid, dt_info);
+      return package_->min_timestep(ucf, grid, dt_info);
     }
     return std::numeric_limits<double>::max();
   }
@@ -94,14 +93,14 @@ class PackageWrapper {
  private:
   struct PackageConcept {
     virtual ~PackageConcept() = default;
-    virtual void update_explicit(View3D<double>, View3D<double>,
+    virtual void update_explicit(const State* const, View3D<double>,
                                  const GridStructure&, const TimeStepInfo&) = 0;
-    virtual void update_implicit(View3D<double>, View3D<double>,
+    virtual void update_implicit(const State* const, View3D<double>,
                                  const GridStructure&, const TimeStepInfo&) = 0;
-    virtual void update_implicit_iterative(View3D<double>, View3D<double>,
+    virtual void update_implicit_iterative(const State* const, View3D<double>,
                                            const GridStructure&,
                                            const TimeStepInfo&) = 0;
-    [[nodiscard]] virtual auto min_timestep(View3D<double> state,
+    [[nodiscard]] virtual auto min_timestep(View3D<double> ucf,
                                             const GridStructure& grid,
                                             const TimeStepInfo& dt_info) const
         -> double = 0;
@@ -122,7 +121,7 @@ class PackageWrapper {
     // Get original package
     auto get_package() -> T& { return package_; }
 
-    void update_explicit(View3D<double> state, View3D<double> dU,
+    void update_explicit(const State* const state, View3D<double> dU,
                          const GridStructure& grid,
                          const TimeStepInfo& dt_info) override {
       if constexpr (has_explicit_update_v<T>) {
@@ -130,7 +129,7 @@ class PackageWrapper {
       }
     }
 
-    void update_implicit(View3D<double> state, View3D<double> dU,
+    void update_implicit(const State* const state, View3D<double> dU,
                          const GridStructure& grid,
                          const TimeStepInfo& dt_info) override {
       if constexpr (has_implicit_update_v<T>) {
@@ -138,7 +137,7 @@ class PackageWrapper {
       }
     }
 
-    void update_implicit_iterative(View3D<double> state, View3D<double> dU,
+    void update_implicit_iterative(const State* const state, View3D<double> dU,
                                    const GridStructure& grid,
                                    const TimeStepInfo& dt_info) override {
       if constexpr (has_implicit_update_v<T>) {
@@ -146,11 +145,11 @@ class PackageWrapper {
       }
     }
 
-    [[nodiscard]] auto min_timestep(View3D<double> state,
+    [[nodiscard]] auto min_timestep(View3D<double> ucf,
                                     const GridStructure& grid,
                                     const TimeStepInfo& dt_info) const
         -> double override {
-      return package_.min_timestep(state, grid, dt_info);
+      return package_.min_timestep(ucf, grid, dt_info);
     }
 
     void fill_derived(State* state, const GridStructure& grid) const override {
@@ -198,7 +197,7 @@ class PackageManager {
     all_packages_.push_back(std::move(wrapper));
   }
 
-  void update_explicit(View3D<double> state, View3D<double> dU,
+  void update_explicit(const State* const state, View3D<double> dU,
                        const GridStructure& grid, const TimeStepInfo& dt_info) {
     for (auto* pkg : explicit_packages_) {
       if (pkg->is_active()) {
@@ -207,7 +206,7 @@ class PackageManager {
     }
   }
 
-  void update_implicit(View3D<double> state, View3D<double> dU,
+  void update_implicit(const State* const state, View3D<double> dU,
                        const GridStructure& grid, const TimeStepInfo& dt_info) {
     for (auto* pkg : implicit_packages_) {
       if (pkg->is_active()) {
@@ -216,7 +215,7 @@ class PackageManager {
     }
   }
 
-  void update_implicit_iterative(View3D<double> state, View3D<double> dU,
+  void update_implicit_iterative(const State* const state, View3D<double> dU,
                                  const GridStructure& grid,
                                  const TimeStepInfo& dt_info) {
     for (auto* pkg : implicit_packages_) {
@@ -226,18 +225,18 @@ class PackageManager {
     }
   }
 
-  auto min_timestep(View3D<double> state, const GridStructure& grid,
+  auto min_timestep(View3D<double> ucf, const GridStructure& grid,
                     const TimeStepInfo& dt_info) const -> double {
     double min_dt = std::numeric_limits<double>::max();
     // TODO(astrobarker): loop over all_packages_
     for (auto* pkg : explicit_packages_) {
       if (pkg->is_active()) {
-        min_dt = std::min(min_dt, pkg->min_timestep(state, grid, dt_info));
+        min_dt = std::min(min_dt, pkg->min_timestep(ucf, grid, dt_info));
       }
     }
     for (auto* pkg : implicit_packages_) {
       if (pkg->is_active()) {
-        min_dt = std::min(min_dt, pkg->min_timestep(state, grid, dt_info));
+        min_dt = std::min(min_dt, pkg->min_timestep(ucf, grid, dt_info));
       }
     }
     return min_dt;

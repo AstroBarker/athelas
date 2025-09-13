@@ -37,7 +37,7 @@ RadHydroPackage::RadHydroPackage(const ProblemIn* /*pin*/, int n_stages,
 } // Need long term solution for flux_u_
 
 KOKKOS_FUNCTION
-void RadHydroPackage::update_explicit(const View3D<double> state,
+void RadHydroPackage::update_explicit(const State* const state,
                                       View3D<double> dU,
                                       const GridStructure& grid,
                                       const TimeStepInfo& dt_info) const {
@@ -46,11 +46,15 @@ void RadHydroPackage::update_explicit(const View3D<double> state,
   static constexpr int ilo = 1;
   static const auto& ihi = grid.get_ihi();
 
+  const auto u_stages = state->u_cf_stages();
+
   const auto stage = dt_info.stage;
+  const auto ucf =
+      Kokkos::subview(u_stages, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
 
   // --- Apply BC ---
-  bc::fill_ghost_zones<2>(state, &grid, rad_basis_, bcs_, {3, 4});
-  bc::fill_ghost_zones<3>(state, &grid, fluid_basis_, bcs_, {0, 2});
+  bc::fill_ghost_zones<2>(ucf, &grid, rad_basis_, bcs_, {3, 4});
+  bc::fill_ghost_zones<3>(ucf, &grid, fluid_basis_, bcs_, {0, 2});
 
   // --- Zero out dU  ---
   Kokkos::parallel_for(
@@ -62,7 +66,7 @@ void RadHydroPackage::update_explicit(const View3D<double> state,
       });
 
   // --- radiation Increment : Divergence ---
-  radhydro_divergence(state, dU, grid, stage);
+  radhydro_divergence(ucf, dU, grid, stage);
 
   // --- Divide update by mass mastrix ---
   Kokkos::parallel_for(
@@ -90,7 +94,7 @@ void RadHydroPackage::update_explicit(const View3D<double> state,
  * Computes dU from source terms
  **/
 KOKKOS_FUNCTION
-void RadHydroPackage::update_implicit(const View3D<double> state,
+void RadHydroPackage::update_implicit(const State* const state,
                                       View3D<double> dU,
                                       const GridStructure& grid,
                                       const TimeStepInfo& dt_info) const {
@@ -98,6 +102,12 @@ void RadHydroPackage::update_implicit(const View3D<double> state,
   const auto& order = fluid_basis_->get_order();
   static constexpr int ilo = 1;
   static const auto& ihi = grid.get_ihi();
+
+  const auto u_stages = state->u_cf_stages();
+
+  const auto stage = dt_info.stage;
+  const auto ucf =
+      Kokkos::subview(u_stages, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
 
   // --- Zero out dU  ---
   Kokkos::parallel_for(
@@ -112,9 +122,8 @@ void RadHydroPackage::update_implicit(const View3D<double> state,
       "RadHydro :: Implicit",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
       KOKKOS_CLASS_LAMBDA(const int i, const int k) {
-        const auto state_i =
-            Kokkos::subview(state, i, Kokkos::ALL, Kokkos::ALL);
-        const auto [du1, du2, du3, du4] = radhydro_source(state_i, grid, i, k);
+        const auto ucf_i = Kokkos::subview(ucf, i, Kokkos::ALL, Kokkos::ALL);
+        const auto [du1, du2, du3, du4] = radhydro_source(ucf_i, grid, i, k);
         dU(i, k, 1) = du1;
         dU(i, k, 2) = du2;
         dU(i, k, 3) = du3;
@@ -123,7 +132,7 @@ void RadHydroPackage::update_implicit(const View3D<double> state,
 } // update_implicit
 
 KOKKOS_FUNCTION
-void RadHydroPackage::update_implicit_iterative(const View3D<double> state,
+void RadHydroPackage::update_implicit_iterative(const State* const state,
                                                 View3D<double> dU,
                                                 const GridStructure& grid,
                                                 const TimeStepInfo& dt_info) {
@@ -132,10 +141,16 @@ void RadHydroPackage::update_implicit_iterative(const View3D<double> state,
   static constexpr int ilo = 1;
   static const auto& ihi = grid.get_ihi();
 
+  const auto u_stages = state->u_cf_stages();
+
+  const auto stage = dt_info.stage;
+  const auto ucf =
+      Kokkos::subview(u_stages, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+
   Kokkos::parallel_for(
       "RadHydro :: implicit iterative", Kokkos::RangePolicy<>(ilo, ihi + 1),
       KOKKOS_CLASS_LAMBDA(const int ix) {
-        auto state_i = Kokkos::subview(state, ix, Kokkos::ALL, Kokkos::ALL);
+        auto ucf_i = Kokkos::subview(ucf, ix, Kokkos::ALL, Kokkos::ALL);
         auto scratch_sol_ix =
             Kokkos::subview(scratch_sol_, ix, Kokkos::ALL, Kokkos::ALL);
         auto scratch_sol_ix_k =
@@ -147,9 +162,9 @@ void RadHydroPackage::update_implicit_iterative(const View3D<double> state,
         for (int k = 0; k < order; ++k) {
           // set radhydro vars
           for (int i = 0; i < NUM_VARS_; ++i) {
-            scratch_sol_ix_k(k, i) = state_i(k, i);
-            scratch_sol_ix_km1(k, i) = state_i(k, i);
-            scratch_sol_ix(k, i) = state_i(k, i);
+            scratch_sol_ix_k(k, i) = ucf_i(k, i);
+            scratch_sol_ix_km1(k, i) = ucf_i(k, i);
+            scratch_sol_ix(k, i) = ucf_i(k, i);
           }
         }
 
@@ -159,7 +174,7 @@ void RadHydroPackage::update_implicit_iterative(const View3D<double> state,
 
         for (int k = 0; k < order; ++k) {
           for (int q = 1; q < NUM_VARS_; ++q) {
-            state(ix, k, q) = scratch_sol_ix(k, q);
+            ucf(ix, k, q) = scratch_sol_ix(k, q);
           }
         }
       });

@@ -27,17 +27,21 @@ HydroPackage::HydroPackage(const ProblemIn* /*pin*/, int n_stages, EOS* eos,
 } // Need long term solution for flux_u_
 
 KOKKOS_FUNCTION
-void HydroPackage::update_explicit(const View3D<double> state,
-                                   View3D<double> dU, const GridStructure& grid,
+void HydroPackage::update_explicit(const State* const state, View3D<double> dU,
+                                   const GridStructure& grid,
                                    const TimeStepInfo& dt_info) const {
   const auto& order = basis_->get_order();
   static constexpr int ilo = 1;
   static const auto& ihi = grid.get_ihi();
 
+  const auto u_stages = state->u_cf_stages();
+
   const auto stage = dt_info.stage;
+  const auto ucf =
+      Kokkos::subview(u_stages, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
 
   // --- Apply BC ---
-  bc::fill_ghost_zones<3>(state, &grid, basis_, bcs_, {0, 2});
+  bc::fill_ghost_zones<3>(ucf, &grid, basis_, bcs_, {0, 2});
 
   // --- Zero out dU  ---
   Kokkos::parallel_for(
@@ -49,7 +53,7 @@ void HydroPackage::update_explicit(const View3D<double> state,
       });
 
   // --- Fluid Increment : Divergence ---
-  fluid_divergence(state, dU, grid, stage);
+  fluid_divergence(ucf, dU, grid, stage);
 
   // --- Divide update by mass mastrix ---
   Kokkos::parallel_for(
@@ -62,7 +66,7 @@ void HydroPackage::update_explicit(const View3D<double> state,
 
   // --- Increment from Geometry ---
   if (grid.do_geometry()) {
-    fluid_geometry(state, dU, grid);
+    fluid_geometry(ucf, dU, grid);
   }
 }
 
