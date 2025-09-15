@@ -1,8 +1,8 @@
 #!/bin/sh
 #
 # Athelas git pre-commit hook. This hook will, prior to committing:
-# - Apply clang-format to staged .c/cpp/cc/cxx/h/hpp/hh/hxx files
-# - Chekc for trailing whitespace
+# - Execute scripts/bash/format.sh to format C/C++/python
+# - Check for trailing whitespace
 # To enable this hook, rename this file to "pre-commit".
 
 if git rev-parse --verify HEAD >/dev/null 2>&1
@@ -41,14 +41,6 @@ If you know what you are doing you can disable this check using:
   git config hooks.allownonascii true
 EOF
 	exit 1
-fi
-
-
-# Find staged C/C++ files (that are added or modified) and format them
-FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(c|cpp|cc|cxx|h|hpp|hh|hxx)$' || true)
-
-if [ -z "$FILES" ]; then
-    exit 0
 fi
 
 echo "[hook] Running clang-format on staged files..."
