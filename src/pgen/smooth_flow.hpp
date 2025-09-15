@@ -19,8 +19,8 @@
 /**
  * @brief Initialize smooth flow test problem
  **/
-void smooth_flow_init(State* state, GridStructure* grid, ProblemIn* pin,
-                      const EOS* /*eos*/, ModalBasis* fluid_basis = nullptr) {
+void smooth_flow_init(State *state, GridStructure *grid, ProblemIn *pin,
+                      const EOS * /*eos*/, ModalBasis *fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Smooth flow requires ideal gas eos!");
   }

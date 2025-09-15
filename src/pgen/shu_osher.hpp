@@ -18,8 +18,8 @@
 /**
  * @brief Initialize Shu Osher hydro test
  **/
-void shu_osher_init(State* state, GridStructure* grid, ProblemIn* pin,
-                    const EOS* eos, ModalBasis* fluid_basis = nullptr) {
+void shu_osher_init(State *state, GridStructure *grid, ProblemIn *pin,
+                    const EOS *eos, ModalBasis *fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Shu Osher requires ideal gas eos!");
   }

@@ -21,10 +21,10 @@
 namespace radiation {
 using fluid::numerical_flux_gudonov_positivity;
 
-RadHydroPackage::RadHydroPackage(const ProblemIn* /*pin*/, int n_stages,
-                                 EOS* eos, Opacity* opac,
-                                 ModalBasis* fluid_basis, ModalBasis* rad_basis,
-                                 BoundaryConditions* bcs, double cfl, int nx,
+RadHydroPackage::RadHydroPackage(const ProblemIn * /*pin*/, int n_stages,
+                                 EOS *eos, Opacity *opac,
+                                 ModalBasis *fluid_basis, ModalBasis *rad_basis,
+                                 BoundaryConditions *bcs, double cfl, int nx,
                                  bool active)
     : active_(active), nx_(nx), cfl_(cfl), eos_(eos), opac_(opac),
       fluid_basis_(fluid_basis), rad_basis_(rad_basis), bcs_(bcs),
@@ -37,14 +37,14 @@ RadHydroPackage::RadHydroPackage(const ProblemIn* /*pin*/, int n_stages,
 } // Need long term solution for flux_u_
 
 KOKKOS_FUNCTION
-void RadHydroPackage::update_explicit(const State* const state,
+void RadHydroPackage::update_explicit(const State *const state,
                                       View3D<double> dU,
-                                      const GridStructure& grid,
-                                      const TimeStepInfo& dt_info) const {
+                                      const GridStructure &grid,
+                                      const TimeStepInfo &dt_info) const {
   // TODO(astrobarker) handle separate fluid and rad orders
-  const auto& order = fluid_basis_->get_order();
+  const auto &order = fluid_basis_->get_order();
   static constexpr int ilo = 1;
-  static const auto& ihi = grid.get_ihi();
+  static const auto &ihi = grid.get_ihi();
 
   const auto u_stages = state->u_cf_stages();
 
@@ -94,14 +94,14 @@ void RadHydroPackage::update_explicit(const State* const state,
  * Computes dU from source terms
  **/
 KOKKOS_FUNCTION
-void RadHydroPackage::update_implicit(const State* const state,
+void RadHydroPackage::update_implicit(const State *const state,
                                       View3D<double> dU,
-                                      const GridStructure& grid,
-                                      const TimeStepInfo& dt_info) const {
+                                      const GridStructure &grid,
+                                      const TimeStepInfo &dt_info) const {
   // TODO(astrobarker) handle separate fluid and rad orders
-  const auto& order = fluid_basis_->get_order();
+  const auto &order = fluid_basis_->get_order();
   static constexpr int ilo = 1;
-  static const auto& ihi = grid.get_ihi();
+  static const auto &ihi = grid.get_ihi();
 
   const auto u_stages = state->u_cf_stages();
 
@@ -132,14 +132,14 @@ void RadHydroPackage::update_implicit(const State* const state,
 } // update_implicit
 
 KOKKOS_FUNCTION
-void RadHydroPackage::update_implicit_iterative(const State* const state,
+void RadHydroPackage::update_implicit_iterative(const State *const state,
                                                 View3D<double> dU,
-                                                const GridStructure& grid,
-                                                const TimeStepInfo& dt_info) {
+                                                const GridStructure &grid,
+                                                const TimeStepInfo &dt_info) {
   // TODO(astrobarker) handle separate fluid and rad orders
-  const auto& order = fluid_basis_->get_order();
+  const auto &order = fluid_basis_->get_order();
   static constexpr int ilo = 1;
-  static const auto& ihi = grid.get_ihi();
+  static const auto &ihi = grid.get_ihi();
 
   const auto u_stages = state->u_cf_stages();
 
@@ -186,12 +186,12 @@ void RadHydroPackage::update_implicit_iterative(const State* const state,
 KOKKOS_FUNCTION
 void RadHydroPackage::radhydro_divergence(const View3D<double> state,
                                           View3D<double> dU,
-                                          const GridStructure& grid,
+                                          const GridStructure &grid,
                                           const int stage) const {
-  const auto& nNodes = grid.get_n_nodes();
-  const auto& order = rad_basis_->get_order();
+  const auto &nNodes = grid.get_n_nodes();
+  const auto &order = rad_basis_->get_order();
   static constexpr int ilo = 1;
-  static const auto& ihi = grid.get_ihi();
+  static const auto &ihi = grid.get_ihi();
 
   // --- Interpolate Conserved Variable to Interfaces ---
 
@@ -280,13 +280,13 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0},
                                              {ihi + 1, order, NUM_VARS_}),
       KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
-        const auto* const basis = (q < 3) ? fluid_basis_ : rad_basis_;
-        const auto& Poly_L = basis->get_phi(ix, 0, k);
-        const auto& Poly_R = basis->get_phi(ix, nNodes + 1, k);
-        const auto& X_L = grid.get_left_interface(ix);
-        const auto& X_R = grid.get_left_interface(ix + 1);
-        const auto& SqrtGm_L = grid.get_sqrt_gm(X_L);
-        const auto& SqrtGm_R = grid.get_sqrt_gm(X_R);
+        const auto *const basis = (q < 3) ? fluid_basis_ : rad_basis_;
+        const auto &Poly_L = basis->get_phi(ix, 0, k);
+        const auto &Poly_R = basis->get_phi(ix, nNodes + 1, k);
+        const auto &X_L = grid.get_left_interface(ix);
+        const auto &X_R = grid.get_left_interface(ix + 1);
+        const auto &SqrtGm_L = grid.get_sqrt_gm(X_L);
+        const auto &SqrtGm_R = grid.get_sqrt_gm(X_R);
 
         dU(ix, k, q) -= (+dFlux_num_(ix + 1, q) * Poly_R * SqrtGm_R -
                          dFlux_num_(ix + 0, q) * Poly_L * SqrtGm_L);
@@ -350,7 +350,7 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
  *     4: radiation flux F
  **/
 auto RadHydroPackage::radhydro_source(const View2D<double> state,
-                                      const GridStructure& grid, const int ix,
+                                      const GridStructure &grid, const int ix,
                                       const int k) const
     -> std::tuple<double, double, double, double> {
   return compute_increment_radhydro_source(state, k, grid, fluid_basis_,
@@ -360,10 +360,10 @@ auto RadHydroPackage::radhydro_source(const View2D<double> state,
 // This is duplicate of above but used differently, in the root finder
 // The code needs some refactoring in order to get rid of this version.
 auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
-                                       const GridStructure& grid,
-                                       const ModalBasis* fluid_basis,
-                                       const ModalBasis* rad_basis,
-                                       const EOS* eos, const Opacity* opac,
+                                       const GridStructure &grid,
+                                       const ModalBasis *fluid_basis,
+                                       const ModalBasis *rad_basis,
+                                       const EOS *eos, const Opacity *opac,
                                        const int ix)
     -> std::tuple<double, double, double, double> {
   constexpr static double c = constants::c_cgs;
@@ -430,19 +430,19 @@ auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
  **/
 KOKKOS_FUNCTION
 auto RadHydroPackage::min_timestep(const View3D<double> /*state*/,
-                                   const GridStructure& grid,
-                                   const TimeStepInfo& /*dt_info*/) const
+                                   const GridStructure &grid,
+                                   const TimeStepInfo & /*dt_info*/) const
     -> double {
   static constexpr double MAX_DT = std::numeric_limits<double>::max();
   static constexpr double MIN_DT = 100.0 * std::numeric_limits<double>::min();
 
   static constexpr int ilo = 1;
-  static const int& ihi = grid.get_ihi();
+  static const int &ihi = grid.get_ihi();
 
   double dt_out = 0.0;
   Kokkos::parallel_reduce(
       "RadHydro::min_timestep", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_CLASS_LAMBDA(const int ix, double& lmin) {
+      KOKKOS_CLASS_LAMBDA(const int ix, double &lmin) {
         const double dr = grid.get_widths(ix);
         static constexpr double eigval = constants::c_cgs;
         const double dt_old = dr / eigval;
@@ -462,8 +462,8 @@ auto RadHydroPackage::min_timestep(const View3D<double> /*state*/,
  *
  * TODO(astrobarker): extend
  */
-void RadHydroPackage::fill_derived(State* state,
-                                   const GridStructure& grid) const {
+void RadHydroPackage::fill_derived(State *state,
+                                   const GridStructure &grid) const {
 
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
@@ -529,12 +529,12 @@ RadHydroPackage::get_flux_u(const int stage, const int ix) const -> double {
 }
 
 [[nodiscard]] KOKKOS_FUNCTION auto RadHydroPackage::get_fluid_basis() const
-    -> const ModalBasis* {
+    -> const ModalBasis * {
   return fluid_basis_;
 }
 
 [[nodiscard]] KOKKOS_FUNCTION auto RadHydroPackage::get_rad_basis() const
-    -> const ModalBasis* {
+    -> const ModalBasis * {
   return rad_basis_;
 }
 

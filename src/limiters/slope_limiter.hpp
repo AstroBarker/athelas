@@ -30,8 +30,8 @@
 class WENO : public SlopeLimiterBase<WENO> {
  public:
   WENO() = default;
-  WENO(const bool enabled, const GridStructure* grid,
-       const std::vector<int>& vars, const int nvars, const int order,
+  WENO(const bool enabled, const GridStructure *grid,
+       const std::vector<int> &vars, const int nvars, const int order,
        const double gamma_i, const double gamma_l, const double gamma_r,
        const double weno_r, const bool characteristic, const bool tci_opt,
        const double tci_val)
@@ -49,8 +49,8 @@ class WENO : public SlopeLimiterBase<WENO> {
         D_("TCI", grid->get_n_elements() + 2),
         limited_cell_("LimitedCell", grid->get_n_elements() + 2) {}
 
-  void apply_slope_limiter(View3D<double> U, const GridStructure* grid,
-                           const ModalBasis* basis, const EOS* eos);
+  void apply_slope_limiter(View3D<double> U, const GridStructure *grid,
+                           const ModalBasis *basis, const EOS *eos);
   [[nodiscard]] auto get_limited(int ix) const -> int;
   [[nodiscard]] auto limited() const -> View1D<int>;
 
@@ -89,8 +89,8 @@ class WENO : public SlopeLimiterBase<WENO> {
 class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
  public:
   TVDMinmod() = default;
-  TVDMinmod(const bool enabled, const GridStructure* grid,
-            const std::vector<int>& vars, const int nvars, const int order,
+  TVDMinmod(const bool enabled, const GridStructure *grid,
+            const std::vector<int> &vars, const int nvars, const int order,
             const double b_tvd, const double m_tvb, const bool characteristic,
             const bool tci_opt, const double tci_val)
       : do_limiter_(enabled), order_(order), nvars_(nvars), b_tvd_(b_tvd),
@@ -103,8 +103,8 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
         mult_("Mult", grid->get_n_elements() + 2, nvars),
         D_("TCI", grid->get_n_elements() + 2),
         limited_cell_("LimitedCell", grid->get_n_elements() + 2) {}
-  void apply_slope_limiter(View3D<double> U, const GridStructure* grid,
-                           const ModalBasis* basis, const EOS* eos);
+  void apply_slope_limiter(View3D<double> U, const GridStructure *grid,
+                           const ModalBasis *basis, const EOS *eos);
   [[nodiscard]] auto get_limited(int ix) const -> int;
   [[nodiscard]] auto limited() const -> View1D<int>;
 
@@ -140,8 +140,8 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
 class Unlimited : public SlopeLimiterBase<Unlimited> {
  public:
   Unlimited() = default;
-  void apply_slope_limiter(View3D<double> U, const GridStructure* grid,
-                           const ModalBasis* basis, const EOS* eos);
+  void apply_slope_limiter(View3D<double> U, const GridStructure *grid,
+                           const ModalBasis *basis, const EOS *eos);
   [[nodiscard]] auto get_limited(int ix) const -> int;
   [[nodiscard]] auto limited() const -> View1D<int>;
 
@@ -152,22 +152,22 @@ class Unlimited : public SlopeLimiterBase<Unlimited> {
 using SlopeLimiter = std::variant<WENO, TVDMinmod, Unlimited>;
 
 // std::visit functions
-KOKKOS_INLINE_FUNCTION void apply_slope_limiter(SlopeLimiter* limiter,
+KOKKOS_INLINE_FUNCTION void apply_slope_limiter(SlopeLimiter *limiter,
                                                 View3D<double> U,
-                                                const GridStructure* grid,
-                                                const ModalBasis* basis,
-                                                const EOS* eos) {
+                                                const GridStructure *grid,
+                                                const ModalBasis *basis,
+                                                const EOS *eos) {
   std::visit(
-      [&U, &grid, &basis, &eos](auto& limiter) {
+      [&U, &grid, &basis, &eos](auto &limiter) {
         limiter.apply_slope_limiter(U, grid, basis, eos);
       },
       *limiter);
 }
-KOKKOS_INLINE_FUNCTION auto get_limited(SlopeLimiter* limiter, const int ix)
+KOKKOS_INLINE_FUNCTION auto get_limited(SlopeLimiter *limiter, const int ix)
     -> int {
-  return std::visit([&ix](auto& limiter) { return limiter.get_limited(ix); },
+  return std::visit([&ix](auto &limiter) { return limiter.get_limited(ix); },
                     *limiter);
 }
-KOKKOS_INLINE_FUNCTION auto limited(SlopeLimiter* limiter) -> View1D<int> {
-  return std::visit([](auto& limiter) { return limiter.limited(); }, *limiter);
+KOKKOS_INLINE_FUNCTION auto limited(SlopeLimiter *limiter) -> View1D<int> {
+  return std::visit([](auto &limiter) { return limiter.limited(); }, *limiter);
 }

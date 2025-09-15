@@ -22,7 +22,7 @@
 
 class GridStructure {
  public:
-  explicit GridStructure(const ProblemIn* pin);
+  explicit GridStructure(const ProblemIn *pin);
   GridStructure() = default;
   KOKKOS_FUNCTION
   [[nodiscard]] auto node_coordinate(int iC, int iN) const -> double;
@@ -59,7 +59,7 @@ class GridStructure {
   KOKKOS_FUNCTION
   [[nodiscard]] auto get_n_elements() const noexcept -> int;
 
-  void create_grid(const ProblemIn* pin);
+  void create_grid(const ProblemIn *pin);
   void create_uniform_grid();
   void create_log_grid();
 
@@ -81,7 +81,7 @@ class GridStructure {
   [[nodiscard]] auto nodal_grid() -> View2D<double>;
 
   KOKKOS_FUNCTION
-  auto operator()(int i, int j) -> double&;
+  auto operator()(int i, int j) -> double &;
   KOKKOS_FUNCTION
   auto operator()(int i, int j) const -> double;
 

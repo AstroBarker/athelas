@@ -36,14 +36,14 @@ class Paczynski : public EosBase<Paczynski> {
   Paczynski() = default;
 
   auto pressure_from_conserved(double tau, double V, double EmT,
-                               const double* lambda) const -> double;
+                               const double *lambda) const -> double;
   auto sound_speed_from_conserved(double tau, double V, double EmT,
-                                  const double* lambda) const -> double;
+                                  const double *lambda) const -> double;
   auto temperature_from_conserved(double tau, double V, double E,
-                                  const double* lambda) const -> double;
+                                  const double *lambda) const -> double;
   [[nodiscard]] auto get_gamma() const -> double;
   [[nodiscard]] auto get_gamma(double tau, double V, double EmT,
-                               const double* lambda) const -> double;
+                               const double *lambda) const -> double;
   [[nodiscard]] static auto p_end(double rho, double T, double ybar, double N)
       -> double;
   [[nodiscard]] static auto p_ednr(double rho, double ye) -> double;
@@ -57,9 +57,9 @@ class Paczynski : public EosBase<Paczynski> {
   // TODO(astrobarker): The following 2 functions need an identical API.
   // However, I recompute some things unnecessarily. Make the arg lists bigger.
   [[nodiscard]] static auto specific_internal_energy(double T, double rho,
-                                                     const double* lambda)
+                                                     const double *lambda)
       -> double;
-  [[nodiscard]] static auto dsie_dt(double T, double rho, const double* lambda)
+  [[nodiscard]] static auto dsie_dt(double T, double rho, const double *lambda)
       -> double;
   [[nodiscard]] static auto dp_dt(double T, double rho, double ybar, double pe,
                                   double pend, double N, double sigma1,
@@ -85,13 +85,13 @@ class IdealGas : public EosBase<IdealGas> {
   }
 
   auto pressure_from_conserved(double tau, double V, double EmT,
-                               const double* lambda) const -> double;
+                               const double *lambda) const -> double;
   auto sound_speed_from_conserved(double tau, double V, double EmT,
-                                  const double* lambda) const -> double;
+                                  const double *lambda) const -> double;
   auto temperature_from_conserved(double tau, double V, double E,
-                                  const double* lambda) const -> double;
+                                  const double *lambda) const -> double;
   [[nodiscard]] auto get_gamma(double tau, double V, double EmT,
-                               const double* lambda) const noexcept -> double;
+                               const double *lambda) const noexcept -> double;
   [[nodiscard]] auto get_gamma() const noexcept -> double;
 
  private:
@@ -115,13 +115,13 @@ class Polytropic : public EosBase<Polytropic> {
   }
 
   auto pressure_from_conserved(double tau, double V, double EmT,
-                               const double* lambda) const -> double;
+                               const double *lambda) const -> double;
   auto sound_speed_from_conserved(double tau, double V, double EmT,
-                                  const double* lambda) const -> double;
+                                  const double *lambda) const -> double;
   auto temperature_from_conserved(double tau, double V, double E,
-                                  const double* lambda) const -> double;
+                                  const double *lambda) const -> double;
   [[nodiscard]] auto get_gamma(double tau, double V, double EmT,
-                               const double* lambda) const noexcept -> double;
+                               const double *lambda) const noexcept -> double;
   [[nodiscard]] auto get_gamma() const noexcept -> double;
 
  private:
@@ -148,13 +148,13 @@ class Marshak : public EosBase<Marshak> {
   }
 
   auto pressure_from_conserved(double tau, double V, double EmT,
-                               const double* lambda) const -> double;
+                               const double *lambda) const -> double;
   auto sound_speed_from_conserved(double tau, double V, double EmT,
-                                  const double* lambda) const -> double;
+                                  const double *lambda) const -> double;
   auto temperature_from_conserved(double tau, double V, double E,
-                                  const double* lambda) const -> double;
+                                  const double *lambda) const -> double;
   [[nodiscard]] auto get_gamma(double tau, double V, double EmT,
-                               const double* lambda) const noexcept -> double;
+                               const double *lambda) const noexcept -> double;
   [[nodiscard]] auto get_gamma() const noexcept -> double;
 
  private:
@@ -167,11 +167,11 @@ class Stellar : public EosBase<Stellar> {
   Stellar() = default;
 
   auto pressure_from_conserved(double tau, double V, double EmT,
-                               double* lambda) const -> double;
+                               double *lambda) const -> double;
   auto sound_speed_from_conserved(double tau, double V, double EmT,
-                                  double* lambda) const -> double;
+                                  double *lambda) const -> double;
   auto temperature_from_conserved(double tau, double V, double E,
-                                  double* lambda) const -> double;
+                                  double *lambda) const -> double;
 
  private:
   double gamma_{};

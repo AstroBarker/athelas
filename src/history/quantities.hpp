@@ -18,19 +18,19 @@ namespace analysis {
 // Perhaps the below will be more optimal by calculating
 // with cell mass
 KOKKOS_INLINE_FUNCTION
-auto total_fluid_energy(const State& state, const GridStructure& grid,
-                        const ModalBasis* fluid_basis,
-                        const ModalBasis* /*rad_basis*/) -> double {
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
-  const auto& nNodes = grid.get_n_nodes();
+auto total_fluid_energy(const State &state, const GridStructure &grid,
+                        const ModalBasis *fluid_basis,
+                        const ModalBasis * /*rad_basis*/) -> double {
+  const auto &ilo = grid.get_ilo();
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
 
   const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
       "History :: TotalEnergyFluid", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int& i, double& lsum) {
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
         double local_sum = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
           const double X = grid.node_coordinate(i, iN);
@@ -49,19 +49,19 @@ auto total_fluid_energy(const State& state, const GridStructure& grid,
 }
 
 KOKKOS_INLINE_FUNCTION
-auto total_fluid_momentum(const State& state, const GridStructure& grid,
-                          const ModalBasis* fluid_basis,
-                          const ModalBasis* /*rad_basis*/) -> double {
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
-  const auto& nNodes = grid.get_n_nodes();
+auto total_fluid_momentum(const State &state, const GridStructure &grid,
+                          const ModalBasis *fluid_basis,
+                          const ModalBasis * /*rad_basis*/) -> double {
+  const auto &ilo = grid.get_ilo();
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
 
   const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
       "History :: TotalMomentumFluid", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int& i, double& lsum) {
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
         double local_sum = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
           const double X = grid.node_coordinate(i, iN);
@@ -80,19 +80,19 @@ auto total_fluid_momentum(const State& state, const GridStructure& grid,
 }
 
 KOKKOS_INLINE_FUNCTION
-auto total_internal_energy(const State& state, const GridStructure& grid,
-                           const ModalBasis* fluid_basis,
-                           const ModalBasis* /*rad_basis*/) -> double {
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
-  const auto& nNodes = grid.get_n_nodes();
+auto total_internal_energy(const State &state, const GridStructure &grid,
+                           const ModalBasis *fluid_basis,
+                           const ModalBasis * /*rad_basis*/) -> double {
+  const auto &ilo = grid.get_ilo();
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
 
   const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
       "History :: TotalInternalEnergy", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int& i, double& lsum) {
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
         double local_sum = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
           const double X = grid.node_coordinate(i, iN);
@@ -113,12 +113,12 @@ auto total_internal_energy(const State& state, const GridStructure& grid,
 }
 
 KOKKOS_INLINE_FUNCTION
-auto total_gravitational_energy(const State& state, const GridStructure& grid,
-                                const ModalBasis* fluid_basis,
-                                const ModalBasis* /*rad_basis*/) -> double {
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
-  const auto& nNodes = grid.get_n_nodes();
+auto total_gravitational_energy(const State &state, const GridStructure &grid,
+                                const ModalBasis *fluid_basis,
+                                const ModalBasis * /*rad_basis*/) -> double {
+  const auto &ilo = grid.get_ilo();
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
 
   const auto u = state.u_cf();
 
@@ -126,7 +126,7 @@ auto total_gravitational_energy(const State& state, const GridStructure& grid,
   Kokkos::parallel_reduce(
       "History :: TotalGravitationalEnergy",
       Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int& i, double& lsum) {
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
         double local_sum = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
           const double X = grid.node_coordinate(i, iN);
@@ -145,19 +145,19 @@ auto total_gravitational_energy(const State& state, const GridStructure& grid,
 }
 
 KOKKOS_INLINE_FUNCTION
-auto total_kinetic_energy(const State& state, const GridStructure& grid,
-                          const ModalBasis* fluid_basis,
-                          const ModalBasis* /*rad_basis*/) -> double {
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
-  const auto& nNodes = grid.get_n_nodes();
+auto total_kinetic_energy(const State &state, const GridStructure &grid,
+                          const ModalBasis *fluid_basis,
+                          const ModalBasis * /*rad_basis*/) -> double {
+  const auto &ilo = grid.get_ilo();
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
 
   const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
       "History :: TotalKineticEnergy", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int& i, double& lsum) {
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
         double local_sum = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
           const double X = grid.node_coordinate(i, iN);
@@ -178,19 +178,19 @@ auto total_kinetic_energy(const State& state, const GridStructure& grid,
 
 // This total_energy is only radiation
 KOKKOS_INLINE_FUNCTION
-auto total_rad_energy(const State& state, const GridStructure& grid,
-                      const ModalBasis* /*fluid_basis*/,
-                      const ModalBasis* rad_basis) -> double {
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
-  const auto& nNodes = grid.get_n_nodes();
+auto total_rad_energy(const State &state, const GridStructure &grid,
+                      const ModalBasis * /*fluid_basis*/,
+                      const ModalBasis *rad_basis) -> double {
+  const auto &ilo = grid.get_ilo();
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
 
   const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
       "History :: TotalEnergyRad", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int& i, double& lsum) {
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
         double local_sum = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
           const double X = grid.node_coordinate(i, iN);
@@ -209,19 +209,19 @@ auto total_rad_energy(const State& state, const GridStructure& grid,
 
 // TODO(astrobarker): confirm
 KOKKOS_INLINE_FUNCTION
-auto total_rad_momentum(const State& state, const GridStructure& grid,
-                        const ModalBasis* /*fluid_basis*/,
-                        const ModalBasis* rad_basis) -> double {
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
-  const auto& nNodes = grid.get_n_nodes();
+auto total_rad_momentum(const State &state, const GridStructure &grid,
+                        const ModalBasis * /*fluid_basis*/,
+                        const ModalBasis *rad_basis) -> double {
+  const auto &ilo = grid.get_ilo();
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
 
   const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
       "History :: TotalRadMomentum", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int& i, double& lsum) {
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
         double local_sum = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
           const double X = grid.node_coordinate(i, iN);
@@ -240,19 +240,19 @@ auto total_rad_momentum(const State& state, const GridStructure& grid,
 
 // This total_energy is matter and radiation
 KOKKOS_INLINE_FUNCTION
-auto total_energy(const State& state, const GridStructure& grid,
-                  const ModalBasis* fluid_basis, const ModalBasis* rad_basis)
+auto total_energy(const State &state, const GridStructure &grid,
+                  const ModalBasis *fluid_basis, const ModalBasis *rad_basis)
     -> double {
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
-  const auto& nNodes = grid.get_n_nodes();
+  const auto &ilo = grid.get_ilo();
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
 
   const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
       "History :: TotalEnergy", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int& i, double& lsum) {
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
         double local_sum = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
           const double X = grid.node_coordinate(i, iN);
@@ -273,19 +273,19 @@ auto total_energy(const State& state, const GridStructure& grid,
 
 // This total_energy is matter and radiation
 KOKKOS_INLINE_FUNCTION
-auto total_momentum(const State& state, const GridStructure& grid,
-                    const ModalBasis* fluid_basis, const ModalBasis* rad_basis)
+auto total_momentum(const State &state, const GridStructure &grid,
+                    const ModalBasis *fluid_basis, const ModalBasis *rad_basis)
     -> double {
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
-  const auto& nNodes = grid.get_n_nodes();
+  const auto &ilo = grid.get_ilo();
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
 
   const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
       "History :: TotalMomentum", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int& i, double& lsum) {
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
         double local_sum = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
           const double X = grid.node_coordinate(i, iN);
@@ -305,19 +305,19 @@ auto total_momentum(const State& state, const GridStructure& grid,
 }
 
 KOKKOS_INLINE_FUNCTION
-auto total_mass(const State& state, const GridStructure& grid,
-                const ModalBasis* fluid_basis, const ModalBasis* /*rad_basis*/)
+auto total_mass(const State &state, const GridStructure &grid,
+                const ModalBasis *fluid_basis, const ModalBasis * /*rad_basis*/)
     -> double {
-  const auto& ilo = grid.get_ilo();
-  const auto& ihi = grid.get_ihi();
-  const auto& nNodes = grid.get_n_nodes();
+  const auto &ilo = grid.get_ilo();
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
 
   const auto u = state.u_cf();
 
   double output = 0.0;
   Kokkos::parallel_reduce(
       "History :: TotalMass", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int& i, double& lsum) {
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
         double local_sum = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
           const double X = grid.node_coordinate(i, iN);

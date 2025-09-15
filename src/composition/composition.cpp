@@ -34,8 +34,8 @@ CompositionData::CompositionData(const int nX, const int order,
 //  See atom.hpp
 IonizationState::IonizationState(const int nX, const int nNodes,
                                  const int n_species, const int n_states,
-                                 const std::string& fn_ionization,
-                                 const std::string& fn_degeneracy)
+                                 const std::string &fn_ionization,
+                                 const std::string &fn_degeneracy)
     : ionization_fractions_("ionization_fractions", nX, nNodes + 2, n_species,
                             n_states),
       atomic_data_(std::make_unique<AtomicData>(fn_ionization, fn_degeneracy)) {
@@ -53,7 +53,7 @@ IonizationState::IonizationState(const int nX, const int nNodes,
 }
 
 [[nodiscard]] auto IonizationState::atomic_data() const noexcept
-    -> AtomicData* {
+    -> AtomicData * {
   return atomic_data_.get();
 }
 

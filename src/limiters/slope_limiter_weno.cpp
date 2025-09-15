@@ -25,8 +25,8 @@ using namespace limiter_utilities;
  * Apply the slope limiter. We use a compact stencil WENO-Z limiter
  * H. Zhu 2020, simple, high-order compact WENO RKDG slope limiter
  **/
-void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
-                               const ModalBasis* basis, const EOS* eos) {
+void WENO::apply_slope_limiter(View3D<double> U, const GridStructure *grid,
+                               const ModalBasis *basis, const EOS *eos) {
 
   // Do not apply for first order method or if we don't want to.
   if (order_ == 1 || !do_limiter_) {
@@ -34,7 +34,7 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
   }
 
   static constexpr int ilo = 1;
-  static const int& ihi = grid->get_ihi();
+  static const int &ihi = grid->get_ihi();
 
   const auto nvars = nvars_;
 

@@ -64,7 +64,7 @@ class RadHydroConvergence {
   std::vector<double> mode_weights_;
 
  public:
-  explicit RadHydroConvergence(const PhysicalScales& scales,
+  explicit RadHydroConvergence(const PhysicalScales &scales,
                                double abs_tol = 1e-10, double rel_tol = 1e-8,
                                int num_modes = 1)
       : scales_(scales), abs_tol_(abs_tol), rel_tol_(rel_tol),

@@ -69,7 +69,7 @@ function ShocklessNoh(time::Float64, X::Array{Float64,1}, n_points::Int64)
 end
 
 """
-Sod shock tube solution. Assuming typical perfect gas, gamma = 1.4, 
+Sod shock tube solution. Assuming typical perfect gas, gamma = 1.4,
 domain [0,1] with discontinuity at 0.5.
 For now: evaluated at t=0.2.
 Returns density at given radius.

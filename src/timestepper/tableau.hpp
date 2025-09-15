@@ -44,7 +44,7 @@ enum class MethodID {
   IMEX_PDARS_ESDIRK // Chu 2019 PD-ARS
 };
 
-auto string_to_id(const std::string& method_name) -> MethodID;
+auto string_to_id(const std::string &method_name) -> MethodID;
 
 /**
  * @brief Butcher tableau class.

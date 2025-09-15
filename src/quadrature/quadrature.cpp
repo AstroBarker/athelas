@@ -27,7 +27,7 @@ namespace quadrature {
  * @param bj Output array for matrix subdiagonal elements
  * @return double The zero-th moment (zemu) needed for weight computation
  */
-auto jacobi_matrix(int m, std::vector<double>& aj, std::vector<double>& bj)
+auto jacobi_matrix(int m, std::vector<double> &aj, std::vector<double> &bj)
     -> double {
 
   double ab = NAN;
@@ -65,8 +65,8 @@ auto jacobi_matrix(int m, std::vector<double>& aj, std::vector<double>& bj)
  * @param nodes Output array for quadrature nodes (abscissas)
  * @param weights Output array for quadrature weights
  */
-void lg_quadrature(int m, std::vector<double>& nodes,
-                   std::vector<double>& weights) {
+void lg_quadrature(int m, std::vector<double> &nodes,
+                   std::vector<double> &weights) {
   std::vector<double> aj(m);
   std::vector<double> bj(m);
 

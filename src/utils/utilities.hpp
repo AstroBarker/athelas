@@ -70,7 +70,7 @@ KOKKOS_INLINE_FUNCTION constexpr auto SGN(T val) -> int {
 }
 
 template <typename A, typename B>
-KOKKOS_INLINE_FUNCTION auto ratio(const A& a, const B& b) {
+KOKKOS_INLINE_FUNCTION auto ratio(const A &a, const B &b) {
   const B sgn = b >= 0 ? 1 : -1;
   return a / (b + sgn * SMALL<B>());
 }
@@ -78,7 +78,7 @@ KOKKOS_INLINE_FUNCTION auto ratio(const A& a, const B& b) {
 // nodal specific internal energy
 template <class T>
 KOKKOS_INLINE_FUNCTION auto compute_internal_energy(T U,
-                                                    const ModalBasis* basis,
+                                                    const ModalBasis *basis,
                                                     const int ix, const int iN)
     -> double {
   const double Vel = basis->basis_eval(U, ix, 1, iN);

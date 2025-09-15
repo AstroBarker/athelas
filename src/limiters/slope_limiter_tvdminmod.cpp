@@ -26,8 +26,8 @@ using namespace limiter_utilities;
 /**
  * TVD Minmod limiter. See the Cockburn & Shu papers
  **/
-void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
-                                    const ModalBasis* basis, const EOS* eos) {
+void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure *grid,
+                                    const ModalBasis *basis, const EOS *eos) {
 
   // Do not apply for first order method or if we don't want to.
   if (order_ == 1 || !do_limiter_) {
@@ -39,7 +39,7 @@ void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure* grid,
   constexpr static double EPS = 1.0e-10;
 
   static constexpr int ilo = 1;
-  static const int& ihi = grid->get_ihi();
+  static const int &ihi = grid->get_ihi();
 
   const int nvars = nvars_;
 

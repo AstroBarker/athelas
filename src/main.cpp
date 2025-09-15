@@ -10,7 +10,7 @@
 #include "utils/error.hpp"
 
 namespace {
-auto parse_input_file(std::span<char*> args)
+auto parse_input_file(std::span<char *> args)
     -> std::expected<std::string, std::string> {
   for (std::size_t i = 1; i < args.size(); ++i) {
     std::string_view arg = args[i];
@@ -25,7 +25,7 @@ auto parse_input_file(std::span<char*> args)
 }
 } // namespace
 
-auto main(int argc, char** argv) -> int {
+auto main(int argc, char **argv) -> int {
   auto input_result = parse_input_file({argv, static_cast<std::size_t>(argc)});
   if (!input_result) {
     std::println("Error: {}", input_result.error());

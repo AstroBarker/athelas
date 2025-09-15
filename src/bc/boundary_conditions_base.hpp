@@ -27,7 +27,7 @@ enum class BcType : int {
   Null // don't go here
 };
 
-auto parse_bc_type(const std::string& name) -> BcType;
+auto parse_bc_type(const std::string &name) -> BcType;
 
 template <int N>
 struct BoundaryConditionsData {
@@ -71,21 +71,21 @@ struct BoundaryConditions {
 
 // --- helper functions to pull out bc ---
 template <int N>
-KOKKOS_INLINE_FUNCTION auto get_bc_data(BoundaryConditions* bc)
+KOKKOS_INLINE_FUNCTION auto get_bc_data(BoundaryConditions *bc)
     -> std::array<BoundaryConditionsData<N>, 2>;
 
 template <>
-KOKKOS_INLINE_FUNCTION auto get_bc_data<3>(BoundaryConditions* bc)
+KOKKOS_INLINE_FUNCTION auto get_bc_data<3>(BoundaryConditions *bc)
     -> std::array<BoundaryConditionsData<3>, 2> {
   return bc->fluid_bc;
 }
 
 template <>
-KOKKOS_INLINE_FUNCTION auto get_bc_data<2>(BoundaryConditions* bc)
+KOKKOS_INLINE_FUNCTION auto get_bc_data<2>(BoundaryConditions *bc)
     -> std::array<BoundaryConditionsData<2>, 2> {
   assert(bc->do_rad && "Need radiation enabled to get radiation bcs!\n");
   return bc->rad_bc;
 }
 
-auto make_boundary_conditions(const ProblemIn* pin) -> BoundaryConditions;
+auto make_boundary_conditions(const ProblemIn *pin) -> BoundaryConditions;
 } // namespace bc

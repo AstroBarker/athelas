@@ -4,7 +4,7 @@ import unittest
 
 from regression_test import AthelasRegressionTest, soft_equiv
 
-sys.path.insert(1, "../../tools/python/")
+sys.path.insert(1, "../../scripts/python/")
 import radeq
 
 

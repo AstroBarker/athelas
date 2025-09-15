@@ -17,8 +17,8 @@
 
 namespace fluid {
 
-HydroPackage::HydroPackage(const ProblemIn* /*pin*/, int n_stages, EOS* eos,
-                           ModalBasis* basis, BoundaryConditions* bcs,
+HydroPackage::HydroPackage(const ProblemIn * /*pin*/, int n_stages, EOS *eos,
+                           ModalBasis *basis, BoundaryConditions *bcs,
                            double cfl, int nx, bool active)
     : active_(active), nx_(nx), cfl_(cfl), eos_(eos), basis_(basis), bcs_(bcs),
       dFlux_num_("hydro::dFlux_num_", nx + 2 + 1, 3),
@@ -27,12 +27,12 @@ HydroPackage::HydroPackage(const ProblemIn* /*pin*/, int n_stages, EOS* eos,
 } // Need long term solution for flux_u_
 
 KOKKOS_FUNCTION
-void HydroPackage::update_explicit(const State* const state, View3D<double> dU,
-                                   const GridStructure& grid,
-                                   const TimeStepInfo& dt_info) const {
-  const auto& order = basis_->get_order();
+void HydroPackage::update_explicit(const State *const state, View3D<double> dU,
+                                   const GridStructure &grid,
+                                   const TimeStepInfo &dt_info) const {
+  const auto &order = basis_->get_order();
   static constexpr int ilo = 1;
-  static const auto& ihi = grid.get_ihi();
+  static const auto &ihi = grid.get_ihi();
 
   const auto u_stages = state->u_cf_stages();
 
@@ -75,12 +75,12 @@ void HydroPackage::update_explicit(const State* const state, View3D<double> dU,
 KOKKOS_FUNCTION
 void HydroPackage::fluid_divergence(const View3D<double> state,
                                     View3D<double> dU,
-                                    const GridStructure& grid,
+                                    const GridStructure &grid,
                                     const int stage) const {
-  const auto& nNodes = grid.get_n_nodes();
-  const auto& order = basis_->get_order();
+  const auto &nNodes = grid.get_n_nodes();
+  const auto &order = basis_->get_order();
   static constexpr int ilo = 1;
-  static const auto& ihi = grid.get_ihi();
+  static const auto &ihi = grid.get_ihi();
 
   // --- Interpolate Conserved Variable to Interfaces ---
 
@@ -133,12 +133,12 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0},
                                              {ihi + 1, order, NUM_VARS_}),
       KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
-        const auto& Poly_L = basis_->get_phi(ix, 0, k);
-        const auto& Poly_R = basis_->get_phi(ix, nNodes + 1, k);
-        const auto& X_L = grid.get_left_interface(ix);
-        const auto& X_R = grid.get_left_interface(ix + 1);
-        const auto& SqrtGm_L = grid.get_sqrt_gm(X_L);
-        const auto& SqrtGm_R = grid.get_sqrt_gm(X_R);
+        const auto &Poly_L = basis_->get_phi(ix, 0, k);
+        const auto &Poly_R = basis_->get_phi(ix, nNodes + 1, k);
+        const auto &X_L = grid.get_left_interface(ix);
+        const auto &X_R = grid.get_left_interface(ix + 1);
+        const auto &SqrtGm_L = grid.get_sqrt_gm(X_L);
+        const auto &SqrtGm_R = grid.get_sqrt_gm(X_R);
 
         dU(ix, k, q) -= (+dFlux_num_(ix + 1, q) * Poly_R * SqrtGm_R -
                          dFlux_num_(ix + 0, q) * Poly_L * SqrtGm_L);
@@ -180,11 +180,11 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
 
 KOKKOS_FUNCTION
 void HydroPackage::fluid_geometry(const View3D<double> state, View3D<double> dU,
-                                  const GridStructure& grid) const {
-  const int& nNodes = grid.get_n_nodes();
-  const int& order = basis_->get_order();
+                                  const GridStructure &grid) const {
+  const int &nNodes = grid.get_n_nodes();
+  const int &order = basis_->get_order();
   static constexpr int ilo = 1;
-  static const int& ihi = grid.get_ihi();
+  static const int &ihi = grid.get_ihi();
 
   Kokkos::parallel_for(
       "Hydro :: Geometry Term",
@@ -213,19 +213,19 @@ void HydroPackage::fluid_geometry(const View3D<double> state, View3D<double> dU,
  **/
 KOKKOS_FUNCTION
 auto HydroPackage::min_timestep(const View3D<double> state,
-                                const GridStructure& grid,
-                                const TimeStepInfo& /*dt_info*/) const
+                                const GridStructure &grid,
+                                const TimeStepInfo & /*dt_info*/) const
     -> double {
   static constexpr double MAX_DT = std::numeric_limits<double>::max();
   static constexpr double MIN_DT = 100.0 * std::numeric_limits<double>::min();
 
   static constexpr int ilo = 1;
-  static const int& ihi = grid.get_ihi();
+  static const int &ihi = grid.get_ihi();
 
   double dt_out = 0.0;
   Kokkos::parallel_reduce(
       "Hydro::min_timestep", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_CLASS_LAMBDA(const int ix, double& lmin) {
+      KOKKOS_CLASS_LAMBDA(const int ix, double &lmin) {
         // --- Using Cell Averages ---
         const double tau_x = state(ix, 0, 0);
         const double vel_x = state(ix, 0, 1);
@@ -255,7 +255,7 @@ auto HydroPackage::min_timestep(const View3D<double> state,
  *
  * TODO(astrobarker): extend
  */
-void HydroPackage::fill_derived(State* state, const GridStructure& grid) const {
+void HydroPackage::fill_derived(State *state, const GridStructure &grid) const {
 
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
@@ -316,7 +316,7 @@ void HydroPackage::set_active(const bool active) { active_ = active; }
 }
 
 [[nodiscard]] KOKKOS_FUNCTION auto HydroPackage::get_basis() const
-    -> const ModalBasis* {
+    -> const ModalBasis * {
   return basis_;
 }
 

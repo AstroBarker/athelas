@@ -19,7 +19,7 @@
 
 namespace bc {
 
-BcType parse_bc_type(const std::string& name) {
+BcType parse_bc_type(const std::string &name) {
   if (name == "outflow") {
     return BcType::Outflow;
   }
@@ -39,7 +39,7 @@ BcType parse_bc_type(const std::string& name) {
   return BcType::Null;
 }
 
-auto make_boundary_conditions(const ProblemIn* pin) -> BoundaryConditions {
+auto make_boundary_conditions(const ProblemIn *pin) -> BoundaryConditions {
   BoundaryConditions my_bc;
   const auto do_rad = pin->param()->get<bool>("physics.rad_active");
   const auto fluid_bc_i = pin->param()->get<std::string>("fluid.bc.i");

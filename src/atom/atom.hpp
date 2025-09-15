@@ -47,8 +47,8 @@ class AtomicData {
  public:
   AtomicData() = default;
 
-  AtomicData(const std::string& fn_ionization,
-             const std::string& fn_degeneracy) {
+  AtomicData(const std::string &fn_ionization,
+             const std::string &fn_degeneracy) {
 
     // --- load atomic data from file ---
     auto ionization_data = Parser::parse_file(fn_ionization, ' ');
@@ -87,7 +87,7 @@ class AtomicData {
 
     // load atomic numbers. kind of horrible
     int ind = 0;
-    for (auto& z : atomic_numbers) {
+    for (auto &z : atomic_numbers) {
       if (ind != 0) {
         if (atomic_numbers_host(ind - 1) == z) { // deal with repeats
           continue;

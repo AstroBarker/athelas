@@ -81,7 +81,7 @@ class Parser {
      * @param index 0-index column
      * @return const std::string& reference to column value or empty
      */
-    auto operator[](size_t index) const -> const std::string& {
+    auto operator[](size_t index) const -> const std::string & {
       return index < columns.size() ? columns[index] : empty_string;
     }
 
@@ -115,7 +115,7 @@ class Parser {
   enum class ParseError { FileNotFound, InvalidFormat, EmptyFile };
 
   // Parse from file
-  static auto parse_file(const std::string& filename, char delimiter = ',',
+  static auto parse_file(const std::string &filename, char delimiter = ',',
                          char quote_char = '"')
       -> std::expected<ParseResult, ParseError> {
     std::ifstream file(filename);
@@ -134,7 +134,7 @@ class Parser {
   }
 
   // Parse from string
-  static auto parse_string(const std::string& csv_content, char delimiter = ',',
+  static auto parse_string(const std::string &csv_content, char delimiter = ',',
                            char quote_char = '"',
                            bool strip_hash_from_header = true)
       -> std::expected<ParseResult, ParseError> {
@@ -144,7 +144,7 @@ class Parser {
 
     ParseResult result;
     auto lines = csv_content | std::views::split('\n') |
-                 std::views::transform([](auto&& range) {
+                 std::views::transform([](auto &&range) {
                    return std::string_view{range.begin(), range.end()};
                  }) |
                  std::views::filter([](std::string_view line) {
@@ -231,7 +231,7 @@ class Parser {
     return fields;
   }
 
-  static auto trim(const std::string& str) -> std::string {
+  static auto trim(const std::string &str) -> std::string {
     auto start = str.find_first_not_of(" \t\r\n");
     if (start == std::string::npos) {
       return "";
@@ -258,12 +258,12 @@ class Parser {
 // that loads and gets.
 
 template <typename T = std::string>
-auto get_column_by_index(const Parser::ParseResult& data, size_t column_index)
+auto get_column_by_index(const Parser::ParseResult &data, size_t column_index)
     -> std::vector<T> {
   std::vector<T> column;
   column.reserve(data.rows.size());
 
-  for (const auto& row : data.rows) {
+  for (const auto &row : data.rows) {
     if (column_index < row.size()) {
       if constexpr (std::is_same_v<T, std::string>) {
         column.push_back(row[column_index]);
@@ -274,7 +274,7 @@ auto get_column_by_index(const Parser::ParseResult& data, size_t column_index)
           } else {
             column.push_back(static_cast<T>(std::stod(row[column_index])));
           }
-        } catch (const std::exception&) {
+        } catch (const std::exception &) {
           column.push_back(T{}); // Default value on parse error
         }
       }
@@ -288,8 +288,8 @@ auto get_column_by_index(const Parser::ParseResult& data, size_t column_index)
 // Gets a column by name.
 // Find hheader index with given name, calls extract_column_by_index
 template <typename T = std::string>
-auto get_column_by_name(const Parser::ParseResult& data,
-                        const std::string& column_name) -> std::vector<T> {
+auto get_column_by_name(const Parser::ParseResult &data,
+                        const std::string &column_name) -> std::vector<T> {
   auto it = std::ranges::find(data.headers, column_name);
   if (it == data.headers.end()) {
     return {}; // Column not found
@@ -301,10 +301,10 @@ auto get_column_by_name(const Parser::ParseResult& data,
 
 // Modern C++23 approach using ranges and views
 template <typename T = std::string>
-auto get_column_view_by_index(const Parser::ParseResult& data,
+auto get_column_view_by_index(const Parser::ParseResult &data,
                               size_t column_index) {
   return data.rows |
-         std::views::transform([column_index](const auto& row) -> T {
+         std::views::transform([column_index](const auto &row) -> T {
            if (column_index < row.size()) {
              if constexpr (std::is_same_v<T, std::string>) {
                return row[column_index];
@@ -315,7 +315,7 @@ auto get_column_view_by_index(const Parser::ParseResult& data,
                  } else {
                    return static_cast<T>(std::stod(row[column_index]));
                  }
-               } catch (const std::exception&) {
+               } catch (const std::exception &) {
                  return T{};
                }
              }
@@ -327,7 +327,7 @@ auto get_column_view_by_index(const Parser::ParseResult& data,
 // Extract multiple columns at once into a tuple of vectors
 // Takes a ParseResult, std::array<size_t, N>{0, 1, ...N} (etc)
 template <typename... Types>
-auto get_columns_by_indices(const Parser::ParseResult& data,
+auto get_columns_by_indices(const Parser::ParseResult &data,
                             std::array<size_t, sizeof...(Types)> indices) {
   return [&data, &indices]<size_t... I>(std::index_sequence<I...>) {
     return std::make_tuple(get_column_by_index<Types>(data, indices[I])...);
@@ -338,7 +338,7 @@ auto get_columns_by_indices(const Parser::ParseResult& data,
 // Instead of taking a std::array, as above, this takes variadic args
 // Just pass in column indices!
 template <typename... Types>
-auto get_columns_by_indices(const Parser::ParseResult& data, size_t first_index,
+auto get_columns_by_indices(const Parser::ParseResult &data, size_t first_index,
                             auto... other_indices)
   requires(sizeof...(Types) == sizeof...(other_indices) + 1)
 {

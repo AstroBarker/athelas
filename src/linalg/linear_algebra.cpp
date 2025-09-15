@@ -22,8 +22,8 @@
 /**
  * @brief Diagonalizes a symmetric tridiagonal matrix using Eigen.
  */
-void tri_sym_diag(int n, std::vector<double>& d, std::vector<double>& e,
-                  std::vector<double>& array) {
+void tri_sym_diag(int n, std::vector<double> &d, std::vector<double> &e,
+                  std::vector<double> &array) {
 
   assert(n > 0 && "Matrix dim must be > 0");
 
@@ -54,8 +54,8 @@ void tri_sym_diag(int n, std::vector<double>& d, std::vector<double>& e,
   }
 
   // Get eigenvalues and eigenvectors
-  const Eigen::VectorXd& eigenvalues = solver.eigenvalues();
-  const Eigen::MatrixXd& eigenvectors = solver.eigenvectors();
+  const Eigen::VectorXd &eigenvalues = solver.eigenvalues();
+  const Eigen::MatrixXd &eigenvectors = solver.eigenvectors();
 
   // Update d with eigenvalues (Eigen returns them in ascending order)
   for (int i = 0; i < n; i++) {
@@ -73,7 +73,7 @@ void tri_sym_diag(int n, std::vector<double>& d, std::vector<double>& e,
 /**
  * @brief Use Eigen to invert a matrix M using LU factorization.
  **/
-void invert_matrix(std::vector<double>& M, int n) {
+void invert_matrix(std::vector<double> &M, int n) {
   // Map the std::vector to an Eigen matrix (column-major order)
   Eigen::Map<Eigen::MatrixXd> matrix(M.data(), n, n);
 

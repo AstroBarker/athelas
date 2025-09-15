@@ -19,8 +19,8 @@
 /**
  * Initialize advection test
  **/
-void advection_init(State* state, GridStructure* grid, ProblemIn* pin,
-                    const EOS* eos, ModalBasis* fluid_basis = nullptr) {
+void advection_init(State *state, GridStructure *grid, ProblemIn *pin,
+                    const EOS *eos, ModalBasis *fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Advection requires ideal gas eos!");
   }

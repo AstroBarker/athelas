@@ -32,15 +32,15 @@ class TimeStepper {
 
  public:
   // TODO(astrobarker): Is it possible to initialize grid_s_ from grid directly?
-  TimeStepper(const ProblemIn* pin, GridStructure* grid, EOS* eos);
+  TimeStepper(const ProblemIn *pin, GridStructure *grid, EOS *eos);
 
   void initialize_timestepper();
 
   /**
    * Update fluid solution with SSPRK methods
    **/
-  void step(PackageManager* pkgs, State* state, GridStructure& grid,
-            const double dt, SlopeLimiter* sl_hydro) {
+  void step(PackageManager *pkgs, State *state, GridStructure &grid,
+            const double dt, SlopeLimiter *sl_hydro) {
 
     // hydro explicit update
     update_fluid_explicit(pkgs, state, grid, dt, sl_hydro);
@@ -49,12 +49,12 @@ class TimeStepper {
   /**
    * Explicit fluid update with SSPRK methods
    **/
-  void update_fluid_explicit(PackageManager* pkgs, State* state,
-                             GridStructure& grid, const double dt,
-                             SlopeLimiter* sl_hydro) {
+  void update_fluid_explicit(PackageManager *pkgs, State *state,
+                             GridStructure &grid, const double dt,
+                             SlopeLimiter *sl_hydro) {
 
-    const auto& order = grid.get_n_nodes();
-    const auto& ihi = grid.get_ihi();
+    const auto &order = grid.get_n_nodes();
+    const auto &ihi = grid.get_ihi();
 
     auto U = state->u_cf();
     auto U_s = state->u_cf_stages();
@@ -166,9 +166,9 @@ class TimeStepper {
   /**
    * Update rad hydro solution with SSPRK methods
    **/
-  void step_imex(PackageManager* pkgs, State* state, GridStructure& grid,
-                 const double dt, SlopeLimiter* sl_hydro,
-                 SlopeLimiter* sl_rad) {
+  void step_imex(PackageManager *pkgs, State *state, GridStructure &grid,
+                 const double dt, SlopeLimiter *sl_hydro,
+                 SlopeLimiter *sl_rad) {
 
     update_rad_hydro_imex(pkgs, state, grid, dt, sl_hydro, sl_rad);
   }
@@ -176,12 +176,12 @@ class TimeStepper {
   /**
    * Fully coupled IMEX rad hydro update with SSPRK methods
    **/
-  void update_rad_hydro_imex(PackageManager* pkgs, State* state,
-                             GridStructure& grid, const double dt,
-                             SlopeLimiter* sl_hydro, SlopeLimiter* sl_rad) {
+  void update_rad_hydro_imex(PackageManager *pkgs, State *state,
+                             GridStructure &grid, const double dt,
+                             SlopeLimiter *sl_hydro, SlopeLimiter *sl_rad) {
 
-    const auto& order = grid.get_n_nodes();
-    const auto& ihi = grid.get_ihi();
+    const auto &order = grid.get_n_nodes();
+    const auto &ihi = grid.get_ihi();
 
     auto uCF = state->u_cf();
     auto U_s = state->u_cf_stages();
@@ -396,5 +396,5 @@ class TimeStepper {
   // Variables to pass to update step
 
   // hold EOS ptr for convenience
-  EOS* eos_;
+  EOS *eos_;
 };

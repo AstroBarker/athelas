@@ -20,10 +20,10 @@
 class ProblemIn {
 
  public:
-  explicit ProblemIn(const std::string& fn);
+  explicit ProblemIn(const std::string &fn);
 
-  auto param() -> Params*;
-  [[nodiscard]] auto param() const -> Params*;
+  auto param() -> Params *;
+  [[nodiscard]] auto param() const -> Params *;
 
  private:
   toml::table config_;
@@ -35,9 +35,9 @@ class ProblemIn {
 auto check_bc(std::string bc) -> bool;
 
 template <typename T, typename G>
-void read_toml_array(T toml_array, G& out_array) {
+void read_toml_array(T toml_array, G &out_array) {
   long unsigned int index = 0;
-  for (const auto& element : *toml_array) {
+  for (const auto &element : *toml_array) {
     if (index < out_array.size()) {
       if (auto elem = element.as_floating_point()) {
         out_array[index] = static_cast<double>(*elem);

@@ -59,6 +59,14 @@ To format a given file according to `ruff.toml`, run `ruff format file.py`.
 
 Checks for formatting are performed on each PR.
 
+There is also a Git pre-commit hook available in `scripts/hooks` that will 
+perform this formatting on a commit. You can enable this simply by 
+
+```bash
+./scripts/hooks/install-hooks.sh
+```
+which will automatically symlink the hook into `.git/hooks`.
+
 # Dependencies
 * Eigen (submodule)
 * Kokkos (submodule)

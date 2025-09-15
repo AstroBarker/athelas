@@ -21,41 +21,41 @@ using bc::BoundaryConditions;
 
 class RadHydroPackage {
  public:
-  RadHydroPackage(const ProblemIn* /*pin*/, int n_stages, EOS* eos,
-                  Opacity* opac, ModalBasis* fluid_basis, ModalBasis* rad_basis,
-                  BoundaryConditions* bcs, double cfl, int nx,
+  RadHydroPackage(const ProblemIn * /*pin*/, int n_stages, EOS *eos,
+                  Opacity *opac, ModalBasis *fluid_basis, ModalBasis *rad_basis,
+                  BoundaryConditions *bcs, double cfl, int nx,
                   bool active = true);
 
   KOKKOS_FUNCTION
-  void update_explicit(const State* const state, View3D<double> dU,
-                       const GridStructure& grid,
-                       const TimeStepInfo& dt_info) const;
+  void update_explicit(const State *const state, View3D<double> dU,
+                       const GridStructure &grid,
+                       const TimeStepInfo &dt_info) const;
   KOKKOS_FUNCTION
-  void update_implicit(const State* const state, View3D<double> dU,
-                       const GridStructure& grid,
-                       const TimeStepInfo& dt_info) const;
+  void update_implicit(const State *const state, View3D<double> dU,
+                       const GridStructure &grid,
+                       const TimeStepInfo &dt_info) const;
   KOKKOS_FUNCTION
-  void update_implicit_iterative(const State* const state, View3D<double> dU,
-                                 const GridStructure& grid,
-                                 const TimeStepInfo& dt_info);
+  void update_implicit_iterative(const State *const state, View3D<double> dU,
+                                 const GridStructure &grid,
+                                 const TimeStepInfo &dt_info);
   KOKKOS_FUNCTION
-  auto radhydro_source(const View2D<double> uCRH, const GridStructure& grid,
+  auto radhydro_source(const View2D<double> uCRH, const GridStructure &grid,
                        int ix, int k) const
       -> std::tuple<double, double, double, double>;
 
   KOKKOS_FUNCTION
   void radhydro_divergence(const View3D<double> state, View3D<double> dU,
-                           const GridStructure& grid, int stage) const;
+                           const GridStructure &grid, int stage) const;
 
   [[nodiscard]] KOKKOS_FUNCTION auto
-  min_timestep(const View3D<double> state, const GridStructure& grid,
-               const TimeStepInfo& /*dt_info*/) const -> double;
+  min_timestep(const View3D<double> state, const GridStructure &grid,
+               const TimeStepInfo & /*dt_info*/) const -> double;
 
   [[nodiscard]] KOKKOS_FUNCTION auto name() const noexcept -> std::string_view;
 
   [[nodiscard]] KOKKOS_FUNCTION auto is_active() const noexcept -> bool;
 
-  void fill_derived(State* state, const GridStructure& grid) const;
+  void fill_derived(State *state, const GridStructure &grid) const;
 
   KOKKOS_FUNCTION
   void set_active(bool active);
@@ -63,8 +63,9 @@ class RadHydroPackage {
   [[nodiscard]] KOKKOS_FUNCTION auto get_flux_u(int stage, int ix) const
       -> double;
   [[nodiscard]] KOKKOS_FUNCTION auto get_fluid_basis() const
-      -> const ModalBasis*;
-  [[nodiscard]] KOKKOS_FUNCTION auto get_rad_basis() const -> const ModalBasis*;
+      -> const ModalBasis *;
+  [[nodiscard]] KOKKOS_FUNCTION auto get_rad_basis() const
+      -> const ModalBasis *;
 
   [[nodiscard]] static constexpr auto num_vars() noexcept -> int {
     return NUM_VARS_;
@@ -76,11 +77,11 @@ class RadHydroPackage {
   int nx_;
   double cfl_;
 
-  EOS* eos_;
-  Opacity* opac_;
-  ModalBasis* fluid_basis_;
-  ModalBasis* rad_basis_;
-  BoundaryConditions* bcs_;
+  EOS *eos_;
+  Opacity *opac_;
+  ModalBasis *fluid_basis_;
+  ModalBasis *rad_basis_;
+  BoundaryConditions *bcs_;
 
   // package storage
   View2D<double> dFlux_num_; // stores Riemann solutions
@@ -98,7 +99,7 @@ class RadHydroPackage {
 };
 
 auto compute_increment_radhydro_source(
-    const View2D<double> uCRH, int k, const GridStructure& grid,
-    const ModalBasis* fluid_basis, const ModalBasis* rad_basis, const EOS* eos,
-    const Opacity* opac, int ix) -> std::tuple<double, double, double, double>;
+    const View2D<double> uCRH, int k, const GridStructure &grid,
+    const ModalBasis *fluid_basis, const ModalBasis *rad_basis, const EOS *eos,
+    const Opacity *opac, int ix) -> std::tuple<double, double, double, double>;
 } // namespace radiation

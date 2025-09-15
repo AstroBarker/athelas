@@ -18,8 +18,8 @@
 namespace limiter_utilities {
 
 auto initialize_slope_limiter(const std::string field,
-                              const GridStructure* grid, const ProblemIn* pin,
-                              const std::vector<int>& vars, const int nvars)
+                              const GridStructure *grid, const ProblemIn *pin,
+                              const std::vector<int> &vars, const int nvars)
     -> SlopeLimiter {
   const auto enabled =
       pin->param()->get<bool>(field + ".limiter.enabled", false);
@@ -110,8 +110,8 @@ auto barth_jespersen(double U_v_L, double U_v_R, double U_c_L, double U_c_T,
  * neighbor projections.
  **/
 void detect_troubled_cells(const View3D<double> U, View1D<double> D,
-                           const GridStructure* grid, const ModalBasis* basis,
-                           const std::vector<int>& vars) {
+                           const GridStructure *grid, const ModalBasis *basis,
+                           const std::vector<int> &vars) {
   const int ilo = 1;
   const int ihi = grid->get_ihi();
   Kokkos::parallel_for(
@@ -157,8 +157,8 @@ void detect_troubled_cells(const View3D<double> U, View1D<double> D,
  * -1 : Extrapolate left, e.g.,  polynomial from ix+1 into ix
  * +1 : Extrapolate right, e.g.,  polynomial from ix-1 into ix
  **/
-auto cell_average(View3D<double> U, const GridStructure* grid,
-                  const ModalBasis* basis, const int q, const int ix,
+auto cell_average(View3D<double> U, const GridStructure *grid,
+                  const ModalBasis *basis, const int q, const int ix,
                   const int extrapolate) -> double {
   const int nNodes = grid->get_n_nodes();
 
@@ -217,7 +217,7 @@ void modify_polynomial(const View3D<double> U,
 // WENO smoothness indicator beta
 auto smoothness_indicator(const View3D<double> U,
                           const View2D<double> modified_polynomial,
-                          const GridStructure* grid, const ModalBasis* basis,
+                          const GridStructure *grid, const ModalBasis *basis,
                           const int ix, const int i, const int /*q*/)
     -> double {
   const int k = U.extent(1);

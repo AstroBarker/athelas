@@ -28,7 +28,7 @@
  * This has to be called after the problem is initialized.
  **/
 ModalBasis::ModalBasis(poly_basis::poly_basis basis, const View3D<double> uPF,
-                       GridStructure* grid, const int pOrder, const int nN,
+                       GridStructure *grid, const int pOrder, const int nN,
                        const int nElements, const bool density_weight)
     : nX_(nElements), order_(pOrder), nNodes_(nN),
       mSize_((nN) * (nN + 2) * (nElements + 2)),
@@ -176,7 +176,7 @@ auto ModalBasis::d_legendre_n(const int poly_order, const int deriv_order,
  **/
 auto ModalBasis::inner_product(const int m, const int n, const int ix,
                                const double eta_c, const View3D<double> uPF,
-                               const GridStructure* grid) const -> double {
+                               const GridStructure *grid) const -> double {
   double result = 0.0;
   for (int iN = 0; iN < nNodes_; iN++) {
     // include rho in integrand if necessary
@@ -199,7 +199,7 @@ auto ModalBasis::inner_product(const int m, const int n, const int ix,
  **/
 auto ModalBasis::inner_product(const int n, const int ix,
                                const double /*eta_c*/, const View3D<double> uPF,
-                               const GridStructure* grid) const -> double {
+                               const GridStructure *grid) const -> double {
   double result = 0.0;
   for (int iN = 0; iN < nNodes_; iN++) {
     // include rho in integrand if necessary
@@ -216,7 +216,7 @@ auto ModalBasis::inner_product(const int n, const int ix,
 // Gram-Schmidt orthogonalization of basis
 auto ModalBasis::ortho(const int order, const int ix, const int i_eta,
                        const double eta, const double eta_c,
-                       const View3D<double> uPF, const GridStructure* grid,
+                       const View3D<double> uPF, const GridStructure *grid,
                        bool const derivative_option) -> double {
 
   double result = 0.0;
@@ -254,7 +254,7 @@ auto ModalBasis::ortho(const int order, const int ix, const int i_eta,
  * TODO: Incorporate COM centering?
  **/
 void ModalBasis::initialize_basis(const View3D<double> uPF,
-                                  const GridStructure* grid) {
+                                  const GridStructure *grid) {
   static const int n_eta = nNodes_ + 2;
   static const int ilo = 1;
   static const int ihi = grid->get_ihi();
@@ -308,7 +308,7 @@ void ModalBasis::initialize_basis(const View3D<double> uPF,
  * Returns error if orthogonality is not met.
  **/
 void ModalBasis::check_orthogonality(const View3D<double> uPF,
-                                     const GridStructure* grid) const {
+                                     const GridStructure *grid) const {
 
   static const int ilo = 1;
   static const int ihi = grid->get_ihi();
@@ -349,7 +349,7 @@ void ModalBasis::check_orthogonality(const View3D<double> uPF,
  * ? I would need to compute and store more GL nodes, weights ?
  **/
 void ModalBasis::compute_mass_matrix(const View3D<double> uPF,
-                                     const GridStructure* grid) {
+                                     const GridStructure *grid) {
   static const int ilo = 1;
   static const int ihi = grid->get_ihi();
   const int nNodes_ = grid->get_n_nodes();
@@ -446,8 +446,8 @@ auto ModalBasis::get_order() const noexcept -> int { return order_; }
  * nodal_func: function that takes x coordinate and returns nodal value
  **/
 void ModalBasis::project_nodal_to_modal(
-    View3D<double> uCF, View3D<double> uPF, GridStructure* grid, int q, int ix,
-    const std::function<double(double, int, int)>& nodal_func) const {
+    View3D<double> uCF, View3D<double> uPF, GridStructure *grid, int q, int ix,
+    const std::function<double(double, int, int)> &nodal_func) const {
   // Clear existing modal coefficients
   for (int k = 0; k < order_; k++) {
     uCF(ix, k, q) = 0.0;
@@ -485,8 +485,8 @@ void ModalBasis::project_nodal_to_modal(
  * nodal_func: function that takes x coordinate and returns nodal value
  **/
 void ModalBasis::project_nodal_to_modal_all_cells(
-    View3D<double> uCF, View3D<double> uPF, GridStructure* grid, int q,
-    const std::function<double(double, int, int)>& nodal_func) const {
+    View3D<double> uCF, View3D<double> uPF, GridStructure *grid, int q,
+    const std::function<double(double, int, int)> &nodal_func) const {
   static const int ilo = 1;
   static const int ihi = grid->get_ihi();
 

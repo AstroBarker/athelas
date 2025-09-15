@@ -65,7 +65,7 @@ class Driver {
 
  private:
   // init
-  void initialize(ProblemIn* pin);
+  void initialize(ProblemIn *pin);
 
   std::shared_ptr<ProblemIn> pin_;
 

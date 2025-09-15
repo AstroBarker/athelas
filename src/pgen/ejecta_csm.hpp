@@ -19,8 +19,8 @@
 /**
  * @brief Initialize ejecta csm test
  **/
-void ejecta_csm_init(State* state, GridStructure* grid, ProblemIn* pin,
-                     const EOS* eos, ModalBasis* fluid_basis = nullptr) {
+void ejecta_csm_init(State *state, GridStructure *grid, ProblemIn *pin,
+                     const EOS *eos, ModalBasis *fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Shu Osher requires ideal gas eos!");
   }

@@ -16,8 +16,8 @@
 /**
  * @brief Initialize Sod shock tube
  **/
-void sod_init(State* state, GridStructure* grid, ProblemIn* pin, const EOS* eos,
-              ModalBasis* /*fluid_basis = nullptr*/) {
+void sod_init(State *state, GridStructure *grid, ProblemIn *pin, const EOS *eos,
+              ModalBasis * /*fluid_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Sod requires ideal gas eos!");
   }

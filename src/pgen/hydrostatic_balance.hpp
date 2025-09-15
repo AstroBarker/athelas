@@ -19,9 +19,9 @@
 /**
  * @brief Initialize Shu Osher hydro test
  **/
-void hydrostatic_balance_init(State* state, GridStructure* grid, ProblemIn* pin,
-                              const EOS* eos,
-                              ModalBasis* fluid_basis = nullptr) {
+void hydrostatic_balance_init(State *state, GridStructure *grid, ProblemIn *pin,
+                              const EOS *eos,
+                              ModalBasis *fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "polytropic") {
     THROW_ATHELAS_ERROR("Hydrostatic balance requires polytropic eos!");
   }

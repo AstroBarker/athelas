@@ -19,7 +19,7 @@
 [[nodiscard]] auto
 Paczynski::pressure_from_conserved(const double tau, const double V,
                                    const double EmT,
-                                   const double* const lambda) const -> double {
+                                   const double *const lambda) const -> double {
   const double N = lambda[0];
   const double ye = lambda[1];
   const double ybar = lambda[2];
@@ -45,7 +45,7 @@ Paczynski::pressure_from_conserved(const double tau, const double V,
 
 [[nodiscard]] auto Paczynski::sound_speed_from_conserved(
     const double tau, const double V, const double EmT,
-    const double* const lambda) const -> double {
+    const double *const lambda) const -> double {
   const auto gamma1 = get_gamma(tau, V, EmT, lambda);
   const double pressure = pressure_from_conserved(tau, V, EmT, lambda);
   return std::sqrt(pressure * gamma1 * tau);
@@ -56,16 +56,16 @@ Paczynski::pressure_from_conserved(const double tau, const double V,
  */
 [[nodiscard]] auto Paczynski::temperature_from_conserved(
     const double tau, const double V, const double E,
-    const double* const lambda) const -> double {
+    const double *const lambda) const -> double {
   const double temperature_guess = lambda[7];
   const double sie = E - 0.5 * V * V;
   const double rho = 1.0 / tau;
   auto temperature_target = [sie](double temperature, double rho,
-                                  const double* const lambda) {
+                                  const double *const lambda) {
     return sie - specific_internal_energy(temperature, rho, lambda);
   };
   auto temperature_derivative = [](double T, double rho,
-                                   const double* const lambda) {
+                                   const double *const lambda) {
     return dsie_dt(T, rho, lambda);
   };
   double temperature =
@@ -80,7 +80,7 @@ Paczynski::pressure_from_conserved(const double tau, const double V,
 // NOTE: This is commonly referred to as \Gamma_1
 [[nodiscard]] auto Paczynski::get_gamma(const double tau, const double V,
                                         const double EmT,
-                                        const double* const lambda) const
+                                        const double *const lambda) const
     -> double {
   const double N = lambda[0];
   const double ye = lambda[1];
@@ -168,7 +168,7 @@ Paczynski::pressure_from_conserved(const double tau, const double V,
  */
 [[nodiscard]] auto
 Paczynski::specific_internal_energy(const double T, const double rho,
-                                    const double* const lambda) -> double {
+                                    const double *const lambda) -> double {
   static constexpr double THREE_HALVES = 3.0 / 2.0;
   const double N = lambda[0];
   const double ye = lambda[1];
@@ -188,7 +188,7 @@ Paczynski::specific_internal_energy(const double T, const double rho,
 }
 
 [[nodiscard]] auto Paczynski::dsie_dt(const double T, const double rho,
-                                      const double* const lambda) -> double {
+                                      const double *const lambda) -> double {
   static constexpr double THREE_HALVES = 3.0 / 2.0;
   static constexpr double kb = constants::k_B;
   const double kT = kb * T;

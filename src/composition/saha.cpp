@@ -21,12 +21,12 @@
 using atom::IonLevel;
 
 KOKKOS_FUNCTION
-void solve_saha_ionization(State& state, const GridStructure& grid,
-                           const EOS& eos, const ModalBasis& fluid_basis) {
+void solve_saha_ionization(State &state, const GridStructure &grid,
+                           const EOS &eos, const ModalBasis &fluid_basis) {
   const auto uCF = state.u_cf();
-  const auto* const comps = state.comps();
-  auto* const ionization_states = state.ionization_state();
-  const auto* const atomic_data = ionization_states->atomic_data();
+  const auto *const comps = state.comps();
+  auto *const ionization_states = state.ionization_state();
+  const auto *const atomic_data = ionization_states->atomic_data();
   const auto mass_fractions = comps->mass_fractions();
   const auto species = comps->charge();
   auto ionization_fractions = ionization_states->ionization_fractions();
@@ -36,11 +36,11 @@ void solve_saha_ionization(State& state, const GridStructure& grid,
   const auto species_offsets = atomic_data->offsets();
 
   static constexpr int ilo = 0;
-  const auto& ihi = grid.get_ihi() + 1;
-  const auto& nNodes = grid.get_n_nodes();
+  const auto &ihi = grid.get_ihi() + 1;
+  const auto &nNodes = grid.get_n_nodes();
   assert(ionization_fractions.extent(2) <=
          static_cast<size_t>(std::numeric_limits<int>::max()));
-  const auto& ncomps = static_cast<int>(ionization_fractions.extent(2));
+  const auto &ncomps = static_cast<int>(ionization_fractions.extent(2));
 
   Kokkos::parallel_for(
       "Saha :: Solve Ionization All",
@@ -71,7 +71,7 @@ void solve_saha_ionization(State& state, const GridStructure& grid,
 }
 
 KOKKOS_FUNCTION
-auto saha_f(const double T, const IonLevel& ion_data) -> double {
+auto saha_f(const double T, const IonLevel &ion_data) -> double {
   const double prefix = 2.0 * (ion_data.g_upper / ion_data.g_lower) *
                         constants::k_saha * std::pow(T, 1.5);
   const double suffix = std::exp(-ion_data.chi / (constants::k_Bev * T));
