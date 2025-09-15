@@ -53,14 +53,18 @@ fi
 
 echo "[hook] Running clang-format on staged files..."
 
-for FILE in $FILES; do
-    # Format the file in-place
-    clang-format -i "$FILE"
-    # Add the formatted file back to staging
-    git add "$FILE"
-done
+# Call formatting script
+REPO_ROOT=$(git rev-parse --show-toplevel)
+FORMAT_SCRIPT="$REPO_ROOT/scripts/bash/format.sh"
 
-echo "[hook] clang-format completed."
+if [ ! -x "$FORMAT_SCRIPT" ]; then
+    echo "[hook] ERROR: Format script not found or not executable: $FORMAT_SCRIPT"
+    exit 1
+fi
+
+echo "[hook] Running formatting script..."
+"$FORMAT_SCRIPT"
+echo "[hook] Formatting complete."
 
 # Check for whitespace errors; if any, abort the commit.
 git diff-index --check --cached $against --
