@@ -13,8 +13,8 @@ auto HydrostaticEquilibrium::rhs(const double mass_enc, const double p,
   return -G * mass_enc * rho / (r * r);
 }
 
-void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure* grid,
-                                   ProblemIn* pin) {
+void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure *grid,
+                                   ProblemIn *pin) {
   static constexpr int ilo = 1;
   const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
@@ -83,7 +83,7 @@ void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure* grid,
                          (constants::G_GRAV * m_enc)));
 
   // update domain boundary and grid
-  auto& xr = pin->param()->get_mutable_ref<double>("problem.xr");
+  auto &xr = pin->param()->get_mutable_ref<double>("problem.xr");
   xr = radius.back();
   // this is awful
   // TODO(astrobarker): when cleaning up grid, get this

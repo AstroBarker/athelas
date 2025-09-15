@@ -23,7 +23,7 @@
 
 using namespace geometry;
 
-GridStructure::GridStructure(const ProblemIn* pin)
+GridStructure::GridStructure(const ProblemIn *pin)
     : nElements_(pin->param()->get<int>("problem.nx")),
       nNodes_(pin->param()->get<int>("fluid.nnodes")), mSize_(nElements_ + 2),
       xL_(pin->param()->get<double>("problem.xl")),
@@ -147,7 +147,7 @@ auto GridStructure::do_geometry() const noexcept -> bool {
 }
 
 // grid creation logic
-void GridStructure::create_grid(const ProblemIn* pin) {
+void GridStructure::create_grid(const ProblemIn *pin) {
   if (utilities::to_lower(grid_type_) == "uniform") {
     create_uniform_grid();
   } else if (utilities::to_lower(grid_type_) == "logarithmic") {
@@ -171,7 +171,7 @@ void GridStructure::create_grid(const ProblemIn* pin) {
                       ". You might consider setting a more appropriate value.");
 
       // update outer boundary in params and in class
-      auto& xl_pin = pin->param()->get_mutable_ref<double>("problem.xl");
+      auto &xl_pin = pin->param()->get_mutable_ref<double>("problem.xl");
       xl_pin = new_xl;
       xL_ = new_xl;
     }
@@ -348,7 +348,7 @@ void GridStructure::compute_mass_r(const View3D<double> uPF) {
   // 2: Perform parallel inclusive scan (cumulative sum)
   Kokkos::parallel_scan(
       "compute_enclosed_mass", Kokkos::RangePolicy<>(0, total_points),
-      KOKKOS_LAMBDA(const int idx, double& partial_sum, const bool is_final) {
+      KOKKOS_LAMBDA(const int idx, double &partial_sum, const bool is_final) {
         partial_sum += mass_contrib(idx);
         if (is_final) {
           cumulative_mass(idx) = partial_sum;
@@ -436,7 +436,7 @@ void GridStructure::update_grid(const View1D<double> SData) {
 
 // Access by (element, node)
 KOKKOS_FUNCTION
-auto GridStructure::operator()(int i, int j) -> double& { return grid_(i, j); }
+auto GridStructure::operator()(int i, int j) -> double & { return grid_(i, j); }
 
 KOKKOS_FUNCTION
 auto GridStructure::operator()(int i, int j) const -> double {

@@ -19,28 +19,28 @@ using bc::BoundaryConditions;
 
 class GravityPackage {
  public:
-  GravityPackage(const ProblemIn* /*pin*/, GravityModel model, double gval,
-                 ModalBasis* basis, double cfl, bool active = true);
+  GravityPackage(const ProblemIn * /*pin*/, GravityModel model, double gval,
+                 ModalBasis *basis, double cfl, bool active = true);
 
   KOKKOS_FUNCTION
-  void update_explicit(const State* const state, View3D<double> dU,
-                       const GridStructure& grid,
-                       const TimeStepInfo& dt_info) const;
+  void update_explicit(const State *const state, View3D<double> dU,
+                       const GridStructure &grid,
+                       const TimeStepInfo &dt_info) const;
 
   KOKKOS_FUNCTION
   template <GravityModel Model>
   void gravity_update(const View3D<double> state, View3D<double> dU,
-                      const GridStructure& grid) const;
+                      const GridStructure &grid) const;
 
   [[nodiscard]] KOKKOS_FUNCTION auto
-  min_timestep(const View3D<double> /*state*/, const GridStructure& /*grid*/,
-               const TimeStepInfo& /*dt_info*/) const -> double;
+  min_timestep(const View3D<double> /*state*/, const GridStructure & /*grid*/,
+               const TimeStepInfo & /*dt_info*/) const -> double;
 
   [[nodiscard]] KOKKOS_FUNCTION auto name() const noexcept -> std::string_view;
 
   [[nodiscard]] KOKKOS_FUNCTION auto is_active() const noexcept -> bool;
 
-  void fill_derived(State* state, const GridStructure& grid) const;
+  void fill_derived(State *state, const GridStructure &grid) const;
 
   KOKKOS_FUNCTION
   void set_active(bool active);
@@ -51,7 +51,7 @@ class GravityPackage {
 
   double gval_; // constant gravity
 
-  ModalBasis* basis_;
+  ModalBasis *basis_;
 
   double cfl_;
 };

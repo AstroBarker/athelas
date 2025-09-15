@@ -6,11 +6,13 @@
 using namespace geometry;
 
 // Provide access to the underlying params object
-auto ProblemIn::param() -> Params* { return params_.get(); }
+auto ProblemIn::param() -> Params * { return params_.get(); }
 
-[[nodiscard]] auto ProblemIn::param() const -> Params* { return params_.get(); }
+[[nodiscard]] auto ProblemIn::param() const -> Params * {
+  return params_.get();
+}
 
-ProblemIn::ProblemIn(const std::string& fn) {
+ProblemIn::ProblemIn(const std::string &fn) {
   // toml++ wants a string_view
   std::string_view const fn_in{fn};
 
@@ -19,7 +21,7 @@ ProblemIn::ProblemIn(const std::string& fn) {
   // ------------------------------
   try {
     config_ = toml::parse_file(fn_in);
-  } catch (const toml::parse_error& err) {
+  } catch (const toml::parse_error &err) {
     std::cerr << err << "\n";
     THROW_ATHELAS_ERROR(" ! Issue reading input deck!");
   }
@@ -118,8 +120,8 @@ ProblemIn::ProblemIn(const std::string& fn) {
     THROW_ATHELAS_ERROR("No [params] block in [problem]!");
   }
 
-  auto* pparams = config_["problem"]["params"].as_table();
-  for (auto&& [key, node] : *pparams) {
+  auto *pparams = config_["problem"]["params"].as_table();
+  for (auto &&[key, node] : *pparams) {
     std::string out_key = "problem.params." + std::string(key);
 
     using toml::node_type;
@@ -306,9 +308,9 @@ ProblemIn::ProblemIn(const std::string& fn) {
   std::array<double, 3> fluid_o_dirichlet_values = {0.0, 0.0, 0.0};
 
   if (fluid_bc_i == "dirichlet") {
-    const auto& node = config_["bc"]["fluid"]["dirichlet_values_i"];
+    const auto &node = config_["bc"]["fluid"]["dirichlet_values_i"];
     if (node && node.is_array()) {
-      const auto* array = node.as_array();
+      const auto *array = node.as_array();
       read_toml_array(array, fluid_i_dirichlet_values);
     } else {
       THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read fluid "
@@ -317,9 +319,9 @@ ProblemIn::ProblemIn(const std::string& fn) {
   }
 
   if (fluid_bc_o == "dirichlet") {
-    const auto& node = config_["bc"]["fluid"]["dirichlet_values_o"];
+    const auto &node = config_["bc"]["fluid"]["dirichlet_values_o"];
     if (node && node.is_array()) {
-      const auto* array = node.as_array();
+      const auto *array = node.as_array();
       read_toml_array(array, fluid_o_dirichlet_values);
     } else {
       THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read fluid "
@@ -461,9 +463,9 @@ ProblemIn::ProblemIn(const std::string& fn) {
     std::array<double, 2> rad_o_dirichlet_values = {0.0, 0.0};
 
     if (rad_bc_i == "dirichlet" || rad_bc_i == "marshak") {
-      const auto& node = config_["bc"]["radiation"]["dirichlet_values_i"];
+      const auto &node = config_["bc"]["radiation"]["dirichlet_values_i"];
       if (node && node.is_array()) {
-        const auto* array = node.as_array();
+        const auto *array = node.as_array();
         read_toml_array(array, rad_i_dirichlet_values);
       } else {
         THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read radiation "
@@ -472,9 +474,9 @@ ProblemIn::ProblemIn(const std::string& fn) {
     }
 
     if (rad_bc_o == "dirichlet") {
-      const auto& node = config_["bc"]["radiation"]["dirichlet_values_o"];
+      const auto &node = config_["bc"]["radiation"]["dirichlet_values_o"];
       if (node && node.is_array()) {
-        const auto* array = node.as_array();
+        const auto *array = node.as_array();
         read_toml_array(array, rad_o_dirichlet_values);
       } else {
         THROW_ATHELAS_ERROR(" ! Initialization Error: Failed to read radiation "

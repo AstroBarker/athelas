@@ -15,7 +15,7 @@
 #include "tableau.hpp"
 
 // converts an input string to its associated MethodID
-auto string_to_id(const std::string& method_name) -> MethodID {
+auto string_to_id(const std::string &method_name) -> MethodID {
   static const std::unordered_map<std::string, MethodID> method_map = {
       {"ex_ssprk11", MethodID::EX_SSPRK11},
       {"ex_ssprk22", MethodID::EX_SSPRK22},

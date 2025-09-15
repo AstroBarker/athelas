@@ -31,7 +31,7 @@
  * Write to standard output some initialization info
  * for the current simulation.
  **/
-void print_simulation_parameters(GridStructure& grid, ProblemIn* pin) {
+void print_simulation_parameters(GridStructure &grid, ProblemIn *pin) {
   const int nX = grid.get_n_elements();
   const int nNodes = grid.get_n_nodes();
   // NOTE: If I properly support more bases again, adjust here.
@@ -131,11 +131,11 @@ class HDF5Writer {
   std::map<std::string, H5::Group> groups_;
 
  public:
-  explicit HDF5Writer(const std::string& filename)
+  explicit HDF5Writer(const std::string &filename)
       : file_(filename, H5F_ACC_TRUNC) {}
 
   // Create group hierarchy
-  void create_group(const std::string& path) {
+  void create_group(const std::string &path) {
     if (groups_.contains(path)) {
       return;
     };
@@ -152,8 +152,8 @@ class HDF5Writer {
 
   // Write scalar metadata
   template <typename T>
-  void write_scalar(const std::string& path, const T& value,
-                    const H5::DataType& h5type) {
+  void write_scalar(const std::string &path, const T &value,
+                    const H5::DataType &h5type) {
     std::array<hsize_t, 1> dim = {1};
     H5::DataSpace space(1, dim.data());
     H5::DataSet dataset = file_.createDataSet(path, h5type, space);
@@ -161,7 +161,7 @@ class HDF5Writer {
   }
 
   // Write string metadata
-  void write_string(const std::string& path, const std::string& value) {
+  void write_string(const std::string &path, const std::string &value) {
     std::array<hsize_t, 1> dim = {1};
     H5::DataSpace space(1, dim.data());
     H5::StrType stringtype(H5::PredType::C_S1, H5T_VARIABLE);
@@ -170,7 +170,7 @@ class HDF5Writer {
   }
 
   template <typename ViewType>
-  void write_view(const ViewType& view, const std::string& dataset_name) {
+  void write_view(const ViewType &view, const std::string &dataset_name) {
     static_assert(Kokkos::is_view<ViewType>::value,
                   "write_view expects a Kokkos::View");
 
@@ -203,7 +203,7 @@ class HDF5Writer {
 };
 
 // Generate filename with proper padding
-auto generate_filename(const std::string& problem_name, int i_write,
+auto generate_filename(const std::string &problem_name, int i_write,
                        int max_digits = 4) -> std::string {
   std::ostringstream oss;
   oss << problem_name << "_";
@@ -223,8 +223,8 @@ auto generate_filename(const std::string& problem_name, int i_write,
  *
  * Bad stuff in here.
  */
-void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
-                 ProblemIn* pin, double time, int order, int i_write,
+void write_state(State *state, GridStructure &grid, SlopeLimiter *SL,
+                 ProblemIn *pin, double time, int order, int i_write,
                  bool do_rad) {
 
   const bool ionization_active =
@@ -242,7 +242,7 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
 
   // Generate filename
   static constexpr int max_digits = 6;
-  const auto& problem_name =
+  const auto &problem_name =
       pin->param()->get_ref<std::string>("problem.problem");
   std::string filename = generate_filename(problem_name, i_write, max_digits);
 
@@ -304,7 +304,7 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
   // deal with params
   const auto keys = pin->param()->keys();
   // probably a more elegant loop pattern
-  for (const auto& key : keys) {
+  for (const auto &key : keys) {
     auto t = pin->param()->get_type(key);
     if (t == typeid(std::string)) {
       writer.write_string("parameters/" + key,
@@ -325,12 +325,12 @@ void write_state(State* state, GridStructure& grid, SlopeLimiter* SL,
 /**
  * Write Modal basis coefficients and mass matrix
  **/
-void write_basis(ModalBasis* basis, const std::string& problem_name) {
+void write_basis(ModalBasis *basis, const std::string &problem_name) {
   std::string fn = problem_name;
   fn.append("_basis");
   fn.append(".h5");
 
-  const char* filename = fn.c_str();
+  const char *filename = fn.c_str();
 
   // Create HDF5 writer
   HDF5Writer writer(filename);

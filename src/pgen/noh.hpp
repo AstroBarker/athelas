@@ -16,8 +16,8 @@
 /**
  * @brief Initialize Noh problem
  **/
-void noh_init(State* state, GridStructure* grid, ProblemIn* pin, const EOS* eos,
-              ModalBasis* /*fluid_basis = nullptr*/) {
+void noh_init(State *state, GridStructure *grid, ProblemIn *pin, const EOS *eos,
+              ModalBasis * /*fluid_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Noh requires ideal gas eos!");
   }

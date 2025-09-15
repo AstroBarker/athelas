@@ -64,10 +64,10 @@ auto Driver::execute() -> int {
       try {
         ssprk_.step_imex(manager_.get(), state_.get(), grid_, dt_, &sl_hydro_,
                          &sl_rad_);
-      } catch (const AthelasError& e) {
+      } catch (const AthelasError &e) {
         std::cerr << e.what() << "\n";
         return AthelasExitCodes::FAILURE;
-      } catch (const std::exception& e) {
+      } catch (const std::exception &e) {
         std::cerr << "Library Error: " << e.what() << "\n";
         return AthelasExitCodes::FAILURE;
       }
@@ -76,7 +76,7 @@ auto Driver::execute() -> int {
 #ifdef ATHELAS_DEBUG
     try {
       check_state(state_.get(), grid_.get_ihi(), rad_active);
-    } catch (const AthelasError& e) {
+    } catch (const AthelasError &e) {
       std::cerr << e.what() << std::endl;
       std::println("!!! Bad State found, writing _final_ output file ...");
       write_state(state_.get(), grid_, &sl_hydro_, pin_.get(), time_,
@@ -119,7 +119,7 @@ auto Driver::execute() -> int {
   return AthelasExitCodes::SUCCESS;
 }
 
-void Driver::initialize(ProblemIn* pin) { // NOLINT
+void Driver::initialize(ProblemIn *pin) { // NOLINT
   using fluid::HydroPackage;
   using gravity::GravityPackage;
 

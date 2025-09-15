@@ -21,15 +21,15 @@ class HistoryOutput {
   // NOTE: We are always passing in two basis objects to our history functions.
   // This hsould be fine -- the driver always has two, even in pure Hydro mode.
   using QuantityFunction =
-      std::function<double(const State&, const GridStructure&,
-                           const ModalBasis*, const ModalBasis*)>;
+      std::function<double(const State &, const GridStructure &,
+                           const ModalBasis *, const ModalBasis *)>;
 
-  explicit HistoryOutput(const std::string& filename, bool enabled);
+  explicit HistoryOutput(const std::string &filename, bool enabled);
 
-  void add_quantity(const std::string& name, QuantityFunction func);
+  void add_quantity(const std::string &name, QuantityFunction func);
 
-  void write(const State& state, const GridStructure& grid,
-             const ModalBasis* fluid_basis, const ModalBasis* rad_basis,
+  void write(const State &state, const GridStructure &grid,
+             const ModalBasis *fluid_basis, const ModalBasis *rad_basis,
              double time);
 
  private:

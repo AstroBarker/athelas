@@ -48,13 +48,13 @@ class AthelasError : public std::exception {
 
  public:
   // Constructor with detailed error information
-  explicit AthelasError(std::string message, const std::string& function = "",
-                        const std::string& file = "", int line = 0)
+  explicit AthelasError(std::string message, const std::string &function = "",
+                        const std::string &file = "", int line = 0)
       : m_message_(std::move(message)), m_function_(function), m_file_(file),
         m_line_(line) {}
 
   // Override what() to provide error details
-  [[nodiscard]] auto what() const noexcept -> const char* override {
+  [[nodiscard]] auto what() const noexcept -> const char * override {
     static thread_local std::string full_message;
     std::ostringstream oss;
 
@@ -75,12 +75,12 @@ class AthelasError : public std::exception {
 
 template <typename... Args>
 [[noreturn]] inline void THROW_ATHELAS_ERROR(
-    const std::string& message, const char* function = __builtin_FUNCTION(),
-    const char* file = __builtin_FILE(), int line = __builtin_LINE()) {
+    const std::string &message, const char *function = __builtin_FUNCTION(),
+    const char *file = __builtin_FILE(), int line = __builtin_LINE()) {
   throw AthelasError(message, function, file, line);
 }
 
-inline void WARNING_ATHELAS(const std::string& message) {
+inline void WARNING_ATHELAS(const std::string &message) {
   std::println("!!! Athelas Warning: {}", message);
   std::println(std::cerr, "!!! Athelas Warning: {}", message);
 }

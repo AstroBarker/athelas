@@ -16,8 +16,8 @@
 /**
  * @brief Initialize gas collapse
  **/
-void gas_collapse_init(State* state, GridStructure* grid, ProblemIn* pin,
-                       const EOS* eos, ModalBasis* /*fluid_basis = nullptr*/) {
+void gas_collapse_init(State *state, GridStructure *grid, ProblemIn *pin,
+                       const EOS *eos, ModalBasis * /*fluid_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Gas collapse requires ideal gas eos!");
   }

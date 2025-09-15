@@ -9,10 +9,10 @@
 using atom::IonLevel;
 
 KOKKOS_FUNCTION
-void solve_saha_ionization(State& state, const GridStructure& grid,
-                           const EOS& eos, const ModalBasis& fluid_basis);
+void solve_saha_ionization(State &state, const GridStructure &grid,
+                           const EOS &eos, const ModalBasis &fluid_basis);
 KOKKOS_FUNCTION
-auto saha_f(double T, const IonLevel& ion_data) -> double;
+auto saha_f(double T, const IonLevel &ion_data) -> double;
 KOKKOS_FUNCTION
 auto ion_frac0(double Zbar, double temperature,
                const View1D<const IonLevel> ion_datas, double nh, int min_state,

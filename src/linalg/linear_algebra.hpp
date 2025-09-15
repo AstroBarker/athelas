@@ -45,6 +45,6 @@ KOKKOS_INLINE_FUNCTION constexpr void MAT_MUL(double alpha, M A, V x,
     y(i) = alpha * sum + beta * y(i);
   }
 }
-void tri_sym_diag(int n, std::vector<double>& d, std::vector<double>& e,
-                  std::vector<double>& array);
-void invert_matrix(std::vector<double>& M, int n);
+void tri_sym_diag(int n, std::vector<double> &d, std::vector<double> &e,
+                  std::vector<double> &array);
+void invert_matrix(std::vector<double> &M, int n);

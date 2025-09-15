@@ -36,9 +36,9 @@
 /**
  * Initialize the conserved Fields for various problems.
  **/
-void initialize_fields(State* state, GridStructure* grid, const EOS* eos,
-                       ProblemIn* pin, ModalBasis* fluid_basis = nullptr,
-                       ModalBasis* radiation_basis = nullptr) {
+void initialize_fields(State *state, GridStructure *grid, const EOS *eos,
+                       ProblemIn *pin, ModalBasis *fluid_basis = nullptr,
+                       ModalBasis *radiation_basis = nullptr) {
 
   const auto problem_name = pin->param()->get<std::string>("problem.problem");
 

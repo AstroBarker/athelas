@@ -14,7 +14,7 @@
 /**
  * Test for near machine precision
  **/
-inline bool soft_equal(const double& val, const double& ref,
+inline bool soft_equal(const double &val, const double &ref,
                        const double tol = 1.0e-8) {
   if (std::fabs(val - ref) < tol * std::fabs(ref) + tol) {
     return true;
@@ -24,7 +24,7 @@ inline bool soft_equal(const double& val, const double& ref,
 }
 
 // Utility function to print parse results
-inline void print_parser_data(const Parser::ParseResult& result) {
+inline void print_parser_data(const Parser::ParseResult &result) {
   // Print headers
   std::print("Headers: ");
   for (size_t i = 0; i < result.headers.size(); ++i) {
@@ -37,7 +37,7 @@ inline void print_parser_data(const Parser::ParseResult& result) {
 
   // Print rows
   for (size_t row_idx = 0; row_idx < result.rows.size(); ++row_idx) {
-    const auto& row = result.rows[row_idx];
+    const auto &row = result.rows[row_idx];
     std::cout << std::format("Row {}: ", row_idx + 1);
 
     for (size_t col_idx = 0; col_idx < row.size(); ++col_idx) {

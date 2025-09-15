@@ -2,13 +2,13 @@
 
 #include "params.hpp"
 
-auto Params::contains(const std::string& key) const -> bool {
+auto Params::contains(const std::string &key) const -> bool {
   return params_.contains(key);
 }
 
 // Remove a parameter -- note that the caller
 // has no guarantee that the key existed.
-void Params::remove(const std::string& key) { params_.erase(key); }
+void Params::remove(const std::string &key) { params_.erase(key); }
 
 // Clear all parameters
 void Params::clear() { params_.clear(); }
@@ -17,12 +17,12 @@ void Params::clear() { params_.clear(); }
 auto Params::keys() const -> std::vector<std::string> {
   std::vector<std::string> result;
   result.reserve(params_.size());
-  for (const auto& [key, _] : params_) {
+  for (const auto &[key, _] : params_) {
     result.push_back(key);
   }
   return result;
 }
 
-auto Params::get_type(const std::string& key) const -> std::type_index {
+auto Params::get_type(const std::string &key) const -> std::type_index {
   return params_.at(key)->type();
 }

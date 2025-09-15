@@ -19,9 +19,9 @@
 /**
  * @brief Initialize radiating shock
  **/
-void marshak_init(State* state, GridStructure* grid, ProblemIn* pin,
-                  const EOS* /*eos*/, ModalBasis* /*fluid_basis = nullptr*/,
-                  ModalBasis* /*radiation_basis = nullptr*/) {
+void marshak_init(State *state, GridStructure *grid, ProblemIn *pin,
+                  const EOS * /*eos*/, ModalBasis * /*fluid_basis = nullptr*/,
+                  ModalBasis * /*radiation_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "marshak") {
     THROW_ATHELAS_ERROR("Marshak requires marshak eos!");
   }

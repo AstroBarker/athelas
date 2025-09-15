@@ -20,9 +20,9 @@
  * @brief Initialize radiation advection test
  * @note EXPERIMENTAL
  **/
-void rad_advection_init(State* state, GridStructure* grid, ProblemIn* pin,
-                        const EOS* eos, ModalBasis* /*fluid_basis = nullptr*/,
-                        ModalBasis* /*radiation_basis = nullptr*/) {
+void rad_advection_init(State *state, GridStructure *grid, ProblemIn *pin,
+                        const EOS *eos, ModalBasis * /*fluid_basis = nullptr*/,
+                        ModalBasis * /*radiation_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Radiation advection requires ideal gas eos!");
   }

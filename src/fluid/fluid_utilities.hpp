@@ -29,6 +29,6 @@ auto numerical_flux_gudonov_positivity(double tauL, double tauR, double vL,
                                        double csL, double csR)
     -> std::tuple<double, double>;
 void numerical_flux_hllc(double vL, double vR, double pL, double pR, double cL,
-                         double cR, double rhoL, double rhoR, double& Flux_U,
-                         double& Flux_P);
+                         double cR, double rhoL, double rhoR, double &Flux_U,
+                         double &Flux_P);
 } // namespace fluid

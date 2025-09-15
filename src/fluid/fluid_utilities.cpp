@@ -68,8 +68,8 @@ auto numerical_flux_gudonov(const double vL, const double vR, const double pL,
  * Gudonov style numerical flux. Constructs v* and p* states.
  **/
 void numerical_flux_hllc(double vL, double vR, double pL, double pR, double cL,
-                         double cR, double rhoL, double rhoR, double& Flux_U,
-                         double& Flux_P) {
+                         double cR, double rhoL, double rhoR, double &Flux_U,
+                         double &Flux_P) {
   double const aL = vL - cL; // left wave speed estimate
   double const aR = vR + cR; // right wave speed estimate
   Flux_U = (rhoR * vR * (aR - vR) - rhoL * vL * (aL - vL) + pL - pR) /

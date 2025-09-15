@@ -28,8 +28,8 @@ class State {
     return composition_enabled_;
   }
 
-  [[nodiscard]] auto comps() const -> CompositionData*;
-  [[nodiscard]] auto ionization_state() const -> IonizationState*;
+  [[nodiscard]] auto comps() const -> CompositionData *;
+  [[nodiscard]] auto ionization_state() const -> IonizationState *;
 
   void setup_composition(std::shared_ptr<CompositionData> comps);
   void setup_ionization(std::shared_ptr<IonizationState> ion);

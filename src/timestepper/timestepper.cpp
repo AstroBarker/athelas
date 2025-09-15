@@ -17,7 +17,7 @@
  * The constructor creates the necessary data structures for time evolution.
  * Lots of structures used in discretizations live here.
  **/
-TimeStepper::TimeStepper(const ProblemIn* pin, GridStructure* grid, EOS* eos)
+TimeStepper::TimeStepper(const ProblemIn *pin, GridStructure *grid, EOS *eos)
     : mSize_(grid->get_n_elements() + 2),
       integrator_(
           create_tableau(pin->param()->get<MethodID>("time.integrator"))),

@@ -12,9 +12,9 @@
 /**
  * Initialize one_zone_ionization test
  **/
-void one_zone_ionization_init(State* state, GridStructure* grid, ProblemIn* pin,
-                              const EOS* eos,
-                              ModalBasis* fluid_basis = nullptr) {
+void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
+                              const EOS *eos,
+                              ModalBasis *fluid_basis = nullptr) {
   const bool ionization_active =
       pin->param()->get<bool>("physics.ionization_enabled");
   const int saha_ncomps =

@@ -14,16 +14,16 @@
 
 namespace gravity {
 
-GravityPackage::GravityPackage(const ProblemIn* /*pin*/, GravityModel model,
-                               const double gval, ModalBasis* basis,
+GravityPackage::GravityPackage(const ProblemIn * /*pin*/, GravityModel model,
+                               const double gval, ModalBasis *basis,
                                const double cfl, const bool active)
     : active_(active), model_(model), gval_(gval), basis_(basis), cfl_(cfl) {}
 
 KOKKOS_FUNCTION
-void GravityPackage::update_explicit(const State* const state,
+void GravityPackage::update_explicit(const State *const state,
                                      View3D<double> dU,
-                                     const GridStructure& grid,
-                                     const TimeStepInfo& dt_info) const {
+                                     const GridStructure &grid,
+                                     const TimeStepInfo &dt_info) const {
   const auto u_stages = state->u_cf_stages();
 
   const auto stage = dt_info.stage;
@@ -41,11 +41,11 @@ KOKKOS_FUNCTION
 template <GravityModel Model>
 void GravityPackage::gravity_update(const View3D<double> state,
                                     View3D<double> dU,
-                                    const GridStructure& grid) const {
-  const int& nNodes = grid.get_n_nodes();
-  const int& order = basis_->get_order();
+                                    const GridStructure &grid) const {
+  const int &nNodes = grid.get_n_nodes();
+  const int &order = basis_->get_order();
   static constexpr int ilo = 1;
-  static const int& ihi = grid.get_ihi();
+  static const int &ihi = grid.get_ihi();
 
   // This can probably be simplified.
   Kokkos::parallel_for(
@@ -87,16 +87,16 @@ void GravityPackage::gravity_update(const View3D<double> state,
  **/
 KOKKOS_FUNCTION
 auto GravityPackage::min_timestep(const View3D<double> /*state*/,
-                                  const GridStructure& /*grid*/,
-                                  const TimeStepInfo& /*dt_info*/) const
+                                  const GridStructure & /*grid*/,
+                                  const TimeStepInfo & /*dt_info*/) const
     -> double {
   static constexpr double MAX_DT = std::numeric_limits<double>::max() / 100.0;
   static constexpr double dt_out = MAX_DT;
   return dt_out;
 }
 
-void GravityPackage::fill_derived(State* /*state*/,
-                                  const GridStructure& /*grid*/) const {}
+void GravityPackage::fill_derived(State * /*state*/,
+                                  const GridStructure & /*grid*/) const {}
 
 [[nodiscard]] KOKKOS_FUNCTION auto GravityPackage::name() const noexcept
     -> std::string_view {

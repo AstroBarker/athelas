@@ -32,9 +32,9 @@ TEST_CASE("Parser parses valid text file correctly", "[parser]") {
 
       // Demonstrate range-based access
       std::cout << "\n=== Range-based iteration ===\n";
-      for (const auto& [idx, row] : std::views::enumerate(result->rows)) {
+      for (const auto &[idx, row] : std::views::enumerate(result->rows)) {
         std::cout << std::format("Row {}: ", idx + 1);
-        for (const auto& field : row) {
+        for (const auto &field : row) {
           std::cout << std::format("[{}] ", field);
         }
         std::cout << "\n";
@@ -46,7 +46,7 @@ TEST_CASE("Parser parses valid text file correctly", "[parser]") {
           std::ranges::find(result->headers, "Age") - result->headers.begin();
 
       auto filtered_rows =
-          result->rows | std::views::filter([age_header_idx](const auto& row) {
+          result->rows | std::views::filter([age_header_idx](const auto &row) {
             if (age_header_idx < row.size()) {
               try {
                 return std::stoi(row[age_header_idx]) > 28;
@@ -57,7 +57,7 @@ TEST_CASE("Parser parses valid text file correctly", "[parser]") {
             return false;
           });
 
-      for (const auto& row : filtered_rows) {
+      for (const auto &row : filtered_rows) {
         std::cout << std::format("Name: {}, Age: {}, City: {}\n", row[0],
                                  row[1], row[2]);
       }
@@ -88,9 +88,9 @@ TEST_CASE("Parser parses valid text file correctly", "[parser]") {
 
       // Demonstrate range-based access
       std::cout << "\n=== Range-based iteration ===\n";
-      for (const auto& [idx, row] : std::views::enumerate(result->rows)) {
+      for (const auto &[idx, row] : std::views::enumerate(result->rows)) {
         std::cout << std::format("Row {}: ", idx + 1);
-        for (const auto& field : row) {
+        for (const auto &field : row) {
           std::cout << std::format("[{}] ", field);
         }
         std::cout << "\n";
@@ -102,7 +102,7 @@ TEST_CASE("Parser parses valid text file correctly", "[parser]") {
           std::ranges::find(result->headers, "Age") - result->headers.begin();
 
       auto filtered_rows =
-          result->rows | std::views::filter([age_header_idx](const auto& row) {
+          result->rows | std::views::filter([age_header_idx](const auto &row) {
             if (age_header_idx < row.size()) {
               try {
                 std::println("test {}", std::stoi(row[age_header_idx]));
@@ -114,7 +114,7 @@ TEST_CASE("Parser parses valid text file correctly", "[parser]") {
             return false;
           });
 
-      for (const auto& row : filtered_rows) {
+      for (const auto &row : filtered_rows) {
         std::cout << std::format("Name: {}, Age: {}, City: {}\n", row[0],
                                  row[1], row[2]);
       }

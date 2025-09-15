@@ -10,11 +10,11 @@ using atom::AtomicData;
 class IonizationState {
  public:
   IonizationState(int nX, int nNodes, int n_species, int n_states,
-                  const std::string& fn_ionization,
-                  const std::string& fn_degeneracy);
+                  const std::string &fn_ionization,
+                  const std::string &fn_degeneracy);
 
   [[nodiscard]] auto ionization_fractions() const noexcept -> View4D<double>;
-  [[nodiscard]] auto atomic_data() const noexcept -> AtomicData*;
+  [[nodiscard]] auto atomic_data() const noexcept -> AtomicData *;
 
  private:
   View4D<double> ionization_fractions_; // [nX][nNodes][n_species][max_charge+1]

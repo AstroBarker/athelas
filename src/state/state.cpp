@@ -27,14 +27,14 @@ void State::setup_ionization(std::shared_ptr<IonizationState> ion) {
   ionization_state_ = std::move(ion);
 }
 
-[[nodiscard]] auto State::comps() const -> CompositionData* {
+[[nodiscard]] auto State::comps() const -> CompositionData * {
   if (!composition_enabled_) {
     THROW_ATHELAS_ERROR("Composition not enabled!");
   }
   return comps_.get();
 }
 
-[[nodiscard]] auto State::ionization_state() const -> IonizationState* {
+[[nodiscard]] auto State::ionization_state() const -> IonizationState * {
   if (!ionization_enabled_) {
     THROW_ATHELAS_ERROR("Ionization not enabled!");
   }

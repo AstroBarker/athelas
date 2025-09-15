@@ -17,9 +17,9 @@ using namespace utilities;
 
 namespace limiter_utilities {
 
-auto initialize_slope_limiter(std::string field, const GridStructure* grid,
-                              const ProblemIn* pin,
-                              const std::vector<int>& vars, int nvars)
+auto initialize_slope_limiter(std::string field, const GridStructure *grid,
+                              const ProblemIn *pin,
+                              const std::vector<int> &vars, int nvars)
     -> SlopeLimiter;
 
 // Standard MINMOD function
@@ -44,11 +44,11 @@ auto barth_jespersen(double U_v_L, double U_v_R, double U_c_L, double U_c_T,
                      double U_c_R, double alpha) -> double;
 
 void detect_troubled_cells(const View3D<double> U, View1D<double> D,
-                           const GridStructure* grid, const ModalBasis* basis,
-                           const std::vector<int>& vars);
+                           const GridStructure *grid, const ModalBasis *basis,
+                           const std::vector<int> &vars);
 
-auto cell_average(View3D<double> U, const GridStructure* grid,
-                  const ModalBasis* basis, int q, int ix, int extrapolate)
+auto cell_average(View3D<double> U, const GridStructure *grid,
+                  const ModalBasis *basis, int q, int ix, int extrapolate)
     -> double;
 
 void modify_polynomial(View3D<double> U, View2D<double> modified_polynomial,
@@ -56,7 +56,7 @@ void modify_polynomial(View3D<double> U, View2D<double> modified_polynomial,
                        int q);
 
 auto smoothness_indicator(View3D<double> U, View2D<double> modified_polynomial,
-                          const GridStructure* grid, const ModalBasis* basis,
+                          const GridStructure *grid, const ModalBasis *basis,
                           int ix, int i, int iCQ) -> double;
 
 auto non_linear_weight(double gamma, double beta, double tau, double eps)
