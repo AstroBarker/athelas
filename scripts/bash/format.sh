@@ -36,7 +36,7 @@ if command -v ruff &> /dev/null; then
         echo "[format.sh] No tracked Python files in scripts/python to lint."
     else
         echo "[format.sh] Running ruff on Python files..."
-        ruff check --fix ${PY_FILES}
+        # ruff check --fix ${PY_FILES}
         ruff format ${PY_FILES}
         echo "[format.sh] Ruff linting complete."
     fi

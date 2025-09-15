@@ -56,6 +56,11 @@ fi
 
 echo "[hook] Running formatting script..."
 "$FORMAT_SCRIPT"
+# Format all staged C/C++ files
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(c|cpp|cc|cxx|h|hpp|hh|hxx|py)$' || true)
+for FILE in $FILES; do
+    git add "$FILE"
+done
 echo "[hook] Formatting complete."
 
 # Check for whitespace errors; if any, abort the commit.
