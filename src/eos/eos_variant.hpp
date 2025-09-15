@@ -13,11 +13,11 @@
 #include "pgen/problem_in.hpp"
 #include "utils/error.hpp"
 
-using EOS = std::variant<IdealGas, Polytropic, Marshak>;
+using EOS = std::variant<IdealGas, Marshak, Paczynski, Polytropic>;
 
 KOKKOS_INLINE_FUNCTION auto
-pressure_from_conserved(const EOS *const eos, const double tau, const double V,
-                        const double E, const double *const lambda) -> double {
+pressure_from_conserved(const EOS* const eos, const double tau, const double V,
+                        const double E, const double* const lambda) -> double {
   return std::visit(
       [&tau, &V, &E, &lambda](auto& eos) {
         return eos.pressure_from_conserved(tau, V, E, lambda);
@@ -26,8 +26,9 @@ pressure_from_conserved(const EOS *const eos, const double tau, const double V,
 }
 
 KOKKOS_INLINE_FUNCTION auto
-sound_speed_from_conserved(const EOS *const eos, const double tau, const double V,
-                           const double E, const double *const lambda) -> double {
+sound_speed_from_conserved(const EOS* const eos, const double tau,
+                           const double V, const double E,
+                           const double* const lambda) -> double {
   return std::visit(
       [&tau, &V, &E, &lambda](auto& eos) {
         return eos.sound_speed_from_conserved(tau, V, E, lambda);
@@ -36,8 +37,9 @@ sound_speed_from_conserved(const EOS *const eos, const double tau, const double 
 }
 
 KOKKOS_INLINE_FUNCTION auto
-temperature_from_conserved(const EOS *const eos, const double tau, const double V,
-                           const double E, const double *const lambda) -> double {
+temperature_from_conserved(const EOS* const eos, const double tau,
+                           const double V, const double E,
+                           const double* const lambda) -> double {
   return std::visit(
       [&tau, &V, &E, &lambda](auto& eos) {
         return eos.temperature_from_conserved(tau, V, E, lambda);
@@ -45,18 +47,24 @@ temperature_from_conserved(const EOS *const eos, const double tau, const double 
       *eos);
 }
 
-KOKKOS_INLINE_FUNCTION auto get_gamma(const EOS *const eos, const double tau, const double V, const double E, const double *const lambda) -> double {
-  return std::visit([&tau, &V, &E, &lambda](auto& eos) { return eos.get_gamma(tau, V, E, lambda); }, *eos);
+KOKKOS_INLINE_FUNCTION auto get_gamma(const EOS* const eos, const double tau,
+                                      const double V, const double E,
+                                      const double* const lambda) -> double {
+  return std::visit([&tau, &V, &E, &lambda](
+                        auto& eos) { return eos.get_gamma(tau, V, E, lambda); },
+                    *eos);
 }
 
-KOKKOS_INLINE_FUNCTION auto get_gamma(const EOS *const eos) -> double {
+KOKKOS_INLINE_FUNCTION auto get_gamma(const EOS* const eos) -> double {
   return std::visit([](auto& eos) { return eos.get_gamma(); }, *eos);
 }
 
 KOKKOS_INLINE_FUNCTION auto initialize_eos(const ProblemIn* pin) -> EOS {
   EOS eos;
   const auto type = pin->param()->get<std::string>("eos.type");
-  if (type == "ideal") {
+  if (type == "paczynski") {
+    eos = Paczynski();
+  } else if (type == "ideal") {
     eos = IdealGas(pin->param()->get<double>("eos.gamma"));
   } else if (type == "polytropic") {
     eos = Polytropic(pin->param()->get<double>("eos.k"),

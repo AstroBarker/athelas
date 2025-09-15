@@ -127,6 +127,7 @@ set( ATHELAS_SOURCES
   "src/bc/boundary_conditions.cpp"
   "src/eos/eos_ideal.cpp"
   "src/eos/eos_marshak.cpp"
+  "src/eos/eos_paczynski.cpp"
   "src/eos/eos_polytropic.cpp"
   "src/fluid/fluid_utilities.cpp"
   "src/fluid/hydro_package.cpp"
