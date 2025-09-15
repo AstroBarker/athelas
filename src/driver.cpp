@@ -2,7 +2,6 @@
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
 #include "fluid/hydro_package.hpp"
-#include "geometry/grid.hpp"
 #include "gravity/gravity_package.hpp"
 #include "history/quantities.hpp"
 #include "initialization.hpp"
@@ -18,7 +17,7 @@
 #include "utils/error.hpp"
 
 auto Driver::execute() -> int {
-  static const auto nx = pin_->param()->get<int>("problem.nx");
+  static const auto nx  = pin_->param()->get<int>("problem.nx");
   static const bool rad_active = pin_->param()->get<bool>("physics.rad_active");
 
   // some startup io
