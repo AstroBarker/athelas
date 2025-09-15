@@ -3,7 +3,6 @@
  * @file eos.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Declares equation of state classes that implement the EosBase
  * interface
  *
@@ -13,6 +12,7 @@
  * implementations provided in separate .cpp files.
  *
  *          We support the following equations of state:
+ *          - Paczynski: stellar EOS adjusted for partial ionization
  *          - IdealGas (default): ideal gas EOS
  *          - Polytropic: Stellar polytrope EOS
  *          - Marshak: Weird ideal gas for Marshak test.
@@ -21,8 +21,53 @@
  *          Note: implementations are supplied in eos-specific cpp files.
  */
 
-#include "eos_base.hpp"
-#include "error.hpp"
+#include "eos/eos_base.hpp"
+#include "utils/error.hpp"
+
+/**
+ * @class Paczynski
+ * @brief Paczynski stellar equation of state
+ *
+ * @details The Paczynski equation of state adjusted for partial ionization.
+ * TODO(astrobarker): describe.
+ */
+class Paczynski : public EosBase<Paczynski> {
+ public:
+  Paczynski() = default;
+
+  auto pressure_from_conserved(double tau, double V, double EmT,
+                               const double* lambda) const -> double;
+  auto sound_speed_from_conserved(double tau, double V, double EmT,
+                                  const double* lambda) const -> double;
+  auto temperature_from_conserved(double tau, double V, double E,
+                                  const double* lambda) const -> double;
+  [[nodiscard]] auto get_gamma() const -> double;
+  [[nodiscard]] auto get_gamma(double tau, double V, double EmT,
+                               const double* lambda) const -> double;
+  [[nodiscard]] static auto p_end(double rho, double T, double ybar, double N)
+      -> double;
+  [[nodiscard]] static auto p_ednr(double rho, double ye) -> double;
+  [[nodiscard]] static auto p_edr(double rho, double ye) -> double;
+  [[nodiscard]] static auto p_ed(double p_ednr, double p_edr) -> double;
+  [[nodiscard]] static auto p_e(double p_end, double p_ed) -> double;
+  [[nodiscard]] static auto p_ion(double rho, double T, double N) -> double;
+  [[nodiscard]] static auto degeneracy_factor(double p_ed, double p_ednr,
+                                              double p_edr) -> double;
+
+  // TODO(astrobarker): The following 2 functions need an identical API.
+  // However, I recompute some things unnecessarily. Make the arg lists bigger.
+  [[nodiscard]] static auto specific_internal_energy(double T, double rho,
+                                                     const double* lambda)
+      -> double;
+  [[nodiscard]] static auto dsie_dt(double T, double rho, const double* lambda)
+      -> double;
+  [[nodiscard]] static auto dp_dt(double T, double rho, double ybar, double pe,
+                                  double pend, double N, double sigma1,
+                                  double sigma2) -> double;
+  [[nodiscard]] static auto dp_drho(double T, double rho, double ybar,
+                                    double pend, double ped, double f, double N,
+                                    double sigma1) -> double;
+};
 
 /**
  * @class IdealGas
@@ -40,11 +85,13 @@ class IdealGas : public EosBase<IdealGas> {
   }
 
   auto pressure_from_conserved(double tau, double V, double EmT,
-                               double* lambda) const -> double;
+                               const double* lambda) const -> double;
   auto sound_speed_from_conserved(double tau, double V, double EmT,
-                                  double* lambda) const -> double;
+                                  const double* lambda) const -> double;
   auto temperature_from_conserved(double tau, double V, double E,
-                                  double* lambda) const -> double;
+                                  const double* lambda) const -> double;
+  [[nodiscard]] auto get_gamma(double tau, double V, double EmT,
+                               const double* lambda) const noexcept -> double;
   [[nodiscard]] auto get_gamma() const noexcept -> double;
 
  private:
@@ -68,11 +115,13 @@ class Polytropic : public EosBase<Polytropic> {
   }
 
   auto pressure_from_conserved(double tau, double V, double EmT,
-                               double* lambda) const -> double;
+                               const double* lambda) const -> double;
   auto sound_speed_from_conserved(double tau, double V, double EmT,
-                                  double* lambda) const -> double;
+                                  const double* lambda) const -> double;
   auto temperature_from_conserved(double tau, double V, double E,
-                                  double* lambda) const -> double;
+                                  const double* lambda) const -> double;
+  [[nodiscard]] auto get_gamma(double tau, double V, double EmT,
+                               const double* lambda) const noexcept -> double;
   [[nodiscard]] auto get_gamma() const noexcept -> double;
 
  private:
@@ -99,11 +148,13 @@ class Marshak : public EosBase<Marshak> {
   }
 
   auto pressure_from_conserved(double tau, double V, double EmT,
-                               double* lambda) const -> double;
+                               const double* lambda) const -> double;
   auto sound_speed_from_conserved(double tau, double V, double EmT,
-                                  double* lambda) const -> double;
+                                  const double* lambda) const -> double;
   auto temperature_from_conserved(double tau, double V, double E,
-                                  double* lambda) const -> double;
+                                  const double* lambda) const -> double;
+  [[nodiscard]] auto get_gamma(double tau, double V, double EmT,
+                               const double* lambda) const noexcept -> double;
   [[nodiscard]] auto get_gamma() const noexcept -> double;
 
  private:

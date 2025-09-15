@@ -440,9 +440,25 @@ auto fixed_point(F target, T x0) -> T {
   return x0;
 }
 
+// Newton iteration templated on type, function
+template <typename T, typename F>
+auto newton(F target, F d_target, T x0) -> T {
+
+  unsigned int n = 0;
+  T error = 1.0;
+  while (n <= root_finders::MAX_ITERS && error >= root_finders::ABSTOL) {
+    T xn = x0;
+    T h = target(xn) / d_target(xn);
+    x0 = xn - h;
+    error = std::abs(xn - x0);
+    ++n;
+  }
+  return x0;
+}
+
 // Newton iteration templated on type, function, args
-template <typename T, typename F, typename... Args>
-auto newton(F target, F d_target, T x0, Args... args) -> T {
+template <typename T, typename F, typename G, typename... Args>
+auto newton(F target, G d_target, T x0, Args... args) -> T {
 
   unsigned int n = 0;
   T error = 1.0;

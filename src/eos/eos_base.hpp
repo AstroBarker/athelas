@@ -14,6 +14,7 @@
  *          - pressure_from_conserved
  *          - sound_speed_from_conserved
  *          - temperature_from_conserved
+ *          - gamma
  *
  *          These interfaces are implemented for all EOS
  */
@@ -21,24 +22,28 @@ template <class EOS>
 class EosBase {
  public:
   auto pressure_from_conserved(const double tau, const double V,
-                               const double EmT, double* lambda) const
-      -> double {
+                               const double EmT,
+                               const double* const lambda) const -> double {
     return static_cast<EOS const*>(this)->pressure_from_conserved(tau, V, EmT,
                                                                   lambda);
   }
   auto sound_speed_from_conserved(const double tau, const double V,
-                                  const double EmT, double* lambda) const
-      -> double {
+                                  const double EmT,
+                                  const double* const lambda) const -> double {
     return static_cast<EOS const*>(this)->sound_speed_from_conserved(
         tau, V, EmT, lambda);
   }
   auto temperature_from_conserved(const double tau, const double V,
-                                  const double EmT, double* lambda) const
-      -> double {
+                                  const double EmT,
+                                  const double* const lambda) const -> double {
     return static_cast<EOS const*>(this)->temperature_from_conserved(
         tau, V, EmT, lambda);
   }
-  auto get_gamma() -> double {
+  auto get_gamma(const double tau, const double V, const double EmT,
+                 const double* const lambda) const -> double {
+    return static_cast<EOS const*>(this)->get_gamma(tau, V, EmT, lambda);
+  }
+  [[nodiscard]] auto get_gamma() const -> double {
     return static_cast<EOS const*>(this)->get_gamma();
   }
 };
