@@ -14,6 +14,6 @@ detail.  Why is this change required?  What problem does it solve?-->
 <!-- Note that some of these check boxes may not apply to all pull requests -->
 
 - [ ] Adds a test for any bugs fixed. Adds tests for new features.
-- [ ] Format your changes by calling `tools/bash/format.sh`.
+- [ ] Format your changes by calling `scripts/bash/format.sh`.
 - [ ] Explain what you did.
 - [ ] Make any necessary changes to the documentation.
