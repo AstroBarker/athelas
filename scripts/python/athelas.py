@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 try:
-    from basis import ModalBasis # type: ignore
+  from basis import ModalBasis  # type: ignore
 except ImportError:
   warnings.warn(
     "basis module not found. ModalBasis functionality will be disabled."
@@ -78,7 +78,7 @@ class Athelas:
     self.r: Optional[np.ndarray] = None
     self.r_nodal: Optional[np.ndarray] = None
     self.dr: Optional[np.ndarray] = None
-    self.basis: Optional[ModalBasis] = None # type: ignore
+    self.basis: Optional[ModalBasis] = None  # type: ignore
 
     # Set up variable indices
     self.idx = (
@@ -107,7 +107,7 @@ class Athelas:
       f"Cells: {self.nX}{ghost_info}\n"
       f"Variables: {list(self.idx.keys())}\n"
       f"Basis loaded: {self.basis is not None}\n"
-      f"Domain: [{self.r[0]:.3e}, {self.r[-1]:.3e}]" # type: ignore
+      f"Domain: [{self.r[0]:.3e}, {self.r[-1]:.3e}]"  # type: ignore
     )
 
   def __repr__(self) -> str:
@@ -146,12 +146,12 @@ class Athelas:
 
   def _load_basis(self, basis_filename: Union[str, Path]) -> None:
     """Load modal basis functions."""
-    if ModalBasis is None: # type: ignore
+    if ModalBasis is None:  # type: ignore
       warnings.warn("ModalBasis not available. Skipping basis loading.")
       return
 
     try:
-      self.basis = ModalBasis(basis_filename) # type: ignore
+      self.basis = ModalBasis(basis_filename)  # type: ignore
     except Exception as e:
       warnings.warn(f"Failed to load basis from '{basis_filename}': {e}")
 
@@ -173,7 +173,7 @@ class Athelas:
   @property
   def domain_bounds(self) -> Tuple[float, float]:
     """Get domain bounds as (min, max)."""
-    return float(self.r[0]), float(self.r[-1]) # type: ignore
+    return float(self.r[0]), float(self.r[-1])  # type: ignore
 
   def add_variable(
     self, name: str, index: int, var_type: str = "conserved"
