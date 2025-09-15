@@ -17,7 +17,7 @@
 #include "utils/error.hpp"
 
 auto Driver::execute() -> int {
-  static const auto nx  = pin_->param()->get<int>("problem.nx");
+  static const auto nx   =  pin_->param()->get<int>("problem.nx");
   static const bool rad_active = pin_->param()->get<bool>("physics.rad_active");
 
   // some startup io
