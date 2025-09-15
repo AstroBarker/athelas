@@ -26,4 +26,4 @@ jobs:
         python -m pip install ruff
     - name: Lint with ruff
       run: |
-        ruff check tools/python/
+        ruff check scripts/python/
