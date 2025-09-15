@@ -78,7 +78,7 @@ class Athelas:
     self.r: Optional[np.ndarray] = None
     self.r_nodal: Optional[np.ndarray] = None
     self.dr: Optional[np.ndarray] = None
-    self.basis: Optional[ModalBasis] = None  # type: ignore
+    self.basis: Optional[ModalBasis] = None # type: ignore
 
     # Set up variable indices
     self.idx = (
