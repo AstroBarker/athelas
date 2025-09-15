@@ -19,9 +19,9 @@ Read 1D native thornado data.
 
 Parameters:
 -----------
-Dir::String 
+Dir::String
     Directory containing .h5 files
-filenumber::String 
+filenumber::String
     String of output to read -- must contain leading zeros. e.g., 000165
 run::String
     Simulation identifier: e.g., GravitationalCollapse, RiemannProblem
@@ -119,9 +119,9 @@ Compute cell averages,
 
 Parameters:
 -----------
-df::DataFrame 
+df::DataFrame
     data, contained in a dataframe. Output of load_thornado_single()
-nNodes::Int 
+nNodes::Int
     number of nodes. Determines weights.
 """
 function cell_average(df::DataFrame, nNodes::Int)

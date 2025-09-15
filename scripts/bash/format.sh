@@ -27,5 +27,3 @@ for f in $(git grep --untracked -ail ';' -- ':/*.hpp' ':/*.cpp'); do
     ${CFM} -i ${f}
 done
 echo "...Done"
-
-

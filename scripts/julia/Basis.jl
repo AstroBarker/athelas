@@ -52,7 +52,7 @@ end
 Construct a nodal grid
 """
 function NodalGrid(Grid::GridType, Nodes::Array{Float64,1})
-  function NodeCoordinate( Rad::Array{Float64,1}, Widths::Array{Float64,1}, 
+  function NodeCoordinate( Rad::Array{Float64,1}, Widths::Array{Float64,1},
                            eta_q::Float64, iX::Integer )
     return Rad[iX] + Widths[iX] * eta_q
   end
@@ -70,7 +70,7 @@ end
 Integrate on an element
 Takes the full Data state
 """
-function Integrate( Basis::BasisType, Data::State, Weights::Array{Float64, 1}, 
+function Integrate( Basis::BasisType, Data::State, Weights::Array{Float64, 1},
                     iCF::Int64, iX::Int64 )
   result :: Float64 = 0.0
   for iN in 1:length(Weights)

@@ -44,7 +44,7 @@ function Load_Output( fn::String )
   uAF::Array{Float64,3} = zeros(order, nX, 3)
 
   state::State = State(time, uCF, uPF, uAF, SlopeLimiter)
-  grid ::GridType = GridType(x1,dr) 
+  grid ::GridType = GridType(x1,dr)
 
   close(fid)
 
@@ -87,7 +87,7 @@ em_array = Float64[]
     #push!( time_array, data.time )
     #push!( em_array, em1 )
     #scatter( fig[1,1], grid.r, 1.0 ./ tau )
-    
+
     #lines( fig[1,1], grid.r, 1.0 ./ tau )
     #scatter!( fig[1,1], grid.r, 1.0 ./ tau, color="black"  )
     lines( fig[1,1], grid.r, 1.0 ./ tau )
