@@ -1,6 +1,7 @@
 #!/bin/bash
 
 : ${CFM:=clang-format}
+: ${PFM:=black}
 : ${VERBOSE:=0}
 
 if ! command -v ${CFM} &> /dev/null; then
@@ -27,21 +28,22 @@ for f in $(git grep --untracked -ail ';' -- ':/*.hpp' ':/*.cpp'); do
     ${CFM} -i ${f}
 done
 
-# --- Check for ruff ---
-if command -v ruff &> /dev/null; then
-    echo "[format.sh] Ruff found: $(command -v ruff)"
-
-    PY_FILES=$(git ls-files "scripts/python/*.py")
-    if [ -z "${PY_FILES}" ]; then
-        echo "[format.sh] No tracked Python files in scripts/python to lint."
-    else
-        echo "[format.sh] Running ruff on Python files..."
-        # ruff check --fix ${PY_FILES}
-        ruff format ${PY_FILES}
-        echo "[format.sh] Ruff linting complete."
-    fi
+# format python files
+if ! command -v ${PFM} &> /dev/null; then
+    >&2 echo "[format.sh] Error: No version of ruff found! Looked for ${PFM}"
+    exit 1
 else
-    echo "[format.sh] Ruff not found. Skipping Python linting."
+    PFM=$(command -v ${PFM})
+    echo "ruff Python formatter found: ${PFM}"
+    echo "ruff version: $(${PFM} --version)"
 fi
 
+echo "Formatting Python files..."
+REPO=$(git rev-parse --show-toplevel)
+for f in $(git grep --untracked -ail res -- :/*.py); do
+    if [ ${VERBOSE} -ge 1 ]; then
+       echo ${f}
+    fi
+    ${PFM} -q ${REPO}/${f}
+done
 echo "[format.sh] ...Done"
