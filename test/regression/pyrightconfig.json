@@ -1,0 +1,6 @@
+{
+  "typeCheckingMode": "basic",   // or "strict" if you prefer
+  "ignore": [
+    "h5py"
+  ]
+}

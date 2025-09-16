@@ -1,7 +1,3 @@
-/**
- * ensure Catch2 is working.
- **/
-
 #include <print>
 
 #include <catch2/catch_test_macros.hpp>

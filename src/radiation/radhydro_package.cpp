@@ -168,9 +168,9 @@ void RadHydroPackage::update_implicit_iterative(const State *const state,
           }
         }
 
-        root_finders::fixed_point_radhydro(
-            R_ix, dt_info.dt_a, scratch_sol_ix_k, scratch_sol_ix_km1,
-            scratch_sol_ix, grid, fluid_basis_, rad_basis_, eos_, opac_, ix);
+        fixed_point_radhydro(R_ix, dt_info.dt_a, scratch_sol_ix_k,
+                             scratch_sol_ix_km1, scratch_sol_ix, grid,
+                             fluid_basis_, rad_basis_, eos_, opac_, ix);
 
         for (int k = 0; k < order; ++k) {
           for (int q = 1; q < NUM_VARS_; ++q) {
