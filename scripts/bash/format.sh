@@ -1,7 +1,7 @@
 #!/bin/bash
 
 : ${CFM:=clang-format}
-: ${PFM:=black}
+: ${PFM:=ruff}
 : ${VERBOSE:=0}
 
 if ! command -v ${CFM} &> /dev/null; then
