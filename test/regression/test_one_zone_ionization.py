@@ -6,7 +6,9 @@ from regression_test import AthelasRegressionTest
 class OneZoneIonizationTest(AthelasRegressionTest):
   """Test for the One zone ionization problem"""
 
-  def __init__(self, methodName="test_one_zone_ionization", executable_path=None):
+  def __init__(
+    self, methodName="test_one_zone_ionization", executable_path=None
+  ):
     # Get the absolute path to the regression test directory
     regression_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -18,8 +20,12 @@ class OneZoneIonizationTest(AthelasRegressionTest):
     run_dir = "run_one_zone_ionization"
 
     # Use absolute paths for input and gold files to ensure they can be found
-    infile = os.path.join(regression_dir, "test_inputs", "one_zone_ionization.toml")
-    goldfile = os.path.join(regression_dir, "goldfiles", "one_zone_ionization.gold")
+    infile = os.path.join(
+      regression_dir, "test_inputs", "one_zone_ionization.toml"
+    )
+    goldfile = os.path.join(
+      regression_dir, "goldfiles", "one_zone_ionization.gold"
+    )
 
     # If executable_path is provided, use it directly
     if executable_path:
@@ -35,7 +41,12 @@ class OneZoneIonizationTest(AthelasRegressionTest):
       build_required = True
 
     # vars to test
-    varlist = ["grid/x", "grid/dx", "variables/conserved", "composition/ionization_fractions"]
+    varlist = [
+      "grid/x",
+      "grid/dx",
+      "variables/conserved",
+      "composition/ionization_fractions",
+    ]
 
     # Initialize the parent class with test-specific parameters
     super().__init__(

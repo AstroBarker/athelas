@@ -63,7 +63,13 @@ KOKKOS_INLINE_FUNCTION auto initialize_eos(const ProblemIn *pin) -> EOS {
   EOS eos;
   const auto type = pin->param()->get<std::string>("eos.type");
   if (type == "paczynski") {
-    eos = Paczynski();
+    // NOTE: This is currently where the tolerances are hard coded.
+    // TODO(astrobarker): make tolerances runtime configurable.
+    // Stretch goal: make algorithm configurable.
+    static constexpr double abstol = 1.0e-14;
+    static constexpr double reltol = 1.0e-14;
+    static constexpr int max_iters = 100;
+    eos = Paczynski(abstol, reltol, max_iters);
   } else if (type == "ideal") {
     eos = IdealGas(pin->param()->get<double>("eos.gamma"));
   } else if (type == "polytropic") {

@@ -18,6 +18,7 @@ add_executable( unit_tests
   test_quadrature.cpp
   ../../src/quadrature/quadrature.cpp
   test_parser.cpp
+  test_paczynski.cpp
   )
 
 target_link_libraries( unit_tests

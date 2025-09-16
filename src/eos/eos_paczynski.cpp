@@ -4,6 +4,10 @@
 #include "solvers/root_finders.hpp"
 #include "utils/constants.hpp"
 
+using root_finders::RootFinder, root_finders::NewtonAlgorithm,
+    root_finders::RelativeError, root_finders::HybridError,
+    root_finders::ToleranceConfig;
+
 /**
  * @brief Paczynski pressure from conserved variables.
  * NOTE:: Lambda contents:
@@ -62,19 +66,14 @@ Paczynski::pressure_from_conserved(const double tau, const double V,
   const double rho = 1.0 / tau;
   auto temperature_target = [sie](double temperature, double rho,
                                   const double *const lambda) {
-    return sie - specific_internal_energy(temperature, rho, lambda);
+    return specific_internal_energy(temperature, rho, lambda) - sie;
   };
   auto temperature_derivative = [](double T, double rho,
                                    const double *const lambda) {
     return dsie_dt(T, rho, lambda);
   };
-  double temperature =
-      root_finders::newton(temperature_target, temperature_derivative,
-                           temperature_guess, rho, lambda);
-  if (temperature <= 0.0) {
-    THROW_ATHELAS_ERROR("Bad temperature in inversion!"); // TODO: REMOVE THIS
-  }
-  return temperature;
+  return root_finder_.solve(temperature_target, temperature_derivative,
+                            temperature_guess, rho, lambda);
 }
 
 // NOTE: This is commonly referred to as \Gamma_1
@@ -87,7 +86,7 @@ Paczynski::pressure_from_conserved(const double tau, const double V,
   const double ybar = lambda[2];
   const double sigma1 = lambda[3];
   const double sigma2 = lambda[4];
-  const double sigma3 = lambda[5];
+  // const double sigma3 = lambda[5];
   // const double e_ioncorr = lambda[6];
   const double rho = 1.0 / tau;
 
@@ -169,7 +168,7 @@ Paczynski::pressure_from_conserved(const double tau, const double V,
 [[nodiscard]] auto
 Paczynski::specific_internal_energy(const double T, const double rho,
                                     const double *const lambda) -> double {
-  static constexpr double THREE_HALVES = 3.0 / 2.0;
+  static constexpr double THREE_HALVES = 1.5;
   const double N = lambda[0];
   const double ye = lambda[1];
   const double ybar = lambda[2];
@@ -183,8 +182,9 @@ Paczynski::specific_internal_energy(const double T, const double rho,
   const double pend = p_end(rho, T, ybar, N);
   const double pe = p_e(pend, ped);
   const double f = degeneracy_factor(ped, pednr, pedr);
+
   return THREE_HALVES * N * constants::k_B * T + pe / (rho * (f - 1.0)) +
-         N * e_ion_corr;
+         1.0 * e_ion_corr;
 }
 
 [[nodiscard]] auto Paczynski::dsie_dt(const double T, const double rho,

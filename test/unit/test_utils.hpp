@@ -16,7 +16,7 @@
  **/
 inline bool soft_equal(const double &val, const double &ref,
                        const double tol = 1.0e-8) {
-  if (std::fabs(val - ref) < tol * std::fabs(ref) + tol) {
+  if (std::abs(val - ref) < tol * std::abs(ref) + tol) {
     return true;
   } else {
     return false;

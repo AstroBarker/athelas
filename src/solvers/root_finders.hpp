@@ -20,8 +20,8 @@
 #include <cmath>
 
 #include "concepts/arithmetic.hpp"
-#include "radiation/radhydro_package.hpp"
-#include "root_finder_opts.hpp"
+#include "concepts/solvers.hpp"
+#include "solvers/root_finder_opts.hpp"
 #include "utils/utilities.hpp"
 
 namespace root_finders {
@@ -182,8 +182,8 @@ KOKKOS_INLINE_FUNCTION auto fixed_point_aa(F target, T x0, Args... args) -> T {
     //--- Anderson acceleration step --- //
     const T fk = target(xk, args...);
     const T fkm1 = target(xkm1, args...);
-    const T rk = residual(fk, fk);
-    const T rkm1 = residual(fkm1, fkm1);
+    const T rk = residual(fk, xk);
+    const T rkm1 = residual(fkm1, xkm1);
     T alpha = -rk / (rkm1 - rk);
 
     T xkp1 = (alpha * fkm1) + ((1.0 - alpha) * fk);
@@ -223,8 +223,8 @@ KOKKOS_INLINE_FUNCTION auto fixed_point_aa_root(F target, T x0, Args... args)
     //--- Anderson acceleration step --- //
     const T fk = f(xk, args...);
     const T fkm1 = f(xkm1, args...);
-    const T rk = residual(fk, fk);
-    const T rkm1 = residual(fkm1, fkm1);
+    const T rk = residual(fk, xk);
+    const T rkm1 = residual(fkm1, xkm1);
     const T alpha = alpha_aa(rk, rkm1);
 
     const T xkp1 = (alpha * fkm1) + ((1.0 - alpha) * fk);
@@ -237,157 +237,6 @@ KOKKOS_INLINE_FUNCTION auto fixed_point_aa_root(F target, T x0, Args... args)
   }
 
   return xk;
-}
-
-template <typename T, typename... Args>
-KOKKOS_INLINE_FUNCTION void fixed_point_radhydro(T R, double dt_a_ii,
-                                                 T scratch_n, T scratch_nm1,
-                                                 T scratch, Args... args) {
-  static_assert(T::rank == 2, "fixed_point_radhydro expects rank-2 views.");
-  static constexpr int nvars = 5;
-
-  const int num_modes = scratch_n.extent(0);
-
-  auto target = [&](T u, const int k) {
-    const auto [s_1_k, s_2_k, s_3_k, s_4_k] =
-        radiation::compute_increment_radhydro_source(u, k, args...);
-    return std::make_tuple(R(k, 1) + dt_a_ii * s_1_k, R(k, 2) + dt_a_ii * s_2_k,
-                           R(k, 3) + dt_a_ii * s_3_k,
-                           R(k, 4) + dt_a_ii * s_4_k);
-  };
-
-  for (int k = 0; k < num_modes; ++k) {
-    for (int iC = 0; iC < nvars; ++iC) {
-      scratch_nm1(k, iC) = scratch_n(k, iC); // set to initial guess
-    }
-  }
-
-  // Set up physical scales based on your problem
-  PhysicalScales scales{};
-  scales.velocity_scale = 1e7; // Typical velocity (cm/s)
-  scales.energy_scale = 1e12; // Typical energy density
-  scales.rad_energy_scale = 1e12; // Typical radiation energy density
-  scales.rad_flux_scale = 1e20; // Typical radiation flux
-
-  static RadHydroConvergence<T> convergence_checker(
-      scales, root_finders::ABSTOL, root_finders::RELTOL, num_modes);
-
-  unsigned int n = 0;
-  bool converged = false;
-  while (n <= root_finders::MAX_ITERS && !converged) {
-    for (int k = 0; k < num_modes; ++k) {
-      const auto [xkp1_1_k, xkp1_2_k, xkp1_3_k, xkp1_4_k] =
-          target(scratch_n, k);
-      scratch(k, 1) = xkp1_1_k; // fluid vel
-      scratch(k, 2) = xkp1_2_k; // fluid energy
-      scratch(k, 3) = xkp1_3_k; // rad energy
-      scratch(k, 4) = xkp1_4_k; // rad flux
-
-      // --- update ---
-      for (int iC = 1; iC < nvars; ++iC) {
-        scratch_nm1(k, iC) = scratch_n(k, iC);
-        scratch_n(k, iC) = scratch(k, iC);
-      }
-    }
-
-    converged = convergence_checker.check_convergence(scratch_n, scratch_nm1);
-    ++n;
-  } // while not converged
-}
-
-template <typename T, typename... Args>
-KOKKOS_INLINE_FUNCTION void fixed_point_radhydro_aa(T R, double dt_a_ii,
-                                                    T scratch_n, T scratch_nm1,
-                                                    T scratch, Args... args) {
-  static_assert(T::rank == 2, "fixed_point_radhydro expects rank-2 views.");
-  constexpr static int nvars = 5;
-
-  const int num_modes = scratch_n.extent(0);
-
-  auto target = [&](T u, const int k) {
-    const auto [s_1_k, s_2_k, s_3_k, s_4_k] =
-        radiation::compute_increment_radhydro_source(u, k, args...);
-    return std::make_tuple(R(k, 1) + dt_a_ii * s_1_k, R(k, 2) + dt_a_ii * s_2_k,
-                           R(k, 3) + dt_a_ii * s_3_k,
-                           R(k, 4) + dt_a_ii * s_4_k);
-  };
-
-  // --- first fixed point iteration ---
-  for (int k = 0; k < num_modes; ++k) {
-    const auto [xnp1_1_k, xnp1_2_k, xnp1_3_k, xnp1_4_k] = target(scratch_n, k);
-    scratch(k, 1) = xnp1_1_k;
-    scratch(k, 2) = xnp1_2_k;
-    scratch(k, 3) = xnp1_3_k;
-    scratch(k, 4) = xnp1_4_k;
-  }
-  for (int k = 0; k < num_modes; ++k) {
-    for (int iC = 1; iC < nvars; ++iC) {
-      scratch_nm1(k, iC) = scratch_n(k, iC);
-      scratch_n(k, iC) = scratch(k, iC);
-    }
-  }
-
-  // Set up physical scales based on your problem
-  PhysicalScales scales{};
-  scales.velocity_scale = 1e7; // Typical velocity (cm/s)
-  scales.energy_scale = 1e12; // Typical energy density
-  scales.rad_energy_scale = 1e12; // Typical radiation energy density
-  scales.rad_flux_scale = 1e20; // Typical radiation flux
-
-  static RadHydroConvergence<T> convergence_checker(
-      scales, root_finders::ABSTOL, root_finders::RELTOL, num_modes);
-
-  bool converged =
-      convergence_checker.check_convergence(scratch_n, scratch_nm1);
-
-  if (converged) {
-    return;
-  }
-
-  unsigned int n = 1;
-  while (n <= root_finders::MAX_ITERS && !converged) {
-    for (int k = 0; k < num_modes; ++k) {
-      const auto [s_1_n, s_2_n, s_3_n, s_4_n] = target(scratch_n, k);
-      const auto [s_1_nm1, s_2_nm1, s_3_nm1, s_4_nm1] = target(scratch_nm1, k);
-
-      // residuals
-      const auto r_1_n = residual(s_1_n, scratch_n(k, 1));
-      const auto r_2_n = residual(s_2_n, scratch_n(k, 2));
-      const auto r_3_n = residual(s_3_n, scratch_n(k, 3));
-      const auto r_4_n = residual(s_4_n, scratch_n(k, 4));
-      const auto r_1_nm1 = residual(s_1_nm1, scratch_nm1(k, 1));
-      const auto r_2_nm1 = residual(s_2_nm1, scratch_nm1(k, 2));
-      const auto r_3_nm1 = residual(s_3_nm1, scratch_nm1(k, 3));
-      const auto r_4_nm1 = residual(s_4_nm1, scratch_nm1(k, 4));
-
-      // Anderson acceleration alpha
-      const auto a_1 = alpha_aa(r_1_n, r_1_nm1);
-      const auto a_2 = alpha_aa(r_2_n, r_2_nm1);
-      const auto a_3 = alpha_aa(r_3_n, r_3_nm1);
-      const auto a_4 = alpha_aa(r_4_n, r_4_nm1);
-
-      // Anderson acceleration update
-      const auto xnp1_1_k = a_1 * s_1_nm1 + (1.0 - a_1) * s_1_n;
-      const auto xnp1_2_k = a_2 * s_2_nm1 + (1.0 - a_2) * s_2_n;
-      const auto xnp1_3_k = a_3 * s_3_nm1 + (1.0 - a_3) * s_3_n;
-      const auto xnp1_4_k = a_4 * s_4_nm1 + (1.0 - a_4) * s_4_n;
-
-      scratch(k, 1) = xnp1_1_k; // fluid vel
-      scratch(k, 2) = xnp1_2_k; // fluid energy
-      scratch(k, 3) = xnp1_3_k; // rad energy
-      scratch(k, 4) = xnp1_4_k; // rad flux
-
-      // --- update ---
-      for (int iC = 1; iC < nvars; ++iC) {
-        scratch_nm1(k, iC) = scratch_n(k, iC);
-        scratch_n(k, iC) = scratch(k, iC);
-      }
-    }
-
-    converged = convergence_checker.check_convergence(scratch_n, scratch_nm1);
-
-    ++n;
-  } // while not converged
 }
 
 /* Fixed point solver templated on type, function, and args for func */
@@ -506,5 +355,311 @@ auto newton_aa(F target, F d_target, T x0, Args... args) -> T {
   }
   return xk;
 }
+
+// Error metric types - empty structs for compile-time dispatch
+/**
+ * @brief Absolute error metric.
+ *
+ * Convergence is determined by: |x_new - x_old| < abs_tol
+ */
+struct AbsoluteError {};
+/**
+ * @brief Relative error metric.
+ *
+ * Convergence is determined by: |x_new - x_old| < rel_tol * |x_new|
+ */
+struct RelativeError {};
+/**
+ * @brief Hybrid error metric.
+ *
+ * Convergence is determined by: |x_new - x_old| < abs_tol + rel_tol * |x_new|
+ */
+struct HybridError {};
+
+/**
+ * @brief Configuration structure for convergence tolerances and iteration
+ * limits.
+ *
+ * This class encapsulates all parameters needed for convergence testing in root
+ * finding algorithms. The error metric is specified at compile time through the
+ * template parameter, allowing for zero-overhead convergence checking in
+ * performance-critical code.
+ *
+ * @tparam T Floating-point type for tolerance values (e.g., double, float)
+ * @tparam ErrorMetric Error metric type (AbsoluteError, RelativeError, or
+ * CombinedError)
+ *
+ * @par Example Usage:
+ * @code
+ * // Create config with combined error checking
+ * ToleranceConfig<double, CombinedError> config{1e-12, 1e-10, 100};
+ *
+ * // Check convergence
+ * if (config.converged(x_new, x_old)) {
+ *     // Solution has converged
+ * }
+ * @endcode
+ */
+template <typename T, typename ErrorMetric = HybridError>
+struct ToleranceConfig {
+  T abs_tol = T(1e-12);
+  T rel_tol = T(1e-12);
+  int max_iterations = 100;
+
+  constexpr auto converged(T current, T previous) const -> bool {
+    return converged_impl(current, previous, ErrorMetric{});
+  }
+
+ private:
+  // Specialized implementations for each error metric
+  constexpr bool converged_impl(T current, T previous,
+                                AbsoluteError /*error*/) const {
+    return std::abs(current - previous) < abs_tol;
+  }
+
+  constexpr bool converged_impl(T current, T previous,
+                                RelativeError /*error*/) const {
+    return std::abs(current - previous) < rel_tol * std::abs(current);
+  }
+
+  constexpr bool converged_impl(T current, T previous,
+                                HybridError /*error*/) const {
+    return std::abs(current - previous) < abs_tol + rel_tol * std::abs(current);
+  }
+};
+
+/**
+ * @brief Root finding class with compile-time algorithm and error metrics.
+ *
+ * This class provides an interface for different root finding algorithms.
+ * The algorithm and error metric are selected at compile time,
+ * allowing the optimizer to generate specialized code for each combination.
+ *
+ * TODO(astrobarker): Could be nice to have this return  a status type wrapping
+ * std::expected
+ *
+ * @tparam T Floating-point type for computations (e.g., double, float)
+ * @tparam Algorithm Root finding algorithm class (e.g., NewtonAlgorithm<T>)
+ * @tparam ErrorMetric Error metric for convergence testing (default:
+ * CombinedError)
+ *
+ * @par Design Philosophy:
+ * - Zero virtual function overhead through templates
+ * - Compile-time algorithm selection
+ * - Flexible tolerance configuration per solver instance
+ * - Type-safe interfaces enforced through C++20 concepts
+ *
+ * @par Example Usage:
+ * @code
+ * // Create solvers with different configurations
+ * auto eos_solver = RootFinder<double, NewtonAlgorithm<double>,
+ * RelativeError>{} .set_tolerance(1e-10, 1e-8) .set_max_iterations(50);
+ *
+ * auto integration_solver = RootFinder<double, NewtonAlgorithm<double>,
+ * CombinedError>{} .set_tolerance(1e-14, 1e-12);
+ *
+ * // Solve equations
+ * double temp = eos_solver.solve(eos_func, eos_dfunc, T_guess, pressure,
+ * density);
+ * @endcode
+ */
+template <typename T, typename Algorithm, typename ErrorMetric = HybridError>
+class RootFinder {
+ private:
+  Algorithm algorithm_;
+  ToleranceConfig<T, ErrorMetric> config_;
+
+ public:
+  RootFinder() = default;
+
+  explicit RootFinder(const ToleranceConfig<T, ErrorMetric> config)
+      : config_(config) {}
+
+  RootFinder(const Algorithm &algo,
+             const ToleranceConfig<T, ErrorMetric> &config)
+      : algorithm_(algo), config_(config) {}
+
+  // Setters for configuration
+  auto set_tolerance(const T abs_tol, const T rel_tol) -> RootFinder & {
+    config_.abs_tol = abs_tol;
+    config_.rel_tol = rel_tol;
+    return *this;
+  }
+
+  auto set_max_iterations(const int max_iter) -> RootFinder & {
+    config_.max_iterations = max_iter;
+    return *this;
+  }
+
+  // Solve methods - constrained by concepts
+  template <typename F, typename G, typename... Args>
+  auto solve(F func, G dfunc, T x0, Args &&...args) const -> T {
+    return algorithm_(func, dfunc, x0, config_, std::forward<Args>(args)...);
+  }
+
+  template <typename F, typename... Args>
+  auto solve(F func, T x0, Args &&...args) const -> T {
+    return algorithm_(func, x0, config_, std::forward<Args>(args)...);
+  }
+
+  auto config() const noexcept -> ToleranceConfig<T, ErrorMetric> & {
+    return config_;
+  }
+  auto algorithm() const noexcept -> Algorithm & { return algorithm_; }
+};
+
+/**
+ * @brief Newton's method root finding algorithm implementation.
+ *
+ * This class implements the classic Newton-Raphson method.
+ * x_{n+1} = x_n - f(x_n)/f'(x_n)
+ *
+ * @tparam T Floating-point type for computations
+ */
+template <typename T>
+class NewtonAlgorithm {
+ public:
+  template <typename F, typename G, typename ErrorMetric, typename... Args>
+  auto operator()(F target, G d_target, T x0,
+                  const ToleranceConfig<T, ErrorMetric> &config,
+                  Args &&...args) const -> T {
+    T x = x0;
+    for (int i = 0; i < config.max_iterations; ++i) {
+      const T h = target(x, std::forward<Args>(args)...) /
+                  d_target(x, std::forward<Args>(args)...);
+
+      const T x_new = x - h;
+
+      if (config.converged(x_new, x)) {
+        return x_new;
+      }
+      x = x_new;
+    }
+    return x;
+  }
+};
+
+/**
+ * @brief Anderson accelerated Newton's method root finding algorithm.
+ *
+ * This class implements an Anderson accelerated Newton-Raphson method.
+ * x_{n+1} = -gamma * (x_{n} - x_{n-1} - h_{n} + h_{n-1}) + x_{n-1} - h_{n}
+ * with h_{n} = f(x_{n}) / f'(x_{n})
+ * and gamma = h_{n} / (h_{n} - h_{n-1})
+ *
+ * @tparam T Floating-point type for computations
+ */
+template <typename T>
+class AANewtonAlgorithm {
+ public:
+  template <typename F, typename G, typename ErrorMetric, typename... Args>
+  auto operator()(F target, G d_target, T x0,
+                  const ToleranceConfig<T, ErrorMetric> &config,
+                  Args &&...args) const -> T {
+    T x = x0;
+
+    // Jumpstart the AA algorithm with 1 iteration of the base algorithm
+    T h = target(x, std::forward<Args>(args)...) /
+          d_target(x, std::forward<Args>(args)...);
+    T x_new = x - h;
+    // Must check convergence before moving on.
+    if (config.converged(x_new, x0)) {
+      return x_new;
+    }
+    for (int i = 1; i < config.max_iterations; ++i) {
+      const T h_new = target(x, std::forward<Args>(args)...) /
+                      d_target(x, std::forward<Args>(args)...);
+      const T gamma = alpha_aa(h_new, h);
+
+      const T term = x_new - x - h_new + h;
+      x_new = std::fma(gamma, -term, x - h_new);
+
+      if (config.converged(x_new, x)) {
+        return x_new;
+      }
+      x = x_new;
+    }
+    return x;
+  }
+};
+
+/**
+ * @brief Fixed-point algorithm for solving equations of the form x = g(x).
+ *
+ * This class implements the basic fixed-point iteration: x_{n+1} = g(x_n)
+ *
+ * @tparam T Floating-point type for computations
+ *
+ * @par Usage Note:
+ * To solve f(x) = 0, reformulate as x = x - f(x) = g(x), then use this solver.
+ */
+template <typename T>
+class FixedPointAlgorithm {
+ public:
+  template <typename F, typename ErrorMetric, typename... Args>
+  auto operator()(F target, T x0, const ToleranceConfig<T, ErrorMetric> &config,
+                  Args &&...args) const -> T {
+    T x = x0;
+    for (int i = 0; i < config.max_iterations; ++i) {
+      const T x_new = target(x, std::forward<Args>(args)...);
+
+      if (config.converged(x_new, x)) {
+        return x_new;
+      }
+      x = x_new;
+    }
+    return x;
+  }
+};
+
+/**
+ * @brief Anderson Accelerated Fixed-point algorithm for root finding.
+ *
+ * This class implements an Anderson accelerated fixed-point iteration:
+ * x_{n+1} = (alpha * f_{n-1}) + (1.0 - alpha) * f(x_{n})
+ * with alpha = r_{n} / (r_{n} - r_{n-1})
+ * and r_{n} = f(x_{n}) - x_{n} is the residual
+ *
+ * @tparam T Floating-point type for computations
+ *
+ * @par Usage Note:
+ * To solve f(x) = 0, reformulate as x = x - f(x) = g(x), then use this solver.
+ *
+ * TODO(astrobarker): The loop/storage can be optimized to only evaluate
+ * target once per iteration.
+ */
+template <typename T>
+class AAFixedPointAlgorithm {
+ public:
+  template <typename F, typename ErrorMetric, typename... Args>
+  auto operator()(F target, T x0, const ToleranceConfig<T, ErrorMetric> &config,
+                  Args &&...args) const -> T {
+    T x = x0;
+    // Jumpstart the AA algorithm with 1 iteration of the base algorithm
+    T x_new = target(x, args...);
+    // Must check convergence before moving on.
+    if (config.converged(x_new, x0)) {
+      return x_new;
+    }
+    T x_prev = x0;
+    for (int i = 1; i < config.max_iterations; ++i) {
+      const T x_new = target(x, std::forward<Args>(args)...);
+      T fn = target(x_new, std::forward<Args>(args)...);
+      T fnm1 = target(x_prev, std::forward<Args>(args)...);
+      T rn = residual(fn, x_new);
+      T rnm1 = residual(fnm1, x_prev);
+      const T alpha = alpha_aa(rn, rnm1);
+
+      T xkp1 = (alpha * fnm1) + ((1.0 - alpha) * fn);
+
+      if (config.converged(x_new, x)) {
+        return x_new;
+      }
+      x_prev = x;
+      x = x_new;
+    }
+    return x;
+  }
+};
 
 } // namespace root_finders

@@ -22,7 +22,12 @@
  */
 
 #include "eos/eos_base.hpp"
+#include "solvers/root_finders.hpp"
 #include "utils/error.hpp"
+
+using root_finders::RootFinder, root_finders::NewtonAlgorithm,
+    root_finders::RelativeError, root_finders::HybridError,
+    root_finders::ToleranceConfig;
 
 /**
  * @class Paczynski
@@ -34,6 +39,11 @@
 class Paczynski : public EosBase<Paczynski> {
  public:
   Paczynski() = default;
+  Paczynski(const double abstol, const double reltol, const int max_iters)
+      : root_finder_(ToleranceConfig<double, RelativeError>{.abs_tol = abstol,
+                                                            .rel_tol = reltol,
+                                                            .max_iterations =
+                                                                max_iters}) {}
 
   auto pressure_from_conserved(double tau, double V, double EmT,
                                const double *lambda) const -> double;
@@ -67,6 +77,9 @@ class Paczynski : public EosBase<Paczynski> {
   [[nodiscard]] static auto dp_drho(double T, double rho, double ybar,
                                     double pend, double ped, double f, double N,
                                     double sigma1) -> double;
+
+ private:
+  RootFinder<double, NewtonAlgorithm<double>, RelativeError> root_finder_;
 };
 
 /**
