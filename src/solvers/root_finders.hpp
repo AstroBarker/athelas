@@ -1,26 +1,9 @@
 #pragma once
-/**
- * @file root_finders.hpp
- * --------------
- *
- * @author Brandon L. Barker
- * @brief Root finders
- *
- * @details Root finders provided for various needs:
- *          - fixed_point
- *          - newton
- *
- *          Both are implemented with an Anderson acceleration scheme.
- *          The contents here are in a state of mess..
- *
- *  TODO(astrobarker): this really should be made more flexible.
- */
 
 #include <algorithm>
 #include <cmath>
 
 #include "concepts/arithmetic.hpp"
-#include "concepts/solvers.hpp"
 #include "solvers/root_finder_opts.hpp"
 #include "utils/utilities.hpp"
 
@@ -566,18 +549,21 @@ class AANewtonAlgorithm {
     if (config.converged(x_new, x0)) {
       return x_new;
     }
+    T x_prev = x0;
+    x = x_new;
     for (int i = 1; i < config.max_iterations; ++i) {
       const T h_new = target(x, std::forward<Args>(args)...) /
                       d_target(x, std::forward<Args>(args)...);
       const T gamma = alpha_aa(h_new, h);
 
-      const T term = x_new - x - h_new + h;
-      x_new = std::fma(gamma, -term, x - h_new);
+      x_new = std::fma(1.0 - gamma, x - h_new, gamma * (x_prev - h));
 
       if (config.converged(x_new, x)) {
         return x_new;
       }
+      x_prev = x;
       x = x_new;
+      h = h_new;
     }
     return x;
   }

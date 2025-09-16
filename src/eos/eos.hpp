@@ -27,7 +27,7 @@
 
 using root_finders::RootFinder, root_finders::NewtonAlgorithm,
     root_finders::RelativeError, root_finders::HybridError,
-    root_finders::ToleranceConfig;
+    root_finders::ToleranceConfig, root_finders::AANewtonAlgorithm;
 
 /**
  * @class Paczynski
@@ -79,7 +79,7 @@ class Paczynski : public EosBase<Paczynski> {
                                     double sigma1) -> double;
 
  private:
-  RootFinder<double, NewtonAlgorithm<double>, RelativeError> root_finder_;
+  RootFinder<double, AANewtonAlgorithm<double>, RelativeError> root_finder_;
 };
 
 /**
