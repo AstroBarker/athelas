@@ -44,6 +44,6 @@ for f in $(git grep --untracked -ail res -- :/*.py); do
     if [ ${VERBOSE} -ge 1 ]; then
        echo ${f}
     fi
-    ${PFM} -q ${REPO}/${f}
+    ${PFM} format ${REPO}/${f}
 done
 echo "[format.sh] ...Done"
