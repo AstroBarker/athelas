@@ -1,6 +1,9 @@
 #include "composition/composition.hpp"
 
 #include "atom/atom.hpp"
+#include "geometry/grid.hpp"
+#include "polynomial_basis.hpp"
+#include "state/state.hpp"
 #include "utils/error.hpp"
 #include <memory>
 
@@ -12,7 +15,9 @@ CompositionData::CompositionData(const int nX, const int order,
     THROW_ATHELAS_ERROR("CompositionData :: n_species must be > 0!");
   }
   mass_fractions_ = View3D<double>("mass_fractions", nX_, order, n_species);
+  ye_ = View2D<double>("ye", nX, order);
   charge_ = View1D<int>("charge", n_species);
+  neutron_number_ = View1D<int>("neutron_number", n_species);
 }
 
 [[nodiscard]] auto CompositionData::mass_fractions() const noexcept
@@ -21,6 +26,13 @@ CompositionData::CompositionData(const int nX, const int order,
 }
 [[nodiscard]] auto CompositionData::charge() const noexcept -> View1D<int> {
   return charge_;
+}
+[[nodiscard]] auto CompositionData::neutron_number() const noexcept
+    -> View1D<int> {
+  return neutron_number_;
+}
+[[nodiscard]] auto CompositionData::ye() const noexcept -> View2D<double> {
+  return ye_;
 }
 
 // --- end CompositionData ---
@@ -57,15 +69,15 @@ IonizationState::IonizationState(const int nX, const int nNodes,
   return atomic_data_.get();
 }
 
-// Compute total element number density (all ionization states)
+// Compute total element number density
 KOKKOS_FUNCTION
 auto element_number_density(const double mass_frac, const double atomic_mass,
                             const double rho) -> double {
   return (mass_frac * rho) / (atomic_mass * constants::amu_to_g);
 }
 
-// Compute electron number density (derived quantity)
-KOKKOS_INLINE_FUNCTION
+// Compute electron number density
+KOKKOS_FUNCTION
 auto electron_density(const View3D<double> mass_fractions,
                       const View4D<double> ion_fractions,
                       const View1D<int> charges, int ix, int node, double rho)
@@ -73,16 +85,19 @@ auto electron_density(const View3D<double> mass_fractions,
   double n_e = 0.0;
   const size_t n_species = charges.size();
 
-  for (size_t elem = 0; elem < n_species; ++elem) {
-    const double ne_elem = element_number_density(
-        mass_fractions(ix, node, elem), charges(elem), rho);
+  Kokkos::parallel_reduce(
+      "Paczynski::Reduce::ne", n_species,
+      KOKKOS_LAMBDA(const int elem, double &ne_local) {
+        const double n_elem = element_number_density(
+            mass_fractions(ix, node, elem), charges(elem), rho);
 
-    // Sum charge * ionization_fraction for each charge state
-    const int max_charge = charges(elem);
-    for (int charge = 1; charge <= max_charge; ++charge) {
-      const double f_ion = ion_fractions(ix, node, elem, charge);
-      n_e += charge * f_ion * ne_elem;
-    }
-  }
+        // Sum charge * ionization_fraction for each charge state
+        const int max_charge = charges(elem);
+        for (int charge = 1; charge <= max_charge; ++charge) {
+          const double f_ion = ion_fractions(ix, node, elem, charge);
+          ne_local += charge * f_ion * n_elem;
+        }
+      },
+      n_e);
   return n_e;
 }

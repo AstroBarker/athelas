@@ -3,6 +3,8 @@
 #include <memory>
 
 #include "atom/atom.hpp"
+#include "geometry/grid.hpp"
+#include "polynomial_basis.hpp"
 #include "utils/abstractions.hpp"
 
 using atom::AtomicData;
@@ -30,6 +32,10 @@ class CompositionData {
 
   [[nodiscard]] auto charge() const noexcept -> View1D<int>;
 
+  [[nodiscard]] auto neutron_number() const noexcept -> View1D<int>;
+
+  [[nodiscard]] auto ye() const noexcept -> View2D<double>;
+
   [[nodiscard]] auto n_species() const noexcept -> size_t {
     return mass_fractions_.extent(2);
   }
@@ -38,7 +44,9 @@ class CompositionData {
   int nX_, order_, n_species_;
 
   View3D<double> mass_fractions_; // [nX][order][n_species]
+  View2D<double> ye_; // [nx][nnodes]
   View1D<int> charge_; // n_species
+  View1D<int> neutron_number_;
 }; // class CompositionData
 
 // Compute total element number density (all ionization states)
@@ -47,7 +55,7 @@ auto element_number_density(double mass_frac, double atomic_mass, double rho)
     -> double;
 
 // Compute electron number density (derived quantity)
-KOKKOS_INLINE_FUNCTION
+KOKKOS_FUNCTION
 auto electron_density(const View3D<double> mass_fractions,
                       const View4D<double> ion_fractions,
                       const View1D<int> charges, int ix, int node, double rho)
