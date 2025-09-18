@@ -11,6 +11,7 @@
 #include <string_view>
 #include <vector>
 
+#include "abstractions.hpp"
 #include "concepts/packages.hpp"
 #include "geometry/grid.hpp"
 #include "state/state.hpp"
@@ -71,9 +72,9 @@ class PackageWrapper {
     return std::numeric_limits<double>::max();
   }
 
-  void fill_derived(State *state, const GridStructure &grid) const {
+  void fill_derived(State *state, const GridStructure &grid, const TimeStepInfo &dt_info) const {
     if (package_->is_active()) {
-      package_->fill_derived(state, grid);
+      package_->fill_derived(state, grid, dt_info);
     }
   }
 
@@ -108,7 +109,7 @@ class PackageWrapper {
         -> double = 0;
 
     virtual void fill_derived(State *state,
-                              const GridStructure &grid) const = 0;
+                              const GridStructure &grid, const TimeStepInfo &dt_info) const = 0;
 
     [[nodiscard]] virtual auto name() const noexcept -> std::string_view = 0;
     [[nodiscard]] virtual auto is_active() const noexcept -> bool = 0;
@@ -154,8 +155,8 @@ class PackageWrapper {
       return package_.min_timestep(ucf, grid, dt_info);
     }
 
-    void fill_derived(State *state, const GridStructure &grid) const override {
-      package_.fill_derived(state, grid);
+    void fill_derived(State *state, const GridStructure &grid, const TimeStepInfo &dt_info) const override {
+      package_.fill_derived(state, grid, dt_info);
     }
 
     [[nodiscard]] auto name() const noexcept -> std::string_view override {
@@ -244,10 +245,10 @@ class PackageManager {
     return min_dt;
   }
 
-  void fill_derived(State *state, const GridStructure &grid) const {
+  void fill_derived(State *state, const GridStructure &grid, const TimeStepInfo &dt_info) const {
     for (const auto &pkg : all_packages_) {
       if (pkg->is_active()) {
-        pkg->fill_derived(state, grid);
+        pkg->fill_derived(state, grid, dt_info);
       }
     }
   }
