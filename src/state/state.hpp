@@ -24,9 +24,8 @@ class State {
   [[nodiscard]] auto u_pf() const noexcept -> View3D<double>;
   [[nodiscard]] auto u_af() const noexcept -> View3D<double>;
 
-  [[nodiscard]] auto composition_enabled() const noexcept -> bool {
-    return composition_enabled_;
-  }
+  [[nodiscard]] auto composition_enabled() const noexcept -> bool;
+  [[nodiscard]] auto ionization_enabled() const noexcept -> bool;
 
   [[nodiscard]] auto comps() const -> CompositionData *;
   [[nodiscard]] auto ionization_state() const -> IonizationState *;

@@ -5,7 +5,6 @@
 #include "polynomial_basis.hpp"
 #include "state/state.hpp"
 #include "utils/error.hpp"
-#include <memory>
 
 CompositionData::CompositionData(const int nX, const int order,
                                  const int n_species)
@@ -14,8 +13,8 @@ CompositionData::CompositionData(const int nX, const int order,
   if (n_species <= 0) {
     THROW_ATHELAS_ERROR("CompositionData :: n_species must be > 0!");
   }
-  mass_fractions_ = View3D<double>("mass_fractions", nX_, order, n_species);
-  ye_ = View2D<double>("ye", nX, order);
+  mass_fractions_ = View3D<double>("mass_fractions", nX_, order + 2, n_species);
+  ye_ = View2D<double>("ye", nX, order + 2);
   charge_ = View1D<int>("charge", n_species);
   neutron_number_ = View1D<int>("neutron_number", n_species);
 }
@@ -98,6 +97,6 @@ auto electron_density(const View3D<double> mass_fractions,
           ne_local += charge * f_ion * n_elem;
         }
       },
-      n_e);
+      Kokkos::Sum<double>(n_e));
   return n_e;
 }

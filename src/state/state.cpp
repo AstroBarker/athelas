@@ -41,6 +41,14 @@ void State::setup_ionization(std::shared_ptr<IonizationState> ion) {
   return ionization_state_.get();
 }
 
+[[nodiscard]] auto State::composition_enabled() const noexcept -> bool {
+  return composition_enabled_;
+}
+
+[[nodiscard]] auto State::ionization_enabled() const noexcept -> bool {
+  return ionization_enabled_;
+}
+
 // num var accessors
 auto State::n_cf() const noexcept -> int { return nvar_; }
 auto State::n_pf() const noexcept -> int { return nPF_; }

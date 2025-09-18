@@ -97,7 +97,6 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
         for (int elem = 0; elem < ncomps; ++elem) {
           charges(elem) = elem + 1;
           neutrons(elem) = elem + 1;
-          mass_fractions(ix, k, elem) = 1.0 / ncomps;
         }
 
         for (int node = 0; node < nNodes + 2; ++node) {
@@ -109,6 +108,7 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
 
               for (int z = 0; z < Z + 1; ++z) {
                 ionization_states(ix, node, elem, z) = 0.0; // unnecessary
+                mass_fractions(ix, node, elem) = 1.0 / ncomps;
               }
             }
           }

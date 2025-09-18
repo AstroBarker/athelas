@@ -250,9 +250,9 @@ void paczynski_terms(const State *const state, const GridStructure *grid,
 
   // TODO(astrobarker) dont consider neutrons where relevant
 
-  const double rho = 1.0 / ucf(ix, node, 0);
-  double n_e = electron_density(mass_fractions, ionization_fractions, species,
-                                ix, node, rho);
+  const double rho = 1.0 / basis->basis_eval(ucf, ix, 0, node);
+  const double n_e = electron_density(mass_fractions, ionization_fractions,
+                                      species, ix, node, rho);
 
   double N = 0.0;
   Kokkos::parallel_reduce(
@@ -280,9 +280,9 @@ void paczynski_terms(const State *const state, const GridStructure *grid,
         const size_t nstates = e + 1;
 
         // 1. Get lmax -- index associated with max ionization per species
-        int lmax = 0;
+        size_t lmax = 0;
         double ymax = 0;
-        for (int i = 0; i < nstates; ++i) {
+        for (size_t i = 0; i < nstates; ++i) {
           const double y = ionization_fractions_e(i);
           if (y > ymax) {
             ymax = y;
@@ -292,10 +292,10 @@ void paczynski_terms(const State *const state, const GridStructure *grid,
 
         // 2. Sum ionization fractions * ionization potentials for e_ion_corr
         double sum_ion_pot = 0.0;
-        for (int i = 0; i < nstates; ++i) {
+        for (size_t i = 0; i < nstates; ++i) {
           // I think that this pattern is not optimal.
           double sum_pot = 0.0;
-          for (int m = 0; m < i; ++m) {
+          for (size_t m = 0; m < i; ++m) {
             sum_pot += species_atomic_data(i).chi;
           }
           sum_ion_pot += ionization_fractions_e(i) * sum_pot;
