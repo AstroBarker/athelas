@@ -45,7 +45,7 @@ class HydroPackage {
 
   [[nodiscard]] KOKKOS_FUNCTION auto is_active() const noexcept -> bool;
 
-  void fill_derived(State *state, const GridStructure &grid) const;
+  void fill_derived(State *state, const GridStructure &grid, const TimeStepInfo &dt_info) const;
 
   KOKKOS_FUNCTION
   void set_active(bool active);

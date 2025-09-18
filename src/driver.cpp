@@ -21,7 +21,7 @@ auto Driver::execute() -> int {
   static const bool rad_active = pin_->param()->get<bool>("physics.rad_active");
 
   // some startup io
-  manager_->fill_derived(state_.get(), grid_);
+//  manager_->fill_derived(state_.get(), grid_);
   write_basis(fluid_basis_.get(),
               pin_->param()->get<std::string>("problem.problem"));
   print_simulation_parameters(grid_, pin_.get());
@@ -88,7 +88,7 @@ auto Driver::execute() -> int {
 
     // Write state, other io
     if (time_ >= i_out_h5 * dt_hdf5) {
-      manager_->fill_derived(state_.get(), grid_);
+//      manager_->fill_derived(state_.get(), grid_);
       write_state(state_.get(), grid_, &sl_hydro_, pin_.get(), time_,
                   fluid_basis_->get_order(), i_out_h5, rad_active);
       i_out_h5 += 1;
@@ -111,7 +111,7 @@ auto Driver::execute() -> int {
     iStep++;
   }
 
-  manager_->fill_derived(state_.get(), grid_);
+//  manager_->fill_derived(state_.get(), grid_);
   write_state(state_.get(), grid_, &sl_hydro_, pin_.get(), time_,
               pin_->param()->get<int>("fluid.porder"), -1, rad_active);
 

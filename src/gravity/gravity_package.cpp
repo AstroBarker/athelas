@@ -96,7 +96,8 @@ auto GravityPackage::min_timestep(const View3D<double> /*state*/,
 }
 
 void GravityPackage::fill_derived(State * /*state*/,
-                                  const GridStructure & /*grid*/) const {}
+                                  const GridStructure & /*grid*/, 
+                                  const TimeStepInfo & /*dt_info*/) const {}
 
 [[nodiscard]] KOKKOS_FUNCTION auto GravityPackage::name() const noexcept
     -> std::string_view {

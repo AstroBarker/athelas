@@ -8,6 +8,7 @@
 
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions.hpp"
+#include "composition/composition.hpp"
 #include "eos/eos_variant.hpp"
 #include "fluid/fluid_utilities.hpp"
 #include "fluid/hydro_package.hpp"
@@ -255,11 +256,18 @@ auto HydroPackage::min_timestep(const View3D<double> state,
  *
  * TODO(astrobarker): extend
  */
-void HydroPackage::fill_derived(State *state, const GridStructure &grid) const {
+void HydroPackage::fill_derived(State *state, const GridStructure &grid, const TimeStepInfo &dt_info) const {
+  const int stage =dt_info.stage;
 
-  View3D<double> uCF = state->u_cf();
-  View3D<double> uPF = state->u_pf();
-  View3D<double> uAF = state->u_af();
+  auto u_s = state->u_cf_stages();
+
+  auto uCF = Kokkos::subview(u_s, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+  // hacky
+  if (stage == -1) {
+    uCF = state->u_cf();
+  }
+  auto uPF = state->u_pf();
+  auto uAF = state->u_af();
 
   static constexpr int ilo = 1;
   static const int ihi = grid.get_ihi() + 2;
@@ -267,6 +275,14 @@ void HydroPackage::fill_derived(State *state, const GridStructure &grid) const {
 
   // --- Apply BC ---
   bc::fill_ghost_zones<3>(uCF, &grid, basis_, bcs_, {0, 2});
+
+  if (state->composition_enabled()) {
+    fill_derived_comps(state, &grid, basis_);
+  }
+
+  if (state->ionization_enabled()) {
+    fill_derived_ionization(state, &grid, basis_);
+  }
 
   Kokkos::parallel_for(
       "Hydro::fill_derived", Kokkos::RangePolicy<>(ilo, ihi),

@@ -83,6 +83,7 @@ class TimeStepper {
         dt_info.stage = j;
         auto dUs_j =
             Kokkos::subview(dU_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+        pkgs->fill_derived(state, grid_s_[j], dt_info);
         pkgs->update_explicit(state, dUs_j, grid_s_[j], dt_info);
 
         // inner sum
@@ -132,6 +133,7 @@ class TimeStepper {
       auto dUs_j =
           Kokkos::subview(dU_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
 
+      pkgs->fill_derived(state, grid_s_[iS], dt_info);
       pkgs->update_explicit(state, dUs_j, grid_s_[iS], dt_info);
       Kokkos::parallel_for(
           "Timestepper :: u^(n+1) from the stages",
@@ -155,12 +157,16 @@ class TimeStepper {
       grid_s_[iS].update_grid(stage_data_j);
     }
 
+
     grid = grid_s_[nStages_ - 1];
     apply_slope_limiter(sl_hydro, U, &grid,
                         pkgs->get_package<HydroPackage>("Hydro")->get_basis(),
                         eos_);
     bel::apply_bound_enforcing_limiter(
         U, pkgs->get_package<HydroPackage>("Hydro")->get_basis());
+    // keep derived up to date
+    dt_info.stage = -1;
+    pkgs->fill_derived(state, grid, dt_info);
   }
 
   /**

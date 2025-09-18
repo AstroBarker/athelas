@@ -16,7 +16,7 @@ concept ExplicitPackage =
       { pkg.min_timestep(uCF, grid, dt_info) } -> std::convertible_to<double>;
       { pkg.name() } -> std::convertible_to<std::string_view>;
       { pkg.is_active() } -> std::convertible_to<bool>;
-      { pkg.fill_derived(state_derived, grid) } -> std::same_as<void>;
+      { pkg.fill_derived(state_derived, grid, dt_info) } -> std::same_as<void>;
     };
 
 template <typename T>
@@ -28,7 +28,7 @@ concept ImplicitPackage =
       { pkg.min_timestep(uCF, grid, dt_info) } -> std::convertible_to<double>;
       { pkg.name() } -> std::convertible_to<std::string_view>;
       { pkg.is_active() } -> std::convertible_to<bool>;
-      { pkg.fill_derived(state_derived, grid) } -> std::same_as<void>;
+      { pkg.fill_derived(state_derived, grid, dt_info) } -> std::same_as<void>;
     };
 
 template <typename T>
@@ -44,7 +44,7 @@ concept IMEXPackage =
       { pkg.min_timestep(uCF, grid, dt_info) } -> std::convertible_to<double>;
       { pkg.name() } -> std::convertible_to<std::string_view>;
       { pkg.is_active() } -> std::convertible_to<bool>;
-      { pkg.fill_derived(state_derived, grid) } -> std::same_as<void>;
+      { pkg.fill_derived(state_derived, grid, dt_info) } -> std::same_as<void>;
     };
 
 template <typename T>

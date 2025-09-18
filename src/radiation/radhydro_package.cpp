@@ -463,11 +463,19 @@ auto RadHydroPackage::min_timestep(const View3D<double> /*state*/,
  * TODO(astrobarker): extend
  */
 void RadHydroPackage::fill_derived(State *state,
-                                   const GridStructure &grid) const {
+                                   const GridStructure &grid, 
+                                   const TimeStepInfo &dt_info) const {
+  const int stage =dt_info.stage;
 
-  View3D<double> uCF = state->u_cf();
-  View3D<double> uPF = state->u_pf();
-  View3D<double> uAF = state->u_af();
+  auto u_s = state->u_cf_stages();
+
+  auto uCF = Kokkos::subview(u_s, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+  // hacky
+  if (stage == -1) {
+    uCF = state->u_cf();
+  }
+  auto uPF = state->u_pf();
+  auto uAF = state->u_af();
 
   static constexpr int ilo = 1;
   static const int ihi = grid.get_ihi() + 2;

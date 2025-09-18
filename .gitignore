@@ -1,5 +1,7 @@
 # output
 *.h5
+src/out
+out
 
 # Prerequisites
 *.d
