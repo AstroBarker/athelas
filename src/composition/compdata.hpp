@@ -3,8 +3,6 @@
 #include <memory>
 
 #include "atom/atom.hpp"
-#include "geometry/grid.hpp"
-#include "polynomial_basis.hpp"
 #include "utils/abstractions.hpp"
 
 using atom::AtomicData;
@@ -17,10 +15,22 @@ class IonizationState {
 
   [[nodiscard]] auto ionization_fractions() const noexcept -> View4D<double>;
   [[nodiscard]] auto atomic_data() const noexcept -> AtomicData *;
+  [[nodiscard]] auto ybar() const noexcept -> View2D<double>;
+  [[nodiscard]] auto e_ion_corr() const noexcept -> View2D<double>;
+  [[nodiscard]] auto sigma1() const noexcept -> View2D<double>;
+  [[nodiscard]] auto sigma2() const noexcept -> View2D<double>;
+  [[nodiscard]] auto sigma3() const noexcept -> View2D<double>;
 
  private:
   View4D<double> ionization_fractions_; // [nX][nNodes][n_species][max_charge+1]
   std::unique_ptr<AtomicData> atomic_data_;
+
+  // Derived quantities for Paczynski, stored nodally
+  View2D<double> ybar_; // mean ionization fraction
+  View2D<double> e_ion_corr_; // ionization correction to internal energy
+  View2D<double> sigma1_;
+  View2D<double> sigma2_;
+  View2D<double> sigma3_;
 };
 
 // Composition data handler - manages mass fractions and ionization fractions
@@ -36,6 +46,8 @@ class CompositionData {
 
   [[nodiscard]] auto ye() const noexcept -> View2D<double>;
 
+  [[nodiscard]] auto number_density() const noexcept -> View2D<double>;
+
   [[nodiscard]] auto n_species() const noexcept -> size_t {
     return mass_fractions_.extent(2);
   }
@@ -44,19 +56,8 @@ class CompositionData {
   int nX_, order_, n_species_;
 
   View3D<double> mass_fractions_; // [nX][order][n_species]
+  View2D<double> number_density_; // [nX][order] number per unit mass
   View2D<double> ye_; // [nx][nnodes]
   View1D<int> charge_; // n_species
   View1D<int> neutron_number_;
 }; // class CompositionData
-
-// Compute total element number density (all ionization states)
-KOKKOS_FUNCTION
-auto element_number_density(double mass_frac, double atomic_mass, double rho)
-    -> double;
-
-// Compute electron number density (derived quantity)
-KOKKOS_FUNCTION
-auto electron_density(const View3D<double> mass_fractions,
-                      const View4D<double> ion_fractions,
-                      const View1D<int> charges, int ix, int node, double rho)
-    -> double;

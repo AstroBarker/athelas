@@ -1,12 +1,11 @@
 #include <cmath>
-#include <limits>
 
 #include "atom/atom.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "composition/compdata.hpp"
+#include "composition/composition.hpp"
 #include "composition/saha.hpp"
 #include "geometry/grid.hpp"
-#include "solvers/root_finder_opts.hpp"
 #include "solvers/root_finders.hpp"
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
@@ -211,131 +210,4 @@ auto saha_d_target(const double Zbar, const double T,
 
   const double denom = 1.0 / (min_state - 1.0 + sigma1);
   return (sigma2 - (1.0 + sigma0) * (1.0 + sigma3 * denom)) * denom;
-}
-
-/**
- * @brief Compute the extra "lambda" terms for paczynski eos
- * NOTE:: Lambda contents:
- * 0: N (for ion pressure)
- * 1: ye
- * 2: ybar (mean ionization state)
- * 3: sigma1
- * 4: sigma2
- * 5: sigma3
- * 6: e_ioncorr (ionization corrcetion to internal energy)
- * 7: temperature_guess
- *
- * TODO(astrobarker): should inputs to this be subviews?
- *
- * This really belongs elsewhere, but oh well.
- */
-KOKKOS_FUNCTION
-void paczynski_terms(const State *const state, const GridStructure *grid,
-                     const ModalBasis *const basis, const int ix,
-                     const int node, double *const lambda) {
-  const auto ucf = state->u_cf();
-  const auto *const comps = state->comps();
-  const auto *const ionization_states = state->ionization_state();
-  const auto *const atomic_data = ionization_states->atomic_data();
-  const auto mass_fractions = comps->mass_fractions();
-  const auto species = comps->charge();
-  const auto neutron_number = comps->neutron_number();
-  const auto ye = comps->ye();
-  const auto ionization_fractions = ionization_states->ionization_fractions();
-  const size_t num_species = comps->n_species();
-
-  // pull out atomic data containers
-  const auto ion_data = atomic_data->ion_data();
-  const auto species_offsets = atomic_data->offsets();
-
-  // TODO(astrobarker) dont consider neutrons where relevant
-
-  const double rho = 1.0 / basis->basis_eval(ucf, ix, 0, node);
-  const double n_e = electron_density(mass_fractions, ionization_fractions,
-                                      species, ix, node, rho);
-
-  double N = 0.0;
-  Kokkos::parallel_reduce(
-      "Paczynski::Reduce::N", num_species,
-      KOKKOS_LAMBDA(const int e, double &n_local) {
-        const double A = species(e) + neutron_number(e);
-        n_local += mass_fractions(ix, node, e) / A;
-      },
-      Kokkos::Sum<double>(N));
-  lambda[0] = N / constants::m_p;
-  lambda[1] = ye(ix, node);
-  lambda[2] = n_e / (N * rho); // ybar
-
-  // This kernel is horrible.
-  // Reduce the ionization based quantities sigma1-3, e_ion_corr
-  custom_reductions::ValueType vals;
-  Kokkos::parallel_reduce(
-      "Paczynski::Reduce::IonizationQs", num_species,
-      KOKKOS_LAMBDA(const int e, custom_reductions::ValueType &update) {
-        // pull out element info
-        const auto species_atomic_data =
-            species_data(ion_data, species_offsets, e);
-        const auto ionization_fractions_e =
-            Kokkos::subview(ionization_fractions, ix, node, e, Kokkos::ALL);
-        const size_t nstates = e + 1;
-
-        // 1. Get lmax -- index associated with max ionization per species
-        size_t lmax = 0;
-        double ymax = 0;
-        for (size_t i = 0; i < nstates; ++i) {
-          const double y = ionization_fractions_e(i);
-          if (y > ymax) {
-            ymax = y;
-            lmax = i;
-          }
-        }
-
-        // 2. Sum ionization fractions * ionization potentials for e_ion_corr
-        double sum_ion_pot = 0.0;
-        for (size_t i = 0; i < nstates; ++i) {
-          // I think that this pattern is not optimal.
-          double sum_pot = 0.0;
-          for (size_t m = 0; m < i; ++m) {
-            sum_pot += species_atomic_data(i).chi;
-          }
-          sum_ion_pot += ionization_fractions_e(i) * sum_pot;
-        }
-
-        // 3. Find two most populated states and store the higher as y_r.
-        // chi_r is the ionization potential between these states.
-        // Check index logic.
-        // Wish I could avoid branching logic...
-        double y_r = 0;
-        double chi_r = 0.0;
-        if (lmax == 0) {
-          y_r = ionization_fractions_e(lmax);
-          chi_r = species_atomic_data(lmax).chi;
-        } else if (lmax == (e + 0)) {
-          y_r = ionization_fractions_e(lmax);
-          chi_r = species_atomic_data(lmax - 1).chi;
-        } else {
-          // Comparison between lmax+1 and lmax-1 indices
-          if (ionization_fractions_e(lmax + 1) >
-              ionization_fractions_e(lmax - 1)) {
-            y_r = ionization_fractions_e(lmax + 1);
-            chi_r = species_atomic_data(lmax).chi;
-          } else {
-            y_r = ionization_fractions_e(lmax);
-            chi_r = species_atomic_data(lmax - 1).chi;
-          }
-        }
-
-        // 4. The good stuff -- integrate the various sigma terms
-        // and the internal energy term from partial ionization.
-        // Start with constructing the abundance n_k
-
-        const double atomic_mass = species(e) + neutron_number(e);
-        const double nk = element_number_density(mass_fractions(ix, node, e),
-                                                 atomic_mass, rho);
-        update.data[0] += nk * y_r * (1 - y_r); // sigma1
-        update.data[1] += chi_r * update.data[0]; // sigma2
-        update.data[2] += chi_r * update.data[1]; // sigma3
-        update.data[3] += N * nk * sum_ion_pot; // e_ion_corr
-      },
-      Kokkos::Sum<custom_reductions::ValueType>(vals));
 }

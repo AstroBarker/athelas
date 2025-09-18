@@ -28,9 +28,3 @@ auto saha_d_target(double Zbar, double T,
 KOKKOS_FUNCTION
 void saha_solve(View1D<double> ionization_states, int Z, double temperature,
                 const View1D<const IonLevel> ion_datas, double nk);
-
-// really should be elsewhere..
-KOKKOS_FUNCTION
-void paczynski_terms(const State *const state, const GridStructure *grid,
-                     const ModalBasis *const basis, int ix, int node,
-                     double *lambda);

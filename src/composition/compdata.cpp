@@ -1,8 +1,4 @@
-#include "atom/atom.hpp"
 #include "composition/compdata.hpp"
-#include "geometry/grid.hpp"
-#include "polynomial_basis.hpp"
-#include "state/state.hpp"
 #include "utils/error.hpp"
 
 CompositionData::CompositionData(const int nX, const int order,
@@ -14,6 +10,7 @@ CompositionData::CompositionData(const int nX, const int order,
   }
   mass_fractions_ = View3D<double>("mass_fractions", nX_, order + 2, n_species);
   ye_ = View2D<double>("ye", nX, order + 2);
+  number_density_ = View2D<double>("ye", nX, order + 2);
   charge_ = View1D<int>("charge", n_species);
   neutron_number_ = View1D<int>("neutron_number", n_species);
 }
@@ -32,6 +29,9 @@ CompositionData::CompositionData(const int nX, const int order,
 [[nodiscard]] auto CompositionData::ye() const noexcept -> View2D<double> {
   return ye_;
 }
+[[nodiscard]] auto CompositionData::number_density() const noexcept -> View2D<double> {
+  return number_density_;
+}
 
 // --- end CompositionData ---
 
@@ -48,7 +48,12 @@ IonizationState::IonizationState(const int nX, const int nNodes,
                                  const std::string &fn_degeneracy)
     : ionization_fractions_("ionization_fractions", nX, nNodes + 2, n_species,
                             n_states),
-      atomic_data_(std::make_unique<AtomicData>(fn_ionization, fn_degeneracy)) {
+      atomic_data_(std::make_unique<AtomicData>(fn_ionization, fn_degeneracy)),
+      ybar_("ybar", nX, nNodes + 2),
+      e_ion_corr_("e_ion_corr", nX, nNodes + 2),
+      sigma1_("sigma1", nX, nNodes + 2),
+      sigma2_("sigma2", nX, nNodes + 2),
+      sigma3_("sigma3", nX, nNodes + 2) {
   if (n_species <= 0) {
     THROW_ATHELAS_ERROR("IonizationState :: n_species must be > 0!");
   }
@@ -67,35 +72,27 @@ IonizationState::IonizationState(const int nX, const int nNodes,
   return atomic_data_.get();
 }
 
-// Compute total element number density
-KOKKOS_FUNCTION
-auto element_number_density(const double mass_frac, const double atomic_mass,
-                            const double rho) -> double {
-  return (mass_frac * rho) / (atomic_mass * constants::amu_to_g);
+[[nodiscard]] auto IonizationState::ybar() const noexcept
+    -> View2D<double> {
+  return ybar_;
 }
 
-// Compute electron number density
-KOKKOS_FUNCTION
-auto electron_density(const View3D<double> mass_fractions,
-                      const View4D<double> ion_fractions,
-                      const View1D<int> charges, int ix, int node, double rho)
-    -> double {
-  double n_e = 0.0;
-  const size_t n_species = charges.size();
+[[nodiscard]] auto IonizationState::e_ion_corr() const noexcept
+    -> View2D<double> {
+  return e_ion_corr_;
+}
 
-  Kokkos::parallel_reduce(
-      "Paczynski::Reduce::ne", n_species,
-      KOKKOS_LAMBDA(const int elem, double &ne_local) {
-        const double n_elem = element_number_density(
-            mass_fractions(ix, node, elem), charges(elem), rho);
+[[nodiscard]] auto IonizationState::sigma1() const noexcept
+    -> View2D<double> {
+  return sigma1_;
+}
 
-        // Sum charge * ionization_fraction for each charge state
-        const int max_charge = charges(elem);
-        for (int charge = 1; charge <= max_charge; ++charge) {
-          const double f_ion = ion_fractions(ix, node, elem, charge);
-          ne_local += charge * f_ion * n_elem;
-        }
-      },
-      Kokkos::Sum<double>(n_e));
-  return n_e;
+[[nodiscard]] auto IonizationState::sigma2() const noexcept
+    -> View2D<double> {
+  return sigma2_;
+}
+
+[[nodiscard]] auto IonizationState::sigma3() const noexcept
+    -> View2D<double> {
+  return sigma3_;
 }
