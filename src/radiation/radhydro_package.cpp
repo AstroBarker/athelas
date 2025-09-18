@@ -488,10 +488,10 @@ void RadHydroPackage::fill_derived(State *state,
   Kokkos::parallel_for(
       "RadHydro::fill_derived", Kokkos::RangePolicy<>(ilo, ihi),
       KOKKOS_CLASS_LAMBDA(int ix) {
-        for (int iN = 0; iN < nNodes; ++iN) {
-          const double tau = fluid_basis_->basis_eval(uCF, ix, 0, iN + 1);
-          const double vel = fluid_basis_->basis_eval(uCF, ix, 1, iN + 1);
-          const double emt = fluid_basis_->basis_eval(uCF, ix, 2, iN + 1);
+        for (int iN = 0; iN < nNodes + 2; ++iN) {
+          const double tau = fluid_basis_->basis_eval(uCF, ix, 0, iN);
+          const double vel = fluid_basis_->basis_eval(uCF, ix, 1, iN);
+          const double emt = fluid_basis_->basis_eval(uCF, ix, 2, iN);
 
           // const double e_rad = rad_basis_->basis_eval(uCF, ix, 3, iN + 1);
           // const double f_rad = rad_basis_->basis_eval(uCF, ix, 4, iN + 1);

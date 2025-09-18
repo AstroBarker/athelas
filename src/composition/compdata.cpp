@@ -1,6 +1,7 @@
 #include "composition/compdata.hpp"
 #include "utils/error.hpp"
 
+// NOTE: if nodes exceeds order we have a problem here.
 CompositionData::CompositionData(const int nX, const int order,
                                  const int n_species)
     : nX_(nX), order_(order), n_species_(n_species) {
@@ -8,7 +9,7 @@ CompositionData::CompositionData(const int nX, const int order,
   if (n_species <= 0) {
     THROW_ATHELAS_ERROR("CompositionData :: n_species must be > 0!");
   }
-  mass_fractions_ = View3D<double>("mass_fractions", nX_, order + 2, n_species);
+  mass_fractions_ = View3D<double>("mass_fractions", nX_, order, n_species);
   ye_ = View2D<double>("ye", nX, order + 2);
   number_density_ = View2D<double>("ye", nX, order + 2);
   charge_ = View1D<int>("charge", n_species);

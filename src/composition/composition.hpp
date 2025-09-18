@@ -9,8 +9,7 @@ void fill_derived_ionization(State *state, const GridStructure *grid, const Moda
 
 KOKKOS_FUNCTION
 void paczynski_terms(const State *state,
-                     const ModalBasis *basis, int ix, int node,
-                     double *lambda);
+                     int ix, int node, double *lambda);
 
 // Compute total element number density (all ionization states)
 KOKKOS_FUNCTION

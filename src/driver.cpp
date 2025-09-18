@@ -20,14 +20,6 @@ auto Driver::execute() -> int {
   static const auto nx = pin_->param()->get<int>("problem.nx");
   static const bool rad_active = pin_->param()->get<bool>("physics.rad_active");
 
-  // some startup io
-//  manager_->fill_derived(state_.get(), grid_);
-  write_basis(fluid_basis_.get(),
-              pin_->param()->get<std::string>("problem.problem"));
-  print_simulation_parameters(grid_, pin_.get());
-  write_state(state_.get(), grid_, &sl_hydro_, pin_.get(), time_,
-              pin_->param()->get<int>("fluid.porder"), 0, rad_active);
-
   // --- Timer ---
   Kokkos::Timer timer_zone_cycles;
   double zc_ws = 0.0; // zone cycles / wall second
@@ -41,6 +33,15 @@ auto Driver::execute() -> int {
   const auto dt_hdf5 = pin_->param()->get<double>("output.dt_hdf5");
 
   dt_ = dt_init;
+  TimeStepInfo dt_info{.t = time_, .dt = dt_, .dt_a = dt_, .stage = -1};
+
+  // some startup io
+  manager_->fill_derived(state_.get(), grid_, dt_info);
+  write_basis(fluid_basis_.get(),
+              pin_->param()->get<std::string>("problem.problem"));
+  print_simulation_parameters(grid_, pin_.get());
+  write_state(state_.get(), grid_, &sl_hydro_, pin_.get(), time_,
+              pin_->param()->get<int>("fluid.porder"), 0, rad_active);
 
   // --- Evolution loop ---
   int iStep = 0;
@@ -88,7 +89,7 @@ auto Driver::execute() -> int {
 
     // Write state, other io
     if (time_ >= i_out_h5 * dt_hdf5) {
-//      manager_->fill_derived(state_.get(), grid_);
+      manager_->fill_derived(state_.get(), grid_, dt_info);
       write_state(state_.get(), grid_, &sl_hydro_, pin_.get(), time_,
                   fluid_basis_->get_order(), i_out_h5, rad_active);
       i_out_h5 += 1;
@@ -111,7 +112,7 @@ auto Driver::execute() -> int {
     iStep++;
   }
 
-//  manager_->fill_derived(state_.get(), grid_);
+  manager_->fill_derived(state_.get(), grid_, dt_info);
   write_state(state_.get(), grid_, &sl_hydro_, pin_.get(), time_,
               pin_->param()->get<int>("fluid.porder"), -1, rad_active);
 
@@ -172,7 +173,6 @@ void Driver::initialize(ProblemIn *pin) { // NOLINT
   // --- Init physics package manager ---
   // NOTE: Hydro/RadHydro should be registered first
   if (rad_active) {
-    std::println("WHAT");
     manager_->add_package(RadHydroPackage{
         pin, ssprk_.n_stages(), eos_.get(), opac_.get(), fluid_basis_.get(),
         radiation_basis_.get(), bcs_.get(), cfl, nx, true});

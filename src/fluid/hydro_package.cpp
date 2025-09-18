@@ -273,8 +273,10 @@ void HydroPackage::fill_derived(State *state, const GridStructure &grid, const T
   static const int ihi = grid.get_ihi() + 2;
   const int nNodes = grid.get_n_nodes();
 
+  if (stage != -1) {
   // --- Apply BC ---
   bc::fill_ghost_zones<3>(uCF, &grid, basis_, bcs_, {0, 2});
+  }
 
   if (state->composition_enabled()) {
     fill_derived_comps(state, &grid, basis_);
@@ -287,10 +289,10 @@ void HydroPackage::fill_derived(State *state, const GridStructure &grid, const T
   Kokkos::parallel_for(
       "Hydro::fill_derived", Kokkos::RangePolicy<>(ilo, ihi),
       KOKKOS_CLASS_LAMBDA(int ix) {
-        for (int iN = 0; iN < nNodes; ++iN) {
-          const double tau = basis_->basis_eval(uCF, ix, 0, iN + 1);
-          const double vel = basis_->basis_eval(uCF, ix, 1, iN + 1);
-          const double emt = basis_->basis_eval(uCF, ix, 2, iN + 1);
+        for (int iN = 0; iN < nNodes + 2; ++iN) {
+          const double tau = basis_->basis_eval(uCF, ix, 0, iN);
+          const double vel = basis_->basis_eval(uCF, ix, 1, iN);
+          const double emt = basis_->basis_eval(uCF, ix, 2, iN);
 
           const double rho = 1.0 / tau;
           const double momentum = rho * vel;

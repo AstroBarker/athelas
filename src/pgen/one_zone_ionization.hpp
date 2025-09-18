@@ -95,6 +95,7 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
         // For this problem we set up a contiguous list of species
         // form Z = 1 to ncomps. Mass fractions are uniform with no slopes.
         for (int elem = 0; elem < ncomps; ++elem) {
+          mass_fractions(ix, k, elem) = 1.0 / ncomps;
           charges(elem) = elem + 1;
           neutrons(elem) = elem + 1;
         }
@@ -108,7 +109,6 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
 
               for (int z = 0; z < Z + 1; ++z) {
                 ionization_states(ix, node, elem, z) = 0.0; // unnecessary
-                mass_fractions(ix, node, elem) = 1.0 / ncomps;
               }
             }
           }
