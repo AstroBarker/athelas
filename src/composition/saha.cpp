@@ -3,7 +3,7 @@
 
 #include "atom/atom.hpp"
 #include "basis/polynomial_basis.hpp"
-#include "composition/composition.hpp"
+#include "composition/compdata.hpp"
 #include "composition/saha.hpp"
 #include "geometry/grid.hpp"
 #include "solvers/root_finder_opts.hpp"

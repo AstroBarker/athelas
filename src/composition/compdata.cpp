@@ -1,6 +1,5 @@
-#include "composition/composition.hpp"
-
 #include "atom/atom.hpp"
+#include "composition/compdata.hpp"
 #include "geometry/grid.hpp"
 #include "polynomial_basis.hpp"
 #include "state/state.hpp"
