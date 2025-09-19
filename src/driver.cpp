@@ -51,7 +51,7 @@ auto Driver::execute() -> int {
   while (time_ < t_end_ && iStep <= nlim) {
 
     dt_ = std::min(manager_->min_timestep(
-                       state_->u_cf(), grid_,
+                       state_.get(), grid_,
                        {.t = time_, .dt = dt_, .dt_a = 0.0, .stage = 0}),
                    dt_ * dt_init_frac);
     if (time_ + dt_ > t_end_) {

@@ -1,9 +1,3 @@
-/**
- * @file radhydro_package.cpp
- * --------------
- *
- * @brief Radiation hydrodynamics package
- */
 #include <limits>
 
 #include "basis/polynomial_basis.hpp"
@@ -66,7 +60,7 @@ void RadHydroPackage::update_explicit(const State *const state,
       });
 
   // --- radiation Increment : Divergence ---
-  radhydro_divergence(ucf, dU, grid, stage);
+  radhydro_divergence(state, dU, grid, stage);
 
   // --- Divide update by mass mastrix ---
   Kokkos::parallel_for(
@@ -87,6 +81,12 @@ void RadHydroPackage::update_explicit(const State *const state,
           dU(ix, k, q) /= rad_mm;
         }
       });
+
+  // --- Increment from Geometry ---
+  if (grid.do_geometry()) {
+    const auto uaf = state->u_af();
+    radhydro_geometry(ucf, uaf, dU, grid);
+  }
 } // update_explicit
 
 /**
@@ -150,14 +150,14 @@ void RadHydroPackage::update_implicit_iterative(const State *const state,
   Kokkos::parallel_for(
       "RadHydro :: implicit iterative", Kokkos::RangePolicy<>(ilo, ihi + 1),
       KOKKOS_CLASS_LAMBDA(const int ix) {
-        auto ucf_i = Kokkos::subview(ucf, ix, Kokkos::ALL, Kokkos::ALL);
+        const auto ucf_i = Kokkos::subview(ucf, ix, Kokkos::ALL, Kokkos::ALL);
         auto scratch_sol_ix =
             Kokkos::subview(scratch_sol_, ix, Kokkos::ALL, Kokkos::ALL);
         auto scratch_sol_ix_k =
             Kokkos::subview(scratch_k_, ix, Kokkos::ALL, Kokkos::ALL);
         auto scratch_sol_ix_km1 =
             Kokkos::subview(scratch_km1_, ix, Kokkos::ALL, Kokkos::ALL);
-        auto R_ix = Kokkos::subview(dU, ix, Kokkos::ALL, Kokkos::ALL);
+        const auto R_ix = Kokkos::subview(dU, ix, Kokkos::ALL, Kokkos::ALL);
 
         for (int k = 0; k < order; ++k) {
           // set radhydro vars
@@ -184,10 +184,16 @@ void RadHydroPackage::update_implicit_iterative(const State *const state,
 // Compute the divergence of the flux term for the update
 // TODO(astrobarker): dont pass in stage
 KOKKOS_FUNCTION
-void RadHydroPackage::radhydro_divergence(const View3D<double> state,
+void RadHydroPackage::radhydro_divergence(const State *const state,
                                           View3D<double> dU,
                                           const GridStructure &grid,
                                           const int stage) const {
+  const auto u_stages = state->u_cf_stages();
+
+  const auto ucf =
+      Kokkos::subview(u_stages, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+  const auto uaf = state->u_af();
+
   const auto &nNodes = grid.get_n_nodes();
   const auto &order = rad_basis_->get_order();
   static constexpr int ilo = 1;
@@ -202,12 +208,12 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
       KOKKOS_CLASS_LAMBDA(const int i) {
         const int nnp1 = nNodes + 1;
         for (int q = 0; q < 3; ++q) {
-          u_f_l_(i, q) = fluid_basis_->basis_eval(state, i - 1, q, nnp1);
-          u_f_r_(i, q) = fluid_basis_->basis_eval(state, i, q, 0);
+          u_f_l_(i, q) = fluid_basis_->basis_eval(ucf, i - 1, q, nnp1);
+          u_f_r_(i, q) = fluid_basis_->basis_eval(ucf, i, q, 0);
         }
         for (int q = 3; q < NUM_VARS_; ++q) {
-          u_f_l_(i, q) = rad_basis_->basis_eval(state, i - 1, q, nnp1);
-          u_f_r_(i, q) = rad_basis_->basis_eval(state, i, q, 0);
+          u_f_l_(i, q) = rad_basis_->basis_eval(ucf, i - 1, q, nnp1);
+          u_f_r_(i, q) = rad_basis_->basis_eval(ucf, i, q, 0);
         }
       });
 
@@ -215,16 +221,11 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
   Kokkos::parallel_for(
       "RadHydro :: Numerical Fluxes", Kokkos::RangePolicy<>(ilo, ihi + 2),
       KOKKOS_CLASS_LAMBDA(const int ix) {
-        auto lambda = nullptr;
-        const double Pgas_L = pressure_from_conserved(
-            eos_, u_f_l_(ix, 0), u_f_l_(ix, 1), u_f_l_(ix, 2), lambda);
-        const double Cs_L = sound_speed_from_conserved(
-            eos_, u_f_l_(ix, 0), u_f_l_(ix, 1), u_f_l_(ix, 2), lambda);
+        const double Pgas_L = uaf(ix - 1, nNodes + 1, 0);
+        const double Cs_L = uaf(ix - 1, nNodes + 1, 2);
 
-        const double Pgas_R = pressure_from_conserved(
-            eos_, u_f_r_(ix, 0), u_f_r_(ix, 1), u_f_r_(ix, 2), lambda);
-        const double Cs_R = sound_speed_from_conserved(
-            eos_, u_f_r_(ix, 0), u_f_r_(ix, 1), u_f_r_(ix, 2), lambda);
+        const double Pgas_R = uaf(ix, 0, 0);
+        const double Cs_R = uaf(ix, 0, 2);
 
         const double E_L = u_f_l_(ix, 3);
         const double F_L = u_f_l_(ix, 4);
@@ -311,13 +312,10 @@ void RadHydroPackage::radhydro_divergence(const View3D<double> state,
             const double X = grid.node_coordinate(ix, iN);
             const double sqrt_gm = grid.get_sqrt_gm(X);
 
-            auto lambda = nullptr;
-            const double vel = fluid_basis_->basis_eval(state, ix, 1, iN + 1);
-            const double P = pressure_from_conserved(
-                eos_, fluid_basis_->basis_eval(state, ix, 0, iN + 1), vel,
-                fluid_basis_->basis_eval(state, ix, 2, iN + 1), lambda);
-            const double e_rad = rad_basis_->basis_eval(state, ix, 3, iN + 1);
-            const double f_rad = rad_basis_->basis_eval(state, ix, 4, iN + 1);
+            const double P = uaf(ix, iN + 1, 0);
+            const double vel = fluid_basis_->basis_eval(ucf, ix, 1, iN + 1);
+            const double e_rad = rad_basis_->basis_eval(ucf, ix, 3, iN + 1);
+            const double f_rad = rad_basis_->basis_eval(ucf, ix, 4, iN + 1);
             const double p_rad = compute_closure(e_rad, f_rad);
             const auto [flux1, flux2, flux3] = fluid::flux_fluid(vel, P);
             const auto [flux_e, flux_f] = flux_rad(e_rad, f_rad, p_rad, vstar);
@@ -426,10 +424,45 @@ auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
 }
 
 /**
+ * @brief geometric source terms
+ *
+ * NOTE: identical to fluid_geometry. Should reduce overlap.
+ * TODO(astrobarker): get rid of duplicate code with Hydro
+ */
+KOKKOS_FUNCTION
+void RadHydroPackage::radhydro_geometry(const View3D<double> ucf,
+                                        const View3D<double> uaf,
+                                        View3D<double> dU,
+                                        const GridStructure &grid) const {
+  const int &nNodes = grid.get_n_nodes();
+  const int &order = fluid_basis_->get_order();
+  static constexpr int ilo = 1;
+  static const int &ihi = grid.get_ihi();
+
+  Kokkos::parallel_for(
+      "Hydro :: Geometry Term",
+      Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
+      KOKKOS_CLASS_LAMBDA(const int ix, const int k) {
+        double local_sum = 0.0;
+        for (int iN = 0; iN < nNodes; ++iN) {
+          const double P = uaf(ix, iN + 1, 0);
+
+          const double X = grid.node_coordinate(ix, iN);
+
+          local_sum += grid.get_weights(iN) * P *
+                       fluid_basis_->get_phi(ix, iN + 1, k) * X;
+        }
+
+        dU(ix, k, 1) += (2.0 * local_sum * grid.get_widths(ix)) /
+                        fluid_basis_->get_mass_matrix(ix, k);
+      });
+}
+
+/**
  * @brief explicit radiation hydrodynamic timestep restriction
  **/
 KOKKOS_FUNCTION
-auto RadHydroPackage::min_timestep(const View3D<double> /*state*/,
+auto RadHydroPackage::min_timestep(const State *const /*ucf*/,
                                    const GridStructure &grid,
                                    const TimeStepInfo & /*dt_info*/) const
     -> double {
@@ -462,10 +495,9 @@ auto RadHydroPackage::min_timestep(const View3D<double> /*state*/,
  *
  * TODO(astrobarker): extend
  */
-void RadHydroPackage::fill_derived(State *state,
-                                   const GridStructure &grid, 
+void RadHydroPackage::fill_derived(State *state, const GridStructure &grid,
                                    const TimeStepInfo &dt_info) const {
-  const int stage =dt_info.stage;
+  const int stage = dt_info.stage;
 
   auto u_s = state->u_cf_stages();
 

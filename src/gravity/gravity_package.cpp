@@ -86,7 +86,7 @@ void GravityPackage::gravity_update(const View3D<double> state,
  * @note This just returns max dt
  **/
 KOKKOS_FUNCTION
-auto GravityPackage::min_timestep(const View3D<double> /*state*/,
+auto GravityPackage::min_timestep(const State *const /*state*/,
                                   const GridStructure & /*grid*/,
                                   const TimeStepInfo & /*dt_info*/) const
     -> double {
@@ -96,7 +96,7 @@ auto GravityPackage::min_timestep(const View3D<double> /*state*/,
 }
 
 void GravityPackage::fill_derived(State * /*state*/,
-                                  const GridStructure & /*grid*/, 
+                                  const GridStructure & /*grid*/,
                                   const TimeStepInfo & /*dt_info*/) const {}
 
 [[nodiscard]] KOKKOS_FUNCTION auto GravityPackage::name() const noexcept

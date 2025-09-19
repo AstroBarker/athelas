@@ -13,7 +13,7 @@ concept ExplicitPackage =
              View3D<double> uCF, View3D<double> dU, const GridStructure &grid,
              const TimeStepInfo &dt_info) {
       { pkg.update_explicit(state, dU, grid, dt_info) } -> std::same_as<void>;
-      { pkg.min_timestep(uCF, grid, dt_info) } -> std::convertible_to<double>;
+      { pkg.min_timestep(state, grid, dt_info) } -> std::convertible_to<double>;
       { pkg.name() } -> std::convertible_to<std::string_view>;
       { pkg.is_active() } -> std::convertible_to<bool>;
       { pkg.fill_derived(state_derived, grid, dt_info) } -> std::same_as<void>;
@@ -25,7 +25,7 @@ concept ImplicitPackage =
              View3D<double> uCF, View3D<double> dU, const GridStructure &grid,
              const TimeStepInfo &dt_info) {
       { pkg.update_implicit(state, dU, grid, dt_info) } -> std::same_as<void>;
-      { pkg.min_timestep(uCF, grid, dt_info) } -> std::convertible_to<double>;
+      { pkg.min_timestep(state, grid, dt_info) } -> std::convertible_to<double>;
       { pkg.name() } -> std::convertible_to<std::string_view>;
       { pkg.is_active() } -> std::convertible_to<bool>;
       { pkg.fill_derived(state_derived, grid, dt_info) } -> std::same_as<void>;
@@ -41,7 +41,7 @@ concept IMEXPackage =
       {
         pkg.update_implicit_iterative(state, dU, grid, dt_info)
       } -> std::same_as<void>;
-      { pkg.min_timestep(uCF, grid, dt_info) } -> std::convertible_to<double>;
+      { pkg.min_timestep(state, grid, dt_info) } -> std::convertible_to<double>;
       { pkg.name() } -> std::convertible_to<std::string_view>;
       { pkg.is_active() } -> std::convertible_to<bool>;
       { pkg.fill_derived(state_derived, grid, dt_info) } -> std::same_as<void>;

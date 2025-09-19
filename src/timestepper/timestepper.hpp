@@ -157,7 +157,6 @@ class TimeStepper {
       grid_s_[iS].update_grid(stage_data_j);
     }
 
-
     grid = grid_s_[nStages_ - 1];
     apply_slope_limiter(sl_hydro, U, &grid,
                         pkgs->get_package<HydroPackage>("Hydro")->get_basis(),

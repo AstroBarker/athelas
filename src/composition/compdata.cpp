@@ -30,7 +30,8 @@ CompositionData::CompositionData(const int nX, const int order,
 [[nodiscard]] auto CompositionData::ye() const noexcept -> View2D<double> {
   return ye_;
 }
-[[nodiscard]] auto CompositionData::number_density() const noexcept -> View2D<double> {
+[[nodiscard]] auto CompositionData::number_density() const noexcept
+    -> View2D<double> {
   return number_density_;
 }
 
@@ -50,10 +51,8 @@ IonizationState::IonizationState(const int nX, const int nNodes,
     : ionization_fractions_("ionization_fractions", nX, nNodes + 2, n_species,
                             n_states),
       atomic_data_(std::make_unique<AtomicData>(fn_ionization, fn_degeneracy)),
-      ybar_("ybar", nX, nNodes + 2),
-      e_ion_corr_("e_ion_corr", nX, nNodes + 2),
-      sigma1_("sigma1", nX, nNodes + 2),
-      sigma2_("sigma2", nX, nNodes + 2),
+      ybar_("ybar", nX, nNodes + 2), e_ion_corr_("e_ion_corr", nX, nNodes + 2),
+      sigma1_("sigma1", nX, nNodes + 2), sigma2_("sigma2", nX, nNodes + 2),
       sigma3_("sigma3", nX, nNodes + 2) {
   if (n_species <= 0) {
     THROW_ATHELAS_ERROR("IonizationState :: n_species must be > 0!");
@@ -73,8 +72,7 @@ IonizationState::IonizationState(const int nX, const int nNodes,
   return atomic_data_.get();
 }
 
-[[nodiscard]] auto IonizationState::ybar() const noexcept
-    -> View2D<double> {
+[[nodiscard]] auto IonizationState::ybar() const noexcept -> View2D<double> {
   return ybar_;
 }
 
@@ -83,17 +81,14 @@ IonizationState::IonizationState(const int nX, const int nNodes,
   return e_ion_corr_;
 }
 
-[[nodiscard]] auto IonizationState::sigma1() const noexcept
-    -> View2D<double> {
+[[nodiscard]] auto IonizationState::sigma1() const noexcept -> View2D<double> {
   return sigma1_;
 }
 
-[[nodiscard]] auto IonizationState::sigma2() const noexcept
-    -> View2D<double> {
+[[nodiscard]] auto IonizationState::sigma2() const noexcept -> View2D<double> {
   return sigma2_;
 }
 
-[[nodiscard]] auto IonizationState::sigma3() const noexcept
-    -> View2D<double> {
+[[nodiscard]] auto IonizationState::sigma3() const noexcept -> View2D<double> {
   return sigma3_;
 }
