@@ -1,12 +1,11 @@
 #include <cmath>
-#include <limits>
 
 #include "atom/atom.hpp"
 #include "basis/polynomial_basis.hpp"
+#include "composition/compdata.hpp"
 #include "composition/composition.hpp"
 #include "composition/saha.hpp"
 #include "geometry/grid.hpp"
-#include "solvers/root_finder_opts.hpp"
 #include "solvers/root_finders.hpp"
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
@@ -19,6 +18,7 @@
  */
 
 using atom::IonLevel;
+using root_finders::RootFinder, root_finders::AANewtonAlgorithm;
 
 KOKKOS_FUNCTION
 void solve_saha_ionization(State &state, const GridStructure &grid,
@@ -104,6 +104,14 @@ void saha_solve(View1D<double> ionization_states, const int Z,
                 const double temperature,
                 const View1D<const IonLevel> ion_datas, const double nk) {
 
+  // Set up static root finder for Saha ionization
+  // We keep tight tolerances here.
+  // TODO(astrobarker): make tolerances runtime
+  static RootFinder<double, AANewtonAlgorithm<double>> solver(
+      {.abs_tol = 1.0e-16, .rel_tol = 1.0e-14, .max_iterations = 100});
+  static constexpr double ZBARTOL = 1.0e-15;
+  static constexpr double ZBARTOLINV = 1.0e15;
+
   const int num_states = Z + 1;
   int min_state = 1;
   int max_state = num_states;
@@ -113,11 +121,11 @@ void saha_solve(View1D<double> ionization_states, const int Z,
   for (int i = 0; i < num_states - 1; ++i) {
     const double f_saha = std::abs(saha_f(temperature, ion_datas(i)));
 
-    if (f_saha * Zbar_nk_inv > root_finders::ZBARTOLINV) {
+    if (f_saha * Zbar_nk_inv > ZBARTOLINV) {
       min_state = i + 1;
       ionization_states(i) = 0.0;
     }
-    if (f_saha * Zbar_nk_inv < root_finders::ZBARTOL) {
+    if (f_saha * Zbar_nk_inv < ZBARTOL) {
       max_state = i;
       for (int j = i + 1; j < num_states; ++j) {
         ionization_states(j) = 0.0;
@@ -139,12 +147,13 @@ void saha_solve(View1D<double> ionization_states, const int Z,
     Zbar = min_state - 1.0;
     ionization_states(min_state) = 1.0; // only one state possible
   } else { // iterative solve
+    // I wonder if there is a smarter way to produce a guess -- T dependent?
+    // Simpler ionization model to guess Zbar(T)?
     const double guess = 0.5 * Z;
 
     // we use an Anderson acclerated Newton Raphson iteration
-    Zbar =
-        root_finders::newton_aa(saha_target, saha_d_target, guess, temperature,
-                                ion_datas, nk, min_state, max_state);
+    Zbar = solver.solve(saha_target, saha_d_target, guess, temperature,
+                        ion_datas, nk, min_state, max_state);
 
     ionization_states(0) =
         ion_frac0(Zbar, temperature, ion_datas, nk, min_state, max_state);

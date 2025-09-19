@@ -50,7 +50,7 @@ class Driver {
         pin->param()->get<bool>("physics.ionization_enabled");
     static const int nvars_cons = (rad_enabled) ? 5 : 3;
     static const int nvars_prim = 3; // Maybe this can be smarter
-    static const int nvars_aux = (rad_enabled) ? 4 : 2;
+    static const int nvars_aux = (rad_enabled) ? 5 : 3;
     static const int n_stages = ssprk_.n_stages();
     static const int nx = pin->param()->get<int>("problem.nx");
     static const int n_nodes = pin->param()->get<int>("fluid.nnodes");

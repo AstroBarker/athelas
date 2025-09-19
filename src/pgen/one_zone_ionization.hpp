@@ -77,6 +77,7 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
                                         fn_ionization, fn_deg);
   auto mass_fractions = comps->mass_fractions();
   auto charges = comps->charge();
+  auto neutrons = comps->neutron_number();
   auto ionization_states = ionization_state->ionization_fractions();
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int ix) {
@@ -94,8 +95,9 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
         // For this problem we set up a contiguous list of species
         // form Z = 1 to ncomps. Mass fractions are uniform with no slopes.
         for (int elem = 0; elem < ncomps; ++elem) {
-          charges(elem) = elem + 1;
           mass_fractions(ix, k, elem) = 1.0 / ncomps;
+          charges(elem) = elem + 1;
+          neutrons(elem) = elem + 1;
         }
 
         for (int node = 0; node < nNodes + 2; ++node) {

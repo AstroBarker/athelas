@@ -7,7 +7,8 @@ State::State(const int nvar, const int nPF, const int nAF, const int nX_,
     : nvar_(nvar), nPF_(nPF), nAF_(nAF), pOrder_(pOrder),
       uCF_("uCF", nX_ + 2, pOrder_, nvar_),
       uCF_s_("uCF_s", nstages, nX_ + 2, pOrder_, nvar_),
-      uPF_("uPF", nX_ + 2, nNodes_, nPF_), uAF_("uAF", nX_ + 2, nNodes_, nAF_),
+      uPF_("uPF", nX_ + 2, nNodes_ + 2, nPF_),
+      uAF_("uAF", nX_ + 2, nNodes_ + 2, nAF_),
       composition_enabled_(composition_enabled),
       ionization_enabled_(ionization_enabled) {}
 
@@ -39,6 +40,14 @@ void State::setup_ionization(std::shared_ptr<IonizationState> ion) {
     THROW_ATHELAS_ERROR("Ionization not enabled!");
   }
   return ionization_state_.get();
+}
+
+[[nodiscard]] auto State::composition_enabled() const noexcept -> bool {
+  return composition_enabled_;
+}
+
+[[nodiscard]] auto State::ionization_enabled() const noexcept -> bool {
+  return ionization_enabled_;
 }
 
 // num var accessors

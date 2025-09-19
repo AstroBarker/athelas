@@ -83,6 +83,7 @@ class TimeStepper {
         dt_info.stage = j;
         auto dUs_j =
             Kokkos::subview(dU_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+        pkgs->fill_derived(state, grid_s_[j], dt_info);
         pkgs->update_explicit(state, dUs_j, grid_s_[j], dt_info);
 
         // inner sum
@@ -132,6 +133,7 @@ class TimeStepper {
       auto dUs_j =
           Kokkos::subview(dU_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
 
+      pkgs->fill_derived(state, grid_s_[iS], dt_info);
       pkgs->update_explicit(state, dUs_j, grid_s_[iS], dt_info);
       Kokkos::parallel_for(
           "Timestepper :: u^(n+1) from the stages",
@@ -213,6 +215,7 @@ class TimeStepper {
         auto dUs_j =
             Kokkos::subview(dU_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
 
+        pkgs->fill_derived(state, grid_s_[j], dt_info);
         pkgs->update_explicit(state, dUs_j, grid_s_[j], dt_info);
 
         // inner sum
@@ -294,6 +297,7 @@ class TimeStepper {
       // implicit update
       dt_info.stage = iS;
       dt_info.dt_a = dt * integrator_.implicit_tableau.a_ij(iS, iS);
+      pkgs->fill_derived(state, grid_s_[iS], dt_info);
       pkgs->update_implicit_iterative(state, SumVar_U_, grid_s_[iS], dt_info);
 
       // set U_s after iterative solve
@@ -331,6 +335,7 @@ class TimeStepper {
       auto dUs_im_i = Kokkos::subview(dU_s_implicit_, iS, Kokkos::ALL,
                                       Kokkos::ALL, Kokkos::ALL);
 
+      pkgs->fill_derived(state, grid_s_[iS], dt_info);
       pkgs->update_explicit(state, dUs_ex_i, grid_s_[iS], dt_info);
       pkgs->update_implicit(state, dUs_im_i, grid_s_[iS], dt_info);
       Kokkos::parallel_for(

@@ -120,6 +120,7 @@ include_directories(athelas PUBLIC
 set( ATHELAS_SOURCES 
   "generated/build_info.cpp"
   "src/driver.cpp"
+  "src/composition/compdata.cpp"
   "src/composition/composition.cpp"
   "src/composition/saha.cpp"
   "src/pgen/problem_in.cpp"

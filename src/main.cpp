@@ -1,5 +1,6 @@
 #include <csignal>
 #include <expected>
+#include <fenv.h>
 #include <print>
 #include <string>
 
@@ -34,8 +35,12 @@ auto main(int argc, char **argv) -> int {
 
   std::string input_path = *input_result;
 
+#ifdef ATHELAS_DEBUG
+  feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW | FE_UNDERFLOW);
   auto sig1 = signal(SIGSEGV, segfault_handler);
   auto sig2 = signal(SIGABRT, segfault_handler);
+  auto sig3 = signal(SIGFPE, segfault_handler);
+#endif
 
   std::println("# ----------------------------------------------------------");
   std::println("# Athelas running!");
