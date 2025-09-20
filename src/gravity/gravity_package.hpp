@@ -33,14 +33,15 @@ class GravityPackage {
                       const GridStructure &grid) const;
 
   [[nodiscard]] KOKKOS_FUNCTION auto
-  min_timestep(const View3D<double> /*state*/, const GridStructure & /*grid*/,
+  min_timestep(const State *const /*state*/, const GridStructure & /*grid*/,
                const TimeStepInfo & /*dt_info*/) const -> double;
 
   [[nodiscard]] KOKKOS_FUNCTION auto name() const noexcept -> std::string_view;
 
   [[nodiscard]] KOKKOS_FUNCTION auto is_active() const noexcept -> bool;
 
-  void fill_derived(State *state, const GridStructure &grid) const;
+  void fill_derived(State *state, const GridStructure &grid,
+                    const TimeStepInfo &dt_info) const;
 
   KOKKOS_FUNCTION
   void set_active(bool active);

@@ -11,6 +11,7 @@
 #include <string_view>
 #include <vector>
 
+#include "abstractions.hpp"
 #include "concepts/packages.hpp"
 #include "geometry/grid.hpp"
 #include "state/state.hpp"
@@ -63,17 +64,19 @@ class PackageWrapper {
     }
   }
 
-  [[nodiscard]] auto min_timestep(View3D<double> ucf, const GridStructure &grid,
+  [[nodiscard]] auto min_timestep(const State *const state,
+                                  const GridStructure &grid,
                                   const TimeStepInfo &dt_info) const -> double {
     if (package_->is_active()) {
-      return package_->min_timestep(ucf, grid, dt_info);
+      return package_->min_timestep(state, grid, dt_info);
     }
     return std::numeric_limits<double>::max();
   }
 
-  void fill_derived(State *state, const GridStructure &grid) const {
+  void fill_derived(State *state, const GridStructure &grid,
+                    const TimeStepInfo &dt_info) const {
     if (package_->is_active()) {
-      package_->fill_derived(state, grid);
+      package_->fill_derived(state, grid, dt_info);
     }
   }
 
@@ -102,13 +105,13 @@ class PackageWrapper {
     virtual void update_implicit_iterative(const State *const, View3D<double>,
                                            const GridStructure &,
                                            const TimeStepInfo &) = 0;
-    [[nodiscard]] virtual auto min_timestep(View3D<double> ucf,
+    [[nodiscard]] virtual auto min_timestep(const State *const state,
                                             const GridStructure &grid,
                                             const TimeStepInfo &dt_info) const
         -> double = 0;
 
-    virtual void fill_derived(State *state,
-                              const GridStructure &grid) const = 0;
+    virtual void fill_derived(State *state, const GridStructure &grid,
+                              const TimeStepInfo &dt_info) const = 0;
 
     [[nodiscard]] virtual auto name() const noexcept -> std::string_view = 0;
     [[nodiscard]] virtual auto is_active() const noexcept -> bool = 0;
@@ -147,15 +150,16 @@ class PackageWrapper {
       }
     }
 
-    [[nodiscard]] auto min_timestep(View3D<double> ucf,
+    [[nodiscard]] auto min_timestep(const State *const state,
                                     const GridStructure &grid,
                                     const TimeStepInfo &dt_info) const
         -> double override {
-      return package_.min_timestep(ucf, grid, dt_info);
+      return package_.min_timestep(state, grid, dt_info);
     }
 
-    void fill_derived(State *state, const GridStructure &grid) const override {
-      package_.fill_derived(state, grid);
+    void fill_derived(State *state, const GridStructure &grid,
+                      const TimeStepInfo &dt_info) const override {
+      package_.fill_derived(state, grid, dt_info);
     }
 
     [[nodiscard]] auto name() const noexcept -> std::string_view override {
@@ -227,27 +231,28 @@ class PackageManager {
     }
   }
 
-  auto min_timestep(View3D<double> ucf, const GridStructure &grid,
+  auto min_timestep(const State *const state, const GridStructure &grid,
                     const TimeStepInfo &dt_info) const -> double {
     double min_dt = std::numeric_limits<double>::max();
     // TODO(astrobarker): loop over all_packages_
     for (auto *pkg : explicit_packages_) {
       if (pkg->is_active()) {
-        min_dt = std::min(min_dt, pkg->min_timestep(ucf, grid, dt_info));
+        min_dt = std::min(min_dt, pkg->min_timestep(state, grid, dt_info));
       }
     }
     for (auto *pkg : implicit_packages_) {
       if (pkg->is_active()) {
-        min_dt = std::min(min_dt, pkg->min_timestep(ucf, grid, dt_info));
+        min_dt = std::min(min_dt, pkg->min_timestep(state, grid, dt_info));
       }
     }
     return min_dt;
   }
 
-  void fill_derived(State *state, const GridStructure &grid) const {
+  void fill_derived(State *state, const GridStructure &grid,
+                    const TimeStepInfo &dt_info) const {
     for (const auto &pkg : all_packages_) {
       if (pkg->is_active()) {
-        pkg->fill_derived(state, grid);
+        pkg->fill_derived(state, grid, dt_info);
       }
     }
   }

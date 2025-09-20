@@ -31,6 +31,8 @@
 
 namespace bel {
 
+using utilities::ratio;
+
 /**
  * @brief Limits density to maintain physicality following K. Schaal et al 2015
  *
@@ -43,7 +45,7 @@ namespace bel {
  * @param basis The modal basis used for the solution representation
  */
 void limit_density(View3D<double> U, const ModalBasis *basis) {
-  constexpr static double EPSILON = 1.0e-10; // maybe make this smarter
+  constexpr static double EPSILON = 1.0e-30; // maybe make this smarter
 
   const int order = basis->get_order();
 
@@ -65,8 +67,8 @@ void limit_density(View3D<double> U, const ModalBasis *basis) {
             theta1 = 0.0;
             break;
           }
-          frac = std::abs((avg - EPSILON) / (avg - nodal));
-          theta1 = std::min(theta1, std::min(1.0, frac));
+          frac = std::abs(ratio(avg - EPSILON, avg - nodal + EPSILON));
+          theta1 = std::min({theta1, 1.0, frac});
         }
 
         for (int k = 1; k < order; k++) {

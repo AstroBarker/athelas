@@ -8,6 +8,7 @@
 
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions.hpp"
+#include "composition/composition.hpp"
 #include "eos/eos_variant.hpp"
 #include "fluid/fluid_utilities.hpp"
 #include "fluid/hydro_package.hpp"
@@ -30,15 +31,17 @@ KOKKOS_FUNCTION
 void HydroPackage::update_explicit(const State *const state, View3D<double> dU,
                                    const GridStructure &grid,
                                    const TimeStepInfo &dt_info) const {
+  const int stage = dt_info.stage;
+  const auto u_stages = state->u_cf_stages();
+
+  const auto ucf =
+      Kokkos::subview(u_stages, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+
+  const auto uaf = state->u_af();
+
   const auto &order = basis_->get_order();
   static constexpr int ilo = 1;
   static const auto &ihi = grid.get_ihi();
-
-  const auto u_stages = state->u_cf_stages();
-
-  const auto stage = dt_info.stage;
-  const auto ucf =
-      Kokkos::subview(u_stages, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
 
   // --- Apply BC ---
   bc::fill_ghost_zones<3>(ucf, &grid, basis_, bcs_, {0, 2});
@@ -53,7 +56,7 @@ void HydroPackage::update_explicit(const State *const state, View3D<double> dU,
       });
 
   // --- Fluid Increment : Divergence ---
-  fluid_divergence(ucf, dU, grid, stage);
+  fluid_divergence(state, dU, grid, stage);
 
   // --- Divide update by mass mastrix ---
   Kokkos::parallel_for(
@@ -66,17 +69,22 @@ void HydroPackage::update_explicit(const State *const state, View3D<double> dU,
 
   // --- Increment from Geometry ---
   if (grid.do_geometry()) {
-    fluid_geometry(ucf, dU, grid);
+    fluid_geometry(ucf, uaf, dU, grid);
   }
 }
 
 // Compute the divergence of the flux term for the update
 // TODO(astrobarker): dont pass in stage
 KOKKOS_FUNCTION
-void HydroPackage::fluid_divergence(const View3D<double> state,
-                                    View3D<double> dU,
+void HydroPackage::fluid_divergence(const State *const state, View3D<double> dU,
                                     const GridStructure &grid,
                                     const int stage) const {
+  const auto u_stages = state->u_cf_stages();
+
+  const auto ucf =
+      Kokkos::subview(u_stages, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+  const auto uaf = state->u_af();
+
   const auto &nNodes = grid.get_n_nodes();
   const auto &order = basis_->get_order();
   static constexpr int ilo = 1;
@@ -89,24 +97,19 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
       "Hydro :: Interface States",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 2, NUM_VARS_}),
       KOKKOS_CLASS_LAMBDA(const int ix, const int q) {
-        u_f_l_(ix, q) = basis_->basis_eval(state, ix - 1, q, nNodes + 1);
-        u_f_r_(ix, q) = basis_->basis_eval(state, ix, q, 0);
+        u_f_l_(ix, q) = basis_->basis_eval(ucf, ix - 1, q, nNodes + 1);
+        u_f_r_(ix, q) = basis_->basis_eval(ucf, ix, q, 0);
       });
 
   // --- Calc numerical flux at all faces ---
   Kokkos::parallel_for(
       "Hydro :: Numerical Fluxes", Kokkos::RangePolicy<>(ilo, ihi + 2),
-      KOKKOS_CLASS_LAMBDA(int ix) {
-        auto lambda = nullptr;
-        const double P_L = pressure_from_conserved(
-            eos_, u_f_l_(ix, 0), u_f_l_(ix, 1), u_f_l_(ix, 2), lambda);
-        const double Cs_L = sound_speed_from_conserved(
-            eos_, u_f_l_(ix, 0), u_f_l_(ix, 1), u_f_l_(ix, 2), lambda);
+      KOKKOS_CLASS_LAMBDA(const int ix) {
+        const double P_L = uaf(ix - 1, nNodes + 1, 0);
+        const double Cs_L = uaf(ix - 1, nNodes + 1, 2);
 
-        const double P_R = pressure_from_conserved(
-            eos_, u_f_r_(ix, 0), u_f_r_(ix, 1), u_f_r_(ix, 2), lambda);
-        const double Cs_R = sound_speed_from_conserved(
-            eos_, u_f_r_(ix, 0), u_f_r_(ix, 1), u_f_r_(ix, 2), lambda);
+        const double P_R = uaf(ix, 0, 0);
+        const double Cs_R = uaf(ix, 0, 2);
 
         // --- Numerical Fluxes ---
 
@@ -159,11 +162,8 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
             const double X = grid.node_coordinate(ix, iN);
             const double sqrt_gm = grid.get_sqrt_gm(X);
 
-            auto lambda = nullptr;
-            const double vel = basis_->basis_eval(state, ix, 1, iN + 1);
-            const double P = pressure_from_conserved(
-                eos_, basis_->basis_eval(state, ix, 0, iN + 1), vel,
-                basis_->basis_eval(state, ix, 2, iN + 1), lambda);
+            const double vel = basis_->basis_eval(ucf, ix, 1, iN + 1);
+            const double P = uaf(ix, iN + 1, 0);
             const auto [flux1, flux2, flux3] = flux_fluid(vel, P);
 
             local_sum1 += weight * flux1 * dphi * sqrt_gm;
@@ -179,7 +179,8 @@ void HydroPackage::fluid_divergence(const View3D<double> state,
 }
 
 KOKKOS_FUNCTION
-void HydroPackage::fluid_geometry(const View3D<double> state, View3D<double> dU,
+void HydroPackage::fluid_geometry(const View3D<double> ucf,
+                                  const View3D<double> uaf, View3D<double> dU,
                                   const GridStructure &grid) const {
   const int &nNodes = grid.get_n_nodes();
   const int &order = basis_->get_order();
@@ -191,12 +192,8 @@ void HydroPackage::fluid_geometry(const View3D<double> state, View3D<double> dU,
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
       KOKKOS_CLASS_LAMBDA(const int ix, const int k) {
         double local_sum = 0.0;
-        auto lambda = nullptr;
         for (int iN = 0; iN < nNodes; ++iN) {
-          const double P = pressure_from_conserved(
-              eos_, basis_->basis_eval(state, ix, 0, iN + 1),
-              basis_->basis_eval(state, ix, 1, iN + 1),
-              basis_->basis_eval(state, ix, 2, iN + 1), lambda);
+          const double P = uaf(ix, iN + 1, 0);
 
           const double X = grid.node_coordinate(ix, iN);
 
@@ -212,10 +209,11 @@ void HydroPackage::fluid_geometry(const View3D<double> state, View3D<double> dU,
  * @brief explicit hydrodynamic timestep restriction
  **/
 KOKKOS_FUNCTION
-auto HydroPackage::min_timestep(const View3D<double> state,
+auto HydroPackage::min_timestep(const State *const state,
                                 const GridStructure &grid,
                                 const TimeStepInfo & /*dt_info*/) const
     -> double {
+  const auto ucf = state->u_cf();
   static constexpr double MAX_DT = std::numeric_limits<double>::max();
   static constexpr double MIN_DT = 100.0 * std::numeric_limits<double>::min();
 
@@ -227,13 +225,21 @@ auto HydroPackage::min_timestep(const View3D<double> state,
       "Hydro::min_timestep", Kokkos::RangePolicy<>(ilo, ihi + 1),
       KOKKOS_CLASS_LAMBDA(const int ix, double &lmin) {
         // --- Using Cell Averages ---
-        const double tau_x = state(ix, 0, 0);
-        const double vel_x = state(ix, 0, 1);
-        const double eint_x = state(ix, 0, 2);
+        const double tau_x = ucf(ix, 0, 0);
+        const double vel_x = ucf(ix, 0, 1);
+        const double eint_x = ucf(ix, 0, 2);
 
         const double dr = grid.get_widths(ix);
 
-        auto lambda = nullptr;
+        // NOTE: This is not really correct. I'm using a nodal location for
+        // getting the ionization terms but cell average quantities for the
+        // sound speed. This is only an issue in pure hydro + ionization
+        // which should be an edge case.
+        // TODO(astrobarker): implement cell averaged Paczynski terms?
+        double lambda[8];
+        if (state->ionization_enabled()) {
+          paczynski_terms(state, ix, 1, lambda);
+        }
         const double Cs =
             sound_speed_from_conserved(eos_, tau_x, vel_x, eint_x, lambda);
         const double eigval = Cs + std::abs(vel_x);
@@ -255,36 +261,60 @@ auto HydroPackage::min_timestep(const View3D<double> state,
  *
  * TODO(astrobarker): extend
  */
-void HydroPackage::fill_derived(State *state, const GridStructure &grid) const {
+void HydroPackage::fill_derived(State *const state, const GridStructure &grid,
+                                const TimeStepInfo &dt_info) const {
+  const int stage = dt_info.stage;
 
-  View3D<double> uCF = state->u_cf();
-  View3D<double> uPF = state->u_pf();
-  View3D<double> uAF = state->u_af();
+  auto u_s = state->u_cf_stages();
 
-  static constexpr int ilo = 1;
+  auto uCF = Kokkos::subview(u_s, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+  // hacky
+  if (stage == -1) {
+    uCF = state->u_cf();
+  }
+  auto uPF = state->u_pf();
+  auto uAF = state->u_af();
+
+  static constexpr int ilo = 0;
   static const int ihi = grid.get_ihi() + 2;
   const int nNodes = grid.get_n_nodes();
+  static const bool ionization_enabled = state->ionization_enabled();
 
   // --- Apply BC ---
   bc::fill_ghost_zones<3>(uCF, &grid, basis_, bcs_, {0, 2});
 
+  if (state->composition_enabled()) {
+    fill_derived_comps(state, &grid, basis_);
+  }
+
+  if (ionization_enabled) {
+    fill_derived_ionization(state, &grid, basis_);
+  }
+
   Kokkos::parallel_for(
       "Hydro::fill_derived", Kokkos::RangePolicy<>(ilo, ihi),
       KOKKOS_CLASS_LAMBDA(int ix) {
-        for (int iN = 0; iN < nNodes; ++iN) {
-          const double tau = basis_->basis_eval(uCF, ix, 0, iN + 1);
-          const double vel = basis_->basis_eval(uCF, ix, 1, iN + 1);
-          const double emt = basis_->basis_eval(uCF, ix, 2, iN + 1);
+        for (int iN = 0; iN < nNodes + 2; ++iN) {
+          const double tau = basis_->basis_eval(uCF, ix, 0, iN);
+          const double vel = basis_->basis_eval(uCF, ix, 1, iN);
+          const double emt = basis_->basis_eval(uCF, ix, 2, iN);
 
           const double rho = 1.0 / tau;
           const double momentum = rho * vel;
           const double sie = (emt - 0.5 * vel * vel);
 
-          auto lambda = nullptr;
+          double lambda[8];
+          // This is probably not the cleanest logic, but setups with
+          // ionization enabled and Paczynski disbled are an outlier.
+          if (ionization_enabled) {
+            paczynski_terms(state, ix, iN, lambda);
+          }
           const double pressure =
               pressure_from_conserved(eos_, tau, vel, emt, lambda);
           const double t_gas =
               temperature_from_conserved(eos_, tau, vel, emt, lambda);
+          const double cs =
+              sound_speed_from_conserved(eos_, tau, vel, emt, lambda);
 
           uPF(ix, iN, 0) = rho;
           uPF(ix, iN, 1) = momentum;
@@ -292,6 +322,7 @@ void HydroPackage::fill_derived(State *state, const GridStructure &grid) const {
 
           uAF(ix, iN, 0) = pressure;
           uAF(ix, iN, 1) = t_gas;
+          uAF(ix, iN, 2) = cs;
         }
       });
 }

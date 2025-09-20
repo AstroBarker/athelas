@@ -30,22 +30,23 @@ class HydroPackage {
                        const TimeStepInfo &dt_info) const;
 
   KOKKOS_FUNCTION
-  void fluid_divergence(const View3D<double> state, View3D<double> dU,
+  void fluid_divergence(const State *const state, View3D<double> dU,
                         const GridStructure &grid, int stage) const;
 
   KOKKOS_FUNCTION
-  void fluid_geometry(const View3D<double> state, View3D<double> dU,
-                      const GridStructure &grid) const;
+  void fluid_geometry(const View3D<double> ucf, const View3D<double> uaf,
+                      View3D<double> dU, const GridStructure &grid) const;
 
   [[nodiscard]] KOKKOS_FUNCTION auto
-  min_timestep(const View3D<double> state, const GridStructure &grid,
+  min_timestep(const State *const state, const GridStructure &grid,
                const TimeStepInfo & /*dt_info*/) const -> double;
 
   [[nodiscard]] KOKKOS_FUNCTION auto name() const noexcept -> std::string_view;
 
   [[nodiscard]] KOKKOS_FUNCTION auto is_active() const noexcept -> bool;
 
-  void fill_derived(State *state, const GridStructure &grid) const;
+  void fill_derived(State *state, const GridStructure &grid,
+                    const TimeStepInfo &dt_info) const;
 
   KOKKOS_FUNCTION
   void set_active(bool active);

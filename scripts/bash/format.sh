@@ -16,8 +16,8 @@ fi
 TARGET_CF_VRSN=20.1.0
 CF_VRSN=$(${CFM} --version)
 echo "[format.sh] Note we assume clang format version ${TARGET_CF_VRSN}."
-echo "You are using ${CF_VRSN}."
-echo "If these differ, results may not be stable."
+echo "[format.sh] You are using ${CF_VRSN}."
+echo "[format.sh] If these differ, results may not be stable."
 
 echo "[format.sh] Formatting..."
 REPO=$(git rev-parse --show-toplevel)
@@ -34,16 +34,16 @@ if ! command -v ${PFM} &> /dev/null; then
     exit 1
 else
     PFM=$(command -v ${PFM})
-    echo "ruff Python formatter found: ${PFM}"
-    echo "ruff version: $(${PFM} --version)"
+    echo "[format.sh] ruff Python formatter found: ${PFM}"
+    echo "[format.sh] ruff version: $(${PFM} --version)"
 fi
 
-echo "Formatting Python files..."
+echo "[format.sh] Formatting Python files..."
 REPO=$(git rev-parse --show-toplevel)
 for f in $(git grep --untracked -ail res -- :/*.py); do
     if [ ${VERBOSE} -ge 1 ]; then
        echo ${f}
     fi
-    ${PFM} format ${REPO}/${f}
+    ${PFM} format ${f}
 done
 echo "[format.sh] ...Done"

@@ -94,7 +94,7 @@ def plot_rad_shock(chk):
   #    ax.axvline(r[i], color="#7c8c8c", alpha=0.25)
 
   ax.legend(frameon=False)
-  ax.set(ylabel=r"Temperature [K]", xlabel="x [cm]", xlim=[0.0, 0.005])
+  ax.set(ylabel=r"Temperature [K]", xlabel="x [cm]")
 
   svname = f"{problem}_{chk}.png"
   print(f"Saving figure {svname}")
