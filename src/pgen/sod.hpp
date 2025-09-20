@@ -83,8 +83,8 @@ void sod_init(State *state, GridStructure *grid, ProblemIn *pin, const EOS *eos,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(const int ix) {
         for (int iN = 0; iN < nNodes + 2; iN++) {
-          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
-          uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, nNodes - iN - 1, 0);
+          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, (nNodes + 2) - iN - 1, 0);
+          uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, (nNodes + 2) - iN - 1, 0);
         }
       });
 }
