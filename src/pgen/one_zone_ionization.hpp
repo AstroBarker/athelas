@@ -36,6 +36,7 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
 
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
+  auto uAF = state->u_af();
 
   static const int ilo = 1;
   static const int ihi = grid->get_ihi();
@@ -87,8 +88,9 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
         uCF(ix, k, q_V) = vel;
         uCF(ix, k, q_E) = sie;
 
-        for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
+        for (int iNodeX = 0; iNodeX < nNodes + 2; iNodeX++) {
           uPF(ix, iNodeX, iPF_D) = rho;
+          uAF(ix, iNodeX, 1) = temperature;
         }
 
         // set up comps

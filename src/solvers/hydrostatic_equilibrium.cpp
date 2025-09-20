@@ -1,6 +1,9 @@
-#include "hydrostatic_equilibrium.hpp"
 #include "Kokkos_Core.hpp"
-#include "grid.hpp"
+
+#include "composition/composition.hpp"
+#include "geometry/grid.hpp"
+#include "solvers/hydrostatic_equilibrium.hpp"
+#include "state/state.hpp"
 #include "utils/constants.hpp"
 #include "utils/utilities.hpp"
 
@@ -13,8 +16,10 @@ auto HydrostaticEquilibrium::rhs(const double mass_enc, const double p,
   return -G * mass_enc * rho / (r * r);
 }
 
-void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure *grid,
+void HydrostaticEquilibrium::solve(State *state, GridStructure *grid,
                                    ProblemIn *pin) {
+  auto uAF = state->u_af();
+
   static constexpr int ilo = 1;
   const int ihi = grid->get_ihi();
   const int nNodes = grid->get_n_nodes();
@@ -24,7 +29,10 @@ void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure *grid,
   // point?
   const double vel = 0.0;
   const double energy = 0.0;
-  const auto lambda = nullptr;
+  double lambda[8];
+  if (state->ionization_enabled()) {
+    paczynski_terms(state, 1, 0, lambda);
+  }
   const double p_c = pressure_from_conserved(eos_, rho_c_, vel, energy, lambda);
 
   const double r_c = grid->node_coordinate(ilo, 0);
@@ -38,7 +46,8 @@ void HydrostaticEquilibrium::solve(View3D<double> uAF, GridStructure *grid,
   std::vector<double> pressure(1);
   std::vector<double> radius(1);
   Kokkos::parallel_for(
-      "copy grid", Kokkos::RangePolicy<>(0, ihi + 1), KOKKOS_LAMBDA(int ix) {
+      "copy grid", Kokkos::RangePolicy<>(0, ihi + 1),
+      KOKKOS_LAMBDA(const int ix) {
         for (int iN = 0; iN < nNodes; ++iN) {
           const double r = grid->node_coordinate(ix + 1, iN);
           d_r(ix * nNodes + iN) = r;

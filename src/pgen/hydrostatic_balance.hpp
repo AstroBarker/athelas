@@ -58,7 +58,7 @@ void hydrostatic_balance_init(State *state, GridStructure *grid, ProblemIn *pin,
     auto solver = HydrostaticEquilibrium(rho_c, p_thresh, eos,
                                          pin->param()->get<double>("eos.k"),
                                          pin->param()->get<double>("eos.n"));
-    solver.solve(uAF, grid, pin);
+    solver.solve(state, grid, pin);
 
     // Phase 1: Initialize nodal values (always done)
     Kokkos::parallel_for(

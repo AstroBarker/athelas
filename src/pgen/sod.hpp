@@ -48,15 +48,15 @@ void sod_init(State *state, GridStructure *grid, ProblemIn *pin, const EOS *eos,
 
   // Phase 1: Initialize nodal values (always done)
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
+      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(const int ix) {
         const double X1 = grid->get_centers(ix);
 
         if (X1 <= x_d) {
-          for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
+          for (int iNodeX = 0; iNodeX < nNodes + 2; iNodeX++) {
             uPF(ix, iNodeX, iPF_D) = D_L;
           }
         } else {
-          for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
+          for (int iNodeX = 0; iNodeX < nNodes + 2; iNodeX++) {
             uPF(ix, iNodeX, iPF_D) = D_R;
           }
         }
@@ -64,7 +64,7 @@ void sod_init(State *state, GridStructure *grid, ProblemIn *pin, const EOS *eos,
 
   // Phase 2: Initialize modal coefficients
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
+      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(const int ix) {
         const int k = 0;
         const double X1 = grid->get_centers(ix);
 
@@ -81,8 +81,8 @@ void sod_init(State *state, GridStructure *grid, ProblemIn *pin, const EOS *eos,
 
   // Fill density in guard cells
   Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int ix) {
-        for (int iN = 0; iN < nNodes; iN++) {
+      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(const int ix) {
+        for (int iN = 0; iN < nNodes + 2; iN++) {
           uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
           uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, nNodes - iN - 1, 0);
         }

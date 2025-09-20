@@ -39,8 +39,8 @@ class RadHydroPackage {
                                  const GridStructure &grid,
                                  const TimeStepInfo &dt_info);
   KOKKOS_FUNCTION
-  auto radhydro_source(const View2D<double> uCRH, const GridStructure &grid,
-                       int ix, int k) const
+  auto radhydro_source(const State *const state, const View2D<double> uCRH,
+                       const GridStructure &grid, int ix, int k) const
       -> std::tuple<double, double, double, double>;
 
   KOKKOS_FUNCTION
@@ -104,7 +104,8 @@ class RadHydroPackage {
 };
 
 auto compute_increment_radhydro_source(
-    const View2D<double> uCRH, int k, const GridStructure &grid,
-    const ModalBasis *fluid_basis, const ModalBasis *rad_basis, const EOS *eos,
-    const Opacity *opac, int ix) -> std::tuple<double, double, double, double>;
+    const View2D<double> uCRH, int k, const State *const state,
+    const GridStructure &grid, const ModalBasis *fluid_basis,
+    const ModalBasis *rad_basis, const EOS *eos, const Opacity *opac, int ix)
+    -> std::tuple<double, double, double, double>;
 } // namespace radiation

@@ -2,6 +2,7 @@
 
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
+#include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
 /**
@@ -14,7 +15,7 @@ class HydrostaticEquilibrium {
                          double k, double n)
       : rho_c_(rho_c), p_threshold_(p_threshold), eos_(eos), k_(k), n_(n) {}
 
-  void solve(View3D<double> uAF, GridStructure *grid, ProblemIn *pin);
+  void solve(State *state, GridStructure *grid, ProblemIn *pin);
 
  private:
   double rho_c_; // central density
@@ -27,5 +28,5 @@ class HydrostaticEquilibrium {
 
   static constexpr int iP_ = 0;
 
-  auto rhs(double mass_enc, double p, double r) const -> double;
+  [[nodiscard]] auto rhs(double mass_enc, double p, double r) const -> double;
 };

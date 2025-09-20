@@ -24,6 +24,7 @@ KOKKOS_FUNCTION
 void solve_saha_ionization(State &state, const GridStructure &grid,
                            const EOS &eos, const ModalBasis &fluid_basis) {
   const auto uCF = state.u_cf();
+  const auto uaf = state.u_af();
   const auto *const comps = state.comps();
   auto *const ionization_states = state.ionization_state();
   const auto *const atomic_data = ionization_states->atomic_data();
@@ -47,17 +48,13 @@ void solve_saha_ionization(State &state, const GridStructure &grid,
       Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0},
                                              {ihi + 1, nNodes + 2, ncomps}),
       KOKKOS_LAMBDA(const int ix, const int node, const int e) {
-        auto lambda = nullptr;
-        const double tau = fluid_basis.basis_eval(uCF, ix, 0, node);
-        const double vel = fluid_basis.basis_eval(uCF, ix, 1, node);
-        const double emt = fluid_basis.basis_eval(uCF, ix, 2, node);
-        const double temperature =
-            temperature_from_conserved(&eos, tau, vel, emt, lambda);
+        const double rho = 1.0 / fluid_basis.basis_eval(uCF, ix, 0, node);
+        const double temperature = uaf(ix, node, 1);
 
         const double x_e = fluid_basis.basis_eval(mass_fractions, ix, e, node);
 
         const int z = e + 1;
-        const double nk = element_number_density(x_e, z, 1.0 / tau);
+        const double nk = element_number_density(x_e, z, rho);
 
         // pull out element info
         const auto species_atomic_data =

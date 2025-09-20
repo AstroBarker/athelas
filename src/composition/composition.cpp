@@ -163,6 +163,7 @@ void fill_derived_ionization(State *const state,
  * 7: temperature_guess
  *
  * TODO(astrobarker): should inputs to this be subviews?
+ * Should this exist?
  */
 KOKKOS_FUNCTION
 void paczynski_terms(const State *const state, const int ix, const int node,

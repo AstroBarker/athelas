@@ -240,7 +240,7 @@ class TimeStepper {
         Kokkos::parallel_for(
             "Timestepper::stage_data_", ihi + 2,
             KOKKOS_CLASS_LAMBDA(const int ix) {
-              stage_data_(j, ix) +=
+              stage_data_(iS, ix) +=
                   dt * integrator_.explicit_tableau.a_ij(iS, j) *
                   pkgs->get_package<RadHydroPackage>("RadHydro")
                       ->get_flux_u(j, ix);
@@ -299,6 +299,7 @@ class TimeStepper {
       dt_info.dt_a = dt * integrator_.implicit_tableau.a_ij(iS, iS);
       pkgs->fill_derived(state, grid_s_[iS], dt_info);
       pkgs->update_implicit_iterative(state, SumVar_U_, grid_s_[iS], dt_info);
+      pkgs->fill_derived(state, grid_s_[iS], dt_info);
 
       // set U_s after iterative solve
       Kokkos::parallel_for(
@@ -358,7 +359,7 @@ class TimeStepper {
                 dt_b * pkgs->get_package<RadHydroPackage>("RadHydro")
                            ->get_flux_u(iS, ix);
           });
-      auto stage_data_j = Kokkos::subview(stage_data_, iS, Kokkos::ALL);
+      auto stage_data_j = Kokkos::subview(stage_data_, 0, Kokkos::ALL); // HERE
       grid_s_[iS] = grid;
       grid_s_[iS].update_grid(stage_data_j);
     }

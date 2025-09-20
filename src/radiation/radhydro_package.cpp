@@ -2,6 +2,7 @@
 
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions.hpp"
+#include "composition/composition.hpp"
 #include "eos/eos_variant.hpp"
 #include "fluid/fluid_utilities.hpp"
 #include "geometry/grid.hpp"
@@ -9,17 +10,15 @@
 #include "pgen/problem_in.hpp"
 #include "radiation/rad_utilities.hpp"
 #include "radiation/radhydro_package.hpp"
-#include "solvers/root_finders.hpp"
 #include "utils/abstractions.hpp"
 
 namespace radiation {
 using fluid::numerical_flux_gudonov_positivity;
 
-RadHydroPackage::RadHydroPackage(const ProblemIn * /*pin*/, int n_stages,
-                                 EOS *eos, Opacity *opac,
-                                 ModalBasis *fluid_basis, ModalBasis *rad_basis,
-                                 BoundaryConditions *bcs, double cfl, int nx,
-                                 bool active)
+RadHydroPackage::RadHydroPackage(const ProblemIn *pin, int n_stages, EOS *eos,
+                                 Opacity *opac, ModalBasis *fluid_basis,
+                                 ModalBasis *rad_basis, BoundaryConditions *bcs,
+                                 double cfl, int nx, bool active)
     : active_(active), nx_(nx), cfl_(cfl), eos_(eos), opac_(opac),
       fluid_basis_(fluid_basis), rad_basis_(rad_basis), bcs_(bcs),
       dFlux_num_("hydro::dFlux_num_", nx + 2 + 1, 5),
@@ -123,7 +122,8 @@ void RadHydroPackage::update_implicit(const State *const state,
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
       KOKKOS_CLASS_LAMBDA(const int i, const int k) {
         const auto ucf_i = Kokkos::subview(ucf, i, Kokkos::ALL, Kokkos::ALL);
-        const auto [du1, du2, du3, du4] = radhydro_source(ucf_i, grid, i, k);
+        const auto [du1, du2, du3, du4] =
+            radhydro_source(state, ucf_i, grid, i, k);
         dU(i, k, 1) = du1;
         dU(i, k, 2) = du2;
         dU(i, k, 3) = du3;
@@ -169,7 +169,7 @@ void RadHydroPackage::update_implicit_iterative(const State *const state,
         }
 
         fixed_point_radhydro(R_ix, dt_info.dt_a, scratch_sol_ix_k,
-                             scratch_sol_ix_km1, scratch_sol_ix, grid,
+                             scratch_sol_ix_km1, scratch_sol_ix, state, grid,
                              fluid_basis_, rad_basis_, eos_, opac_, ix);
 
         for (int k = 0; k < order; ++k) {
@@ -338,34 +338,26 @@ void RadHydroPackage::radhydro_divergence(const State *const state,
 /**
  * @brief Compute source terms for radiation hydrodynamics system
  * @note Returns tuple<S_egas, S_vgas, S_erad, S_frad>
- *
- *   Note that here we take in a single 2D view state representing the radhydro
- *   state on a given cell. The indices are:
- *     0: fluid specific volume
- *     1: fluid velocity
- *     2: fluid total specific energy
- *     3: radiation energy density
- *     4: radiation flux F
  **/
-auto RadHydroPackage::radhydro_source(const View2D<double> state,
+auto RadHydroPackage::radhydro_source(const State *const state,
+                                      const View2D<double> uCRH,
                                       const GridStructure &grid, const int ix,
                                       const int k) const
     -> std::tuple<double, double, double, double> {
-  return compute_increment_radhydro_source(state, k, grid, fluid_basis_,
+  return compute_increment_radhydro_source(uCRH, k, state, grid, fluid_basis_,
                                            rad_basis_, eos_, opac_, ix);
 }
 
 // This is duplicate of above but used differently, in the root finder
 // The code needs some refactoring in order to get rid of this version.
-auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
-                                       const GridStructure &grid,
-                                       const ModalBasis *fluid_basis,
-                                       const ModalBasis *rad_basis,
-                                       const EOS *eos, const Opacity *opac,
-                                       const int ix)
-    -> std::tuple<double, double, double, double> {
+auto compute_increment_radhydro_source(
+    const View2D<double> uCRH, const int k, const State *const state,
+    const GridStructure &grid, const ModalBasis *fluid_basis,
+    const ModalBasis *rad_basis, const EOS *eos, const Opacity *opac,
+    const int ix) -> std::tuple<double, double, double, double> {
   constexpr static double c = constants::c_cgs;
   constexpr static double c2 = c * c;
+  static const bool ionization_enabled = state->ionization_enabled();
 
   const int nNodes = grid.get_n_nodes();
   const double dx = grid.get_widths(ix);
@@ -386,7 +378,10 @@ auto compute_increment_radhydro_source(const View2D<double> uCRH, const int k,
     const double vel = fluid_basis->basis_eval(uCRH, ix, 1, iN + 1);
     const double em_t = fluid_basis->basis_eval(uCRH, ix, 2, iN + 1);
 
-    auto lambda = nullptr;
+    double lambda[8];
+    if (ionization_enabled) {
+      paczynski_terms(state, ix, iN + 1, lambda);
+    }
     const double t_g = temperature_from_conserved(eos, tau, vel, em_t, lambda);
 
     // TODO(astrobarker): composition
@@ -509,13 +504,22 @@ void RadHydroPackage::fill_derived(State *state, const GridStructure &grid,
   auto uPF = state->u_pf();
   auto uAF = state->u_af();
 
-  static constexpr int ilo = 1;
+  static constexpr int ilo = 0;
   static const int ihi = grid.get_ihi() + 2;
   const int nNodes = grid.get_n_nodes();
+  static const bool ionization_enabled = state->ionization_enabled();
 
   // --- Apply BC ---
   bc::fill_ghost_zones<2>(uCF, &grid, rad_basis_, bcs_, {3, 4});
   bc::fill_ghost_zones<3>(uCF, &grid, fluid_basis_, bcs_, {0, 2});
+
+  if (state->composition_enabled()) {
+    fill_derived_comps(state, &grid, fluid_basis_);
+  }
+
+  if (ionization_enabled) {
+    fill_derived_ionization(state, &grid, fluid_basis_);
+  }
 
   Kokkos::parallel_for(
       "RadHydro::fill_derived", Kokkos::RangePolicy<>(ilo, ihi),
@@ -534,11 +538,18 @@ void RadHydroPackage::fill_derived(State *state, const GridStructure &grid,
           const double momentum = rho * vel;
           const double sie = (emt - 0.5 * vel * vel);
 
-          auto lambda = nullptr;
+          // This is probably not the cleanest logic, but setups with
+          // ionization enabled and Paczynski disbled are an outlier.
+          double lambda[8];
+          if (ionization_enabled) {
+            paczynski_terms(state, ix, iN, lambda);
+          }
           const double pressure =
               pressure_from_conserved(eos_, tau, vel, emt, lambda);
           const double t_gas =
               temperature_from_conserved(eos_, tau, vel, emt, lambda);
+          const double cs =
+              sound_speed_from_conserved(eos_, tau, vel, emt, lambda);
 
           uPF(ix, iN, 0) = rho;
           uPF(ix, iN, 1) = momentum;
@@ -546,6 +557,7 @@ void RadHydroPackage::fill_derived(State *state, const GridStructure &grid,
 
           uAF(ix, iN, 0) = pressure;
           uAF(ix, iN, 1) = t_gas;
+          uAF(ix, iN, 2) = cs;
         }
       });
 }

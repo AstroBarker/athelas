@@ -231,7 +231,15 @@ auto HydroPackage::min_timestep(const State *const state,
 
         const double dr = grid.get_widths(ix);
 
-        auto lambda = nullptr;
+        // NOTE: This is not really correct. I'm using a nodal location for
+        // getting the ionization terms but cell average quantities for the
+        // sound speed. This is only an issue in pure hydro + ionization
+        // which should be an edge case.
+        // TODO(astrobarker): implement cell averaged Paczynski terms?
+        double lambda[8];
+        if (state->ionization_enabled()) {
+          paczynski_terms(state, ix, 1, lambda);
+        }
         const double Cs =
             sound_speed_from_conserved(eos_, tau_x, vel_x, eint_x, lambda);
         const double eigval = Cs + std::abs(vel_x);
@@ -270,6 +278,7 @@ void HydroPackage::fill_derived(State *const state, const GridStructure &grid,
   static constexpr int ilo = 0;
   static const int ihi = grid.get_ihi() + 2;
   const int nNodes = grid.get_n_nodes();
+  static const bool ionization_enabled = state->ionization_enabled();
 
   // --- Apply BC ---
   bc::fill_ghost_zones<3>(uCF, &grid, basis_, bcs_, {0, 2});
@@ -278,7 +287,7 @@ void HydroPackage::fill_derived(State *const state, const GridStructure &grid,
     fill_derived_comps(state, &grid, basis_);
   }
 
-  if (state->ionization_enabled()) {
+  if (ionization_enabled) {
     fill_derived_ionization(state, &grid, basis_);
   }
 
@@ -294,7 +303,12 @@ void HydroPackage::fill_derived(State *const state, const GridStructure &grid,
           const double momentum = rho * vel;
           const double sie = (emt - 0.5 * vel * vel);
 
-          auto lambda = nullptr;
+          double lambda[8];
+          // This is probably not the cleanest logic, but setups with
+          // ionization enabled and Paczynski disbled are an outlier.
+          if (ionization_enabled) {
+            paczynski_terms(state, ix, iN, lambda);
+          }
           const double pressure =
               pressure_from_conserved(eos_, tau, vel, emt, lambda);
           const double t_gas =
