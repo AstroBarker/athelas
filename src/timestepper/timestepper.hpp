@@ -40,18 +40,18 @@ class TimeStepper {
    * Update fluid solution with SSPRK methods
    **/
   void step(PackageManager *pkgs, State *state, GridStructure &grid,
-            const double dt, SlopeLimiter *sl_hydro) {
+            const double t, const double dt, SlopeLimiter *sl_hydro) {
 
     // hydro explicit update
-    update_fluid_explicit(pkgs, state, grid, dt, sl_hydro);
+    update_fluid_explicit(pkgs, state, grid, t, dt, sl_hydro);
   }
 
   /**
    * Explicit fluid update with SSPRK methods
    **/
   void update_fluid_explicit(PackageManager *pkgs, State *state,
-                             GridStructure &grid, const double dt,
-                             SlopeLimiter *sl_hydro) {
+                             GridStructure &grid, const double t,
+                             const double dt, SlopeLimiter *sl_hydro) {
 
     const auto &order = grid.get_n_nodes();
     const auto &ihi = grid.get_ihi();
@@ -63,7 +63,7 @@ class TimeStepper {
 
     grid_s_[0] = grid;
 
-    TimeStepInfo dt_info{.t = 0.0, .dt = dt, .dt_a = dt, .stage = 0};
+    TimeStepInfo dt_info{.t = t, .dt = dt, .dt_a = dt, .stage = 0};
 
     for (int iS = 0; iS < nStages_; ++iS) {
       dt_info.stage = iS;
@@ -81,27 +81,27 @@ class TimeStepper {
 
       for (int j = 0; j < iS; ++j) {
         dt_info.stage = j;
+        dt_info.t = t + integrator_.explicit_tableau.c_i(j);
         auto dUs_j =
             Kokkos::subview(dU_s_, j, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
         pkgs->fill_derived(state, grid_s_[j], dt_info);
         pkgs->update_explicit(state, dUs_j, grid_s_[j], dt_info);
 
         // inner sum
+        const double dt_a_ex = integrator_.explicit_tableau.a_ij(iS, j);
         Kokkos::parallel_for(
             "Timestepper 4",
             Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
                                                    {ihi + 2, order, nvars}),
             KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
-              SumVar_U_(ix, k, q) += dt *
-                                     integrator_.explicit_tableau.a_ij(iS, j) *
-                                     dUs_j(ix, k, q);
+              SumVar_U_(ix, k, q) += dt_a_ex * dUs_j(ix, k, q);
             });
 
         Kokkos::parallel_for(
             "Timestepper::stage_data_", ihi + 2,
             KOKKOS_CLASS_LAMBDA(const int ix) {
               stage_data_(iS, ix) +=
-                  dt * integrator_.explicit_tableau.a_ij(iS, j) *
+                  dt_a_ex *
                   pkgs->get_package<HydroPackage>("Hydro")->get_flux_u(j, ix);
             });
       } // End inner loop
@@ -130,27 +130,28 @@ class TimeStepper {
 
     for (int iS = 0; iS < nStages_; ++iS) {
       dt_info.stage = iS;
+      dt_info.t = t + integrator_.explicit_tableau.c_i(iS);
       auto dUs_j =
           Kokkos::subview(dU_s_, iS, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
 
       pkgs->fill_derived(state, grid_s_[iS], dt_info);
       pkgs->update_explicit(state, dUs_j, grid_s_[iS], dt_info);
+
+      const double dt_b_ex = integrator_.explicit_tableau.b_i(iS);
       Kokkos::parallel_for(
           "Timestepper :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
                                                  {ihi + 2, order, nvars}),
           KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
-            U(ix, k, q) +=
-                dt * integrator_.explicit_tableau.b_i(iS) * dUs_j(ix, k, q);
+            U(ix, k, q) += dt_b_ex * dUs_j(ix, k, q);
           });
 
       Kokkos::parallel_for(
           "Timestepper::stage_data_::final", ihi + 2,
           KOKKOS_CLASS_LAMBDA(const int ix) {
             stage_data_(0, ix) +=
-                dt *
-                pkgs->get_package<HydroPackage>("Hydro")->get_flux_u(iS, ix) *
-                integrator_.explicit_tableau.b_i(iS);
+                dt_b_ex *
+                pkgs->get_package<HydroPackage>("Hydro")->get_flux_u(iS, ix);
           });
       auto stage_data_j = Kokkos::subview(stage_data_, 0, Kokkos::ALL);
       grid_s_[iS] = grid;
@@ -169,18 +170,19 @@ class TimeStepper {
    * Update rad hydro solution with SSPRK methods
    **/
   void step_imex(PackageManager *pkgs, State *state, GridStructure &grid,
-                 const double dt, SlopeLimiter *sl_hydro,
+                 const double t, const double dt, SlopeLimiter *sl_hydro,
                  SlopeLimiter *sl_rad) {
 
-    update_rad_hydro_imex(pkgs, state, grid, dt, sl_hydro, sl_rad);
+    update_rad_hydro_imex(pkgs, state, grid, t, dt, sl_hydro, sl_rad);
   }
 
   /**
    * Fully coupled IMEX rad hydro update with SSPRK methods
    **/
   void update_rad_hydro_imex(PackageManager *pkgs, State *state,
-                             GridStructure &grid, const double dt,
-                             SlopeLimiter *sl_hydro, SlopeLimiter *sl_rad) {
+                             GridStructure &grid, const double t,
+                             const double dt, SlopeLimiter *sl_hydro,
+                             SlopeLimiter *sl_rad) {
 
     const auto &order = grid.get_n_nodes();
     const auto &ihi = grid.get_ihi();
@@ -193,10 +195,11 @@ class TimeStepper {
     grid_s_[0] = grid;
 
     // TODO(astrobarker) pass in time
-    TimeStepInfo dt_info{.t = 0.0, .dt = dt, .dt_a = dt, .stage = 0};
+    TimeStepInfo dt_info{.t = t, .dt = dt, .dt_a = dt, .stage = 0};
 
     for (int iS = 0; iS < nStages_; ++iS) {
       dt_info.stage = iS;
+      dt_info.t = t + integrator_.explicit_tableau.c_i(iS);
       Kokkos::parallel_for(
           "Timestepper 3",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
@@ -210,6 +213,7 @@ class TimeStepper {
 
       for (int j = 0; j < iS; ++j) {
         dt_info.stage = j;
+        dt_info.t = t + integrator_.explicit_tableau.c_i(j);
         const double dt_a = dt * integrator_.explicit_tableau.a_ij(iS, j);
         const double dt_a_im = dt * integrator_.implicit_tableau.a_ij(iS, j);
         auto dUs_j =
@@ -241,9 +245,8 @@ class TimeStepper {
             "Timestepper::stage_data_", ihi + 2,
             KOKKOS_CLASS_LAMBDA(const int ix) {
               stage_data_(iS, ix) +=
-                  dt * integrator_.explicit_tableau.a_ij(iS, j) *
-                  pkgs->get_package<RadHydroPackage>("RadHydro")
-                      ->get_flux_u(j, ix);
+                  dt_a * pkgs->get_package<RadHydroPackage>("RadHydro")
+                             ->get_flux_u(j, ix);
             });
       } // End inner loop
 
@@ -296,6 +299,7 @@ class TimeStepper {
 
       // implicit update
       dt_info.stage = iS;
+      dt_info.t = t + integrator_.explicit_tableau.c_i(iS);
       dt_info.dt_a = dt * integrator_.implicit_tableau.a_ij(iS, iS);
       pkgs->fill_derived(state, grid_s_[iS], dt_info);
       pkgs->update_implicit_iterative(state, SumVar_U_, grid_s_[iS], dt_info);

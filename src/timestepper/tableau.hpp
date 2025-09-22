@@ -48,24 +48,27 @@ auto string_to_id(const std::string &method_name) -> MethodID;
 
 /**
  * @brief Butcher tableau class.
+ * NOTE: The tableau coefficients are stored on host!
  **/
 struct RKTableau {
   TableauType type; // explicit or implicit
   int order;
   int num_stages;
-  View2D<double> a_ij;
-  View1D<double> b_i;
-  View1D<double> c_i;
+  HostView2D<double> a_ij;
+  HostView1D<double> b_i;
+  HostView1D<double> c_i;
 
   // Constructor
-  RKTableau(TableauType t, int num_stages_, int order_, View2D<double> a_ij_,
-            View1D<double> b_i_, View1D<double> c_i_)
+  RKTableau(TableauType t, int num_stages_, int order_,
+            HostView2D<double> a_ij_, HostView1D<double> b_i_,
+            View1D<double> c_i_)
       : type(t), order(order_), num_stages(num_stages_), a_ij(a_ij_), b_i(b_i_),
         c_i(c_i_) {}
 };
 
 /**
  * @brief IMEX double tableau class.
+ * TODO(astrobarker): make implicit_tableau std::optional?
  **/
 struct RKIntegrator {
   MethodID name;
@@ -95,8 +98,8 @@ class ButcherTableau {
   int nStages;
   int tOrder;
 
-  View2D<double> a_ij{};
-  View1D<double> b_i{};
+  HostView2D<double> a_ij;
+  HostView1D<double> b_i;
 
  private:
   TableauType type_;
@@ -115,8 +118,8 @@ class ShuOsherTableau {
   int nStages;
   int tOrder;
 
-  View2D<double> a_ij{};
-  View2D<double> b_ij{};
+  HostView2D<double> a_ij;
+  View2D<double> b_ij;
 
  private:
   TableauType type_;

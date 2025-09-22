@@ -59,11 +59,11 @@ auto Driver::execute() -> int {
     }
 
     if (!rad_active) {
-      ssprk_.step(manager_.get(), state_.get(), grid_, dt_, &sl_hydro_);
+      ssprk_.step(manager_.get(), state_.get(), grid_, time_, dt_, &sl_hydro_);
     } else {
       try {
-        ssprk_.step_imex(manager_.get(), state_.get(), grid_, dt_, &sl_hydro_,
-                         &sl_rad_);
+        ssprk_.step_imex(manager_.get(), state_.get(), grid_, time_, dt_,
+                         &sl_hydro_, &sl_rad_);
       } catch (const AthelasError &e) {
         std::cerr << e.what() << "\n";
         return AthelasExitCodes::FAILURE;

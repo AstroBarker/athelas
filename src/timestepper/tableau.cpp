@@ -45,31 +45,21 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 1;
     constexpr static int explicit_order = 1;
     constexpr static int implicit_order = 0; // dummy
-    View2D<double> a_ex("a_ij_ex", stages, stages);
-    View1D<double> b_ex("b_i_ex", stages);
-    View1D<double> c_ex("c_i_ex", stages);
+    HostView2D<double> a_ex("a_ij_ex", stages, stages);
+    HostView1D<double> b_ex("b_i_ex", stages);
+    HostView1D<double> c_ex("c_i_ex", stages);
 
-    // host copies
-    auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-    auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-    auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-    a_ex_host(0, 0) = 0.0;
-    b_ex_host(0) = 1.0;
-    c_ex_host(0) = 1.0;
-
-    // copy to device
-    Kokkos::deep_copy(a_ex, a_ex_host);
-    Kokkos::deep_copy(b_ex, b_ex_host);
-    Kokkos::deep_copy(c_ex, c_ex_host);
+    a_ex(0, 0) = 0.0;
+    b_ex(0) = 1.0;
+    c_ex(0) = 1.0;
 
     auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order,
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    View2D<double> a_im("a_ij_im", 1, 1);
-    View1D<double> b_im("b_i_im", 1);
-    View1D<double> c_im("c_i_im", 1);
+    HostView2D<double> a_im("a_ij_im", 1, 1);
+    HostView1D<double> b_im("b_i_im", 1);
+    HostView1D<double> c_im("c_i_im", 1);
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -83,33 +73,23 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 2;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 0; // dummy
-    View2D<double> a_ex("a_ij_ex", stages, stages);
-    View1D<double> b_ex("b_i_ex", stages);
-    View1D<double> c_ex("c_i_ex", stages);
+    HostView2D<double> a_ex("a_ij_ex", stages, stages);
+    HostView1D<double> b_ex("b_i_ex", stages);
+    HostView1D<double> c_ex("c_i_ex", stages);
 
-    // host copies
-    auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-    auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-    auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-    a_ex_host(1, 0) = 1.0;
-    b_ex_host(0) = 0.5;
-    b_ex_host(1) = 0.5;
-    c_ex_host(0) = 0.0;
-    c_ex_host(1) = 1.0;
-
-    // copy to device
-    Kokkos::deep_copy(a_ex, a_ex_host);
-    Kokkos::deep_copy(b_ex, b_ex_host);
-    Kokkos::deep_copy(c_ex, c_ex_host);
+    a_ex(1, 0) = 1.0;
+    b_ex(0) = 0.5;
+    b_ex(1) = 0.5;
+    c_ex(0) = 0.0;
+    c_ex(1) = 1.0;
 
     auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order,
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    View2D<double> a_im("a_ij_im", 1, 1);
-    View1D<double> b_im("b_i_im", 1);
-    View1D<double> c_im("c_i_im", 1);
+    HostView2D<double> a_im("a_ij_im", 1, 1);
+    HostView1D<double> b_im("b_i_im", 1);
+    HostView1D<double> c_im("c_i_im", 1);
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -123,37 +103,27 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 3;
     constexpr static int explicit_order = 3;
     constexpr static int implicit_order = 0; // dummy
-    View2D<double> a_ex("a_ij_ex", stages, stages);
-    View1D<double> b_ex("b_i_ex", stages);
-    View1D<double> c_ex("c_i_ex", stages);
+    HostView2D<double> a_ex("a_ij_ex", stages, stages);
+    HostView1D<double> b_ex("b_i_ex", stages);
+    HostView1D<double> c_ex("c_i_ex", stages);
 
-    // host copies
-    auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-    auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-    auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-    a_ex_host(1, 0) = 1.0;
-    a_ex_host(2, 0) = 0.25;
-    a_ex_host(2, 1) = 0.25;
-    b_ex_host(0) = 1.0 / 6.0;
-    b_ex_host(1) = 1.0 / 6.0;
-    b_ex_host(2) = 2.0 / 3.0;
-    c_ex_host(0) = 0.0;
-    c_ex_host(1) = 1.0;
-    c_ex_host(2) = 0.5;
-
-    // copy to device
-    Kokkos::deep_copy(a_ex, a_ex_host);
-    Kokkos::deep_copy(b_ex, b_ex_host);
-    Kokkos::deep_copy(c_ex, c_ex_host);
+    a_ex(1, 0) = 1.0;
+    a_ex(2, 0) = 0.25;
+    a_ex(2, 1) = 0.25;
+    b_ex(0) = 1.0 / 6.0;
+    b_ex(1) = 1.0 / 6.0;
+    b_ex(2) = 2.0 / 3.0;
+    c_ex(0) = 0.0;
+    c_ex(1) = 1.0;
+    c_ex(2) = 0.5;
 
     auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order,
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    View2D<double> a_im("a_ij_im", 1, 1);
-    View1D<double> b_im("b_i_im", 1);
-    View1D<double> c_im("c_i_im", 1);
+    HostView2D<double> a_im("a_ij_im", 1, 1);
+    HostView1D<double> b_im("b_i_im", 1);
+    HostView1D<double> c_im("c_i_im", 1);
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -168,50 +138,40 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 5;
     constexpr static int explicit_order = 4;
     constexpr static int implicit_order = 0; // dummy
-    View2D<double> a_ex("a_ij_ex", stages, stages);
-    View1D<double> b_ex("b_i_ex", stages);
-    View1D<double> c_ex("c_i_ex", stages);
+    HostView2D<double> a_ex("a_ij_ex", stages, stages);
+    HostView1D<double> b_ex("b_i_ex", stages);
+    HostView1D<double> c_ex("c_i_ex", stages);
 
-    // host copies
-    auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-    auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-    auto c_ex_host = Kokkos::create_mirror_view(c_ex);
+    a_ex(1, 0) = 0.39175222700392;
+    a_ex(2, 0) = 0.21766909633821;
+    a_ex(2, 1) = 0.36841059262959;
+    a_ex(3, 0) = 0.08269208670950;
+    a_ex(3, 1) = 0.13995850206999;
+    a_ex(3, 2) = 0.25189177424738;
+    a_ex(4, 0) = 0.06796628370320;
+    a_ex(4, 1) = 0.11503469844438;
+    a_ex(4, 2) = 0.20703489864929;
+    a_ex(4, 3) = 0.54497475021237;
 
-    a_ex_host(1, 0) = 0.39175222700392;
-    a_ex_host(2, 0) = 0.21766909633821;
-    a_ex_host(2, 1) = 0.36841059262959;
-    a_ex_host(3, 0) = 0.08269208670950;
-    a_ex_host(3, 1) = 0.13995850206999;
-    a_ex_host(3, 2) = 0.25189177424738;
-    a_ex_host(4, 0) = 0.06796628370320;
-    a_ex_host(4, 1) = 0.11503469844438;
-    a_ex_host(4, 2) = 0.20703489864929;
-    a_ex_host(4, 3) = 0.54497475021237;
+    b_ex(0) = 0.14681187618661;
+    b_ex(1) = 0.24848290924556;
+    b_ex(2) = 0.10425883036650;
+    b_ex(3) = 0.27443890091960;
+    b_ex(4) = 0.22600748319395;
 
-    b_ex_host(0) = 0.14681187618661;
-    b_ex_host(1) = 0.24848290924556;
-    b_ex_host(2) = 0.10425883036650;
-    b_ex_host(3) = 0.27443890091960;
-    b_ex_host(4) = 0.22600748319395;
-
-    c_ex_host(0) = 0.0;
-    c_ex_host(1) = 0.39175222700392;
-    c_ex_host(2) = 0.58607968896779;
-    c_ex_host(3) = 0.47454236302687;
-    c_ex_host(4) = 0.93501063100924;
-
-    // copy to device
-    Kokkos::deep_copy(a_ex, a_ex_host);
-    Kokkos::deep_copy(b_ex, b_ex_host);
-    Kokkos::deep_copy(c_ex, c_ex_host);
+    c_ex(0) = 0.0;
+    c_ex(1) = 0.39175222700392;
+    c_ex(2) = 0.58607968896779;
+    c_ex(3) = 0.47454236302687;
+    c_ex(4) = 0.93501063100924;
 
     auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order,
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    View2D<double> a_im("a_ij_im", 1, 1);
-    View1D<double> b_im("b_i_im", 1);
-    View1D<double> c_im("c_i_im", 1);
+    HostView2D<double> a_im("a_ij_im", 1, 1);
+    HostView1D<double> b_im("b_i_im", 1);
+    HostView1D<double> c_im("c_i_im", 1);
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -226,50 +186,40 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 5;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 0; // dummy
-    View2D<double> a_ex("a_ij_ex", stages, stages);
-    View1D<double> b_ex("b_i_ex", stages);
-    View1D<double> c_ex("c_i_ex", stages);
+    HostView2D<double> a_ex("a_ij_ex", stages, stages);
+    HostView1D<double> b_ex("b_i_ex", stages);
+    HostView1D<double> c_ex("c_i_ex", stages);
 
-    // host copies
-    auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-    auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-    auto c_ex_host = Kokkos::create_mirror_view(c_ex);
+    a_ex(1, 0) = 0.25;
+    a_ex(2, 0) = 0.25;
+    a_ex(3, 0) = 0.25;
+    a_ex(4, 0) = 0.25;
+    a_ex(2, 1) = 0.25;
+    a_ex(3, 1) = 0.25;
+    a_ex(4, 1) = 0.25;
+    a_ex(3, 2) = 0.25;
+    a_ex(4, 2) = 0.25;
+    a_ex(4, 3) = 0.25;
 
-    a_ex_host(1, 0) = 0.25;
-    a_ex_host(2, 0) = 0.25;
-    a_ex_host(3, 0) = 0.25;
-    a_ex_host(4, 0) = 0.25;
-    a_ex_host(2, 1) = 0.25;
-    a_ex_host(3, 1) = 0.25;
-    a_ex_host(4, 1) = 0.25;
-    a_ex_host(3, 2) = 0.25;
-    a_ex_host(4, 2) = 0.25;
-    a_ex_host(4, 3) = 0.25;
+    b_ex(0) = 1.0 / 5.0;
+    b_ex(1) = 1.0 / 5.0;
+    b_ex(2) = 1.0 / 5.0;
+    b_ex(3) = 1.0 / 5.0;
+    b_ex(4) = 1.0 / 5.0;
 
-    b_ex_host(0) = 1.0 / 5.0;
-    b_ex_host(1) = 1.0 / 5.0;
-    b_ex_host(2) = 1.0 / 5.0;
-    b_ex_host(3) = 1.0 / 5.0;
-    b_ex_host(4) = 1.0 / 5.0;
-
-    c_ex_host(0) = 0.0;
-    c_ex_host(1) = 0.25;
-    c_ex_host(2) = 0.5;
-    c_ex_host(3) = 0.75;
-    c_ex_host(4) = 1.0;
-
-    // copy to device
-    Kokkos::deep_copy(a_ex, a_ex_host);
-    Kokkos::deep_copy(b_ex, b_ex_host);
-    Kokkos::deep_copy(c_ex, c_ex_host);
+    c_ex(0) = 0.0;
+    c_ex(1) = 0.25;
+    c_ex(2) = 0.5;
+    c_ex(3) = 0.75;
+    c_ex(4) = 1.0;
 
     auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order,
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    View2D<double> a_im("a_ij_im", 1, 1);
-    View1D<double> b_im("b_i_im", 1);
-    View1D<double> c_im("c_i_im", 1);
+    HostView2D<double> a_im("a_ij_im", 1, 1);
+    HostView1D<double> b_im("b_i_im", 1);
+    HostView1D<double> c_im("c_i_im", 1);
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -284,50 +234,40 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 5;
     constexpr static int explicit_order = 3;
     constexpr static int implicit_order = 0; // dummy
-    View2D<double> a_ex("a_ij_ex", stages, stages);
-    View1D<double> b_ex("b_i_ex", stages);
-    View1D<double> c_ex("c_i_ex", stages);
+    HostView2D<double> a_ex("a_ij_ex", stages, stages);
+    HostView1D<double> b_ex("b_i_ex", stages);
+    HostView1D<double> c_ex("c_i_ex", stages);
 
-    // host copies
-    auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-    auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-    auto c_ex_host = Kokkos::create_mirror_view(c_ex);
+    a_ex(1, 0) = 0.377;
+    a_ex(2, 0) = 0.377;
+    a_ex(3, 0) = 0.164;
+    a_ex(4, 0) = 0.149;
+    a_ex(2, 1) = 0.377;
+    a_ex(3, 1) = 0.164;
+    a_ex(4, 1) = 0.148;
+    a_ex(3, 2) = 0.164;
+    a_ex(4, 2) = 0.148;
+    a_ex(4, 3) = 0.342;
 
-    a_ex_host(1, 0) = 0.377;
-    a_ex_host(2, 0) = 0.377;
-    a_ex_host(3, 0) = 0.164;
-    a_ex_host(4, 0) = 0.149;
-    a_ex_host(2, 1) = 0.377;
-    a_ex_host(3, 1) = 0.164;
-    a_ex_host(4, 1) = 0.148;
-    a_ex_host(3, 2) = 0.164;
-    a_ex_host(4, 2) = 0.148;
-    a_ex_host(4, 3) = 0.342;
+    b_ex(0) = 0.197;
+    b_ex(1) = 0.118;
+    b_ex(2) = 0.117;
+    b_ex(3) = 0.270;
+    b_ex(4) = 0.298;
 
-    b_ex_host(0) = 0.197;
-    b_ex_host(1) = 0.118;
-    b_ex_host(2) = 0.117;
-    b_ex_host(3) = 0.270;
-    b_ex_host(4) = 0.298;
-
-    c_ex_host(0) = 0.0;
-    c_ex_host(1) = 0.377;
-    c_ex_host(2) = 0.755;
-    c_ex_host(3) = 0.491;
-    c_ex_host(4) = 0.788;
-
-    // copy to device
-    Kokkos::deep_copy(a_ex, a_ex_host);
-    Kokkos::deep_copy(b_ex, b_ex_host);
-    Kokkos::deep_copy(c_ex, c_ex_host);
+    c_ex(0) = 0.0;
+    c_ex(1) = 0.377;
+    c_ex(2) = 0.755;
+    c_ex(3) = 0.491;
+    c_ex(4) = 0.788;
 
     auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order,
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    View2D<double> a_im("a_ij_im", 1, 1);
-    View1D<double> b_im("b_i_im", 1);
-    View1D<double> c_im("c_i_im", 1);
+    HostView2D<double> a_im("a_ij_im", 1, 1);
+    HostView1D<double> b_im("b_i_im", 1);
+    HostView1D<double> c_im("c_i_im", 1);
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -341,43 +281,25 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 1;
     constexpr static int explicit_order = 1;
     constexpr static int implicit_order = 1;
-    View2D<double> a_ex("a_ij_ex", stages, stages);
-    View1D<double> b_ex("b_i_ex", stages);
-    View1D<double> c_ex("c_i_ex", stages);
+    HostView2D<double> a_ex("a_ij_ex", stages, stages);
+    HostView1D<double> b_ex("b_i_ex", stages);
+    HostView1D<double> c_ex("c_i_ex", stages);
 
-    // host copies
-    auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-    auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-    auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-    a_ex_host(0, 0) = 0.0;
-    b_ex_host(0) = 1.0;
-    c_ex_host(0) = 1.0;
-
-    // copy to device
-    Kokkos::deep_copy(a_ex, a_ex_host);
-    Kokkos::deep_copy(b_ex, b_ex_host);
-    Kokkos::deep_copy(c_ex, c_ex_host);
+    a_ex(0, 0) = 0.0;
+    b_ex(0) = 1.0;
+    c_ex(0) = 1.0;
 
     auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order,
                                       stages, a_ex, b_ex, c_ex);
 
     // implicit tableau
-    View2D<double> a_im("a_ij_im", stages, stages);
-    View1D<double> b_im("b_i_im", stages);
-    View1D<double> c_im("c_i_im", stages);
+    HostView2D<double> a_im("a_ij_im", stages, stages);
+    HostView1D<double> b_im("b_i_im", stages);
+    HostView1D<double> c_im("c_i_im", stages);
 
-    auto a_im_host = Kokkos::create_mirror_view(a_im);
-    auto b_im_host = Kokkos::create_mirror_view(b_im);
-    auto c_im_host = Kokkos::create_mirror_view(c_im);
-
-    a_im_host(0, 0) = 1.0;
-    b_im_host(0) = 1.0;
-    c_im_host(0) = 1.0;
-
-    Kokkos::deep_copy(a_im, a_im_host);
-    Kokkos::deep_copy(b_im, b_im_host);
-    Kokkos::deep_copy(c_im, c_im_host);
+    a_im(0, 0) = 1.0;
+    b_im(0) = 1.0;
+    c_im(0) = 1.0;
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -391,50 +313,32 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 2;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 2;
-    View2D<double> a_ex("a_ij_ex", stages, stages);
-    View1D<double> b_ex("b_i_ex", stages);
-    View1D<double> c_ex("c_i_ex", stages);
+    HostView2D<double> a_ex("a_ij_ex", stages, stages);
+    HostView1D<double> b_ex("b_i_ex", stages);
+    HostView1D<double> c_ex("c_i_ex", stages);
 
-    // host copies
-    auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-    auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-    auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-    a_ex_host(1, 0) = 1.0;
-    b_ex_host(0) = 0.5;
-    b_ex_host(1) = 0.5;
-    c_ex_host(0) = 0.0;
-    c_ex_host(1) = 1.0;
-
-    // copy to device
-    Kokkos::deep_copy(a_ex, a_ex_host);
-    Kokkos::deep_copy(b_ex, b_ex_host);
-    Kokkos::deep_copy(c_ex, c_ex_host);
+    a_ex(1, 0) = 1.0;
+    b_ex(0) = 0.5;
+    b_ex(1) = 0.5;
+    c_ex(0) = 0.0;
+    c_ex(1) = 1.0;
 
     auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order,
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    View2D<double> a_im("a_ij_im", stages, stages);
-    View1D<double> b_im("b_i_im", stages);
-    View1D<double> c_im("c_i_im", stages);
-
-    auto a_im_host = Kokkos::create_mirror_view(a_im);
-    auto b_im_host = Kokkos::create_mirror_view(b_im);
-    auto c_im_host = Kokkos::create_mirror_view(c_im);
+    HostView2D<double> a_im("a_ij_im", stages, stages);
+    HostView1D<double> b_im("b_i_im", stages);
+    HostView1D<double> c_im("c_i_im", stages);
 
     constexpr static double gam = 1.0 - (1.0 / std::numbers::sqrt2);
-    a_im_host(0, 0) = gam;
-    a_im_host(1, 0) = 1.0 - 2.0 * gam;
-    a_im_host(1, 1) = gam;
-    b_im_host(0) = 0.5;
-    b_im_host(1) = 0.5;
-    c_im_host(0) = gam;
-    c_im_host(1) = 1.0 - gam;
-
-    Kokkos::deep_copy(a_im, a_im_host);
-    Kokkos::deep_copy(b_im, b_im_host);
-    Kokkos::deep_copy(c_im, c_im_host);
+    a_im(0, 0) = gam;
+    a_im(1, 0) = 1.0 - 2.0 * gam;
+    a_im(1, 1) = gam;
+    b_im(0) = 0.5;
+    b_im(1) = 0.5;
+    c_im(0) = gam;
+    c_im(1) = 1.0 - gam;
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -448,58 +352,40 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 3;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 2;
-    View2D<double> a_ex("a_ij_ex", stages, stages);
-    View1D<double> b_ex("b_i_ex", stages);
-    View1D<double> c_ex("c_i_ex", stages);
-
-    // host copies
-    auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-    auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-    auto c_ex_host = Kokkos::create_mirror_view(c_ex);
+    HostView2D<double> a_ex("a_ij_ex", stages, stages);
+    HostView1D<double> b_ex("b_i_ex", stages);
+    HostView1D<double> c_ex("c_i_ex", stages);
 
     constexpr static double a32 = (3.0 + 2.0 * std::numbers::sqrt2) / 6.0;
-    a_ex_host(1, 0) = 2.0 - std::numbers::sqrt2;
-    a_ex_host(2, 0) = 1.0 - a32;
-    a_ex_host(2, 1) = a32;
-    b_ex_host(0) = +1.0 / (2.0 * std::numbers::sqrt2);
-    b_ex_host(1) = +1.0 / (2.0 * std::numbers::sqrt2);
-    b_ex_host(2) = 1.0 - 1.0 / std::numbers::sqrt2;
-    c_ex_host(0) = 0.0;
-    c_ex_host(1) = 2.0 - std::numbers::sqrt2;
-    c_ex_host(2) = 1.0;
-
-    // copy to device
-    Kokkos::deep_copy(a_ex, a_ex_host);
-    Kokkos::deep_copy(b_ex, b_ex_host);
-    Kokkos::deep_copy(c_ex, c_ex_host);
+    a_ex(1, 0) = 2.0 - std::numbers::sqrt2;
+    a_ex(2, 0) = 1.0 - a32;
+    a_ex(2, 1) = a32;
+    b_ex(0) = +1.0 / (2.0 * std::numbers::sqrt2);
+    b_ex(1) = +1.0 / (2.0 * std::numbers::sqrt2);
+    b_ex(2) = 1.0 - 1.0 / std::numbers::sqrt2;
+    c_ex(0) = 0.0;
+    c_ex(1) = 2.0 - std::numbers::sqrt2;
+    c_ex(2) = 1.0;
 
     auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order,
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    View2D<double> a_im("a_ij_im", stages, stages);
-    View1D<double> b_im("b_i_im", stages);
-    View1D<double> c_im("c_i_im", stages);
+    HostView2D<double> a_im("a_ij_im", stages, stages);
+    HostView1D<double> b_im("b_i_im", stages);
+    HostView1D<double> c_im("c_i_im", stages);
 
-    auto a_im_host = Kokkos::create_mirror_view(a_im);
-    auto b_im_host = Kokkos::create_mirror_view(b_im);
-    auto c_im_host = Kokkos::create_mirror_view(c_im);
-
-    a_im_host(1, 0) = 1.0 - 1.0 / std::numbers::sqrt2;
-    a_im_host(2, 0) = +1.0 / (2.0 * std::numbers::sqrt2);
-    a_im_host(1, 1) = 1.0 - 1.0 / std::numbers::sqrt2;
-    a_im_host(2, 1) = +1.0 / (2.0 * std::numbers::sqrt2);
-    a_im_host(2, 2) = 1.0 - 1.0 / std::numbers::sqrt2;
-    b_im_host(0) = +1.0 / (2.0 * std::numbers::sqrt2);
-    b_im_host(1) = +1.0 / (2.0 * std::numbers::sqrt2);
-    b_im_host(2) = 1.0 - 1.0 / std::numbers::sqrt2;
-    c_im_host(0) = 0.0;
-    c_im_host(1) = 2.0 - std::numbers::sqrt2;
-    c_im_host(2) = 1.0;
-
-    Kokkos::deep_copy(a_im, a_im_host);
-    Kokkos::deep_copy(b_im, b_im_host);
-    Kokkos::deep_copy(c_im, c_im_host);
+    a_im(1, 0) = 1.0 - 1.0 / std::numbers::sqrt2;
+    a_im(2, 0) = +1.0 / (2.0 * std::numbers::sqrt2);
+    a_im(1, 1) = 1.0 - 1.0 / std::numbers::sqrt2;
+    a_im(2, 1) = +1.0 / (2.0 * std::numbers::sqrt2);
+    a_im(2, 2) = 1.0 - 1.0 / std::numbers::sqrt2;
+    b_im(0) = +1.0 / (2.0 * std::numbers::sqrt2);
+    b_im(1) = +1.0 / (2.0 * std::numbers::sqrt2);
+    b_im(2) = 1.0 - 1.0 / std::numbers::sqrt2;
+    c_im(0) = 0.0;
+    c_im(1) = 2.0 - std::numbers::sqrt2;
+    c_im(2) = 1.0;
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -513,56 +399,38 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 3;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 2;
-    View2D<double> a_ex("a_ij_ex", stages, stages);
-    View1D<double> b_ex("b_i_ex", stages);
-    View1D<double> c_ex("c_i_ex", stages);
+    HostView2D<double> a_ex("a_ij_ex", stages, stages);
+    HostView1D<double> b_ex("b_i_ex", stages);
+    HostView1D<double> c_ex("c_i_ex", stages);
 
-    // host copies
-    auto a_ex_host = Kokkos::create_mirror_view(a_ex);
-    auto b_ex_host = Kokkos::create_mirror_view(b_ex);
-    auto c_ex_host = Kokkos::create_mirror_view(c_ex);
-
-    a_ex_host(1, 0) = 1.0;
-    a_ex_host(2, 0) = 0.5;
-    a_ex_host(2, 1) = 0.5;
-    b_ex_host(0) = 0.5;
-    b_ex_host(1) = 0.5;
-    b_ex_host(2) = 0.0;
-    c_ex_host(0) = 0.0;
-    c_ex_host(1) = 1.0;
-    c_ex_host(2) = 1.0;
-
-    // copy to device
-    Kokkos::deep_copy(a_ex, a_ex_host);
-    Kokkos::deep_copy(b_ex, b_ex_host);
-    Kokkos::deep_copy(c_ex, c_ex_host);
+    a_ex(1, 0) = 1.0;
+    a_ex(2, 0) = 0.5;
+    a_ex(2, 1) = 0.5;
+    b_ex(0) = 0.5;
+    b_ex(1) = 0.5;
+    b_ex(2) = 0.0;
+    c_ex(0) = 0.0;
+    c_ex(1) = 1.0;
+    c_ex(2) = 1.0;
 
     auto explicit_tableau = RKTableau(TableauType::Explicit, explicit_order,
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    View2D<double> a_im("a_ij_im", stages, stages);
-    View1D<double> b_im("b_i_im", stages);
-    View1D<double> c_im("c_i_im", stages);
-
-    auto a_im_host = Kokkos::create_mirror_view(a_im);
-    auto b_im_host = Kokkos::create_mirror_view(b_im);
-    auto c_im_host = Kokkos::create_mirror_view(c_im);
+    HostView2D<double> a_im("a_ij_im", stages, stages);
+    HostView1D<double> b_im("b_i_im", stages);
+    HostView1D<double> c_im("c_i_im", stages);
 
     constexpr static double eps = 0.0;
-    a_im_host(1, 1) = 1.0;
-    a_im_host(2, 1) = 0.5 - eps;
-    a_im_host(2, 2) = 0.5 + eps;
-    b_im_host(0) = 0.0;
-    b_im_host(1) = 0.5 - eps;
-    b_im_host(2) = 0.5 + eps;
-    c_im_host(0) = 0.0;
-    c_im_host(1) = 1.0;
-    c_im_host(2) = 1.0;
-
-    Kokkos::deep_copy(a_im, a_im_host);
-    Kokkos::deep_copy(b_im, b_im_host);
-    Kokkos::deep_copy(c_im, c_im_host);
+    a_im(1, 1) = 1.0;
+    a_im(2, 1) = 0.5 - eps;
+    a_im(2, 2) = 0.5 + eps;
+    b_im(0) = 0.0;
+    b_im(1) = 0.5 - eps;
+    b_im(2) = 0.5 + eps;
+    c_im(0) = 0.0;
+    c_im(1) = 1.0;
+    c_im(2) = 1.0;
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
