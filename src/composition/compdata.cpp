@@ -1,10 +1,13 @@
+#include <memory>
+
 #include "composition/compdata.hpp"
 #include "utils/error.hpp"
 
 // NOTE: if nodes exceeds order we have a problem here.
 CompositionData::CompositionData(const int nX, const int order,
                                  const int n_species)
-    : nX_(nX), order_(order), n_species_(n_species) {
+    : nX_(nX), order_(order), n_species_(n_species),
+      species_indexer_(std::make_unique<Params>()) {
 
   if (n_species <= 0) {
     THROW_ATHELAS_ERROR("CompositionData :: n_species must be > 0!");
@@ -33,6 +36,9 @@ CompositionData::CompositionData(const int nX, const int order,
 [[nodiscard]] auto CompositionData::number_density() const noexcept
     -> View2D<double> {
   return number_density_;
+}
+[[nodiscard]] auto CompositionData::species_indexer() noexcept -> Params * {
+  return species_indexer_.get();
 }
 
 // --- end CompositionData ---

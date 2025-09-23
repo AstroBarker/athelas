@@ -37,6 +37,9 @@ using View1D = Kokkos::View<T *>;
 template <typename T>
 using HostView1D = Kokkos::View<T *, Kokkos::HostSpace>;
 
+template <typename T>
+using HostView2D = Kokkos::View<T **, Kokkos::HostSpace>;
+
 namespace custom_reductions { // namespace helps with name resolution in
                               // reduction identity
 template <class ScalarType, int N>

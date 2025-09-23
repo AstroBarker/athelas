@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "atom/atom.hpp"
+#include "interface/params.hpp"
 #include "utils/abstractions.hpp"
 
 using atom::AtomicData;
@@ -48,12 +49,19 @@ class CompositionData {
 
   [[nodiscard]] auto number_density() const noexcept -> View2D<double>;
 
+  [[nodiscard]] auto species_indexer() noexcept -> Params *;
+
   [[nodiscard]] auto n_species() const noexcept -> size_t {
     return mass_fractions_.extent(2);
   }
 
  private:
   int nX_, order_, n_species_;
+
+  // This params object holds indices of species of interest.
+  // For example, for nickel heating, I store indices "ni56" -> int etc.
+  // Put whatever you like here.
+  std::unique_ptr<Params> species_indexer_;
 
   View3D<double> mass_fractions_; // [nX][order][n_species]
   View2D<double> number_density_; // [nX][order] number per unit mass

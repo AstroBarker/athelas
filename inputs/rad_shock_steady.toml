@@ -37,6 +37,7 @@ radiation = true
 gravity = false
 composition = false
 ionization = false
+heating = false
 
 # TODO(astrobarker) fix
 [bc]

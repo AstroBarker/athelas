@@ -137,7 +137,7 @@ class TimeStepper {
       pkgs->fill_derived(state, grid_s_[iS], dt_info);
       pkgs->update_explicit(state, dUs_j, grid_s_[iS], dt_info);
 
-      const double dt_b_ex = integrator_.explicit_tableau.b_i(iS);
+      const double dt_b_ex = dt * integrator_.explicit_tableau.b_i(iS);
       Kokkos::parallel_for(
           "Timestepper :: u^(n+1) from the stages",
           Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
@@ -384,8 +384,10 @@ class TimeStepper {
   }
 
   [[nodiscard]] auto n_stages() const noexcept -> int;
+  [[nodiscard]] static auto nvars_evolved(const ProblemIn *pin) noexcept -> int;
 
  private:
+  int nvars_evolved_;
   int mSize_;
 
   // tableaus

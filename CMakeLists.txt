@@ -94,6 +94,7 @@ include_directories(src)
 include_directories("src/composition")
 include_directories("src/concepts")
 include_directories("src/geometry")
+include_directories("src/heating")
 include_directories("src/history")
 include_directories("src/interface")
 include_directories("src/quadrature")
@@ -132,6 +133,7 @@ set( ATHELAS_SOURCES
   "src/eos/eos_polytropic.cpp"
   "src/fluid/fluid_utilities.cpp"
   "src/fluid/hydro_package.cpp"
+  "src/heating/nickel_package.cpp"
   "src/history/history.cpp"
   "src/interface/params.cpp"
   "src/radiation/radhydro_package.cpp"

@@ -189,6 +189,12 @@ ProblemIn::ProblemIn(const std::string &fn) {
     THROW_ATHELAS_ERROR("Ionization enabled but composition disabled!");
   }
 
+  std::optional<bool> heating = config_["physics"]["heating"].value<bool>();
+  if (!heating) {
+    THROW_ATHELAS_ERROR("Missing or invalid 'heating' in [physics] block.");
+  }
+  params_->add("physics.heating.active", grav.value());
+
   // ---------------------------------
   // ---------- fluid block ----------
   // ---------------------------------
@@ -540,6 +546,37 @@ ProblemIn::ProblemIn(const std::string &fn) {
     params_->add("ionization.fn_degeneracy", fn_deg.value());
     params_->add("ionization.ncomps", saha_ncomps.value());
   }
+
+  // -----------------------------------
+  // ---------- heating block ----------
+  // -----------------------------------
+  if (heating.value()) {
+    if (!config_["heating"].is_table()) {
+      THROW_ATHELAS_ERROR(
+          "Heating is enabled but no [heating] block exists in input deck!");
+    }
+    if (config_["heating"]["nickel"].is_table()) {
+      std::optional<bool> nickel_enabled =
+          config_["heating"]["nickel"]["enabled"].value<bool>();
+      if (!nickel_enabled) {
+        THROW_ATHELAS_ERROR(
+            "[heating.nickel] is requested but 'enabled' is missing!");
+      }
+      params_->add("physics.heating.nickel.enabled", nickel_enabled.value());
+
+      std::optional<std::string> nickel_model =
+          config_["heating"]["nickel"]["model"].value<std::string>();
+      if (!nickel_model) {
+        THROW_ATHELAS_ERROR(
+            "[heating.nickel] is requested but 'model' is missing!");
+      }
+      params_->add("heating.nickel.model", nickel_model.value());
+    } else {
+      params_->add("physics.heating.nickel.enabled", false);
+    }
+  } else {
+    params_->add("physics.heating.nickel.enabled", false);
+  } // heating block
 
   // ----------------------------
   // ---------- output ----------

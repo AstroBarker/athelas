@@ -18,6 +18,7 @@
 #include "pgen/hydrostatic_balance.hpp"
 #include "pgen/marshak.hpp"
 #include "pgen/moving_contact.hpp"
+#include "pgen/ni_decay.hpp"
 #include "pgen/noh.hpp"
 #include "pgen/one_zone_ionization.hpp"
 #include "pgen/problem_in.hpp"
@@ -75,6 +76,8 @@ void initialize_fields(State *state, GridStructure *grid, const EOS *eos,
     marshak_init(state, grid, pin, eos, fluid_basis, radiation_basis);
   } else if (problem_name == "one_zone_ionization") {
     one_zone_ionization_init(state, grid, pin, eos, fluid_basis);
+  } else if (problem_name == "ni_decay") {
+    ni_decay_init(state, grid, pin, eos, fluid_basis);
   } else {
     THROW_ATHELAS_ERROR("Please choose a valid problem_name!");
   }

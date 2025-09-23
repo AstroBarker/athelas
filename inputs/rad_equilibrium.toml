@@ -21,6 +21,7 @@ radiation = true
 gravity = false
 composition = false
 ionization = false
+heating = false
 
 [bc]
 [bc.fluid]
