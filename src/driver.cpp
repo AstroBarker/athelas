@@ -3,6 +3,7 @@
 #include "eos/eos_variant.hpp"
 #include "fluid/hydro_package.hpp"
 #include "gravity/gravity_package.hpp"
+#include "heating/nickel_package.hpp"
 #include "history/quantities.hpp"
 #include "initialization.hpp"
 #include "interface/packages_base.hpp"
@@ -122,6 +123,7 @@ auto Driver::execute() -> int {
 void Driver::initialize(ProblemIn *pin) { // NOLINT
   using fluid::HydroPackage;
   using gravity::GravityPackage;
+  using ni::NiHeatingPackage;
 
   const auto nx = pin_->param()->get<int>("problem.nx");
   const int max_order =
@@ -169,6 +171,8 @@ void Driver::initialize(ProblemIn *pin) { // NOLINT
 
   const bool rad_active = pin->param()->get<bool>("physics.rad_active");
   const bool gravity_active = pin->param()->get<bool>("physics.gravity_active");
+  const bool ni_heating_active =
+      pin->param()->get<bool>("physics.heating.nickel.enabled");
 
   // --- Init physics package manager ---
   // NOTE: Hydro/RadHydro should be registered first
@@ -187,6 +191,9 @@ void Driver::initialize(ProblemIn *pin) { // NOLINT
         GravityPackage{pin, pin->param()->get<GravityModel>("gravity.model"),
                        pin->param()->get<double>("gravity.gval"),
                        fluid_basis_.get(), cfl, true});
+  }
+  if (ni_heating_active) {
+    manager_->add_package(NiHeatingPackage{pin, fluid_basis_.get(), cfl, true});
   }
   auto registered_pkgs = manager_->get_package_names();
   std::print("# Registered Packages ::");
