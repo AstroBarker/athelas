@@ -37,9 +37,11 @@ class IonizationState {
 // Composition data handler - manages mass fractions and ionization fractions
 class CompositionData {
  public:
-  CompositionData(int nX, int order, int n_species);
+  CompositionData(int nX, int order, int n_species, int n_stages);
 
   [[nodiscard]] auto mass_fractions() const noexcept -> View3D<double>;
+
+  [[nodiscard]] auto mass_fractions_stages() const noexcept -> View4D<double>;
 
   [[nodiscard]] auto charge() const noexcept -> View1D<int>;
 
@@ -64,6 +66,7 @@ class CompositionData {
   std::unique_ptr<Params> species_indexer_;
 
   View3D<double> mass_fractions_; // [nX][order][n_species]
+  View4D<double> mass_fractions_stages_; // [n_stages][nX][order][n_species]
   View2D<double> number_density_; // [nX][order] number per unit mass
   View2D<double> ye_; // [nx][nnodes]
   View1D<int> charge_; // n_species

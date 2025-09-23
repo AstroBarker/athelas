@@ -71,7 +71,8 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
   const double sie = constants::k_B * temperature / (gm1 * mu * constants::m_p);
 
   std::shared_ptr<CompositionData> comps = std::make_shared<CompositionData>(
-      grid->get_n_elements() + 2, order, ncomps);
+      grid->get_n_elements() + 2, order, ncomps,
+      state->params()->get<int>("n_stages"));
   std::shared_ptr<IonizationState> ionization_state =
       std::make_shared<IonizationState>(grid->get_n_elements() + 2, nNodes,
                                         saha_ncomps, saha_ncomps + 1,

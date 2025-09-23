@@ -11,6 +11,8 @@ State::State(const ProblemIn *const pin, const int nstages)
   // NOTE: This will need to be extended when mixing is added.
   static const bool composition_evolved =
       pin->param()->get<bool>("physics.heating.nickel.enabled");
+  static const bool nickel_evolved =
+      pin->param()->get<bool>("physics.heating.nickel.enabled");
   static const int nvars_cons = (rad_enabled) ? 5 : 3;
   static const int nvars_prim = 3; // Maybe this can be smarter
   static const int nvars_aux = (rad_enabled) ? 5 : 3;
@@ -32,6 +34,7 @@ State::State(const ProblemIn *const pin, const int nstages)
   params_->add("composition_enabled", composition_enabled);
   params_->add("ionization_enabled", ionization_enabled);
   params_->add("composition_evolved", composition_evolved);
+  params_->add("nickel_evolved", nickel_evolved);
 }
 
 void State::setup_composition(std::shared_ptr<CompositionData> comps) {
@@ -75,6 +78,12 @@ void State::setup_ionization(std::shared_ptr<IonizationState> ion) {
 [[nodiscard]] auto State::composition_evolved() const noexcept -> bool {
   return params_->get<bool>("composition_evolved");
 }
+
+[[nodiscard]] auto State::nickel_evolved() const noexcept -> bool {
+  return params_->get<bool>("nickel_evolved");
+}
+
+auto State::params() noexcept -> Params * { return params_.get(); }
 
 // num var accessors
 auto State::n_cf() const noexcept -> int {

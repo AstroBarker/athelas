@@ -28,12 +28,15 @@ class State {
   [[nodiscard]] auto composition_enabled() const noexcept -> bool;
   [[nodiscard]] auto ionization_enabled() const noexcept -> bool;
   [[nodiscard]] auto composition_evolved() const noexcept -> bool;
+  [[nodiscard]] auto nickel_evolved() const noexcept -> bool;
 
   [[nodiscard]] auto comps() const -> CompositionData *;
   [[nodiscard]] auto ionization_state() const -> IonizationState *;
 
   void setup_composition(std::shared_ptr<CompositionData> comps);
   void setup_ionization(std::shared_ptr<IonizationState> ion);
+
+  auto params() noexcept -> Params *;
 
  private:
   std::unique_ptr<Params> params_;

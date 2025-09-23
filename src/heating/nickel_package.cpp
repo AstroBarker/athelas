@@ -81,8 +81,9 @@ void NiHeatingPackage::ni_update(const View3D<double> ucf,
           local_sum += e_ni * f_dep * sqrt_gm * weight;
         }
 
-        dU(ix, k, 2) +=
-            local_sum * grid.get_widths(ix) / basis_->get_mass_matrix(ix, k);
+        const double dx_o_mkk =
+            grid.get_widths(ix) / basis_->get_mass_matrix(ix, 0);
+        dU(ix, k, 2) += local_sum * dx_o_mkk;
       });
 
   // TODO(astrobarker): Should this be an option?
