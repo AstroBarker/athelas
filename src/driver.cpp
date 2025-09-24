@@ -43,6 +43,8 @@ auto Driver::execute() -> int {
   print_simulation_parameters(grid_, pin_.get());
   write_state(state_.get(), grid_, &sl_hydro_, pin_.get(), time_,
               pin_->param()->get<int>("fluid.porder"), 0, rad_active);
+  history_->write(*state_, grid_, fluid_basis_.get(), radiation_basis_.get(),
+                  time_);
 
   // --- Evolution loop ---
   int iStep = 0;
@@ -233,4 +235,11 @@ void Driver::initialize(ProblemIn *pin) { // NOLINT
   }
   history_->add_quantity("Total Fluid Momentum [g cm / s]",
                          analysis::total_fluid_momentum);
+
+  // total nickel56, cobalt56, iron56
+  if (ni_heating_active) {
+    history_->add_quantity("Total 56Ni Mass [g]", analysis::total_mass_ni56);
+    history_->add_quantity("Total 56Co Mass [g]", analysis::total_mass_co56);
+    history_->add_quantity("Total 56Fe Mass [g]", analysis::total_mass_fe56);
+  }
 }
