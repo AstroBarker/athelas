@@ -125,7 +125,7 @@ auto Driver::execute() -> int {
 void Driver::initialize(ProblemIn *pin) { // NOLINT
   using fluid::HydroPackage;
   using gravity::GravityPackage;
-  using ni::NiHeatingPackage;
+  using nickel::NickelHeatingPackage;
 
   const auto nx = pin_->param()->get<int>("problem.nx");
   const int max_order =
@@ -195,7 +195,7 @@ void Driver::initialize(ProblemIn *pin) { // NOLINT
                        fluid_basis_.get(), cfl, true});
   }
   if (ni_heating_active) {
-    manager_->add_package(NiHeatingPackage{pin, fluid_basis_.get(), cfl, true});
+    manager_->add_package(NickelHeatingPackage{pin, fluid_basis_.get(), true});
   }
   auto registered_pkgs = manager_->get_package_names();
   std::print("# Registered Packages ::");

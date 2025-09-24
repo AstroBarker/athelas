@@ -193,7 +193,7 @@ ProblemIn::ProblemIn(const std::string &fn) {
   if (!heating) {
     THROW_ATHELAS_ERROR("Missing or invalid 'heating' in [physics] block.");
   }
-  params_->add("physics.heating.active", grav.value());
+  params_->add("physics.heating.active", heating.value());
 
   // ---------------------------------
   // ---------- fluid block ----------

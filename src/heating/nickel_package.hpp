@@ -9,19 +9,14 @@
 #include "utils/abstractions.hpp"
 #include "utils/constants.hpp"
 
-namespace ni {
+namespace nickel {
 
 using bc::BoundaryConditions;
 
 // FullTrapping
 // Exp / Leakage
 // Schwartz (Schwarz)
-// Schwartz (different form)
-enum class NiHeatingModel {
-  FullTrapping,
-  ExpDeposition,
-  Schwartz // TODO(astrobarker): rename
-};
+enum class NiHeatingModel { FullTrapping, ExpDeposition, Schwartz };
 
 inline auto parse_model(const std::string &model) -> NiHeatingModel {
   if (model == "full_trapping") {
@@ -33,13 +28,13 @@ inline auto parse_model(const std::string &model) -> NiHeatingModel {
   if (model == "schwartz") {
     return NiHeatingModel::Schwartz;
   }
-  throw std::invalid_argument("Unknown NiHeatingModel: " + model);
+  THROW_ATHELAS_ERROR("Unknown nickel heating model!");
 }
 
-class NiHeatingPackage {
+class NickelHeatingPackage {
  public:
-  NiHeatingPackage(const ProblemIn *pin, ModalBasis *basis, double cfl,
-                   bool active = true);
+  NickelHeatingPackage(const ProblemIn *pin, ModalBasis *basis,
+                       bool active = true);
 
   KOKKOS_FUNCTION
   void update_explicit(const State *const state, View3D<double> dU,
@@ -52,17 +47,10 @@ class NiHeatingPackage {
                  View3D<double> dU, const GridStructure &grid,
                  const TimeStepInfo &dt_info) const;
 
-  // TODO(astrobarker): rewrite to have only two exp
-  KOKKOS_FORCEINLINE_FUNCTION
-  static auto eps_nickel1(const double time) {
-    return E_NI_ * std::exp(-time * LAMBDA_NI_) +
-           E_CO_ * (std::exp(-time / TAU_CO_) - std::exp(-time * LAMBDA_NI_));
-  }
-
-  // NOTE: E_NI_ etc are energy release per gram per second
+  // NOTE: E_LAMBDA_NI etc are energy release per gram per second
   KOKKOS_FORCEINLINE_FUNCTION
   static auto eps_nickel2(const double x_ni, const double x_co) -> double {
-    return E_NI_ * 1.0 * x_ni + E_CO_ * 1.0 * x_co;
+    return E_LAMBDA_NI * x_ni + E_LAMBDA_CO * x_co;
   }
 
   KOKKOS_FUNCTION
@@ -96,26 +84,21 @@ class NiHeatingPackage {
 
   View2D<double> deposition_function_;
 
-  double gval_; // constant gravity
-
   ModalBasis *basis_;
-
-  double cfl_;
 
   // constants
   static constexpr double TAU_NI_ =
-      8.764372373400 *
-      constants::seconds_to_days; // seconds TODO(astrobarker): impact
-                                  // of using simpler values?
+      8.764372373400 * constants::seconds_to_days; // seconds
   static constexpr double LAMBDA_NI_ = 1.0 / TAU_NI_;
   static constexpr double TAU_CO_ =
       111.4 * constants::seconds_to_days; // seconds (113.6?)
   static constexpr double LAMBDA_CO_ = 1.0 / TAU_CO_;
-  static constexpr double E_NI_ = 3.9e10; // erg
-  static constexpr double E_CO_ = 6.78e9; // erg
+  // These are eps_x * lambda_x and have units of erg/g/s
+  static constexpr double E_LAMBDA_NI = 3.9e10; // erg / g / s
+  static constexpr double E_LAMBDA_CO = 6.78e9; // erg / g / s
 };
 
 KOKKOS_FORCEINLINE_FUNCTION
 auto kappa_gamma(const double ye) -> double { return 0.06 * ye; }
 
-} // namespace ni
+} // namespace nickel

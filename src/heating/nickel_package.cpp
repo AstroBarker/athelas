@@ -1,17 +1,16 @@
 #include "heating/nickel_package.hpp"
 #include "basis/polynomial_basis.hpp"
-#include "constants.hpp"
 #include "geometry/grid.hpp"
 #include "pgen/problem_in.hpp"
 #include "utils/abstractions.hpp"
 #include "utils/utilities.hpp"
 
-namespace ni {
+namespace nickel {
 using utilities::to_lower;
 
-NiHeatingPackage::NiHeatingPackage(const ProblemIn *pin, ModalBasis *basis,
-                                   const double cfl, const bool active)
-    : active_(active), basis_(basis), cfl_(cfl) {
+NickelHeatingPackage::NickelHeatingPackage(const ProblemIn *pin,
+                                           ModalBasis *basis, const bool active)
+    : active_(active), basis_(basis) {
   // set up heating deposition model
   const auto model_str =
       to_lower(pin->param()->get<std::string>("heating.nickel.model"));
@@ -19,10 +18,10 @@ NiHeatingPackage::NiHeatingPackage(const ProblemIn *pin, ModalBasis *basis,
 }
 
 KOKKOS_FUNCTION
-void NiHeatingPackage::update_explicit(const State *const state,
-                                       View3D<double> dU,
-                                       const GridStructure &grid,
-                                       const TimeStepInfo &dt_info) const {
+void NickelHeatingPackage::update_explicit(const State *const state,
+                                           View3D<double> dU,
+                                           const GridStructure &grid,
+                                           const TimeStepInfo &dt_info) const {
   static const int &ihi = grid.get_ihi();
   const auto u_stages = state->u_cf_stages();
 
@@ -40,6 +39,7 @@ void NiHeatingPackage::update_explicit(const State *const state,
   const auto ind_offset = ucf.extent(2);
 
   // --- Zero out dU  ---
+  // TODO(astrobarker): perhaps care to be taken here once mixing is in.
   Kokkos::parallel_for(
       "NiHeating :: Zero dU", ihi + 1, KOKKOS_LAMBDA(const int ix) {
         dU(ix, 0, ind_offset + ind_ni) = 0.0;
@@ -47,24 +47,25 @@ void NiHeatingPackage::update_explicit(const State *const state,
         dU(ix, 0, ind_offset + ind_fe) = 0.0;
       });
 
-  if (model_ == NiHeatingModel::Schwartz) {
+  if (model_ == NiHeatingModel::Schwartz) [[likely]] {
     ni_update<NiHeatingModel::Schwartz>(ucf, comps, dU, grid, dt_info);
-  } else [[unlikely]] {
+  } else if (model_ == NiHeatingModel::ExpDeposition) {
+    ni_update<NiHeatingModel::ExpDeposition>(ucf, comps, dU, grid, dt_info);
+  } else {
     ni_update<NiHeatingModel::FullTrapping>(ucf, comps, dU, grid, dt_info);
   }
 }
 
 KOKKOS_FUNCTION
 template <NiHeatingModel Model>
-void NiHeatingPackage::ni_update(const View3D<double> ucf,
-                                 CompositionData *comps, View3D<double> dU,
-                                 const GridStructure &grid,
-                                 const TimeStepInfo &dt_info) const {
+void NickelHeatingPackage::ni_update(const View3D<double> ucf,
+                                     CompositionData *comps, View3D<double> dU,
+                                     const GridStructure &grid,
+                                     const TimeStepInfo &dt_info) const {
   const int &nNodes = grid.get_n_nodes();
   const int &order = basis_->get_order();
   static constexpr int ilo = 1;
   static const int &ihi = grid.get_ihi();
-  const double time = dt_info.t;
 
   const auto mass = grid.mass();
   const auto mass_fractions_stages = comps->mass_fractions_stages();
@@ -82,6 +83,8 @@ void NiHeatingPackage::ni_update(const View3D<double> ucf,
   const auto ind_fe = species_indexer->get<int>("fe56");
 
   // This can probably be simplified.
+  // NOTE: This source term uses a mass integral instead of a volumetric one.
+  // It's just simpler and natural here.
   Kokkos::parallel_for(
       "ni :: Update",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
@@ -96,14 +99,11 @@ void NiHeatingPackage::ni_update(const View3D<double> ucf,
           const double f_dep =
               this->template deposition_function<Model>(ix, iN);
           const double e_ni = eps_nickel2(X_ni, X_co);
-          // const double e_ni = eps_nickel1(time);
-          local_sum +=
-              e_ni * f_dep * 1.0 * weight * basis_->get_phi(ix, iN + 1, k);
+          local_sum += e_ni * f_dep * weight * basis_->get_phi(ix, iN + 1, k);
         }
 
         const double dx_o_mkk = mass(ix) / basis_->get_mass_matrix(ix, k);
         dU(ix, k, 2) += local_sum * dx_o_mkk;
-        //                        std::println("dU e {}", dU(ix, k, 2));
       });
 
   // TODO(astrobarker): Should this be an option?
@@ -125,13 +125,23 @@ void NiHeatingPackage::ni_update(const View3D<double> ucf,
         dU(ix, 0, ind_offset + ind_fe) += rhs_fe;
       });
 }
+
+/**
+ * @brief Nickel 56 heating deposition function.
+ * @note The function is templated on the NiHeatingModel which selects
+ * the deposition function.
+ */
 KOKKOS_FUNCTION
 template <NiHeatingModel Model>
-auto NiHeatingPackage::deposition_function(const int ix, const int node) const
-    -> double {
+auto NickelHeatingPackage::deposition_function(const int ix,
+                                               const int node) const -> double {
   double f_dep = 0.0;
   if constexpr (Model == NiHeatingModel::FullTrapping) {
     f_dep = 1.0;
+  } else if constexpr (Model == NiHeatingModel::Schwartz) {
+    THROW_ATHELAS_ERROR("Schwartz deposition model not implemented!");
+  } else if constexpr (Model == NiHeatingModel::ExpDeposition) {
+    THROW_ATHELAS_ERROR("ExpDep deposition model not implemented!");
   }
   return f_dep;
 }
@@ -139,12 +149,12 @@ auto NiHeatingPackage::deposition_function(const int ix, const int node) const
 /**
  * @brief Nickel 56 heating timestep restriction
  * @note We simply require the timestep to be smaller than the 56Ni mean
- *lifetime.
+ * lifetime / 10.
  **/
 KOKKOS_FUNCTION
-auto NiHeatingPackage::min_timestep(const State *const /*state*/,
-                                    const GridStructure & /*grid*/,
-                                    const TimeStepInfo & /*dt_info*/) const
+auto NickelHeatingPackage::min_timestep(const State *const /*state*/,
+                                        const GridStructure & /*grid*/,
+                                        const TimeStepInfo & /*dt_info*/) const
     -> double {
   // We limit explicit timesteps to be no larger than the 1/10 Ni56 mean
   // lifetime
@@ -153,21 +163,21 @@ auto NiHeatingPackage::min_timestep(const State *const /*state*/,
   return dt_out;
 }
 
-void NiHeatingPackage::fill_derived(State * /*state*/,
-                                    const GridStructure & /*grid*/,
-                                    const TimeStepInfo & /*dt_info*/) const {}
+void NickelHeatingPackage::fill_derived(
+    State * /*state*/, const GridStructure & /*grid*/,
+    const TimeStepInfo & /*dt_info*/) const {}
 
-[[nodiscard]] KOKKOS_FUNCTION auto NiHeatingPackage::name() const noexcept
+[[nodiscard]] KOKKOS_FUNCTION auto NickelHeatingPackage::name() const noexcept
     -> std::string_view {
   return "NickelHeating";
 }
 
-[[nodiscard]] KOKKOS_FUNCTION auto NiHeatingPackage::is_active() const noexcept
-    -> bool {
+[[nodiscard]] KOKKOS_FUNCTION auto
+NickelHeatingPackage::is_active() const noexcept -> bool {
   return active_;
 }
 
 KOKKOS_FUNCTION
-void NiHeatingPackage::set_active(const bool active) { active_ = active; }
+void NickelHeatingPackage::set_active(const bool active) { active_ = active; }
 
-} // namespace ni
+} // namespace nickel

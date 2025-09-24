@@ -1,6 +1,6 @@
 [problem]
 problem = "ni_decay"
-t_end = 524880 # one half-life of 56Ni
+t_end = 524880.0 # one half-life of 56Ni
 nlim = -1
 geometry = "spherical"
 restart = false
