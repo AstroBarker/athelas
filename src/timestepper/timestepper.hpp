@@ -249,6 +249,7 @@ class TimeStepper {
 
     const auto &order = grid.get_n_nodes();
     const auto &ihi = grid.get_ihi();
+    const auto evolve_nickel = state->nickel_evolved();
 
     auto uCF = state->u_cf();
     auto U_s = state->u_cf_stages();
@@ -271,6 +272,21 @@ class TimeStepper {
             SumVar_U_(ix, k, q) = uCF(ix, k, q);
             stage_data_(iS, ix) = grid_s_[iS].get_left_interface(ix);
           });
+      if (evolve_nickel) {
+        auto *comps = state->comps();
+        auto mass_fractions = comps->mass_fractions();
+        const auto *const species_indexer = comps->species_indexer();
+        const auto ind_ni = species_indexer->get<int>("ni56");
+        const auto ind_co = species_indexer->get<int>("co56");
+        const auto ind_fe = species_indexer->get<int>("fe56");
+        Kokkos::parallel_for(
+            "Timestepper :: Ni :: Reset SumVar", ihi + 2,
+            KOKKOS_CLASS_LAMBDA(const int ix) {
+              SumVar_U_(ix, 0, 5 + ind_ni) = mass_fractions(ix, 0, ind_ni);
+              SumVar_U_(ix, 0, 5 + ind_co) = mass_fractions(ix, 0, ind_co);
+              SumVar_U_(ix, 0, 5 + ind_fe) = mass_fractions(ix, 0, ind_fe);
+            });
+      }
 
       // --- Inner update loop ---
 
@@ -293,6 +309,16 @@ class TimeStepper {
             KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
               SumVar_U_(ix, k, q) += dt_a * dUs_j(ix, k, q);
             });
+
+        if (evolve_nickel) {
+          Kokkos::parallel_for(
+              "Timestepper 4",
+              Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 5},
+                                                     {ihi + 2, nvars + 5}),
+              KOKKOS_CLASS_LAMBDA(const int ix, const int q) {
+                SumVar_U_(ix, 0, q) += dt_a * dUs_j(ix, 0, q);
+              });
+        }
 
         pkgs->update_implicit(state, dUs_j, grid_s_[j], dt_info);
 
@@ -325,6 +351,25 @@ class TimeStepper {
           KOKKOS_CLASS_LAMBDA(const int ix, const int k, const int q) {
             U_s(iS, ix, k, q) = SumVar_U_(ix, k, q);
           });
+
+      if (evolve_nickel) {
+        auto *comps = state->comps();
+        auto mass_fractions_stages = comps->mass_fractions_stages();
+        const auto *const species_indexer = comps->species_indexer();
+        const auto ind_ni = species_indexer->get<int>("ni56");
+        const auto ind_co = species_indexer->get<int>("co56");
+        const auto ind_fe = species_indexer->get<int>("fe56");
+        Kokkos::parallel_for(
+            "Timestepper :: Nickel :: Set Us", ihi + 2,
+            KOKKOS_CLASS_LAMBDA(const int ix) {
+              mass_fractions_stages(iS, ix, 0, ind_ni) =
+                  SumVar_U_(ix, 0, 5 + ind_ni);
+              mass_fractions_stages(iS, ix, 0, ind_co) =
+                  SumVar_U_(ix, 0, 5 + ind_co);
+              mass_fractions_stages(iS, ix, 0, ind_fe) =
+                  SumVar_U_(ix, 0, 5 + ind_fe);
+            });
+      }
 
       // NOTE: The limiting strategies in this function will fail if
       // the pkg does not have access to a rad_basis and fluid_basis
@@ -418,6 +463,24 @@ class TimeStepper {
                   std::fma(dt_b_im, dUs_im_i(ix, k, q), uCF(ix, k, q));
             }
           });
+      if (evolve_nickel) {
+        auto *comps = state->comps();
+        auto mass_fractions = comps->mass_fractions();
+        const auto *const species_indexer = comps->species_indexer();
+        const auto ind_ni = species_indexer->get<int>("ni56");
+        const auto ind_co = species_indexer->get<int>("co56");
+        const auto ind_fe = species_indexer->get<int>("fe56");
+        Kokkos::parallel_for(
+            "Timestepper :: Nickel :: u^(n+1) from the stages", ihi + 2,
+            KOKKOS_CLASS_LAMBDA(const int ix) {
+              mass_fractions(ix, 0, ind_ni) +=
+                  dt_b * dUs_ex_i(ix, 0, 5 + ind_ni);
+              mass_fractions(ix, 0, ind_co) +=
+                  dt_b * dUs_ex_i(ix, 0, 5 + ind_co);
+              mass_fractions(ix, 0, ind_fe) +=
+                  dt_b * dUs_ex_i(ix, 0, 5 + ind_fe);
+            });
+      }
 
       Kokkos::parallel_for(
           "Timestepper::stage_data_::final", ihi + 2,
