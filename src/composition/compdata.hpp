@@ -40,17 +40,13 @@ class CompositionData {
   CompositionData(int nX, int order, int n_species, int n_stages);
 
   [[nodiscard]] auto mass_fractions() const noexcept -> View3D<double>;
-
+  [[nodiscard]] auto mass_fractions() noexcept -> View3D<double>;
   [[nodiscard]] auto mass_fractions_stages() const noexcept -> View4D<double>;
-
+  [[nodiscard]] auto mass_fractions_stages() noexcept -> View4D<double>;
   [[nodiscard]] auto charge() const noexcept -> View1D<int>;
-
   [[nodiscard]] auto neutron_number() const noexcept -> View1D<int>;
-
   [[nodiscard]] auto ye() const noexcept -> View2D<double>;
-
   [[nodiscard]] auto number_density() const noexcept -> View2D<double>;
-
   [[nodiscard]] auto species_indexer() noexcept -> Params *;
 
   [[nodiscard]] auto n_species() const noexcept -> size_t {

@@ -23,6 +23,7 @@ void NiHeatingPackage::update_explicit(const State *const state,
                                        View3D<double> dU,
                                        const GridStructure &grid,
                                        const TimeStepInfo &dt_info) const {
+  static const int &ihi = grid.get_ihi();
   const auto u_stages = state->u_cf_stages();
 
   const auto stage = dt_info.stage;
@@ -30,6 +31,21 @@ void NiHeatingPackage::update_explicit(const State *const state,
       Kokkos::subview(u_stages, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
 
   auto *comps = state->comps();
+  const auto *const species_indexer = comps->species_indexer();
+  // index gymnastics. dU holds updates for all quantities including
+  // compositional. ind_offset gets us beyond radhydro species.
+  const auto ind_ni = species_indexer->get<int>("ni56");
+  const auto ind_co = species_indexer->get<int>("co56");
+  const auto ind_fe = species_indexer->get<int>("fe56");
+  const auto ind_offset = ucf.extent(2);
+
+  // --- Zero out dU  ---
+  Kokkos::parallel_for(
+      "NiHeating :: Zero dU", ihi + 1, KOKKOS_LAMBDA(const int ix) {
+        dU(ix, 0, ind_offset + ind_ni) = 0.0;
+        dU(ix, 0, ind_offset + ind_co) = 0.0;
+        dU(ix, 0, ind_offset + ind_fe) = 0.0;
+      });
 
   if (model_ == NiHeatingModel::Schwartz) {
     ni_update<NiHeatingModel::Schwartz>(ucf, comps, dU, grid, dt_info);
@@ -50,7 +66,10 @@ void NiHeatingPackage::ni_update(const View3D<double> ucf,
   static const int &ihi = grid.get_ihi();
   const double time = dt_info.t;
 
-  const auto mass_fractions = comps->mass_fractions();
+  const auto mass_fractions_stages = comps->mass_fractions_stages();
+  const auto mass_fractions =
+      Kokkos::subview(mass_fractions_stages, dt_info.stage, Kokkos::ALL,
+                      Kokkos::ALL, Kokkos::ALL);
   const auto charges = comps->charge();
   const auto neutrons = comps->neutron_number();
   const auto *const species_indexer = comps->species_indexer();
@@ -78,22 +97,27 @@ void NiHeatingPackage::ni_update(const View3D<double> ucf,
           const double f_dep =
               this->template deposition_function<Model>(ix, iN);
           const double e_ni = eps_nickel2(X_ni, X_co);
+          // const double e_ni = eps_nickel1(time);
           local_sum += e_ni * f_dep * sqrt_gm * weight;
         }
 
         const double dx_o_mkk =
-            grid.get_widths(ix) / basis_->get_mass_matrix(ix, 0);
+            grid.get_widths(ix) / basis_->get_mass_matrix(ix, k);
         dU(ix, k, 2) += local_sum * dx_o_mkk;
       });
 
   // TODO(astrobarker): Should this be an option?
+  // NOTE: Nickel decay chain only affects cell averages.
   const auto ind_offset = ucf.extent(2);
   Kokkos::parallel_for(
       "NI :: Decay network", Kokkos::RangePolicy<>(ilo, ihi + 1),
       KOKKOS_CLASS_LAMBDA(const int ix) {
-        double local_sum_ni = 0.0;
-        double local_sum_co = 0.0;
-        double local_sum_fe = 0.0;
+        const double x_ni = mass_fractions(ix, 0, ind_ni);
+        const double x_co = mass_fractions(ix, 0, ind_co);
+        double local_sum_ni = -LAMBDA_NI_ * x_ni;
+        double local_sum_co = LAMBDA_NI_ * x_ni - LAMBDA_CO_ * x_co;
+        double local_sum_fe = LAMBDA_CO_ * x_co;
+        /*
         for (int iN = 0; iN < nNodes; ++iN) {
           const double X = grid.node_coordinate(ix, iN);
           const double sqrt_gm = grid.get_sqrt_gm(X);
@@ -111,11 +135,12 @@ void NiHeatingPackage::ni_update(const View3D<double> ucf,
         }
         const double dx_o_mkk =
             grid.get_widths(ix) / basis_->get_mass_matrix(ix, 0);
+        */
 
         // Decay only alters cell average mass fractions!
-        dU(ix, 0, ind_offset + ind_ni) += local_sum_ni * dx_o_mkk;
-        dU(ix, 0, ind_offset + ind_co) += local_sum_co * dx_o_mkk;
-        dU(ix, 0, ind_offset + ind_fe) += local_sum_fe * dx_o_mkk;
+        dU(ix, 0, ind_offset + ind_ni) += local_sum_ni;
+        dU(ix, 0, ind_offset + ind_co) += local_sum_co;
+        dU(ix, 0, ind_offset + ind_fe) += local_sum_fe;
       });
 }
 KOKKOS_FUNCTION

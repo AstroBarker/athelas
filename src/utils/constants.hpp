@@ -6,8 +6,7 @@
  * @brief Physical constants
  *
  * Hopefully consistent with astropy
- * TODO(astrobarker): implement different
- * unit systems
+ * TODO(astrobarker): implement different unit systems
  */
 
 #include <cmath>

@@ -25,7 +25,15 @@ CompositionData::CompositionData(const int nX, const int order,
     -> View3D<double> {
   return mass_fractions_;
 }
+[[nodiscard]] auto CompositionData::mass_fractions() noexcept
+    -> View3D<double> {
+  return mass_fractions_;
+}
 [[nodiscard]] auto CompositionData::mass_fractions_stages() const noexcept
+    -> View4D<double> {
+  return mass_fractions_stages_;
+}
+[[nodiscard]] auto CompositionData::mass_fractions_stages() noexcept
     -> View4D<double> {
   return mass_fractions_stages_;
 }
