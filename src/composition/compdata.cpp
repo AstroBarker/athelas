@@ -14,7 +14,7 @@ CompositionData::CompositionData(const int nX, const int order,
   }
   mass_fractions_ = View3D<double>("mass_fractions", nX_, order, n_species);
   mass_fractions_stages_ =
-      View4D<double>("mass_fractions", n_stages, nX_, order, n_species);
+      View4D<double>("mass_fractions_stage", n_stages, nX_, order, n_species);
   ye_ = View2D<double>("ye", nX, order + 2);
   number_density_ = View2D<double>("ye", nX, order + 2);
   charge_ = View1D<int>("charge", n_species);

@@ -62,7 +62,7 @@ class NiHeatingPackage {
   // NOTE: E_NI_ etc are energy release per gram per second
   KOKKOS_FORCEINLINE_FUNCTION
   static auto eps_nickel2(const double x_ni, const double x_co) -> double {
-    return E_NI_ * LAMBDA_NI_ * x_ni + E_CO_ * LAMBDA_CO_ * x_co;
+    return E_NI_ * 1.0 * x_ni + E_CO_ * 1.0 * x_co;
   }
 
   KOKKOS_FUNCTION
@@ -111,10 +111,8 @@ class NiHeatingPackage {
   static constexpr double TAU_CO_ =
       111.4 * constants::seconds_to_days; // seconds (113.6?)
   static constexpr double LAMBDA_CO_ = 1.0 / TAU_CO_;
-  // static constexpr double E_NI_ = 3.9e10; // erg
-  // static constexpr double E_CO_ = 6.78e9; // erg
-  static constexpr double E_NI_ = 2.96e10; // erg
-  static constexpr double E_CO_ = 6.42e10; // erg
+  static constexpr double E_NI_ = 3.9e10; // erg
+  static constexpr double E_CO_ = 6.78e9; // erg
 };
 
 KOKKOS_FORCEINLINE_FUNCTION

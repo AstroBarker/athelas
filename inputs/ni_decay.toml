@@ -1,18 +1,18 @@
 [problem]
 problem = "ni_decay"
-t_end = 525600.0 # one half-life of 56Ni
+t_end = 524880 # one half-life of 56Ni
 nlim = -1
-geometry = "planar"
+geometry = "spherical"
 restart = false
 xl = 0.0
-xr = 1.0e29
+xr = 3.622e9
 cfl = 0.8
 nx = 16
 grid_type = "uniform"
 
 [problem.params]
 temperature = 1000.0
-rho = 10000.0
+rho = 1000.0
 
 [physics]
 radiation = false
@@ -27,13 +27,13 @@ model = "full_trapping"
 
 [bc]
 [bc.fluid]
-bc_i = "outflow"
+bc_i = "reflecting"
 bc_o = "outflow"
 
 [output]
-ncycle_out = 1
+ncycle_out = 250
 #dt_hdf5 = 1.0e-12 # default: 100 outputs
-dt_init_frac = 1.005
+dt_init_frac = 1.01
 
 [output.history]
 fn = "ni_decay.hst"
@@ -41,11 +41,11 @@ fn = "ni_decay.hst"
 
 [fluid]
 basis = "legendre"
-nnodes = 1
-porder = 1
+nnodes = 2
+porder = 2
 
 [fluid.limiter]
-do_limiter = false
+do_limiter = true
 tci_opt = false
 tci_val = 0.1
 characteristic = false

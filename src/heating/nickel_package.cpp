@@ -66,6 +66,7 @@ void NiHeatingPackage::ni_update(const View3D<double> ucf,
   static const int &ihi = grid.get_ihi();
   const double time = dt_info.t;
 
+  const auto mass = grid.mass();
   const auto mass_fractions_stages = comps->mass_fractions_stages();
   const auto mass_fractions =
       Kokkos::subview(mass_fractions_stages, dt_info.stage, Kokkos::ALL,
@@ -87,8 +88,6 @@ void NiHeatingPackage::ni_update(const View3D<double> ucf,
       KOKKOS_CLASS_LAMBDA(const int ix, const int k) {
         double local_sum = 0.0;
         for (int iN = 0; iN < nNodes; ++iN) {
-          const double X = grid.node_coordinate(ix, iN);
-          const double sqrt_gm = grid.get_sqrt_gm(X);
           const double weight = grid.get_weights(iN);
           const double X_ni =
               basis_->basis_eval(mass_fractions, ix, ind_ni, iN + 1);
@@ -98,49 +97,32 @@ void NiHeatingPackage::ni_update(const View3D<double> ucf,
               this->template deposition_function<Model>(ix, iN);
           const double e_ni = eps_nickel2(X_ni, X_co);
           // const double e_ni = eps_nickel1(time);
-          local_sum += e_ni * f_dep * sqrt_gm * weight;
+          local_sum +=
+              e_ni * f_dep * 1.0 * weight * basis_->get_phi(ix, iN + 1, k);
         }
 
-        const double dx_o_mkk =
-            grid.get_widths(ix) / basis_->get_mass_matrix(ix, k);
+        const double dx_o_mkk = mass(ix) / basis_->get_mass_matrix(ix, k);
         dU(ix, k, 2) += local_sum * dx_o_mkk;
+        //                        std::println("dU e {}", dU(ix, k, 2));
       });
 
   // TODO(astrobarker): Should this be an option?
   // NOTE: Nickel decay chain only affects cell averages.
+  // Realistically I don't need to integrate X_Fe, but oh well.
   const auto ind_offset = ucf.extent(2);
   Kokkos::parallel_for(
       "NI :: Decay network", Kokkos::RangePolicy<>(ilo, ihi + 1),
       KOKKOS_CLASS_LAMBDA(const int ix) {
         const double x_ni = mass_fractions(ix, 0, ind_ni);
         const double x_co = mass_fractions(ix, 0, ind_co);
-        double local_sum_ni = -LAMBDA_NI_ * x_ni;
-        double local_sum_co = LAMBDA_NI_ * x_ni - LAMBDA_CO_ * x_co;
-        double local_sum_fe = LAMBDA_CO_ * x_co;
-        /*
-        for (int iN = 0; iN < nNodes; ++iN) {
-          const double X = grid.node_coordinate(ix, iN);
-          const double sqrt_gm = grid.get_sqrt_gm(X);
-          const double weight = grid.get_weights(iN);
-          const double X_ni =
-              basis_->basis_eval(mass_fractions, ix, ind_ni, iN + 1);
-          const double X_co =
-              basis_->basis_eval(mass_fractions, ix, ind_co, iN + 1);
-          const double X_fe =
-              basis_->basis_eval(mass_fractions, ix, ind_fe, iN + 1);
-          local_sum_ni -= LAMBDA_NI_ * X_ni * sqrt_gm * weight;
-          local_sum_co +=
-              (LAMBDA_NI_ * X_ni - LAMBDA_CO_ * X_co) * sqrt_gm * weight;
-          local_sum_fe += LAMBDA_CO_ * X_co * sqrt_gm * weight;
-        }
-        const double dx_o_mkk =
-            grid.get_widths(ix) / basis_->get_mass_matrix(ix, 0);
-        */
+        const double rhs_ni = -LAMBDA_NI_ * x_ni;
+        const double rhs_co = LAMBDA_NI_ * x_ni - LAMBDA_CO_ * x_co;
+        const double rhs_fe = LAMBDA_CO_ * x_co;
 
         // Decay only alters cell average mass fractions!
-        dU(ix, 0, ind_offset + ind_ni) += local_sum_ni;
-        dU(ix, 0, ind_offset + ind_co) += local_sum_co;
-        dU(ix, 0, ind_offset + ind_fe) += local_sum_fe;
+        dU(ix, 0, ind_offset + ind_ni) += rhs_ni;
+        dU(ix, 0, ind_offset + ind_co) += rhs_co;
+        dU(ix, 0, ind_offset + ind_fe) += rhs_fe;
       });
 }
 KOKKOS_FUNCTION
@@ -164,8 +146,9 @@ auto NiHeatingPackage::min_timestep(const State *const /*state*/,
                                     const GridStructure & /*grid*/,
                                     const TimeStepInfo & /*dt_info*/) const
     -> double {
-  // We limit explicit timesteps to be no larger than the Ni56 half life.
-  static constexpr double MAX_DT = 6.075 * constants::seconds_to_days;
+  // We limit explicit timesteps to be no larger than the 1/10 Ni56 mean
+  // lifetime
+  static constexpr double MAX_DT = TAU_NI_ / 10.0;
   static constexpr double dt_out = MAX_DT;
   return dt_out;
 }
