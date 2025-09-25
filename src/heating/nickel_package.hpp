@@ -81,8 +81,8 @@ class NickelHeatingPackage {
  private:
   bool active_;
   NiHeatingModel model_;
-
   View2D<double> deposition_function_;
+  View2D<double> tau_gamma_;
 
   ModalBasis *basis_;
 

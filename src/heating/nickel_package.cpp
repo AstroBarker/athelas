@@ -15,6 +15,10 @@ NickelHeatingPackage::NickelHeatingPackage(const ProblemIn *pin,
   const auto model_str =
       to_lower(pin->param()->get<std::string>("heating.nickel.model"));
   model_ = parse_model(model_str);
+
+  const int nx = pin->param()->get<int>("problem.nx");
+  const int nnodes = pin->param()->get<int>("fluid.nnodes");
+  tau_gamma_ = View2D<double>("tau_gamma", nx + 2, nnodes);
 }
 
 KOKKOS_FUNCTION
@@ -82,11 +86,10 @@ void NickelHeatingPackage::ni_update(const View3D<double> ucf,
   const auto ind_co = species_indexer->get<int>("co56");
   const auto ind_fe = species_indexer->get<int>("fe56");
 
-  // This can probably be simplified.
   // NOTE: This source term uses a mass integral instead of a volumetric one.
   // It's just simpler and natural here.
   Kokkos::parallel_for(
-      "ni :: Update",
+      "Nickel :: Update",
       Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
       KOKKOS_CLASS_LAMBDA(const int ix, const int k) {
         double local_sum = 0.0;
@@ -111,7 +114,7 @@ void NickelHeatingPackage::ni_update(const View3D<double> ucf,
   // Realistically I don't need to integrate X_Fe, but oh well.
   const auto ind_offset = ucf.extent(2);
   Kokkos::parallel_for(
-      "NI :: Decay network", Kokkos::RangePolicy<>(ilo, ihi + 1),
+      "Nickel :: Decay network", Kokkos::RangePolicy<>(ilo, ihi + 1),
       KOKKOS_CLASS_LAMBDA(const int ix) {
         const double x_ni = mass_fractions(ix, 0, ind_ni);
         const double x_co = mass_fractions(ix, 0, ind_co);
