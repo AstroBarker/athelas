@@ -293,7 +293,7 @@ void HydroPackage::fill_derived(State *const state, const GridStructure &grid,
 
   Kokkos::parallel_for(
       "Hydro::fill_derived", Kokkos::RangePolicy<>(ilo, ihi),
-      KOKKOS_CLASS_LAMBDA(int ix) {
+      KOKKOS_CLASS_LAMBDA(const int ix) {
         for (int iN = 0; iN < nNodes + 2; ++iN) {
           const double tau = basis_->basis_eval(uCF, ix, 0, iN);
           const double vel = basis_->basis_eval(uCF, ix, 1, iN);

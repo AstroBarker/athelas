@@ -66,6 +66,7 @@ void ni_decay_init(State *state, GridStructure *grid, ProblemIn *pin,
   auto mass_fractions = comps->mass_fractions();
   auto charges = comps->charge();
   auto neutrons = comps->neutron_number();
+  auto ye = comps->ye();
   auto *species_indexer = comps->species_indexer();
   species_indexer->add("ni56", 0);
   species_indexer->add("co56", 1);
@@ -81,6 +82,7 @@ void ni_decay_init(State *state, GridStructure *grid, ProblemIn *pin,
         for (int iNodeX = 0; iNodeX < nNodes + 2; iNodeX++) {
           uPF(ix, iNodeX, iPF_D) = rho;
           uAF(ix, iNodeX, 1) = temperature;
+          ye(ix, iNodeX) = 0.5;
         }
 
         // set up comps

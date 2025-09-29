@@ -48,6 +48,7 @@ class CompositionData {
   [[nodiscard]] auto ye() const noexcept -> View2D<double>;
   [[nodiscard]] auto number_density() const noexcept -> View2D<double>;
   [[nodiscard]] auto species_indexer() noexcept -> Params *;
+  [[nodiscard]] auto species_indexer() const noexcept -> Params *;
 
   [[nodiscard]] auto n_species() const noexcept -> size_t {
     return mass_fractions_.extent(2);

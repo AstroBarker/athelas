@@ -81,4 +81,9 @@ void initialize_fields(State *state, GridStructure *grid, const EOS *eos,
   } else {
     THROW_ATHELAS_ERROR("Please choose a valid problem_name!");
   }
+
+  // set the first stage
+  auto u_s = state->u_cf_stages();
+  auto uCF = Kokkos::subview(u_s, 0, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+  uCF = state->u_cf();
 }

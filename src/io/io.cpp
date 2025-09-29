@@ -292,9 +292,12 @@ void write_state(State *state, GridStructure &grid, SlopeLimiter *SL,
   if (composition_active) {
     const auto mass_fractions = state->comps()->mass_fractions();
     const auto charges = state->comps()->charge();
-    writer.write_view(charges, "/composition/species");
-    writer.write_view(charges, "/composition/neutron_number");
+    const auto neutron_numbers = state->comps()->neutron_number();
+    const auto ye = state->comps()->ye();
+    writer.write_view(charges, "/composition/proton_number");
+    writer.write_view(neutron_numbers, "/composition/neutron_number");
     writer.write_view(mass_fractions, "/composition/mass_fractions");
+    writer.write_view(ye, "/composition/ye");
   }
 
   if (ionization_active) {

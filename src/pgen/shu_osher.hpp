@@ -49,7 +49,7 @@ void shu_osher_init(State *state, GridStructure *grid, ProblemIn *pin,
   // Phase 1: Initialize nodal values (always done)
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
-        const double X1 = grid->get_centers(ix);
+        const double X1 = grid->centers(ix);
 
         if (X1 <= -4.0) {
           // Left state: constant values
@@ -94,7 +94,7 @@ void shu_osher_init(State *state, GridStructure *grid, ProblemIn *pin,
     Kokkos::parallel_for(
         Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
           const int k = 0;
-          const double X1 = grid->get_centers(ix);
+          const double X1 = grid->centers(ix);
 
           if (X1 <= -4.0) {
             uCF(ix, k, q_Tau) = 1.0 / D_L;
@@ -116,7 +116,7 @@ void shu_osher_init(State *state, GridStructure *grid, ProblemIn *pin,
     Kokkos::parallel_for(
         Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
           const int k = 0;
-          const double X1 = grid->get_centers(ix);
+          const double X1 = grid->centers(ix);
 
           if (X1 <= -4.0) {
             uCF(ix, k, q_Tau) = 1.0 / D_L;

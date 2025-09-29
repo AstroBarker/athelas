@@ -54,6 +54,10 @@ CompositionData::CompositionData(const int nX, const int order,
 [[nodiscard]] auto CompositionData::species_indexer() noexcept -> Params * {
   return species_indexer_.get();
 }
+[[nodiscard]] auto CompositionData::species_indexer() const noexcept
+    -> Params * {
+  return species_indexer_.get();
+}
 
 // --- end CompositionData ---
 

@@ -75,7 +75,7 @@ auto GridStructure::node_coordinate(int iC, int iN) const -> double {
 
 // Return cell center
 KOKKOS_FUNCTION
-auto GridStructure::get_centers(int iC) const -> double { return centers_(iC); }
+auto GridStructure::centers(int iC) const -> double { return centers_(iC); }
 
 // Return cell width
 KOKKOS_FUNCTION
@@ -449,9 +449,15 @@ auto GridStructure::operator()(int i, int j) const -> double {
 [[nodiscard]] auto GridStructure::mass() const -> View1D<double> {
   return mass_;
 }
+[[nodiscard]] auto GridStructure::centers() const -> View1D<double> {
+  return centers_;
+}
 [[nodiscard]] auto GridStructure::centers() -> View1D<double> {
   return centers_;
 }
 [[nodiscard]] auto GridStructure::nodal_grid() -> View2D<double> {
+  return grid_;
+}
+[[nodiscard]] auto GridStructure::nodal_grid() const -> View2D<double> {
   return grid_;
 }

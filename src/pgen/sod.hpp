@@ -49,7 +49,7 @@ void sod_init(State *state, GridStructure *grid, ProblemIn *pin, const EOS *eos,
   // Phase 1: Initialize nodal values (always done)
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(const int ix) {
-        const double X1 = grid->get_centers(ix);
+        const double X1 = grid->centers(ix);
 
         if (X1 <= x_d) {
           for (int iNodeX = 0; iNodeX < nNodes + 2; iNodeX++) {
@@ -66,7 +66,7 @@ void sod_init(State *state, GridStructure *grid, ProblemIn *pin, const EOS *eos,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(const int ix) {
         const int k = 0;
-        const double X1 = grid->get_centers(ix);
+        const double X1 = grid->centers(ix);
 
         if (X1 <= x_d) {
           uCF(ix, k, q_Tau) = 1.0 / D_L;
