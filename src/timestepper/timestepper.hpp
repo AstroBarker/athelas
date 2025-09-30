@@ -104,7 +104,7 @@ class TimeStepper {
         pkgs->update_explicit(state, dUs_j, grid_s_[j], dt_info);
 
         // inner sum
-        const double dt_a_ex = integrator_.explicit_tableau.a_ij(iS, j);
+        const double dt_a_ex = dt * integrator_.explicit_tableau.a_ij(iS, j);
         Kokkos::parallel_for(
             "Timestepper 4",
             Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0},
