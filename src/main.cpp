@@ -36,10 +36,10 @@ auto main(int argc, char **argv) -> int {
   std::string input_path = *input_result;
 
 #ifdef ATHELAS_DEBUG
-  feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW | FE_UNDERFLOW);
-  auto sig1 = signal(SIGSEGV, segfault_handler);
-  auto sig2 = signal(SIGABRT, segfault_handler);
-  auto sig3 = signal(SIGFPE, segfault_handler);
+  feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW);
+  [[maybe_unused]] auto sig1 = signal(SIGSEGV, segfault_handler);
+  [[maybe_unused]] auto sig2 = signal(SIGABRT, segfault_handler);
+  [[maybe_unused]] auto sig3 = signal(SIGFPE, segfault_handler);
 #endif
 
   std::println("# ----------------------------------------------------------");
