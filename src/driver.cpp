@@ -3,6 +3,7 @@
 #include "eos/eos_variant.hpp"
 #include "fluid/hydro_package.hpp"
 #include "gravity/gravity_package.hpp"
+#include "heating/nickel_package.hpp"
 #include "history/quantities.hpp"
 #include "initialization.hpp"
 #include "interface/packages_base.hpp"
@@ -42,6 +43,8 @@ auto Driver::execute() -> int {
   print_simulation_parameters(grid_, pin_.get());
   write_state(state_.get(), grid_, &sl_hydro_, pin_.get(), time_,
               pin_->param()->get<int>("fluid.porder"), 0, rad_active);
+  history_->write(*state_, grid_, fluid_basis_.get(), radiation_basis_.get(),
+                  time_);
 
   // --- Evolution loop ---
   int iStep = 0;
@@ -59,11 +62,11 @@ auto Driver::execute() -> int {
     }
 
     if (!rad_active) {
-      ssprk_.step(manager_.get(), state_.get(), grid_, dt_, &sl_hydro_);
+      ssprk_.step(manager_.get(), state_.get(), grid_, time_, dt_, &sl_hydro_);
     } else {
       try {
-        ssprk_.step_imex(manager_.get(), state_.get(), grid_, dt_, &sl_hydro_,
-                         &sl_rad_);
+        ssprk_.step_imex(manager_.get(), state_.get(), grid_, time_, dt_,
+                         &sl_hydro_, &sl_rad_);
       } catch (const AthelasError &e) {
         std::cerr << e.what() << "\n";
         return AthelasExitCodes::FAILURE;
@@ -122,6 +125,7 @@ auto Driver::execute() -> int {
 void Driver::initialize(ProblemIn *pin) { // NOLINT
   using fluid::HydroPackage;
   using gravity::GravityPackage;
+  using nickel::NickelHeatingPackage;
 
   const auto nx = pin_->param()->get<int>("problem.nx");
   const int max_order =
@@ -169,6 +173,8 @@ void Driver::initialize(ProblemIn *pin) { // NOLINT
 
   const bool rad_active = pin->param()->get<bool>("physics.rad_active");
   const bool gravity_active = pin->param()->get<bool>("physics.gravity_active");
+  const bool ni_heating_active =
+      pin->param()->get<bool>("physics.heating.nickel.enabled");
 
   // --- Init physics package manager ---
   // NOTE: Hydro/RadHydro should be registered first
@@ -187,6 +193,9 @@ void Driver::initialize(ProblemIn *pin) { // NOLINT
         GravityPackage{pin, pin->param()->get<GravityModel>("gravity.model"),
                        pin->param()->get<double>("gravity.gval"),
                        fluid_basis_.get(), cfl, true});
+  }
+  if (ni_heating_active) {
+    manager_->add_package(NickelHeatingPackage{pin, fluid_basis_.get(), true});
   }
   auto registered_pkgs = manager_->get_package_names();
   std::print("# Registered Packages ::");
@@ -226,4 +235,11 @@ void Driver::initialize(ProblemIn *pin) { // NOLINT
   }
   history_->add_quantity("Total Fluid Momentum [g cm / s]",
                          analysis::total_fluid_momentum);
+
+  // total nickel56, cobalt56, iron56
+  if (ni_heating_active) {
+    history_->add_quantity("Total 56Ni Mass [g]", analysis::total_mass_ni56);
+    history_->add_quantity("Total 56Co Mass [g]", analysis::total_mass_co56);
+    history_->add_quantity("Total 56Fe Mass [g]", analysis::total_mass_fe56);
+  }
 }

@@ -11,7 +11,8 @@ nx = 1
 grid_type = "uniform"
 
 [problem.params]
-temperature = 10036.0
+#temperature = 10036.0
+temperature = 1000.0
 rho = 2.8e-9
 ncomps = 5
 
@@ -20,6 +21,7 @@ radiation = false
 gravity = false
 composition = true
 ionization = true
+heating = false
 
 [ionization]
 fn_ionization = "../data/atomic_data_ionization.dat"

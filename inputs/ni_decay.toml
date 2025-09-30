@@ -1,26 +1,29 @@
 [problem]
-problem = "noh"
-t_end = 0.5
+problem = "ni_decay"
+t_end = 524880.0 # one half-life of 56Ni
 nlim = -1
-geometry = "planar"
+geometry = "spherical"
 restart = false
 xl = 0.0
-xr = 1.0
-cfl = 0.1
-nx = 128
+xr = 3.622e9
+cfl = 0.8
+nx = 16
 grid_type = "uniform"
 
 [problem.params]
-v0 = -1.0
-rho0 = 1.0
-p0 = 0.000001
+temperature = 1000.0
+rho = 1000.0
 
 [physics]
 radiation = false
 gravity = false
-composition = false
+composition = true
 ionization = false
-heating = false
+heating = true
+
+[heating.nickel]
+enabled = true
+model = "full_trapping"
 
 [bc]
 [bc.fluid]
@@ -28,12 +31,12 @@ bc_i = "reflecting"
 bc_o = "outflow"
 
 [output]
-ncycle_out = 100
-dt_hdf5 = 0.1
+ncycle_out = 250
+#dt_hdf5 = 1.0e-12 # default: 100 outputs
 dt_init_frac = 1.01
 
 [output.history]
-fn = "noh.hst"
+fn = "ni_decay.hst"
 #dt = 0.001 # default: dt_hdf5 / 10
 
 [fluid]
@@ -43,17 +46,13 @@ porder = 2
 
 [fluid.limiter]
 do_limiter = true
-type = "minmod"
-b_tvd = 1.0
-m_tvb = 0.0
 tci_opt = false
 tci_val = 0.1
-characteristic = true
-gamma_i = 0.8
+characteristic = false
 
 [time]
 integrator = "EX_SSPRK22"
 
 [eos]
 type = "ideal"
-gamma = 1.6666666667
+gamma = 1.4 # default: 1.4

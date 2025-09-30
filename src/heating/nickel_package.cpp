@@ -1,0 +1,309 @@
+#include "heating/nickel_package.hpp"
+#include "basis/polynomial_basis.hpp"
+#include "compdata.hpp"
+#include "constants.hpp"
+#include "geometry/grid.hpp"
+#include "geometry/grid_indexer.hpp"
+#include "pgen/problem_in.hpp"
+#include "utils/abstractions.hpp"
+#include "utils/utilities.hpp"
+
+namespace nickel {
+using utilities::to_lower;
+
+NickelHeatingPackage::NickelHeatingPackage(const ProblemIn *pin,
+                                           ModalBasis *basis, const bool active)
+    : active_(active), basis_(basis) {
+  // set up heating deposition model
+  const auto model_str =
+      to_lower(pin->param()->get<std::string>("heating.nickel.model"));
+  model_ = parse_model(model_str);
+
+  const int nx = pin->param()->get<int>("problem.nx");
+  const int nnodes = pin->param()->get<int>("fluid.nnodes");
+  // tau_gamma_ = View3D<double>("tau_gamma", 32, nx + 2,  nnodes); //
+  // TODO(astrobarker): make runtime
+  tau_gamma_ = View3D<double>("tau_gamma", nx + 2, nnodes,
+                              2); // TODO(astrobarker): make runtime
+  int_etau_domega_ = View2D<double>("int_etau_domega", nx + 2,
+                                    nnodes); // integration of e^-tau dOmega
+}
+
+KOKKOS_FUNCTION
+void NickelHeatingPackage::update_explicit(const State *const state,
+                                           View3D<double> dU,
+                                           const GridStructure &grid,
+                                           const TimeStepInfo &dt_info) {
+  static const int &ihi = grid.get_ihi();
+  const auto u_stages = state->u_cf_stages();
+
+  const auto stage = dt_info.stage;
+  const auto ucf =
+      Kokkos::subview(u_stages, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+
+  auto *comps = state->comps();
+  const auto *const species_indexer = comps->species_indexer();
+  // index gymnastics. dU holds updates for all quantities including
+  // compositional. ind_offset gets us beyond radhydro species.
+  const auto ind_ni = species_indexer->get<int>("ni56");
+  const auto ind_co = species_indexer->get<int>("co56");
+  const auto ind_fe = species_indexer->get<int>("fe56");
+  const auto ind_offset = ucf.extent(2);
+
+  // --- Zero out dU  ---
+  // TODO(astrobarker): perhaps care to be taken here once mixing is in.
+  Kokkos::parallel_for(
+      "NiHeating :: Zero dU", ihi + 1, KOKKOS_LAMBDA(const int ix) {
+        dU(ix, 0, ind_offset + ind_ni) = 0.0;
+        dU(ix, 0, ind_offset + ind_co) = 0.0;
+        dU(ix, 0, ind_offset + ind_fe) = 0.0;
+      });
+
+  if (model_ == NiHeatingModel::Swartz) [[likely]] {
+    ni_update<NiHeatingModel::Swartz>(ucf, comps, dU, grid, dt_info);
+  } else if (model_ == NiHeatingModel::Jeffery) {
+    ni_update<NiHeatingModel::Jeffery>(ucf, comps, dU, grid, dt_info);
+  } else {
+    ni_update<NiHeatingModel::FullTrapping>(ucf, comps, dU, grid, dt_info);
+  }
+}
+
+KOKKOS_FUNCTION
+template <NiHeatingModel Model>
+void NickelHeatingPackage::ni_update(const View3D<double> ucf,
+                                     CompositionData *comps, View3D<double> dU,
+                                     const GridStructure &grid,
+                                     const TimeStepInfo &dt_info) const {
+  const int &nNodes = grid.get_n_nodes();
+  const int &order = basis_->get_order();
+  static constexpr int ilo = 1;
+  static const int &ihi = grid.get_ihi();
+
+  const auto mass = grid.mass();
+  const auto mass_fractions_stages = comps->mass_fractions_stages();
+  const auto mass_fractions =
+      Kokkos::subview(mass_fractions_stages, dt_info.stage, Kokkos::ALL,
+                      Kokkos::ALL, Kokkos::ALL);
+  const auto *const species_indexer = comps->species_indexer();
+
+  // index gymnastics. dU holds updates for all quantities including
+  // compositional. ind_offset gets us beyond radhydro species.
+  const auto ind_ni = species_indexer->get<int>("ni56");
+  const auto ind_co = species_indexer->get<int>("co56");
+  const auto ind_fe = species_indexer->get<int>("fe56");
+
+  // NOTE: This source term uses a mass integral instead of a volumetric one.
+  // It's just simpler and natural here.
+  Kokkos::parallel_for(
+      "Nickel :: Update",
+      Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
+      KOKKOS_CLASS_LAMBDA(const int ix, const int k) {
+        double local_sum = 0.0;
+        for (int iN = 0; iN < nNodes; ++iN) {
+          const double weight = grid.get_weights(iN);
+          const double f_dep = this->template deposition_function<Model>(
+              ucf, comps, grid, ix, iN);
+          local_sum += f_dep * weight * basis_->get_phi(ix, iN + 1, k);
+        }
+
+        const double dx_o_mkk = mass(ix) / basis_->get_mass_matrix(ix, k);
+        dU(ix, k, 2) += local_sum * dx_o_mkk;
+      });
+
+  // TODO(astrobarker): Should this be an option?
+  // NOTE: Nickel decay chain only affects cell averages.
+  // Realistically I don't need to integrate X_Fe, but oh well.
+  const auto ind_offset = ucf.extent(2);
+  Kokkos::parallel_for(
+      "Nickel :: Decay network", Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_CLASS_LAMBDA(const int ix) {
+        const double x_ni = mass_fractions(ix, 0, ind_ni);
+        const double x_co = mass_fractions(ix, 0, ind_co);
+        const double rhs_ni = -LAMBDA_NI_ * x_ni;
+        const double rhs_co = LAMBDA_NI_ * x_ni - LAMBDA_CO_ * x_co;
+        const double rhs_fe = LAMBDA_CO_ * x_co;
+
+        // Decay only alters cell average mass fractions!
+        dU(ix, 0, ind_offset + ind_ni) += rhs_ni;
+        dU(ix, 0, ind_offset + ind_co) += rhs_co;
+        dU(ix, 0, ind_offset + ind_fe) += rhs_fe;
+      });
+}
+
+/**
+ * @brief Nickel 56 heating deposition function.
+ * @note The function is templated on the NiHeatingModel which selects
+ * the deposition function.
+ */
+KOKKOS_FUNCTION
+template <NiHeatingModel Model>
+auto NickelHeatingPackage::deposition_function(
+    const View3D<double> ucf, const CompositionData *const comps,
+    const GridStructure &grid, const int ix, const int node) const -> double {
+  double f_dep = 0.0;
+  if constexpr (Model == NiHeatingModel::FullTrapping) {
+    const auto *const species_indexer = comps->species_indexer();
+    const auto ind_ni = species_indexer->get<int>("ni56");
+    const auto ind_co = species_indexer->get<int>("co56");
+    const auto mass_fractions = comps->mass_fractions();
+    const double x_ni =
+        basis_->basis_eval(mass_fractions, ix, ind_ni, node + 1);
+    const double x_co =
+        basis_->basis_eval(mass_fractions, ix, ind_co, node + 1);
+    f_dep = eps_nickel_cobalt(x_ni, x_co);
+  } else if constexpr (Model == NiHeatingModel::Swartz) {
+    THROW_ATHELAS_ERROR("Swartz model not implemented!");
+  } else if constexpr (Model == NiHeatingModel::Jeffery) {
+    // Here we assume that the integral
+    // (1/4pi) e^(-tau) dOmega is already done during fill_derived
+    // and the results stored in int_etau_domega_
+    const double I = 1.0 - 0.5 * int_etau_domega_(ix, node);
+
+    const auto *const species_indexer = comps->species_indexer();
+    const auto ind_ni = species_indexer->get<int>("ni56");
+    const auto ind_co = species_indexer->get<int>("co56");
+    const auto mass_fractions = comps->mass_fractions();
+    const double x_ni =
+        basis_->basis_eval(mass_fractions, ix, ind_ni, node + 1);
+    const double x_co =
+        basis_->basis_eval(mass_fractions, ix, ind_co, node + 1);
+    f_dep = eps_nickel(x_ni) * (F_PE_NI_ + F_GM_NI_ * I) +
+            eps_cobalt(x_co) * (F_PE_CO_ + F_GM_CO_ * I);
+  }
+  return f_dep;
+}
+
+/**
+ * @brief Nickel 56 heating timestep restriction
+ * @note We simply require the timestep to be smaller than the 56Ni mean
+ * lifetime / 10. I doubt that this will ever be needed.
+ **/
+KOKKOS_FUNCTION
+auto NickelHeatingPackage::min_timestep(const State *const /*state*/,
+                                        const GridStructure & /*grid*/,
+                                        const TimeStepInfo & /*dt_info*/) const
+    -> double {
+  static constexpr double MAX_DT = TAU_NI_ / 10.0;
+  static constexpr double dt_out = MAX_DT;
+  return dt_out;
+}
+
+void NickelHeatingPackage::fill_derived(State *state, const GridStructure &grid,
+                                        const TimeStepInfo &dt_info) const {
+  using utilities::find_closest_cell;
+  using utilities::LINTERP;
+  // TODO(astrobarker): possibly compute r_min_ni here.
+  // fill dtau_gamma, tau_gamma
+  // I think we assume that tau = 0 at the outer interface, but
+  // don't include that point on the array, so start from
+  // outermost quadrature point
+  const int stage = dt_info.stage;
+
+  auto u_s = state->u_cf_stages();
+
+  auto uCF = Kokkos::subview(u_s, stage, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+  // hacky
+  if (stage == -1) {
+    uCF = state->u_cf();
+  }
+  auto uPF = state->u_pf();
+  auto uAF = state->u_af();
+
+  const auto ye = state->comps()->ye();
+
+  static constexpr int ilo = 1;
+  const int nnodes = grid.get_n_nodes();
+  const int nx = grid.get_n_elements();
+  static const RadialGridIndexer grid_indexer(nx, nnodes);
+  const auto coords = grid.nodal_grid();
+
+  using TeamPolicy = Kokkos::TeamPolicy<>;
+  using member_type = Kokkos::TeamPolicy<>::member_type;
+
+  const int nangles = tau_gamma_.extent(2); // TODO(astrobarker): make runtime!
+  const int nr = 16; // TODO(astrobarker): make runtime!
+  const double inv_nr = 1.0 / nr;
+  const int total_work = nx * nnodes;
+  const double th_max =
+      constants::PI; // Perhaps make this not go into the excised region
+  const double th_min = th_max / 4.0;
+  const double dtheta = (th_max - th_min) / (nangles);
+  const double r_outer = grid.get_x_r();
+  const double r_outer2 = r_outer * r_outer;
+  const auto centers = grid.centers();
+  Kokkos::parallel_for(
+      "Nickel :: FillDerived :: OpticalDepthCalculation",
+      TeamPolicy(total_work, Kokkos::AUTO)
+          .set_scratch_size(1, Kokkos::PerTeam(sizeof(double) * (nangles + 1))),
+      KOKKOS_CLASS_LAMBDA(member_type team_member) {
+        // Convert flat team index back to cell and node indices
+        // TODO(astrobarker): use RadialGridIndexer
+        const int team_idx = team_member.league_rank();
+        const int ix = team_idx / nnodes + ilo;
+        const int node = team_idx % nnodes;
+        const double ri = coords(ix, node);
+        const double ri2 = ri * ri;
+
+        // auto *const taugamma = &tau_gamma_(0, ix, node);
+        //  Use team shared memory for tau values
+        double *const taugamma = (double *)team_member.team_shmem().get_shmem(
+            sizeof(double) * (nangles + 1));
+
+        // Inner parallel loop over angles (thread level parallelism)
+        Kokkos::parallel_for(
+            Kokkos::TeamThreadRange(team_member, nangles + 1),
+            KOKKOS_CLASS_LAMBDA(const int iangle) {
+              // Angle-specific calculations here
+              const double cos_theta = std::cos(th_min + iangle * dtheta);
+              const double two_ri_cos = 2.0 * ri * cos_theta;
+              const double rmax =
+                  std::sqrt(r_outer2 + ri2 - two_ri_cos * r_outer);
+              const double dr = rmax * inv_nr;
+
+              // Compute optical depth for this specific (ix, node, iangle)
+              double optical_depth = 0.0;
+              for (int i = 0; i < nr + 1; ++i) {
+                const double rx = i * dr;
+                const double rj = std::sqrt(ri2 + rx * rx + two_ri_cos * rx);
+                const int index = utilities::find_closest_cell(centers, rj, nx);
+                const double rho_interp = LINTERP(
+                    centers(index), centers(index + 1), 1.0 / uCF(index, 0, 0),
+                    1.0 / uCF(index + 1, 0, 0), rx);
+                const double ye_interp =
+                    LINTERP(centers(index), centers(index + 1), ye(index, 0),
+                            ye(index + 1, nnodes + 1), rx);
+                optical_depth += dtau(rho_interp, kappa_gamma(ye_interp), dr);
+              }
+
+              taugamma[iangle] = optical_depth;
+            });
+
+        team_member.team_barrier();
+
+        double angle_integrated_tau = 0.0;
+        Kokkos::parallel_reduce(
+            Kokkos::TeamThreadRange(team_member, nangles + 1),
+            KOKKOS_LAMBDA(const int iangle, double &local_sum) {
+              const double theta = th_min + iangle * dtheta;
+              local_sum +=
+                  std::exp(taugamma[iangle]) * std::sin(theta) * dtheta;
+            },
+            angle_integrated_tau);
+        int_etau_domega_(ix, node) = angle_integrated_tau;
+      });
+}
+
+[[nodiscard]] KOKKOS_FUNCTION auto NickelHeatingPackage::name() const noexcept
+    -> std::string_view {
+  return "NickelHeating";
+}
+
+[[nodiscard]] KOKKOS_FUNCTION auto
+NickelHeatingPackage::is_active() const noexcept -> bool {
+  return active_;
+}
+
+KOKKOS_FUNCTION
+void NickelHeatingPackage::set_active(const bool active) { active_ = active; }
+
+} // namespace nickel

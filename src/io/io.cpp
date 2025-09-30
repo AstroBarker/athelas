@@ -39,6 +39,12 @@ void print_simulation_parameters(GridStructure &grid, ProblemIn *pin) {
   const bool rad_enabled = pin->param()->get<bool>("physics.rad_active");
   const bool gravity_enabled =
       pin->param()->get<bool>("physics.gravity_active");
+  const bool comps_enabled =
+      pin->param()->get<bool>("physics.composition_enabled");
+  const bool ionization_enabled =
+      pin->param()->get<bool>("physics.ionization_enabled");
+  const bool heating_enabled =
+      pin->param()->get<bool>("physics.heating.active");
 
   std::println("# --- General --- ");
   std::println("# Problem Name    : {}",
@@ -57,6 +63,9 @@ void print_simulation_parameters(GridStructure &grid, ProblemIn *pin) {
   std::println("# --- Physics Parameters --- ");
   std::println("# Radiation      : {}", rad_enabled);
   std::println("# Gravity        : {}", gravity_enabled);
+  std::println("# Composition    : {}", comps_enabled);
+  std::println("# Ionization     : {}", ionization_enabled);
+  std::println("# Heating        : {}", heating_enabled);
   std::println("# EOS            : {}",
                pin->param()->get<std::string>("eos.type"));
   std::println("");
@@ -116,6 +125,12 @@ void print_simulation_parameters(GridStructure &grid, ProblemIn *pin) {
     std::println("# --- Gravity Parameters --- ");
     std::println("# Modal           : {}",
                  pin->param()->get<std::string>("gravity.modelstring"));
+    std::println("");
+  }
+
+  if (heating_enabled) {
+    std::println("# Nickel         : {}",
+                 pin->param()->get<bool>("physics.heating.nickel.enabled"));
     std::println("");
   }
 }
@@ -277,8 +292,12 @@ void write_state(State *state, GridStructure &grid, SlopeLimiter *SL,
   if (composition_active) {
     const auto mass_fractions = state->comps()->mass_fractions();
     const auto charges = state->comps()->charge();
-    writer.write_view(charges, "/composition/species");
+    const auto neutron_numbers = state->comps()->neutron_number();
+    const auto ye = state->comps()->ye();
+    writer.write_view(charges, "/composition/proton_number");
+    writer.write_view(neutron_numbers, "/composition/neutron_number");
     writer.write_view(mass_fractions, "/composition/mass_fractions");
+    writer.write_view(ye, "/composition/ye");
   }
 
   if (ionization_active) {

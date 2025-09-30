@@ -6,8 +6,7 @@
  * @brief Physical constants
  *
  * Hopefully consistent with astropy
- * TODO(astrobarker): implement different
- * unit systems
+ * TODO(astrobarker): implement different unit systems
  */
 
 #include <cmath>
@@ -32,6 +31,7 @@ static constexpr double N_A = 6.02214076e+23; // 1 / mol
 static constexpr double c_cgs = 2.99792458e+10; // cgs
 static constexpr double c = 1.0; // natural
 static constexpr double amu_to_g = 1.66053906660e-24;
+static constexpr double seconds_to_days = 86400.0;
 
 static const double k_saha = std::pow(2. * 3. * m_e * k_B / (h * h), 1.5);
 } // namespace constants
