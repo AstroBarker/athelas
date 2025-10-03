@@ -18,10 +18,11 @@
 #include <cstdlib>
 #include <print>
 
-#include "abstractions.hpp"
-#include "error.hpp"
-#include "grid.hpp"
-#include "polynomial_basis.hpp"
+#include "basis/polynomial_basis.hpp"
+#include "utils/abstractions.hpp"
+#include "utils/error.hpp"
+
+namespace athelas::basis {
 
 /**
  * Constructor creates necessary matrices and bases, etc.
@@ -495,3 +496,5 @@ void ModalBasis::project_nodal_to_modal_all_cells(
         project_nodal_to_modal(uCF, uPF, grid, q, ix, nodal_func);
       });
 }
+
+} // namespace athelas::basis

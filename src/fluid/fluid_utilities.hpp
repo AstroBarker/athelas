@@ -14,11 +14,11 @@
  *          - compute_timestep_fluid
  */
 
-#include "abstractions.hpp"
-#include "eos_variant.hpp"
-#include "grid.hpp"
+#include "eos/eos_variant.hpp"
+#include "geometry/grid.hpp"
+#include "utils/abstractions.hpp"
 
-namespace fluid {
+namespace athelas::fluid {
 
 auto flux_fluid(const double V, const double P)
     -> std::tuple<double, double, double>;
@@ -31,4 +31,4 @@ auto numerical_flux_gudonov_positivity(double tauL, double tauR, double vL,
 void numerical_flux_hllc(double vL, double vR, double pL, double pR, double cL,
                          double cR, double rhoL, double rhoR, double &Flux_U,
                          double &Flux_P);
-} // namespace fluid
+} // namespace athelas::fluid

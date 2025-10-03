@@ -12,6 +12,8 @@
 #include "pgen/problem_in.hpp"
 #include "timestepper/timestepper.hpp"
 
+namespace athelas {
+
 using atom::AtomicData;
 using bc::BoundaryConditions;
 using limiter_utilities::initialize_slope_limiter;
@@ -103,6 +105,8 @@ class Driver {
 
   std::unique_ptr<State> state_;
 }; // class Driver
+
+} // namespace athelas
 
 namespace {
 

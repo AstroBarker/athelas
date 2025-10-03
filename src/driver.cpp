@@ -16,6 +16,8 @@
 #include "utils/abstractions.hpp"
 #include "utils/error.hpp"
 
+namespace athelas {
+
 auto Driver::execute() -> int {
   static const auto nx = pin_->param()->get<int>("problem.nx");
   static const bool rad_active = pin_->param()->get<bool>("physics.rad_active");
@@ -227,3 +229,5 @@ void Driver::initialize(ProblemIn *pin) { // NOLINT
   history_->add_quantity("Total Fluid Momentum [g cm / s]",
                          analysis::total_fluid_momentum);
 }
+
+} // namespace athelas

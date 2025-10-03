@@ -1,9 +1,8 @@
 #include "fluid/fluid_utilities.hpp"
 #include "utils/utilities.hpp"
 
+namespace athelas::fluid {
 using utilities::pos_part;
-
-namespace fluid {
 auto flux_fluid(const double V, const double P)
     -> std::tuple<double, double, double> {
   return {-V, P, P * V};
@@ -77,4 +76,4 @@ void numerical_flux_hllc(double vL, double vR, double pL, double pR, double cL,
   Flux_P = rhoL * (vL - aL) * (vL - Flux_U) + pL;
 }
 
-} // namespace fluid
+} // namespace athelas::fluid

@@ -18,7 +18,7 @@
 #include "Kokkos_Macros.hpp"
 #include "polynomial_basis.hpp"
 
-namespace utilities {
+namespace athelas::utilities {
 
 /**
  * @brief simple linear interpolation to x
@@ -104,4 +104,4 @@ KOKKOS_INLINE_FUNCTION auto to_lower(T data) -> T {
   return data;
 }
 
-} // namespace utilities
+} // namespace athelas::utilities

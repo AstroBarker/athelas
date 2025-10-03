@@ -14,6 +14,9 @@
 #include "abstractions.hpp"
 #include "grid.hpp"
 
+namespace athelas::basis {
+
+using geometry::GridStructure;
 using BasisFuncType = double(int, double, double);
 
 class ModalBasis {
@@ -81,3 +84,5 @@ class ModalBasis {
   double (*func_)(const int n, const double x, const double x_c);
   double (*dfunc_)(const int n, const double x, double const x_c);
 };
+
+} // namespace athelas::basis

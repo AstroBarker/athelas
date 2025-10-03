@@ -24,6 +24,8 @@
 #include "state/state.hpp"
 #include "timestepper/tableau.hpp"
 
+namespace athelas {
+
 using bc::BoundaryConditions;
 using fluid::HydroPackage;
 using radiation::RadHydroPackage;
@@ -404,3 +406,5 @@ class TimeStepper {
   // hold EOS ptr for convenience
   EOS *eos_;
 };
+
+} // namespace athelas

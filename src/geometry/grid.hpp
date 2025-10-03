@@ -1,24 +1,13 @@
 #pragma once
-/**
- * @file grid.hpp
- * --------------
- *
- * @author Brandon L. Barker
- * @brief Class for holding the spatial grid.
- *
- * @details This class GridStructure holds key pieces of the grid:
- *          - nx
- *          - nnodes
- *          - weights
- *
- *          For a loop over real zones, loop from ilo to ihi (inclusive).
- *          ilo = nGhost
- *          ihi = nElements - nGhost + 1
- */
 
-#include "abstractions.hpp"
-#include "geometry.hpp"
-#include "problem_in.hpp"
+#include "pgen/problem_in.hpp"
+#include "utils/abstractions.hpp"
+
+namespace athelas::geometry {
+
+enum class Geometry { Planar, Spherical };
+
+enum class Domain { Interior, Entire };
 
 class GridStructure {
  public:
@@ -80,6 +69,16 @@ class GridStructure {
   [[nodiscard]] auto centers() -> View1D<double>;
   [[nodiscard]] auto nodal_grid() -> View2D<double>;
 
+  // domain
+  template <Domain D>
+  [[nodiscard]] auto domain() const noexcept -> std::pair<int, int> {
+    if constexpr (D == Domain::Interior) {
+      return {1, nElements_};
+    } else if constexpr (D == Domain::Entire) {
+      return {0, nElements_ + 1};
+    }
+  }
+
   KOKKOS_FUNCTION
   auto operator()(int i, int j) -> double &;
   KOKKOS_FUNCTION
@@ -109,3 +108,5 @@ class GridStructure {
 
   View2D<double> grid_{};
 };
+
+} // namespace athelas::geometry

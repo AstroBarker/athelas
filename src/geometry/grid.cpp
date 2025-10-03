@@ -10,18 +10,18 @@
  *          - weights
  *
  *          For a loop over real zones, loop from ilo to ihi (inclusive).
- *          ilo = nGhost_
- *          ihi = nElements_ - nGhost_ + 1
+ *          ilo = 1 (one ghost cell)
+ *          ihi = nElements_
  */
 
-#include <limits>
 #include <vector>
 
 #include "geometry/grid.hpp"
+#include "kokkos_abstraction.hpp"
 #include "quadrature/quadrature.hpp"
 #include "utils/utilities.hpp"
 
-using namespace geometry;
+namespace athelas::geometry;
 
 GridStructure::GridStructure(const ProblemIn *pin)
     : nElements_(pin->param()->get<int>("problem.nx")),
@@ -46,6 +46,7 @@ GridStructure::GridStructure(const ProblemIn *pin)
 
   quadrature::lg_quadrature(nNodes_, tmp_nodes, tmp_weights);
 
+  // TODO(astrobarker): use host copies for this.
   for (int iN = 0; iN < nNodes_; iN++) {
     nodes_(iN) = tmp_nodes[iN];
     weights_(iN) = tmp_weights[iN];
@@ -67,7 +68,7 @@ auto shape_function(const int interface, const double eta) -> double {
 }
 
 // Give physical grid coordinate from a node.
-KOKKOS_FUNCTION
+KOKKOS_INLINE_FUNCTION
 auto GridStructure::node_coordinate(int iC, int iN) const -> double {
   return x_l_(iC) * shape_function(0, nodes_(iN)) +
          x_l_(iC + 1) * shape_function(1, nodes_(iN));
@@ -450,3 +451,5 @@ auto GridStructure::operator()(int i, int j) const -> double {
 [[nodiscard]] auto GridStructure::nodal_grid() -> View2D<double> {
   return grid_;
 }
+
+} // namespace athelas::geometry

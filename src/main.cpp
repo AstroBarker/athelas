@@ -10,6 +10,8 @@
 #include "main.hpp"
 #include "utils/error.hpp"
 
+using athelas::Driver;
+
 namespace {
 auto parse_input_file(std::span<char *> args)
     -> std::expected<std::string, std::string> {

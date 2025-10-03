@@ -13,6 +13,8 @@
 #include "timestepper/tableau.hpp"
 #include "timestepper/timestepper.hpp"
 
+namespace athelas {
+
 /**
  * The constructor creates the necessary data structures for time evolution.
  * Lots of structures used in discretizations live here.
@@ -40,3 +42,5 @@ TimeStepper::TimeStepper(const ProblemIn *pin, GridStructure *grid, EOS *eos)
 [[nodiscard]] auto TimeStepper::n_stages() const noexcept -> int {
   return integrator_.num_stages;
 }
+
+} // namespace athelas

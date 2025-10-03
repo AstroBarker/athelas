@@ -13,7 +13,7 @@
 #include "utils/abstractions.hpp"
 
 namespace radiation {
-using fluid::numerical_flux_gudonov_positivity;
+using athelas::fluid::numerical_flux_gudonov_positivity;
 
 RadHydroPackage::RadHydroPackage(const ProblemIn *pin, int n_stages, EOS *eos,
                                  Opacity *opac, ModalBasis *fluid_basis,
@@ -317,7 +317,8 @@ void RadHydroPackage::radhydro_divergence(const State *const state,
             const double e_rad = rad_basis_->basis_eval(ucf, ix, 3, iN + 1);
             const double f_rad = rad_basis_->basis_eval(ucf, ix, 4, iN + 1);
             const double p_rad = compute_closure(e_rad, f_rad);
-            const auto [flux1, flux2, flux3] = fluid::flux_fluid(vel, P);
+            const auto [flux1, flux2, flux3] =
+                athelas::fluid::flux_fluid(vel, P);
             const auto [flux_e, flux_f] = flux_rad(e_rad, f_rad, p_rad, vstar);
             local_sum1 += weight * flux1 * dphi_fluid * sqrt_gm;
             local_sum2 += weight * flux2 * dphi_fluid * sqrt_gm;

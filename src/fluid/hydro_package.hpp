@@ -14,7 +14,7 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
-namespace fluid {
+namespace athelas::fluid {
 
 using bc::BoundaryConditions;
 
@@ -51,7 +51,7 @@ class HydroPackage {
   KOKKOS_FUNCTION
   void set_active(bool active);
 
-  [[nodiscard]] KOKKOS_FUNCTION auto get_flux_u(int stage, int ix) const
+  [[nodiscard]] KOKKOS_FUNCTION auto get_flux_u(int stage, int i) const
       -> double;
   [[nodiscard]] KOKKOS_FUNCTION auto get_basis() const -> const ModalBasis *;
 
@@ -79,4 +79,4 @@ class HydroPackage {
   static constexpr int NUM_VARS_ = 3;
 };
 
-} // namespace fluid
+} // namespace athelas::fluid
