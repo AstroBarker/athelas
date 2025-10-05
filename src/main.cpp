@@ -1,6 +1,6 @@
+#include <cfenv>
 #include <csignal>
 #include <expected>
-#include <fenv.h>
 #include <print>
 #include <string>
 
@@ -8,9 +8,11 @@
 
 #include "driver.hpp"
 #include "main.hpp"
+#include "problem_in.hpp"
 #include "utils/error.hpp"
 
-using athelas::Driver;
+using athelas::Driver, athelas::AthelasExitCodes, athelas::ProblemIn,
+    athelas::segfault_handler;
 
 namespace {
 auto parse_input_file(std::span<char *> args)
@@ -39,9 +41,9 @@ auto main(int argc, char **argv) -> int {
 
 #ifdef ATHELAS_DEBUG
   feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW | FE_UNDERFLOW);
-  auto sig1 = signal(SIGSEGV, segfault_handler);
-  auto sig2 = signal(SIGABRT, segfault_handler);
-  auto sig3 = signal(SIGFPE, segfault_handler);
+  [[maybe_unused]] auto sig1 = signal(SIGSEGV, segfault_handler);
+  [[maybe_unused]] auto sig2 = signal(SIGABRT, segfault_handler);
+  [[maybe_unused]] auto sig3 = signal(SIGFPE, segfault_handler);
 #endif
 
   std::println("# ----------------------------------------------------------");

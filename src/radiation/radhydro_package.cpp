@@ -12,8 +12,10 @@
 #include "radiation/radhydro_package.hpp"
 #include "utils/abstractions.hpp"
 
-namespace radiation {
-using athelas::fluid::numerical_flux_gudonov_positivity;
+namespace athelas::radiation {
+using basis::ModalBasis;
+using eos::EOS;
+using fluid::numerical_flux_gudonov_positivity;
 
 RadHydroPackage::RadHydroPackage(const ProblemIn *pin, int n_stages, EOS *eos,
                                  Opacity *opac, ModalBasis *fluid_basis,
@@ -381,7 +383,7 @@ auto compute_increment_radhydro_source(
 
     double lambda[8];
     if (ionization_enabled) {
-      paczynski_terms(state, ix, iN + 1, lambda);
+      atom::paczynski_terms(state, ix, iN + 1, lambda);
     }
     const double t_g = temperature_from_conserved(eos, tau, vel, em_t, lambda);
 
@@ -515,11 +517,11 @@ void RadHydroPackage::fill_derived(State *state, const GridStructure &grid,
   bc::fill_ghost_zones<3>(uCF, &grid, fluid_basis_, bcs_, {0, 2});
 
   if (state->composition_enabled()) {
-    fill_derived_comps(state, &grid, fluid_basis_);
+    atom::fill_derived_comps(state, &grid, fluid_basis_);
   }
 
   if (ionization_enabled) {
-    fill_derived_ionization(state, &grid, fluid_basis_);
+    atom::fill_derived_ionization(state, &grid, fluid_basis_);
   }
 
   Kokkos::parallel_for(
@@ -543,7 +545,7 @@ void RadHydroPackage::fill_derived(State *state, const GridStructure &grid,
           // ionization enabled and Paczynski disbled are an outlier.
           double lambda[8];
           if (ionization_enabled) {
-            paczynski_terms(state, ix, iN, lambda);
+            atom::paczynski_terms(state, ix, iN, lambda);
           }
           const double pressure =
               pressure_from_conserved(eos_, tau, vel, emt, lambda);
@@ -591,4 +593,4 @@ RadHydroPackage::get_flux_u(const int stage, const int ix) const -> double {
   return rad_basis_;
 }
 
-} // namespace radiation
+} // namespace athelas::radiation

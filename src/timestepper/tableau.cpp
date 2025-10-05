@@ -11,8 +11,10 @@
 
 #include <unordered_map>
 
-#include "error.hpp"
-#include "tableau.hpp"
+#include "timestepper/tableau.hpp"
+#include "utils/error.hpp"
+
+namespace athelas {
 
 // converts an input string to its associated MethodID
 auto string_to_id(const std::string &method_name) -> MethodID {
@@ -913,3 +915,5 @@ void ShuOsherTableau::initialize_tableau() {
     }
   }
 }
+
+} // namespace athelas

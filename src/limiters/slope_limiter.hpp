@@ -1,9 +1,7 @@
-#pragma once
 /**
  * @file slope_limiter.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Specific slope limiter classes that implement the
  *        SlopeLimiterBase interface
  *
@@ -21,11 +19,15 @@
  * TODO(astrobarker): clean up nvars / vars business
  */
 
+#pragma once
+
 #include <variant>
 
-#include "abstractions.hpp"
 #include "eos/eos_variant.hpp"
-#include "slope_limiter_base.hpp"
+#include "limiters/slope_limiter_base.hpp"
+#include "utils/abstractions.hpp"
+
+namespace athelas {
 
 class WENO : public SlopeLimiterBase<WENO> {
  public:
@@ -50,7 +52,7 @@ class WENO : public SlopeLimiterBase<WENO> {
         limited_cell_("LimitedCell", grid->get_n_elements() + 2) {}
 
   void apply_slope_limiter(View3D<double> U, const GridStructure *grid,
-                           const ModalBasis *basis, const EOS *eos);
+                           const basis::ModalBasis *basis, const eos::EOS *eos);
   [[nodiscard]] auto get_limited(int ix) const -> int;
   [[nodiscard]] auto limited() const -> View1D<int>;
 
@@ -104,7 +106,7 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
         D_("TCI", grid->get_n_elements() + 2),
         limited_cell_("LimitedCell", grid->get_n_elements() + 2) {}
   void apply_slope_limiter(View3D<double> U, const GridStructure *grid,
-                           const ModalBasis *basis, const EOS *eos);
+                           const basis::ModalBasis *basis, const eos::EOS *eos);
   [[nodiscard]] auto get_limited(int ix) const -> int;
   [[nodiscard]] auto limited() const -> View1D<int>;
 
@@ -141,7 +143,7 @@ class Unlimited : public SlopeLimiterBase<Unlimited> {
  public:
   Unlimited() = default;
   void apply_slope_limiter(View3D<double> U, const GridStructure *grid,
-                           const ModalBasis *basis, const EOS *eos);
+                           const basis::ModalBasis *basis, const eos::EOS *eos);
   [[nodiscard]] auto get_limited(int ix) const -> int;
   [[nodiscard]] auto limited() const -> View1D<int>;
 
@@ -152,11 +154,10 @@ class Unlimited : public SlopeLimiterBase<Unlimited> {
 using SlopeLimiter = std::variant<WENO, TVDMinmod, Unlimited>;
 
 // std::visit functions
-KOKKOS_INLINE_FUNCTION void apply_slope_limiter(SlopeLimiter *limiter,
-                                                View3D<double> U,
-                                                const GridStructure *grid,
-                                                const ModalBasis *basis,
-                                                const EOS *eos) {
+inline void apply_slope_limiter(SlopeLimiter *limiter, View3D<double> U,
+                                const GridStructure *grid,
+                                const basis::ModalBasis *basis,
+                                const eos::EOS *eos) {
   std::visit(
       [&U, &grid, &basis, &eos](auto &limiter) {
         limiter.apply_slope_limiter(U, grid, basis, eos);
@@ -171,3 +172,5 @@ KOKKOS_INLINE_FUNCTION auto get_limited(SlopeLimiter *limiter, const int ix)
 KOKKOS_INLINE_FUNCTION auto limited(SlopeLimiter *limiter) -> View1D<int> {
   return std::visit([](auto &limiter) { return limiter.limited(); }, *limiter);
 }
+
+} // namespace athelas

@@ -7,6 +7,8 @@
 #include "utils/constants.hpp"
 #include "utils/utilities.hpp"
 
+namespace athelas {
+
 using utilities::LINTERP;
 
 auto HydrostaticEquilibrium::rhs(const double mass_enc, const double p,
@@ -31,7 +33,7 @@ void HydrostaticEquilibrium::solve(State *state, GridStructure *grid,
   const double energy = 0.0;
   double lambda[8];
   if (state->ionization_enabled()) {
-    paczynski_terms(state, 1, 0, lambda);
+    atom::paczynski_terms(state, 1, 0, lambda);
   }
   const double p_c = pressure_from_conserved(eos_, rho_c_, vel, energy, lambda);
 
@@ -124,3 +126,5 @@ void HydrostaticEquilibrium::solve(State *state, GridStructure *grid,
 
   Kokkos::deep_copy(uAF, h_uAF);
 }
+
+} // namespace athelas

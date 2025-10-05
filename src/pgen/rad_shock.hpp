@@ -1,11 +1,11 @@
-#pragma once
 /**
  * @file rad_shock.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Radiation shock test
  */
+
+#pragma once
 
 #include <cmath> /* sin */
 
@@ -16,12 +16,15 @@
 #include "utils/abstractions.hpp"
 #include "utils/constants.hpp"
 
+namespace athelas {
+
 /**
  * @brief Initialize radiating shock
  **/
 void rad_shock_init(State *state, GridStructure *grid, ProblemIn *pin,
-                    const EOS *eos, ModalBasis * /*fluid_basis = nullptr*/,
-                    ModalBasis * /*radiation_basis = nullptr*/) {
+                    const eos::EOS *eos,
+                    basis::ModalBasis * /*fluid_basis = nullptr*/,
+                    basis::ModalBasis * /*radiation_basis = nullptr*/) {
   const bool rad_active = pin->param()->get<bool>("physics.rad_active");
   if (!rad_active) {
     THROW_ATHELAS_ERROR("Radiative shock requires radiation enabled!");
@@ -98,3 +101,5 @@ void rad_shock_init(State *state, GridStructure *grid, ProblemIn *pin,
         }
       });
 }
+
+} // namespace athelas

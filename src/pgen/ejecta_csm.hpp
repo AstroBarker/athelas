@@ -1,12 +1,12 @@
-#pragma once
 /**
  * @file ejecta_csm.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Ejecta - CSM interaction test.
  * See Duffell 2016 (doi:10.3847/0004-637X/821/2/76)
  */
+
+#pragma once
 
 #include <cmath>
 
@@ -16,11 +16,14 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
+namespace athelas {
+
 /**
  * @brief Initialize ejecta csm test
  **/
 void ejecta_csm_init(State *state, GridStructure *grid, ProblemIn *pin,
-                     const EOS *eos, ModalBasis *fluid_basis = nullptr) {
+                     const eos::EOS *eos,
+                     basis::ModalBasis *fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Shu Osher requires ideal gas eos!");
   }
@@ -93,3 +96,5 @@ void ejecta_csm_init(State *state, GridStructure *grid, ProblemIn *pin,
         }
       });
 }
+
+} // namespace athelas

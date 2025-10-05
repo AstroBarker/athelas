@@ -15,6 +15,8 @@
 
 namespace athelas {
 
+using eos::EOS;
+
 /**
  * The constructor creates the necessary data structures for time evolution.
  * Lots of structures used in discretizations live here.

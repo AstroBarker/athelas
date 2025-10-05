@@ -1,11 +1,11 @@
-#pragma once
 /**
  * @file moving_contact.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Moving contact wave test
  */
+
+#pragma once
 
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
@@ -13,12 +13,14 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
+namespace athelas {
+
 /**
  * @brief Initialize moving contact discontinuity test
  **/
 void moving_contact_init(State *state, GridStructure *grid, ProblemIn *pin,
-                         const EOS *eos,
-                         ModalBasis * /*fluid_basis = nullptr*/) {
+                         const eos::EOS *eos,
+                         basis::ModalBasis * /*fluid_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Moving contact requires ideal gas eos!");
   }
@@ -78,3 +80,5 @@ void moving_contact_init(State *state, GridStructure *grid, ProblemIn *pin,
         }
       });
 }
+
+} // namespace athelas

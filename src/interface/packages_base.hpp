@@ -1,10 +1,11 @@
-#pragma once
 /**
  * @file packages_base.hpp
  * --------------
  *
  * @brief Implement package manager
  */
+
+#pragma once
 
 #include <algorithm>
 #include <limits>
@@ -15,6 +16,8 @@
 #include "concepts/packages.hpp"
 #include "geometry/grid.hpp"
 #include "state/state.hpp"
+
+namespace athelas {
 
 // Package wrapper that erases types while maintaining performance
 // TODO(astrobarker) move to a CRTP pattern
@@ -299,3 +302,5 @@ class PackageManager {
   std::vector<PackageWrapper *> implicit_packages_;
   std::vector<PackageWrapper *> imex_packages_;
 };
+
+} // namespace athelas

@@ -1,10 +1,9 @@
-#pragma once
 #include <string>
-namespace build_info {
-extern const std::string GIT_HASH;
-extern const std::string BUILD_TIMESTAMP;
-extern const std::string COMPILER;
-extern const std::string OPTIMIZATION;
-extern const std::string ARCH;
-extern const std::string OS;
-} // namespace build_info
+namespace athelas::build_info {
+inline const std::string GIT_HASH = "";
+inline const std::string BUILD_TIMESTAMP = "2025-10-05 11:23:02 MDT";
+inline const std::string COMPILER = " ";
+inline const std::string OPTIMIZATION = "";
+inline const std::string ARCH = "";
+inline const std::string OS = "";
+} // namespace athelas::build_info

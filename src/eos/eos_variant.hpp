@@ -13,6 +13,8 @@
 #include "pgen/problem_in.hpp"
 #include "utils/error.hpp"
 
+namespace athelas::eos {
+
 using EOS = std::variant<IdealGas, Marshak, Paczynski, Polytropic>;
 
 KOKKOS_INLINE_FUNCTION auto
@@ -82,3 +84,5 @@ KOKKOS_INLINE_FUNCTION auto initialize_eos(const ProblemIn *pin) -> EOS {
   }
   return eos;
 }
+
+} // namespace athelas::eos

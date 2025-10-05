@@ -151,8 +151,7 @@ set( ATHELAS_SOURCES
   "src/solvers/hydrostatic_equilibrium.cpp"
   "src/state/state.cpp"
   "src/timestepper/tableau.cpp"
-  "src/timestepper/timestepper.cpp"
-  "src/utils/riemann.cpp" )
+  "src/timestepper/timestepper.cpp" )
 
 add_library(libathelas ${ATHELAS_SOURCES})
 set_target_properties(libathelas

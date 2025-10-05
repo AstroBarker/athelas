@@ -3,6 +3,7 @@
 #include "eos/eos.hpp"
 #include "solvers/root_finders.hpp"
 #include "utils/constants.hpp"
+namespace athelas::eos {
 
 using root_finders::RootFinder, root_finders::NewtonAlgorithm,
     root_finders::RelativeError, root_finders::HybridError,
@@ -244,3 +245,5 @@ Paczynski::specific_internal_energy(const double T, const double rho,
   return N * kT - (pend2 * sigma1) / (pe * rho * sigma1_plus_ybar) +
          (1.0 / (pe * rho)) * (pend2 + f * ped * ped);
 }
+
+} // namespace athelas::eos

@@ -3,15 +3,7 @@
  * @file fluid_utilities.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Utilities for fluid evolution
- *
- * @details Contains functions necessary for fluid evolution:
- *          - flux_fluid
- *          - source_fluid_rad
- *          - numerical_flux_gudonov
- *          - numerical_flux_hllc
- *          - compute_timestep_fluid
  */
 
 #include "eos/eos_variant.hpp"

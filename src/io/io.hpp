@@ -1,13 +1,13 @@
-#pragma once
 /**
- * @file io.cpp
+ * @file io.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief HDF5 and std out IO routines
  *
  * @details Collection of functions for IO
  */
+
+#pragma once
 
 #include "basis/polynomial_basis.hpp"
 #include "geometry/grid.hpp"
@@ -16,6 +16,8 @@
 #include "state/state.hpp"
 
 #include "H5Cpp.h"
+
+namespace athelas::io {
 
 struct GridType {
   double r{};
@@ -26,7 +28,7 @@ struct DataType {
 };
 
 // ---------------------------------------------------------------------------
-// Helper: map a C++ scalar type to an HDF5 PredType
+// map a C++ scalar type to an HDF5 PredType
 // ---------------------------------------------------------------------------
 template <typename T>
 auto h5_predtype() -> H5::PredType {
@@ -48,4 +50,6 @@ void write_state(State *state, GridStructure &grid, SlopeLimiter *SL,
 
 void print_simulation_parameters(GridStructure &grid, ProblemIn *pin);
 
-void write_basis(ModalBasis *basis, const std::string &problem_name);
+void write_basis(basis::ModalBasis *basis, const std::string &problem_name);
+
+} // namespace athelas::io

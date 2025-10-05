@@ -6,6 +6,8 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
+namespace athelas {
+
 // Concepts for package validation
 template <typename T>
 concept ExplicitPackage =
@@ -65,3 +67,5 @@ constexpr bool has_implicit_update_v =
              const GridStructure &grid, const TimeStepInfo &dt_info) {
       pkg.update_implicit(state, dU, grid, dt_info);
     };
+
+} // namespace athelas

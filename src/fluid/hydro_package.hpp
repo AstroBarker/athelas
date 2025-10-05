@@ -1,10 +1,11 @@
-#pragma once
 /**
  * @file hydro_package.hpp
  * --------------
  *
  * @brief Pure hydrodynamics package
  */
+
+#pragma once
 
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
@@ -20,9 +21,9 @@ using bc::BoundaryConditions;
 
 class HydroPackage {
  public:
-  HydroPackage(const ProblemIn * /*pin*/, int n_stages, EOS *eos,
-               ModalBasis *basis, BoundaryConditions *bcs, double cfl, int nx,
-               bool active = true);
+  HydroPackage(const ProblemIn * /*pin*/, int n_stages, eos::EOS *eos,
+               basis::ModalBasis *basis, BoundaryConditions *bcs, double cfl,
+               int nx, bool active = true);
 
   KOKKOS_FUNCTION
   void update_explicit(const State *const state, View3D<double> dU,
@@ -53,7 +54,8 @@ class HydroPackage {
 
   [[nodiscard]] KOKKOS_FUNCTION auto get_flux_u(int stage, int i) const
       -> double;
-  [[nodiscard]] KOKKOS_FUNCTION auto get_basis() const -> const ModalBasis *;
+  [[nodiscard]] KOKKOS_FUNCTION auto get_basis() const
+      -> const basis::ModalBasis *;
 
   [[nodiscard]] static constexpr auto num_vars() noexcept -> int {
     return NUM_VARS_;
@@ -65,8 +67,8 @@ class HydroPackage {
   int nx_;
   double cfl_;
 
-  EOS *eos_;
-  ModalBasis *basis_;
+  eos::EOS *eos_;
+  basis::ModalBasis *basis_;
   BoundaryConditions *bcs_;
 
   // package storage

@@ -1,10 +1,11 @@
-#pragma once
 /**
  * @file radhydro_package.hpp
  * --------------
  *
  * @brief Radiation hydrodynamics package
  */
+
+#pragma once
 
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
@@ -15,16 +16,16 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
-namespace radiation {
+namespace athelas::radiation {
 
 using bc::BoundaryConditions;
 
 class RadHydroPackage {
  public:
-  RadHydroPackage(const ProblemIn * /*pin*/, int n_stages, EOS *eos,
-                  Opacity *opac, ModalBasis *fluid_basis, ModalBasis *rad_basis,
-                  BoundaryConditions *bcs, double cfl, int nx,
-                  bool active = true);
+  RadHydroPackage(const ProblemIn * /*pin*/, int n_stages, eos::EOS *eos,
+                  Opacity *opac, basis::ModalBasis *fluid_basis,
+                  basis::ModalBasis *rad_basis, BoundaryConditions *bcs,
+                  double cfl, int nx, bool active = true);
 
   KOKKOS_FUNCTION
   void update_explicit(const State *const state, View3D<double> dU,
@@ -68,9 +69,9 @@ class RadHydroPackage {
   [[nodiscard]] KOKKOS_FUNCTION auto get_flux_u(int stage, int ix) const
       -> double;
   [[nodiscard]] KOKKOS_FUNCTION auto get_fluid_basis() const
-      -> const ModalBasis *;
+      -> const basis::ModalBasis *;
   [[nodiscard]] KOKKOS_FUNCTION auto get_rad_basis() const
-      -> const ModalBasis *;
+      -> const basis::ModalBasis *;
 
   [[nodiscard]] static constexpr auto num_vars() noexcept -> int {
     return NUM_VARS_;
@@ -82,10 +83,10 @@ class RadHydroPackage {
   int nx_;
   double cfl_;
 
-  EOS *eos_;
+  eos::EOS *eos_;
   Opacity *opac_;
-  ModalBasis *fluid_basis_;
-  ModalBasis *rad_basis_;
+  basis::ModalBasis *fluid_basis_;
+  basis::ModalBasis *rad_basis_;
   BoundaryConditions *bcs_;
 
   // package storage
@@ -105,7 +106,7 @@ class RadHydroPackage {
 
 auto compute_increment_radhydro_source(
     const View2D<double> uCRH, int k, const State *const state,
-    const GridStructure &grid, const ModalBasis *fluid_basis,
-    const ModalBasis *rad_basis, const EOS *eos, const Opacity *opac, int ix)
-    -> std::tuple<double, double, double, double>;
-} // namespace radiation
+    const GridStructure &grid, const basis::ModalBasis *fluid_basis,
+    const basis::ModalBasis *rad_basis, const eos::EOS *eos,
+    const Opacity *opac, int ix) -> std::tuple<double, double, double, double>;
+} // namespace athelas::radiation

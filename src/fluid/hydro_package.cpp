@@ -22,6 +22,9 @@
 
 namespace athelas::fluid {
 
+using basis::ModalBasis;
+using eos::EOS;
+
 HydroPackage::HydroPackage(const ProblemIn * /*pin*/, int n_stages, EOS *eos,
                            ModalBasis *basis, BoundaryConditions *bcs,
                            double cfl, int nx, bool active)
@@ -238,7 +241,7 @@ auto HydroPackage::min_timestep(const State *const state,
         // TODO(astrobarker): implement cell averaged Paczynski terms?
         double lambda[8];
         if (state->ionization_enabled()) {
-          paczynski_terms(state, i, 1, lambda);
+          atom::paczynski_terms(state, i, 1, lambda);
         }
         const double Cs =
             sound_speed_from_conserved(eos_, tau_x, vel_x, eint_x, lambda);
@@ -281,11 +284,11 @@ void HydroPackage::fill_derived(State *const state, const GridStructure &grid,
   bc::fill_ghost_zones<3>(uCF, &grid, basis_, bcs_, {0, 2});
 
   if (state->composition_enabled()) {
-    fill_derived_comps(state, &grid, basis_);
+    atom::fill_derived_comps(state, &grid, basis_);
   }
 
   if (ionization_enabled) {
-    fill_derived_ionization(state, &grid, basis_);
+    atom::fill_derived_ionization(state, &grid, basis_);
   }
 
   athelas::par_for(
@@ -304,7 +307,7 @@ void HydroPackage::fill_derived(State *const state, const GridStructure &grid,
           // This is probably not the cleanest logic, but setups with
           // ionization enabled and Paczynski disbled are an outlier.
           if (ionization_enabled) {
-            paczynski_terms(state, i, q, lambda);
+            atom::paczynski_terms(state, i, q, lambda);
           }
           const double pressure =
               pressure_from_conserved(eos_, tau, vel, emt, lambda);

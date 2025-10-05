@@ -1,11 +1,11 @@
-#pragma once
 /**
  * @file sod.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Sod shock tube
  */
+
+#pragma once
 
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
@@ -13,11 +13,14 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
+namespace athelas {
+
 /**
  * @brief Initialize Sod shock tube
  **/
-void sod_init(State *state, GridStructure *grid, ProblemIn *pin, const EOS *eos,
-              ModalBasis * /*fluid_basis = nullptr*/) {
+void sod_init(State *state, GridStructure *grid, ProblemIn *pin,
+              const eos::EOS *eos,
+              basis::ModalBasis * /*fluid_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Sod requires ideal gas eos!");
   }
@@ -88,3 +91,5 @@ void sod_init(State *state, GridStructure *grid, ProblemIn *pin, const EOS *eos,
         }
       });
 }
+
+} // namespace athelas

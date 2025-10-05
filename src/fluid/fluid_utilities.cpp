@@ -2,7 +2,9 @@
 #include "utils/utilities.hpp"
 
 namespace athelas::fluid {
+
 using utilities::pos_part;
+
 auto flux_fluid(const double V, const double P)
     -> std::tuple<double, double, double> {
   return {-V, P, P * V};

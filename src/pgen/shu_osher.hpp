@@ -1,11 +1,11 @@
-#pragma once
 /**
  * @file shu_osher.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Shu Osher shock tube
  */
+
+#pragma once
 
 #include <cmath>
 
@@ -15,11 +15,14 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
+namespace athelas {
+
 /**
  * @brief Initialize Shu Osher hydro test
  **/
 void shu_osher_init(State *state, GridStructure *grid, ProblemIn *pin,
-                    const EOS *eos, ModalBasis *fluid_basis = nullptr) {
+                    const eos::EOS *eos,
+                    basis::ModalBasis *fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Shu Osher requires ideal gas eos!");
   }
@@ -139,3 +142,5 @@ void shu_osher_init(State *state, GridStructure *grid, ProblemIn *pin,
         }
       });
 }
+
+} // namespace athelas

@@ -1,4 +1,3 @@
-#pragma once
 /**
  * @file utilities.hpp
  * --------------
@@ -12,13 +11,17 @@
  *          - to_lower
  */
 
+#pragma once
+
 #include <algorithm>
 #include <cctype>
 
 #include "Kokkos_Macros.hpp"
-#include "polynomial_basis.hpp"
+
+#include "basis/polynomial_basis.hpp"
 
 namespace athelas::utilities {
+using basis::ModalBasis;
 
 /**
  * @brief simple linear interpolation to x

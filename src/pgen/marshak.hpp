@@ -1,11 +1,11 @@
-#pragma once
 /**
  * @file marshak.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Radiation marshak wave test
  */
+
+#pragma once
 
 #include <cmath>
 
@@ -16,12 +16,15 @@
 #include "utils/abstractions.hpp"
 #include "utils/constants.hpp"
 
+namespace athelas {
+
 /**
  * @brief Initialize radiating shock
  **/
 void marshak_init(State *state, GridStructure *grid, ProblemIn *pin,
-                  const EOS * /*eos*/, ModalBasis * /*fluid_basis = nullptr*/,
-                  ModalBasis * /*radiation_basis = nullptr*/) {
+                  const eos::EOS * /*eos*/,
+                  basis::ModalBasis * /*fluid_basis = nullptr*/,
+                  basis::ModalBasis * /*radiation_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "marshak") {
     THROW_ATHELAS_ERROR("Marshak requires marshak eos!");
   }
@@ -87,3 +90,5 @@ void marshak_init(State *state, GridStructure *grid, ProblemIn *pin,
         }
       });
 }
+
+} // namespace athelas

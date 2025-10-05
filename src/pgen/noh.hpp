@@ -1,11 +1,11 @@
-#pragma once
 /**
  * @file noh.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Noh test
  */
+
+#pragma once
 
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
@@ -13,11 +13,14 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
+namespace athelas {
+
 /**
  * @brief Initialize Noh problem
  **/
-void noh_init(State *state, GridStructure *grid, ProblemIn *pin, const EOS *eos,
-              ModalBasis * /*fluid_basis = nullptr*/) {
+void noh_init(State *state, GridStructure *grid, ProblemIn *pin,
+              const eos::EOS *eos,
+              basis::ModalBasis * /*fluid_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Noh requires ideal gas eos!");
   }
@@ -64,3 +67,5 @@ void noh_init(State *state, GridStructure *grid, ProblemIn *pin, const EOS *eos,
         }
       });
 }
+
+} // namespace athelas

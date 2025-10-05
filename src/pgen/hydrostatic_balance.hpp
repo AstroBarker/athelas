@@ -1,11 +1,11 @@
-#pragma once
 /**
  * @file hydrostatic_balance.hpp
  * --------------
  *
- * @author Brandon L. Barker
- * @brief Shu Osher shock tube
+ * @brief Hydrostatic balance test.
  */
+
+#pragma once
 
 #include <cmath>
 
@@ -16,12 +16,14 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
+namespace athelas {
+
 /**
  * @brief Initialize Shu Osher hydro test
  **/
 void hydrostatic_balance_init(State *state, GridStructure *grid, ProblemIn *pin,
-                              const EOS *eos,
-                              ModalBasis *fluid_basis = nullptr) {
+                              const eos::EOS *eos,
+                              basis::ModalBasis *fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "polytropic") {
     THROW_ATHELAS_ERROR("Hydrostatic balance requires polytropic eos!");
   }
@@ -106,3 +108,5 @@ void hydrostatic_balance_init(State *state, GridStructure *grid, ProblemIn *pin,
         }
       });
 }
+
+} // namespace athelas

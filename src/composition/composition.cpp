@@ -1,5 +1,11 @@
 #include "composition/composition.hpp"
+#include "basis/polynomial_basis.hpp"
+#include "geometry/grid.hpp"
 #include "utils/constants.hpp"
+
+namespace athelas::atom {
+
+using basis::ModalBasis;
 
 /**
  * @brief Fill derived composition quantities
@@ -228,3 +234,5 @@ auto electron_density(const View3D<double> mass_fractions,
       Kokkos::Sum<double>(n_e));
   return n_e;
 }
+
+} // namespace athelas::atom

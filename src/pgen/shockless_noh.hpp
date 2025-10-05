@@ -1,11 +1,11 @@
-#pragma once
 /**
  * @file shockless_noh.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Shockless Noh collapse
  */
+
+#pragma once
 
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
@@ -13,12 +13,14 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
+namespace athelas {
+
 /**
  * @brief Initialize shockless Noh problem
  **/
 void shockless_noh_init(State *state, GridStructure *grid, ProblemIn *pin,
-                        const EOS * /*eos*/,
-                        ModalBasis * /*fluid_basis = nullptr*/) {
+                        const eos::EOS * /*eos*/,
+                        basis::ModalBasis * /*fluid_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Shockless Noh requires ideal gas eos!");
   }
@@ -63,3 +65,5 @@ void shockless_noh_init(State *state, GridStructure *grid, ProblemIn *pin,
         }
       });
 }
+
+} // namespace athelas

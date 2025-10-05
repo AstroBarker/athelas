@@ -13,21 +13,19 @@
  *          - Compute_Closure
  *          - lambda_hll
  *          - numerical_flux_hll_rad
- *          - computeTimestep_Rad
  */
 
 #include <algorithm> // std::min, std::max
 #include <cmath> // pow, abs, sqrt
 
-#include "constants.hpp"
-#include "grid.hpp"
-#include "rad_utilities.hpp"
-#include "riemann.hpp"
-#include "utilities.hpp"
+#include "geometry/grid.hpp"
+#include "radiation/rad_utilities.hpp"
+#include "utils/constants.hpp"
+#include "utils/riemann.hpp"
+#include "utils/utilities.hpp"
 
+namespace athelas::radiation {
 using namespace riemann;
-
-namespace radiation {
 
 /**
  * radiation flux factor
@@ -198,4 +196,4 @@ auto numerical_flux_hll_rad(const double E_L, const double E_R,
   return {flux_e, flux_f};
 }
 
-} // namespace radiation
+} // namespace athelas::radiation

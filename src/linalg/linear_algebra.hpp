@@ -1,18 +1,19 @@
-#pragma once
 /**
  * @file linear_algebra.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Basic linear algebra functions.
  *
  * @details Linear algebra routines for quadrature and limiters.
- *          - tri_sym_diag
- *          - invert_matrix
  */
 
-#include "Kokkos_Core.hpp"
+#pragma once
+
 #include <vector>
+
+#include "Kokkos_Macros.hpp"
+
+namespace athelas {
 
 // Fill identity matrix
 template <class T>
@@ -45,6 +46,9 @@ KOKKOS_INLINE_FUNCTION constexpr void MAT_MUL(double alpha, M A, V x,
     y(i) = alpha * sum + beta * y(i);
   }
 }
+KOKKOS_FUNCTION
 void tri_sym_diag(int n, std::vector<double> &d, std::vector<double> &e,
                   std::vector<double> &array);
+KOKKOS_FUNCTION
 void invert_matrix(std::vector<double> &M, int n);
+} // namespace athelas

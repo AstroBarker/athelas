@@ -1,9 +1,7 @@
-#pragma once
 /**
  * @file timestepper.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Primary time marching routine.
  *
  * @details Timestppers for hydro and rad hydro.
@@ -11,6 +9,8 @@
  *
  * TODO(astrobaker) move to calling step<fluid> / step<radhydro>
  */
+
+#pragma once
 
 #include "abstractions.hpp"
 #include "bc/boundary_conditions_base.hpp"
@@ -34,7 +34,7 @@ class TimeStepper {
 
  public:
   // TODO(astrobarker): Is it possible to initialize grid_s_ from grid directly?
-  TimeStepper(const ProblemIn *pin, GridStructure *grid, EOS *eos);
+  TimeStepper(const ProblemIn *pin, GridStructure *grid, eos::EOS *eos);
 
   void initialize_timestepper();
 
@@ -403,8 +403,8 @@ class TimeStepper {
 
   // Variables to pass to update step
 
-  // hold EOS ptr for convenience
-  EOS *eos_;
+  // hold eos::EOS ptr for convenience
+  eos::EOS *eos_;
 };
 
 } // namespace athelas

@@ -17,7 +17,11 @@
  * Word of warning: the code here is a gold medalist in index gymnastics.
  */
 
+namespace athelas::atom {
+
 using atom::IonLevel;
+using basis::ModalBasis;
+using eos::EOS;
 using root_finders::RootFinder, root_finders::AANewtonAlgorithm;
 
 KOKKOS_FUNCTION
@@ -208,3 +212,5 @@ auto saha_d_target(const double Zbar, const double T,
   const double denom = 1.0 / (min_state - 1.0 + sigma1);
   return (sigma2 - (1.0 + sigma0) * (1.0 + sigma3 * denom)) * denom;
 }
+
+} // namespace athelas::atom

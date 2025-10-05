@@ -1,15 +1,3 @@
-/**
- * @file io.cpp
- * --------------
- *
- * @author Brandon L. Barker
- * @brief HDF5 and std out IO routines
- *
- * @details Collection of functions for IO using H5Cpp for HDF5 operations
- *
- * TODO(astrobarker): make device friendly
- */
-
 #include <array>
 #include <cstddef>
 #include <iomanip>
@@ -26,6 +14,14 @@
 #include "geometry/grid.hpp"
 #include "io/io.hpp"
 #include "limiters/slope_limiter.hpp"
+
+namespace athelas {
+
+using basis::ModalBasis;
+
+namespace io {
+
+// using namespace athelas::build_info;
 
 /**
  * Write to standard output some initialization info
@@ -294,8 +290,10 @@ void write_state(State *state, GridStructure &grid, SlopeLimiter *SL,
   writer.write_scalar("/metadata/time", time, H5::PredType::NATIVE_DOUBLE);
 
   // build information
-  writer.write_string("/metadata/build/git_hash", build_info::GIT_HASH);
-  writer.write_string("/metadata/build/compiler", build_info::COMPILER);
+  writer.write_string("/metadata/build/git_hash",
+                      athelas::build_info::GIT_HASH);
+  writer.write_string("/metadata/build/compiler",
+                      athelas::build_info::COMPILER);
   writer.write_string("/metadata/build/timestamp", build_info::BUILD_TIMESTAMP);
   writer.write_string("/metadata/build/arch", build_info::ARCH);
   writer.write_string("/metadata/build/os", build_info::OS);
@@ -341,3 +339,6 @@ void write_basis(ModalBasis *basis, const std::string &problem_name) {
   writer.write_view(basis->phi(), "/basis/phi");
   writer.write_view(basis->dphi(), "/basis/dphi");
 }
+
+} // namespace io
+} // namespace athelas

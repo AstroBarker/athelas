@@ -1,9 +1,7 @@
-#pragma once
 /**
  * @file slope_limiter_base.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Base class for slope limiters.
  *
  * @details Defines the SlopeLimiterBase template class that serves
@@ -14,15 +12,19 @@
  *          - get_limited: Returns whether a cell was limited
  */
 
+#pragma once
+
 #include "abstractions.hpp"
 #include "eos/eos_variant.hpp"
 #include "polynomial_basis.hpp"
+
+namespace athelas {
 
 template <class SlopeLimiter>
 class SlopeLimiterBase {
  public:
   void apply_slope_limiter(View3D<double> U, const GridStructure *grid,
-                           const ModalBasis *basis, const EOS *eos,
+                           const basis::ModalBasis *basis, const eos::EOS *eos,
                            const std::vector<int> &vars) const {
     return static_cast<SlopeLimiter const *>(this)->apply_slope_limiter(
         U, grid, basis, eos, vars);
@@ -34,3 +36,5 @@ class SlopeLimiterBase {
     return static_cast<SlopeLimiter const *>(this)->limited();
   }
 };
+
+} // namespace athelas

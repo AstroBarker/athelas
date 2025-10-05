@@ -1,6 +1,8 @@
 #include "composition/compdata.hpp"
 #include "utils/error.hpp"
 
+namespace athelas::atom {
+
 // NOTE: if nodes exceeds order we have a problem here.
 CompositionData::CompositionData(const int nX, const int order,
                                  const int n_species)
@@ -37,13 +39,15 @@ CompositionData::CompositionData(const int nX, const int order,
 
 // --- end CompositionData ---
 
-// NOTE: Something awful here: need an estimate of the max number of ionization
-// states
-//  when constructing the comps object
-//  We allocate in general more data than necessary
-//
-//  TODO(astrobarker): flatten last two dimensions to reduce memory footprint.
-//  See atom.hpp
+/**
+ * @brief IonizationState constructor
+ * @note: Something awful here: need an estimate of the max number of
+ * ionization states when constructing the comps object
+ * We allocate in general more data than necessary
+ *
+ * TODO(astrobarker): flatten last two dimensions to reduce memory footprint.
+ * See atom.hpp
+ */
 IonizationState::IonizationState(const int nX, const int nNodes,
                                  const int n_species, const int n_states,
                                  const std::string &fn_ionization,
@@ -92,3 +96,5 @@ IonizationState::IonizationState(const int nX, const int nNodes,
 [[nodiscard]] auto IonizationState::sigma3() const noexcept -> View2D<double> {
   return sigma3_;
 }
+
+} // namespace athelas::atom

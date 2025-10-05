@@ -18,6 +18,9 @@
 
 namespace athelas {
 
+using basis::ModalBasis;
+using io::write_basis, io::write_state, io::print_simulation_parameters;
+
 auto Driver::execute() -> int {
   static const auto nx = pin_->param()->get<int>("problem.nx");
   static const bool rad_active = pin_->param()->get<bool>("physics.rad_active");

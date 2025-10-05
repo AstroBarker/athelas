@@ -1,9 +1,7 @@
-#pragma once
 /**
  * @file boundary_conditions_base.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Boundary conditions base structures
  *
  * TODO(astrobarker):
@@ -11,12 +9,14 @@
  *  - Move anything possible to .cpp..
  */
 
+#pragma once
+
 #include <array>
 #include <cassert>
 
 #include "pgen/problem_in.hpp"
 
-namespace bc {
+namespace athelas::bc {
 
 enum class BcType : int {
   Outflow,
@@ -88,4 +88,4 @@ KOKKOS_INLINE_FUNCTION auto get_bc_data<2>(BoundaryConditions *bc)
 }
 
 auto make_boundary_conditions(const ProblemIn *pin) -> BoundaryConditions;
-} // namespace bc
+} // namespace athelas::bc

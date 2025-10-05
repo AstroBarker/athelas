@@ -1,9 +1,7 @@
-#pragma once
 /**
  * @file opac_variant.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Provides variant-based dispatch for opacity model operations
  *
  * @details This header implements a type-safe way to handle different opacity
@@ -11,10 +9,14 @@
  *          that dispatch to the appropriate model's implementation.
  */
 
+#pragma once
+
 #include <variant>
 
-#include "opac.hpp"
-#include "problem_in.hpp"
+#include "opacity/opac.hpp"
+#include "pgen/problem_in.hpp"
+
+namespace athelas {
 
 using Opacity = std::variant<Constant, PowerlawRho>;
 
@@ -56,3 +58,5 @@ KOKKOS_INLINE_FUNCTION auto initialize_opacity(const ProblemIn *pin)
   }
   return opac;
 }
+
+} // namespace athelas

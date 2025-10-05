@@ -1,11 +1,11 @@
-#pragma once
 /**
  * @file smooth_flow.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Smooth flow test
  */
+
+#pragma once
 
 #include <cmath>
 
@@ -16,11 +16,14 @@
 #include "utils/abstractions.hpp"
 #include "utils/constants.hpp"
 
+namespace athelas {
+
 /**
  * @brief Initialize smooth flow test problem
  **/
 void smooth_flow_init(State *state, GridStructure *grid, ProblemIn *pin,
-                      const EOS * /*eos*/, ModalBasis *fluid_basis = nullptr) {
+                      const eos::EOS * /*eos*/,
+                      basis::ModalBasis *fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Smooth flow requires ideal gas eos!");
   }
@@ -96,3 +99,5 @@ void smooth_flow_init(State *state, GridStructure *grid, ProblemIn *pin,
         }
       });
 }
+
+} // namespace athelas

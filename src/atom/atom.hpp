@@ -1,4 +1,3 @@
-#pragma once
 /*
  * @file atom.hpp
  * --------------
@@ -9,12 +8,14 @@
  *   where algorithms should loop over species, then cells.
  */
 
+#pragma once
+
 #include <vector>
 
 #include "io/parser.hpp"
 #include "utils/abstractions.hpp"
 
-namespace atom {
+namespace athelas::atom {
 
 /**
  * @struct IonLevel
@@ -51,8 +52,8 @@ class AtomicData {
              const std::string &fn_degeneracy) {
 
     // --- load atomic data from file ---
-    auto ionization_data = Parser::parse_file(fn_ionization, ' ');
-    auto degeneracy_data = Parser::parse_file(fn_degeneracy, ' ');
+    auto ionization_data = io::Parser::parse_file(fn_ionization, ' ');
+    auto degeneracy_data = io::Parser::parse_file(fn_degeneracy, ' ');
 
     // -- extract columns ---
     auto [atomic_numbers, ion_charges, ionization_energies] =
@@ -69,7 +70,7 @@ class AtomicData {
     std::vector<int> offs(num_species_);
 
     for (size_t s = 0; s < num_species_; ++s) {
-      int Z = s + 1;
+      const int Z = s + 1;
       offs[s] = total_levels;
       total_levels += Z; // Z ionization levels
     }
@@ -103,7 +104,7 @@ class AtomicData {
     int level_idx = 0; // Index into our ion_data_ array
 
     for (size_t s = 0; s < num_species_; ++s) {
-      int Z = atomic_numbers_host(s);
+      const int Z = atomic_numbers_host(s);
 
       // For species s, we have:
       // - Z ionization potentials: chi[0] to chi[Z-1]
@@ -148,4 +149,4 @@ species_data(const View1D<IonLevel> ion_data, const View1D<int> offsets,
   return Kokkos::subview(ion_data, Kokkos::make_pair(offset, next_offset));
 }
 
-} // namespace atom
+} // namespace athelas::atom

@@ -9,7 +9,6 @@
  *            - legendre
  *            - taylor
  *
- * TODO(astrobarker): kokkos
  * TODO(astrobarker): need center of mass for some probs?
  * TODO(astrobarker): derivative matrix
  */

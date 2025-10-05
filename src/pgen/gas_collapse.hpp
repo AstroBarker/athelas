@@ -1,11 +1,11 @@
-#pragma once
 /**
  * @file gas_collapse.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Collapsing gas cloud
  */
+
+#pragma once
 
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
@@ -13,11 +13,14 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
+namespace athelas {
+
 /**
  * @brief Initialize gas collapse
  **/
 void gas_collapse_init(State *state, GridStructure *grid, ProblemIn *pin,
-                       const EOS *eos, ModalBasis * /*fluid_basis = nullptr*/) {
+                       const eos::EOS *eos,
+                       basis::ModalBasis * /*fluid_basis = nullptr*/) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Gas collapse requires ideal gas eos!");
   }
@@ -64,3 +67,5 @@ void gas_collapse_init(State *state, GridStructure *grid, ProblemIn *pin,
         }
       });
 }
+
+} // namespace athelas

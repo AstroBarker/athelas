@@ -1,22 +1,10 @@
 #pragma once
-/**
- * @file polynomial_basis.hpp
- * --------------
- *
- * @author Brandon L. Barker
- * @brief Core polynomial basis functions
- *
- * @details Provides means to construct and evaluate bases
- *            - legendre
- *            - taylor
- */
 
-#include "abstractions.hpp"
-#include "grid.hpp"
+#include "geometry/grid.hpp"
+#include "utils/abstractions.hpp"
 
 namespace athelas::basis {
 
-using geometry::GridStructure;
 using BasisFuncType = double(int, double, double);
 
 class ModalBasis {
@@ -76,10 +64,10 @@ class ModalBasis {
   int mSize_;
   bool density_weight_;
 
-  View2D<double> mass_matrix_{};
+  View2D<double> mass_matrix_;
 
-  View3D<double> phi_{};
-  View3D<double> dphi_{};
+  View3D<double> phi_;
+  View3D<double> dphi_;
 
   double (*func_)(const int n, const double x, const double x_c);
   double (*dfunc_)(const int n, const double x, double const x_c);

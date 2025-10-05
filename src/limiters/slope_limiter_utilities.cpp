@@ -11,11 +11,16 @@
 #include <cstdlib> /* abs */
 #include <limits>
 
-#include "slope_limiter.hpp"
-#include "slope_limiter_utilities.hpp"
-#include "utilities.hpp"
+#include "grid.hpp"
+#include "limiters/slope_limiter.hpp"
+#include "limiters/slope_limiter_utilities.hpp"
+#include "polynomial_basis.hpp"
+#include "utils/utilities.hpp"
 
-namespace limiter_utilities {
+namespace athelas {
+
+using basis::ModalBasis;
+using eos::EOS;
 
 auto initialize_slope_limiter(const std::string field,
                               const GridStructure *grid, const ProblemIn *pin,
@@ -251,4 +256,4 @@ auto weno_tau(const double beta_l, const double beta_i, const double beta_r,
                   weno_r);
 }
 
-} // namespace limiter_utilities
+} // namespace athelas

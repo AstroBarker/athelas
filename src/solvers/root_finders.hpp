@@ -7,9 +7,8 @@
 #include "solvers/root_finder_opts.hpp"
 #include "utils/utilities.hpp"
 
-namespace root_finders {
-
-using utilities::ratio;
+// TODO(astrobarker): make a solvers namespace? If it grows beyond rf, yes.
+namespace athelas::root_finders {
 
 template <typename T, typename F, typename... Args>
 auto residual(F g, T x0, const int k, const int iC, Args... args) -> double {
@@ -648,4 +647,4 @@ class AAFixedPointAlgorithm {
   }
 };
 
-} // namespace root_finders
+} // namespace athelas::root_finders

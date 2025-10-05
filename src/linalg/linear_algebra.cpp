@@ -19,6 +19,8 @@
 #include "linalg/linear_algebra.hpp"
 #include "utils/error.hpp"
 
+namespace athelas {
+
 /**
  * @brief Diagonalizes a symmetric tridiagonal matrix using Eigen.
  */
@@ -88,3 +90,5 @@ void invert_matrix(std::vector<double> &M, int n) {
   // Copy the result back to the original vector
   matrix = inverse;
 }
+
+} // namespace athelas

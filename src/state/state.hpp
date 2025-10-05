@@ -5,6 +5,8 @@
 #include "composition/compdata.hpp"
 #include "utils/abstractions.hpp"
 
+namespace athelas {
+
 /**
  * @class State
  * @brief Primary State datastructure.
@@ -27,11 +29,11 @@ class State {
   [[nodiscard]] auto composition_enabled() const noexcept -> bool;
   [[nodiscard]] auto ionization_enabled() const noexcept -> bool;
 
-  [[nodiscard]] auto comps() const -> CompositionData *;
-  [[nodiscard]] auto ionization_state() const -> IonizationState *;
+  [[nodiscard]] auto comps() const -> atom::CompositionData *;
+  [[nodiscard]] auto ionization_state() const -> atom::IonizationState *;
 
-  void setup_composition(std::shared_ptr<CompositionData> comps);
-  void setup_ionization(std::shared_ptr<IonizationState> ion);
+  void setup_composition(std::shared_ptr<atom::CompositionData> comps);
+  void setup_ionization(std::shared_ptr<atom::IonizationState> ion);
 
  private:
   int nvar_;
@@ -44,9 +46,11 @@ class State {
   View3D<double> uPF_; // primitive fluid
   View3D<double> uAF_; // auxiliary fluid
 
-  std::shared_ptr<CompositionData> comps_;
-  std::shared_ptr<IonizationState> ionization_state_;
+  std::shared_ptr<atom::CompositionData> comps_;
+  std::shared_ptr<atom::IonizationState> ionization_state_;
 
   bool composition_enabled_;
   bool ionization_enabled_;
 };
+
+} // namespace athelas

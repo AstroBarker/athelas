@@ -1,26 +1,30 @@
-#pragma once
 /**
  * @file boundary_conditions.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Boundary conditions
  *
  * @details Implemented BCs
  *            - outflow
  *            - reflecting
  *            - periodic
- *            - dirichlet
+ *            - Dirichlet
+ *            - Marshak
  */
 
-#include "abstractions.hpp"
+#pragma once
+
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
-#include "grid.hpp"
+#include "geometry/grid.hpp"
+#include "utils/abstractions.hpp"
 
-namespace bc {
+namespace athelas::bc {
 /**
  * @brief Apply Boundary Conditions to fluid fields
+ *
+ * @note Templated on number of variables, probably should change.
+ * As it stands, N = 3 for fluid and N = 2 for radiation boundaries.
  *
  * Supported Options:
  *  outflow
@@ -34,7 +38,7 @@ namespace bc {
  **/
 template <int N> // N = 3 for fluid, N = 2 for rad...
 void fill_ghost_zones(View3D<double> U, const GridStructure *grid,
-                      const ModalBasis *basis, BoundaryConditions *bcs,
+                      const basis::ModalBasis *basis, BoundaryConditions *bcs,
                       const std::tuple<int, int> &vars) {
 
   const int nX = grid->get_n_elements();
@@ -61,7 +65,7 @@ template <int N>
 KOKKOS_INLINE_FUNCTION void
 apply_bc(const BoundaryConditionsData<N> &bc, View3D<double> U, const int q,
          const int ghost_cell, const int interior_cell,
-         const ModalBasis *basis) {
+         const basis::ModalBasis *basis) {
   const int num_modes = basis->get_order();
   switch (bc.type) {
   case BcType::Outflow:
@@ -132,4 +136,4 @@ apply_bc(const BoundaryConditionsData<N> &bc, View3D<double> U, const int q,
     break;
   }
 }
-} // namespace bc
+} // namespace athelas::bc

@@ -1,0 +1,9 @@
+#include <string>
+namespace athelas::build_info {
+inline const std::string GIT_HASH = "@GIT_HASH@";
+inline const std::string BUILD_TIMESTAMP = "@BUILD_TIMESTAMP@";
+inline const std::string COMPILER = "@COMPILER@";
+inline const std::string OPTIMIZATION = "@OPTIMIZATION@";
+inline const std::string ARCH = "@ARCH@";
+inline const std::string OS = "@OS@";
+} // namespace athelas::build_info

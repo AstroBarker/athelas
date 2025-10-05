@@ -1,4 +1,3 @@
-#pragma once
 /**
  * @file params.hpp
  * --------------
@@ -8,12 +7,16 @@
  *   std::unordered_map<std::string, std::unique_ptr<std::any>>
  */
 
+#pragma once
+
 #include <any>
 #include <string>
 #include <typeindex>
 #include <unordered_map>
 
 #include "utils/error.hpp"
+
+namespace athelas {
 
 /**
  * @class Params
@@ -133,3 +136,5 @@ class Params {
  private:
   std::unordered_map<std::string, std::unique_ptr<std::any>> params_;
 };
+
+} // namespace athelas

@@ -1,4 +1,3 @@
-#pragma once
 /**
  * @file abstractions.hpp
  * --------------
@@ -7,7 +6,13 @@
  * @brief Provides useful definitions.
  */
 
+#pragma once
+
 #include "Kokkos_Core.hpp"
+
+#include "basic_types.hpp"
+
+namespace athelas {
 
 using DevMemSpace = Kokkos::DefaultExecutionSpace::memory_space;
 using HostMemSpace = Kokkos::HostSpace;
@@ -16,11 +21,6 @@ using ScratchMemSpace = DevExecSpace::scratch_memory_space;
 
 using HostExecSpace = Kokkos::DefaultHostExecutionSpace;
 using MemUnmanaged = Kokkos::MemoryTraits<Kokkos::Unmanaged>;
-
-template <typename T>
-using ScratchPad1D = Kokkos::View<T *, ScratchMemSpace, MemUnmanaged>;
-template <typename T>
-using ScratchPad2D = Kokkos::View<T **, ScratchMemSpace, MemUnmanaged>;
 
 template <typename T>
 using View4D = Kokkos::View<T ****>;
@@ -88,22 +88,6 @@ struct ArgMax {
   }
 };
 } // namespace custom_reductions
-namespace Kokkos { // reduction identity must be defined in Kokkos namespace
-template <>
-struct reduction_identity<custom_reductions::ValueType> {
-  KOKKOS_FORCEINLINE_FUNCTION static custom_reductions::ValueType sum() {
-    return custom_reductions::ValueType();
-  }
-};
-template <>
-struct reduction_identity<custom_reductions::ArgMax> {
-  KOKKOS_FORCEINLINE_FUNCTION
-  static custom_reductions::ArgMax max() {
-    return custom_reductions::ArgMax(
-        -1, -Kokkos::reduction_identity<double>::max());
-  }
-};
-} // namespace Kokkos
 
 /* Where to put this? */
 namespace poly_basis {
@@ -117,3 +101,23 @@ struct TimeStepInfo {
   int stage;
 };
 enum class GravityModel { Constant, Spherical };
+
+} // namespace athelas
+  //
+namespace Kokkos { // reduction identity must be defined in Kokkos namespace
+template <>
+struct reduction_identity<athelas::custom_reductions::ValueType> {
+  KOKKOS_FORCEINLINE_FUNCTION static athelas::custom_reductions::ValueType
+  sum() {
+    return athelas::custom_reductions::ValueType();
+  }
+};
+template <>
+struct reduction_identity<athelas::custom_reductions::ArgMax> {
+  KOKKOS_FORCEINLINE_FUNCTION
+  static athelas::custom_reductions::ArgMax max() {
+    return athelas::custom_reductions::ArgMax(
+        -1, -Kokkos::reduction_identity<double>::max());
+  }
+};
+} // namespace Kokkos

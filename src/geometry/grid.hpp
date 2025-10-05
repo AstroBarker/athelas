@@ -3,7 +3,7 @@
 #include "pgen/problem_in.hpp"
 #include "utils/abstractions.hpp"
 
-namespace athelas::geometry {
+namespace athelas {
 
 enum class Geometry { Planar, Spherical };
 
@@ -14,7 +14,7 @@ class GridStructure {
   explicit GridStructure(const ProblemIn *pin);
   GridStructure() = default;
   KOKKOS_FUNCTION
-  [[nodiscard]] auto node_coordinate(int iC, int iN) const -> double;
+  [[nodiscard]] auto node_coordinate(int iC, int q) const -> double;
   KOKKOS_FUNCTION
   [[nodiscard]] auto get_centers(int iC) const -> double;
   KOKKOS_FUNCTION
@@ -92,21 +92,21 @@ class GridStructure {
   double xL_;
   double xR_;
 
-  geometry::Geometry geometry_;
+  Geometry geometry_;
   std::string grid_type_; // uniform or logarithmic
 
-  View1D<double> nodes_{};
-  View1D<double> weights_{};
+  View1D<double> nodes_;
+  View1D<double> weights_;
 
-  View1D<double> centers_{};
-  View1D<double> widths_{};
-  View1D<double> x_l_{}; // left interface coordinate
+  View1D<double> centers_;
+  View1D<double> widths_;
+  View1D<double> x_l_; // left interface coordinate
 
-  View1D<double> mass_{}; // cell mass
-  View2D<double> mass_r_{}; // enclosed mass
-  View1D<double> center_of_mass_{};
+  View1D<double> mass_; // cell mass
+  View2D<double> mass_r_; // enclosed mass
+  View1D<double> center_of_mass_;
 
-  View2D<double> grid_{};
+  View2D<double> grid_;
 };
 
-} // namespace athelas::geometry
+} // namespace athelas

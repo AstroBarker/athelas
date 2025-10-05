@@ -1,11 +1,11 @@
-#pragma once
 /**
  * @file sedov.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Sedov blast wave
  */
+
+#pragma once
 
 #include <cmath>
 
@@ -15,11 +15,14 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
+namespace athelas {
+
 /**
  * @brief Initialize sedov blast wave
  **/
 void sedov_init(State *state, GridStructure *grid, ProblemIn *pin,
-                const EOS *eos, ModalBasis * /*fluid_basis = nullptr*/) {
+                const eos::EOS *eos,
+                basis::ModalBasis * /*fluid_basis = nullptr*/) {
 
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Sedov requires ideal gas eos!");
@@ -77,3 +80,5 @@ void sedov_init(State *state, GridStructure *grid, ProblemIn *pin,
         }
       });
 }
+
+} // namespace athelas

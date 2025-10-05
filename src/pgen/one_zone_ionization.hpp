@@ -1,3 +1,10 @@
+/**
+ * @file one_zone_ionization.hpp
+ * --------------
+ *
+ * @brief One zone ionization test
+ */
+
 #pragma once
 
 #include <cmath>
@@ -9,12 +16,14 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
+namespace athelas {
+
 /**
  * Initialize one_zone_ionization test
  **/
 void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
-                              const EOS *eos,
-                              ModalBasis *fluid_basis = nullptr) {
+                              const eos::EOS *eos,
+                              basis::ModalBasis *fluid_basis = nullptr) {
   const bool ionization_active =
       pin->param()->get<bool>("physics.ionization_enabled");
   const int saha_ncomps =
@@ -70,12 +79,13 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
   const double gm1 = gamma - 1.0;
   const double sie = constants::k_B * temperature / (gm1 * mu * constants::m_p);
 
-  std::shared_ptr<CompositionData> comps = std::make_shared<CompositionData>(
-      grid->get_n_elements() + 2, order, ncomps);
-  std::shared_ptr<IonizationState> ionization_state =
-      std::make_shared<IonizationState>(grid->get_n_elements() + 2, nNodes,
-                                        saha_ncomps, saha_ncomps + 1,
-                                        fn_ionization, fn_deg);
+  std::shared_ptr<atom::CompositionData> comps =
+      std::make_shared<atom::CompositionData>(grid->get_n_elements() + 2, order,
+                                              ncomps);
+  std::shared_ptr<atom::IonizationState> ionization_state =
+      std::make_shared<atom::IonizationState>(
+          grid->get_n_elements() + 2, nNodes, saha_ncomps, saha_ncomps + 1,
+          fn_ionization, fn_deg);
   auto mass_fractions = comps->mass_fractions();
   auto charges = comps->charge();
   auto neutrons = comps->neutron_number();
@@ -120,7 +130,7 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
   state->setup_composition(comps);
   state->setup_ionization(ionization_state);
   if (fluid_basis != nullptr) {
-    solve_saha_ionization(*state, *grid, *eos, *fluid_basis);
+    atom::solve_saha_ionization(*state, *grid, *eos, *fluid_basis);
   }
 
   // Fill density in guard cells
@@ -132,3 +142,5 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
         }
       });
 }
+
+} // namespace athelas

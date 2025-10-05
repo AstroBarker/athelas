@@ -1,8 +1,9 @@
-
 #include <cmath>
 
 #include "eos/eos.hpp"
 #include "utils/constants.hpp"
+
+namespace athelas::eos {
 
 [[nodiscard]] auto Polytropic::pressure_from_conserved(
     const double tau, const double /*V*/, const double /*EmT*/,
@@ -36,3 +37,5 @@ Polytropic::get_gamma(const double /*tau*/, const double /*V*/,
 [[nodiscard]] auto Polytropic::get_gamma() const noexcept -> double {
   return 1.0 + 1.0 / n_;
 }
+
+} // namespace athelas::eos

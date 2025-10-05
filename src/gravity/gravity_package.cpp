@@ -12,7 +12,9 @@
 #include "pgen/problem_in.hpp"
 #include "utils/abstractions.hpp"
 
-namespace gravity {
+namespace athelas::gravity {
+
+using basis::ModalBasis;
 
 GravityPackage::GravityPackage(const ProblemIn * /*pin*/, GravityModel model,
                                const double gval, ModalBasis *basis,
@@ -112,4 +114,4 @@ void GravityPackage::fill_derived(State * /*state*/,
 KOKKOS_FUNCTION
 void GravityPackage::set_active(const bool active) { active_ = active; }
 
-} // namespace gravity
+} // namespace athelas::gravity

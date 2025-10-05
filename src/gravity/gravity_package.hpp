@@ -1,10 +1,11 @@
-#pragma once
 /**
  * @file gravity_package.hpp
  * --------------
  *
  * @brief Gravitational source package
  **/
+
+#pragma once
 
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
@@ -13,14 +14,14 @@
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
-namespace gravity {
+namespace athelas::gravity {
 
 using bc::BoundaryConditions;
 
 class GravityPackage {
  public:
   GravityPackage(const ProblemIn * /*pin*/, GravityModel model, double gval,
-                 ModalBasis *basis, double cfl, bool active = true);
+                 basis::ModalBasis *basis, double cfl, bool active = true);
 
   KOKKOS_FUNCTION
   void update_explicit(const State *const state, View3D<double> dU,
@@ -52,9 +53,9 @@ class GravityPackage {
 
   double gval_; // constant gravity
 
-  ModalBasis *basis_;
+  basis::ModalBasis *basis_;
 
   double cfl_;
 };
 
-} // namespace gravity
+} // namespace athelas::gravity

@@ -1,9 +1,7 @@
-#pragma once
 /**
  * @file opac.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Declares concrete opacity model classes that implement the OpacBase
  *        interface
  *
@@ -17,7 +15,11 @@
  *
  */
 
-#include "opac_base.hpp"
+#pragma once
+
+#include "opacity/opac_base.hpp"
+
+namespace athelas {
 
 class Constant : public OpacBase<Constant> {
  public:
@@ -51,3 +53,5 @@ class PowerlawRho : public OpacBase<PowerlawRho> {
   double kR_{};
   double exp_{};
 };
+
+} // namespace athelas

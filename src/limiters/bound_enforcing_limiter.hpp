@@ -1,9 +1,7 @@
-#pragma once
 /**
  * @file bound_enforcing_limiter.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Implementation of bound enforcing limiters for enforcing physicality.
  *
  * @details This file implements a suite of bound enforcing limiters based on
@@ -22,40 +20,46 @@
  *          point iteration being the default choice.
  */
 
+#pragma once
+
 #include <print>
 
 #include "basis/polynomial_basis.hpp"
 #include "utils/abstractions.hpp"
 #include "utils/utilities.hpp"
 
-namespace bel {
+namespace athelas::bel {
 
-void limit_density(View3D<double> U, const ModalBasis *basis);
-void limit_internal_energy(View3D<double> U, const ModalBasis *basis);
-void limit_rad_energy(View3D<double> U, const ModalBasis *basis);
-void limit_rad_momentum(View3D<double> U, const ModalBasis *basis);
-void apply_bound_enforcing_limiter(View3D<double> U, const ModalBasis *basis);
+void limit_density(View3D<double> U, const basis::ModalBasis *basis);
+void limit_internal_energy(View3D<double> U, const basis::ModalBasis *basis);
+void limit_rad_energy(View3D<double> U, const basis::ModalBasis *basis);
+void limit_rad_momentum(View3D<double> U, const basis::ModalBasis *basis);
+void apply_bound_enforcing_limiter(View3D<double> U,
+                                   const basis::ModalBasis *basis);
 void apply_bound_enforcing_limiter_rad(View3D<double> U,
-                                       const ModalBasis *basis);
-auto compute_theta_state(View3D<double> U, const ModalBasis *basis,
+                                       const basis::ModalBasis *basis);
+auto compute_theta_state(View3D<double> U, const basis::ModalBasis *basis,
                          double theta, int q, int ix, int iN) -> double;
-auto target_func(double theta, View3D<double> U, const ModalBasis *basis,
+auto target_func(double theta, View3D<double> U, const basis::ModalBasis *basis,
                  int ix, int iN) -> double;
-auto target_func_deriv(double theta, View3D<double> U, const ModalBasis *basis,
-                       int ix, int iN) -> double;
+auto target_func_deriv(double theta, View3D<double> U,
+                       const basis::ModalBasis *basis, int ix, int iN)
+    -> double;
 auto target_func_rad_flux(double theta, View3D<double> U,
-                          const ModalBasis *basis, int ix, int iN) -> double;
+                          const basis::ModalBasis *basis, int ix, int iN)
+    -> double;
 auto target_func_rad_flux_deriv(double theta, View3D<double> U,
-                                const ModalBasis *basis, int ix, int iN)
+                                const basis::ModalBasis *basis, int ix, int iN)
     -> double;
 auto target_func_rad_energy(double theta, View3D<double> U,
-                            const ModalBasis *basis, int ix, int iN) -> double;
-auto target_func_rad_energy_deriv(double theta, View3D<double> U,
-                                  const ModalBasis *basis, int ix, int iN)
+                            const basis::ModalBasis *basis, int ix, int iN)
     -> double;
+auto target_func_rad_energy_deriv(double theta, View3D<double> U,
+                                  const basis::ModalBasis *basis, int ix,
+                                  int iN) -> double;
 
 template <typename F>
-auto bisection(const View3D<double> U, F target, const ModalBasis *basis,
+auto bisection(const View3D<double> U, F target, const basis::ModalBasis *basis,
                const int ix, const int iN) -> double {
   constexpr static double TOL = 1e-10;
   constexpr static int MAX_ITERS = 100;
@@ -95,7 +99,7 @@ auto bisection(const View3D<double> U, F target, const ModalBasis *basis,
 }
 
 template <typename F>
-auto backtrace(const View3D<double> U, F target, const ModalBasis *basis,
+auto backtrace(const View3D<double> U, F target, const basis::ModalBasis *basis,
                const int ix, const int iN) -> double {
   constexpr static double EPSILON = 1.0e-10; // maybe make this smarter
   double theta = 1.0;
@@ -110,4 +114,4 @@ auto backtrace(const View3D<double> U, F target, const ModalBasis *basis,
   return theta;
 }
 
-} // namespace bel
+} // namespace athelas::bel

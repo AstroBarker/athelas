@@ -5,6 +5,8 @@
 #include "interface/packages_base.hpp"
 #include "state/state.hpp"
 
+namespace athelas {
+
 /**
  * @class OperatorSplitStepper
  * @brief Updates operator split packages: U -> U + dU dt
@@ -15,7 +17,7 @@
  */
 class OperatorSplitStepper {
  public:
-  OperatorSplitStepper(const GridStructure &grid, EOS *eos, int nvars);
+  OperatorSplitStepper(const GridStructure &grid, eos::EOS *eos, int nvars);
 
   void step(PackageManager *pkgs, State *state, const GridStructure &grid,
             double t, double dt);
@@ -25,5 +27,7 @@ class OperatorSplitStepper {
   View3D<double> dU_;
 
   // hold EOS ptr for convenience
-  EOS *eos_;
+  eos::EOS *eos_;
 };
+
+} // namespace athelas

@@ -12,14 +12,18 @@
  *          while preventing oscillations.
  */
 
-#include "characteristic_decomposition.hpp"
-#include "grid.hpp"
+#include "basis/polynomial_basis.hpp"
+#include "geometry/grid.hpp"
+#include "limiters/characteristic_decomposition.hpp"
+#include "limiters/slope_limiter.hpp"
+#include "limiters/slope_limiter_utilities.hpp"
 #include "linear_algebra.hpp"
-#include "polynomial_basis.hpp"
-#include "slope_limiter.hpp"
-#include "slope_limiter_utilities.hpp"
 
-using namespace limiter_utilities;
+namespace athelas {
+
+using basis::ModalBasis;
+using eos::EOS;
+using utilities::ratio;
 
 /**
  * Apply the slope limiter. We use a compact stencil WENO-Z limiter
@@ -155,3 +159,4 @@ auto WENO::get_limited(const int ix) const -> int {
 }
 
 auto WENO::limited() const -> View1D<int> { return limited_cell_; }
+} // namespace athelas

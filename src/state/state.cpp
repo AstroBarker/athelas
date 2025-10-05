@@ -1,5 +1,11 @@
 #include "state/state.hpp"
+#include "compdata.hpp"
 #include "utils/error.hpp"
+
+namespace athelas {
+
+using atom::CompositionData;
+using atom::IonizationState;
 
 State::State(const int nvar, const int nPF, const int nAF, const int nX_,
              const int nNodes_, const int pOrder, const int nstages,
@@ -61,3 +67,5 @@ auto State::u_cf() const noexcept -> View3D<double> { return uCF_; }
 auto State::u_cf_stages() const noexcept -> View4D<double> { return uCF_s_; }
 auto State::u_pf() const noexcept -> View3D<double> { return uPF_; }
 auto State::u_af() const noexcept -> View3D<double> { return uAF_; }
+
+} // namespace athelas

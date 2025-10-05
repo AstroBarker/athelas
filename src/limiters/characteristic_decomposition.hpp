@@ -1,4 +1,3 @@
-#pragma once
 /**
  * @file characteristic_decomposition.hpp
  * --------------
@@ -9,11 +8,17 @@
  * @details Implements a characteristic decomposition of the hydro variables.
  *          Currently this is only implemented ofr an ideal EOS.
  *          TODO(astrobarker): Write down for radiation.
+ *
+ * @note: Broken!
  */
+
+#pragma once
 
 #include <cmath>
 
-#include "eos_variant.hpp"
+#include "eos/eos_variant.hpp"
+
+namespace athelas {
 
 template <class T1, class T2, class EOS>
 void compute_characteristic_decomposition(T1 U, T2 R, T2 R_inv, EOS eos) {
@@ -86,3 +91,5 @@ void compute_characteristic_decomposition(T1 U, T2 R, T2 R_inv, EOS eos) {
   R_inv(2, 1) = R_inv21;
   R_inv(2, 2) = R_inv22;
 }
+
+} // namespace athelas

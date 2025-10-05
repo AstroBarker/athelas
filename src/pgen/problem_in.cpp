@@ -3,7 +3,7 @@
 #include "utils/error.hpp"
 #include "utils/utilities.hpp"
 
-using namespace geometry;
+namespace athelas {
 
 // Provide access to the underlying params object
 auto ProblemIn::param() -> Params * { return params_.get(); }
@@ -668,3 +668,5 @@ auto check_bc(std::string bc) -> bool {
   }
   return false; // should not reach
 }
+
+} // namespace athelas

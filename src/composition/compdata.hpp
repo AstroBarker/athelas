@@ -5,8 +5,15 @@
 #include "atom/atom.hpp"
 #include "utils/abstractions.hpp"
 
-using atom::AtomicData;
+namespace athelas::atom {
 
+/**
+ * @class IonizationState
+ * @brief class for holding ionization state. We store here the ionization
+ * fractions of species, an AtomicData object (see atom.hpp), the mean
+ * ionizaiton state ybar, and several quantities needed in the
+ * Paczynski eos for ionization corrections.
+ */
 class IonizationState {
  public:
   IonizationState(int nX, int nNodes, int n_species, int n_states,
@@ -33,7 +40,10 @@ class IonizationState {
   View2D<double> sigma3_;
 };
 
-// Composition data handler - manages mass fractions and ionization fractions
+/**
+ * @class CompositionData
+ * TODO(astrobarker): probably moving mass fractions into ucf soon.
+ */
 class CompositionData {
  public:
   CompositionData(int nX, int order, int n_species);
@@ -61,3 +71,5 @@ class CompositionData {
   View1D<int> charge_; // n_species
   View1D<int> neutron_number_;
 }; // class CompositionData
+
+} // namespace athelas::atom

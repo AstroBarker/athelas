@@ -2,6 +2,10 @@
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
 
+namespace athelas {
+
+using eos::EOS;
+
 OperatorSplitStepper::OperatorSplitStepper(const GridStructure &grid, EOS *eos,
                                            const int nvars)
     : nvars_evolved_(nvars), dU_("OperatorSplit::dU", grid.get_n_elements() + 2,
@@ -22,3 +26,5 @@ void OperatorSplitStepper::step(PackageManager *pkgs, State *state,
   pkgs->update_explicit(state, dU_, grid, dt_info);
   pkgs->update_implicit_iterative(state, dU_, grid, dt_info);
 }
+
+} // namespace athelas

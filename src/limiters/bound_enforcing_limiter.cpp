@@ -25,12 +25,14 @@
 #include <cstdlib> /* abs */
 
 #include "basis/polynomial_basis.hpp"
+#include "grid.hpp"
 #include "limiters/bound_enforcing_limiter.hpp"
 #include "solvers/root_finders.hpp"
 #include "utils/utilities.hpp"
 
-namespace bel {
+namespace athelas::bel {
 
+using basis::ModalBasis;
 using utilities::ratio;
 
 /**
@@ -297,4 +299,4 @@ auto target_func_rad_energy(const double theta, const View3D<double> U,
   return e - w;
 }
 
-} // namespace bel
+} // namespace athelas::bel

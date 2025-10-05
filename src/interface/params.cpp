@@ -1,6 +1,8 @@
 #include <string>
 
-#include "params.hpp"
+#include "interface/params.hpp"
+
+namespace athelas {
 
 auto Params::contains(const std::string &key) const -> bool {
   return params_.contains(key);
@@ -26,3 +28,5 @@ auto Params::keys() const -> std::vector<std::string> {
 auto Params::get_type(const std::string &key) const -> std::type_index {
   return params_.at(key)->type();
 }
+
+} // namespace athelas

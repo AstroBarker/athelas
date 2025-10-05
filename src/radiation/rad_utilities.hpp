@@ -1,4 +1,3 @@
-#pragma once
 /**
  * @file rad_utilities.cpp
  * --------------
@@ -14,8 +13,9 @@
  *          - Compute_Closure
  *          - lambda_hll
  *          - numerical_flux_hll_rad
- *          - computeTimestep_Rad
  */
+
+#pragma once
 
 #include <tuple>
 
@@ -23,7 +23,7 @@
 #include "solvers/root_finder_opts.hpp"
 #include "solvers/root_finders.hpp"
 
-namespace radiation {
+namespace athelas::radiation {
 
 using root_finders::PhysicalScales, root_finders::RadHydroConvergence;
 
@@ -197,4 +197,4 @@ KOKKOS_INLINE_FUNCTION void fixed_point_radhydro_aa(T R, double dt_a_ii,
   } // while not converged
 }
 
-} // namespace radiation
+} // namespace athelas::radiation

@@ -1,5 +1,7 @@
 #pragma once
 
+namespace athelas::eos {
+
 /**
  * @class EosBase
  * @brief Base class for equations of state using the Curiously Recurring
@@ -47,3 +49,5 @@ class EosBase {
     return static_cast<EOS const *>(this)->get_gamma();
   }
 };
+
+} // namespace athelas::eos

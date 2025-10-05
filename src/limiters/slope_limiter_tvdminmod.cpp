@@ -14,14 +14,17 @@
 #include <algorithm> /* std::min, std::max */
 #include <cstdlib> /* abs */
 
-#include "characteristic_decomposition.hpp"
-#include "grid.hpp"
-#include "linear_algebra.hpp"
-#include "polynomial_basis.hpp"
-#include "slope_limiter.hpp"
-#include "slope_limiter_utilities.hpp"
+#include "basis/polynomial_basis.hpp"
+#include "geometry/grid.hpp"
+#include "limiters/characteristic_decomposition.hpp"
+#include "limiters/slope_limiter.hpp"
+#include "limiters/slope_limiter_utilities.hpp"
+#include "linalg/linear_algebra.hpp"
 
-using namespace limiter_utilities;
+namespace athelas {
+
+using basis::ModalBasis;
+using eos::EOS;
 
 /**
  * TVD Minmod limiter. See the Cockburn & Shu papers
@@ -155,3 +158,4 @@ auto TVDMinmod::get_limited(const int ix) const -> int {
 }
 
 auto TVDMinmod::limited() const -> View1D<int> { return limited_cell_; }
+} // namespace athelas

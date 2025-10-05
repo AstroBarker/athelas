@@ -1,15 +1,17 @@
-#pragma once
 /**
  * @file tableau.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Class for holding implicit and explicit RK tableaus.
  *
  * @details TODO: describe tableaus.
  */
 
-#include "abstractions.hpp"
+#pragma once
+
+#include "utils/abstractions.hpp"
+
+namespace athelas {
 
 enum class TableauType { Implicit, Explicit };
 enum class MethodType { EX, IM, IMEX };
@@ -124,3 +126,5 @@ class ShuOsherTableau {
 
   void initialize_tableau();
 };
+
+} // namespace athelas
