@@ -81,7 +81,7 @@ void smooth_flow_init(State *state, GridStructure *grid, ProblemIn *pin,
     Kokkos::parallel_for(
         Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
           const int k = 0;
-          const double X1 = grid->get_centers(ix);
+          const double X1 = grid->centers(ix);
 
           const double D = (1.0 + (amp * sin(constants::PI * X1)));
           uCF(ix, k, q_Tau) = 1.0 / D;

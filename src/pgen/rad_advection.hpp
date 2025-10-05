@@ -57,7 +57,7 @@ void rad_advection_init(State *state, GridStructure *grid, ProblemIn *pin,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int ix) {
         const int k = 0;
-        const double X1 = grid->get_centers(ix);
+        const double X1 = grid->centers(ix);
 
         uCF(ix, k, iCR_E) =
             amp * std::max(std::exp(-std::pow((X1 - 0.5) / width, 2.0) / 2.0),

@@ -89,7 +89,7 @@ void rad_shock_steady_init(State *state, GridStructure *grid, ProblemIn *pin,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int ix) {
         const int k = 0;
-        const double X1 = grid->get_centers(ix);
+        const double X1 = grid->centers(ix);
 
         if (X1 <= 0.0) {
           uCF(ix, k, q_Tau) = 1.0 / rhoL;

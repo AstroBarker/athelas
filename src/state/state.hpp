@@ -3,6 +3,8 @@
 #include <memory>
 
 #include "composition/compdata.hpp"
+#include "interface/params.hpp"
+#include "pgen/problem_in.hpp"
 #include "utils/abstractions.hpp"
 
 namespace athelas {
@@ -13,8 +15,7 @@ namespace athelas {
  */
 class State {
  public:
-  State(int nvar, int nPF, int nAF, int nX_, int nNodes_, int pOrder,
-        int nstages, bool composition_enabled, bool ionization_enabled);
+  State(const ProblemIn *pin, int nstages);
 
   [[nodiscard]] auto n_cf() const noexcept -> int;
   [[nodiscard]] auto n_pf() const noexcept -> int;
@@ -28,6 +29,8 @@ class State {
 
   [[nodiscard]] auto composition_enabled() const noexcept -> bool;
   [[nodiscard]] auto ionization_enabled() const noexcept -> bool;
+  [[nodiscard]] auto composition_evolved() const noexcept -> bool;
+  [[nodiscard]] auto nickel_evolved() const noexcept -> bool;
 
   [[nodiscard]] auto comps() const -> atom::CompositionData *;
   [[nodiscard]] auto ionization_state() const -> atom::IonizationState *;
@@ -35,11 +38,10 @@ class State {
   void setup_composition(std::shared_ptr<atom::CompositionData> comps);
   void setup_ionization(std::shared_ptr<atom::IonizationState> ion);
 
+  auto params() noexcept -> Params *;
+
  private:
-  int nvar_;
-  int nPF_;
-  int nAF_;
-  int pOrder_;
+  std::unique_ptr<Params> params_;
 
   View3D<double> uCF_; // Conserved fluid
   View4D<double> uCF_s_; // Conserved fluid (stage storage)
@@ -48,9 +50,6 @@ class State {
 
   std::shared_ptr<atom::CompositionData> comps_;
   std::shared_ptr<atom::IonizationState> ionization_state_;
-
-  bool composition_enabled_;
-  bool ionization_enabled_;
 };
 
 } // namespace athelas

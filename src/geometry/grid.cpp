@@ -34,7 +34,7 @@ GridStructure::GridStructure(const ProblemIn *pin)
       geometry_(pin->param()->get<Geometry>("problem.geometry_model")),
       grid_type_(pin->param()->get<std::string>("problem.grid_type")),
       nodes_("Nodes", nNodes_), weights_("weights_", nNodes_),
-      centers_("Cetners", mSize_), widths_("widths_", mSize_),
+      centers_("Centers", mSize_), widths_("widths_", mSize_),
       x_l_("Left Interface", mSize_ + 1), mass_("Cell mass_", mSize_),
       mass_r_("Enclosed mass", mSize_, nNodes_),
       center_of_mass_("Center of mass_", mSize_),
@@ -79,7 +79,7 @@ auto GridStructure::node_coordinate(const int iC, const int q) const -> double {
 
 // Return cell center
 KOKKOS_FUNCTION
-auto GridStructure::get_centers(int iC) const -> double { return centers_(iC); }
+auto GridStructure::centers(int iC) const -> double { return centers_(iC); }
 
 // Return cell width
 KOKKOS_FUNCTION
@@ -448,11 +448,22 @@ auto GridStructure::operator()(int i, int j) const -> double {
   return grid_(i, j);
 }
 
-[[nodiscard]] auto GridStructure::widths() -> View1D<double> { return widths_; }
+[[nodiscard]] auto GridStructure::widths() const -> View1D<double> {
+  return widths_;
+}
+[[nodiscard]] auto GridStructure::mass() const -> View1D<double> {
+  return mass_;
+}
+[[nodiscard]] auto GridStructure::centers() const -> View1D<double> {
+  return centers_;
+}
 [[nodiscard]] auto GridStructure::centers() -> View1D<double> {
   return centers_;
 }
 [[nodiscard]] auto GridStructure::nodal_grid() -> View2D<double> {
+  return grid_;
+}
+[[nodiscard]] auto GridStructure::nodal_grid() const -> View2D<double> {
   return grid_;
 }
 

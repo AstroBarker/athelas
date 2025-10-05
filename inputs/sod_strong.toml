@@ -15,6 +15,7 @@ radiation = false
 gravity = false
 composition = false
 ionization = false
+heating = false
 
 [problem.params]
 vL = 0.0

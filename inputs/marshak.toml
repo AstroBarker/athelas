@@ -21,6 +21,7 @@ radiation = true
 gravity = false
 composition = false
 ionization = false
+heating = false
 
 [bc]
 [bc.fluid]
@@ -42,8 +43,8 @@ dt = 1.0e-16
 
 [fluid]
 basis = "legendre"
-nnodes = 2
-porder = 2
+nnodes = 1
+porder = 1
 
 [fluid.limiter]
 do_limiter = true
@@ -56,8 +57,8 @@ characteristic = false
 
 [radiation]
 basis = "legendre"
-nnodes = 2
-porder = 2
+nnodes = 1
+porder = 1
 
 [radiation.limiter]
 do_limiter = true
@@ -69,9 +70,9 @@ tci_val = 0.1
 characteristic = false
 
 [time]
-integrator = "IMEX_ARK32_ESDIRK"
+#integrator = "IMEX_ARK32_ESDIRK"
 #integrator = "IMEX_PDARS_ESDIRK"
-#integrator = "IMEX_SSPRK11"
+integrator = "IMEX_SSPRK11"
 
 [eos]
 type = "marshak"

@@ -1,10 +1,3 @@
-/**
- * @file one_zone_ionization.hpp
- * --------------
- *
- * @brief One zone ionization test
- */
-
 #pragma once
 
 #include <cmath>
@@ -19,28 +12,24 @@
 namespace athelas {
 
 /**
- * Initialize one_zone_ionization test
+ * Initialize ni_decay test
  **/
-void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
-                              const eos::EOS *eos,
-                              basis::ModalBasis *fluid_basis = nullptr) {
-  const bool ionization_active =
-      pin->param()->get<bool>("physics.ionization_enabled");
-  const int saha_ncomps =
-      pin->param()->get<int>("ionization.ncomps"); // for ionization
-  const auto ncomps =
-      pin->param()->get<int>("problem.params.ncomps", 1); // mass fractions
-  if (!ionization_active) {
-    THROW_ATHELAS_ERROR("One zone ionization requires ionization enabled!");
+void ni_decay_init(State *state, GridStructure *grid, ProblemIn *pin,
+                   const eos::EOS *eos,
+                   basis::ModalBasis *fluid_basis = nullptr) {
+  const bool composition_active =
+      pin->param()->get<bool>("physics.composition_enabled");
+  const bool ni_decay_active =
+      pin->param()->get<bool>("physics.heating.nickel.enabled");
+  const auto ncomps = 3; // Ni, Co, Fe
+  if (!composition_active) {
+    THROW_ATHELAS_ERROR("Ni decay requires composition enabled!");
+  }
+  if (!ni_decay_active) {
+    THROW_ATHELAS_ERROR("Ni decay requires nickel heating enabled!");
   }
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
-    THROW_ATHELAS_ERROR("One zone ionization requires ideal gas eos!");
-  }
-  // Don't try to track ionization for more species than we use.
-  // We will track ionization for the first saha_ncomps species
-  if (saha_ncomps > ncomps) {
-    THROW_ATHELAS_ERROR("One zone ionization requires [ionization.ncomps] >= "
-                        "[problem.params.ncomps]!");
+    THROW_ATHELAS_ERROR("Ni decay requires ideal gas eos!");
   }
 
   View3D<double> uCF = state->u_cf();
@@ -65,11 +54,6 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
   const double vel = 0.0;
   const double tau = 1.0 / rho;
 
-  const auto fn_ionization =
-      pin->param()->get<std::string>("ionization.fn_ionization");
-  const auto fn_deg =
-      pin->param()->get<std::string>("ionization.fn_degeneracy");
-
   if (temperature <= 0.0 || rho <= 0.0) {
     THROW_ATHELAS_ERROR("Temperature and denisty must be positive definite!");
   }
@@ -83,14 +67,14 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
       std::make_shared<atom::CompositionData>(
           grid->get_n_elements() + 2, order, ncomps,
           state->params()->get<int>("n_stages"));
-  std::shared_ptr<atom::IonizationState> ionization_state =
-      std::make_shared<atom::IonizationState>(
-          grid->get_n_elements() + 2, nNodes, saha_ncomps, saha_ncomps + 1,
-          fn_ionization, fn_deg);
   auto mass_fractions = comps->mass_fractions();
   auto charges = comps->charge();
   auto neutrons = comps->neutron_number();
-  auto ionization_states = ionization_state->ionization_fractions();
+  auto ye = comps->ye();
+  auto *species_indexer = comps->species_indexer();
+  species_indexer->add("ni56", 0);
+  species_indexer->add("co56", 1);
+  species_indexer->add("fe56", 2);
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int ix) {
         const int k = 0;
@@ -102,37 +86,26 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
         for (int iNodeX = 0; iNodeX < nNodes + 2; iNodeX++) {
           uPF(ix, iNodeX, iPF_D) = rho;
           uAF(ix, iNodeX, 1) = temperature;
+          ye(ix, iNodeX) = 0.5;
         }
 
         // set up comps
         // For this problem we set up a contiguous list of species
         // form Z = 1 to ncomps. Mass fractions are uniform with no slopes.
-        for (int elem = 0; elem < ncomps; ++elem) {
-          mass_fractions(ix, k, elem) = 1.0 / ncomps;
-          charges(elem) = elem + 1;
-          neutrons(elem) = elem + 1;
-        }
+        mass_fractions(ix, k, 0) = 1.0; // Pure Ni
 
-        for (int node = 0; node < nNodes + 2; ++node) {
-
-          // overkill
-          if (ionization_active) {
-            for (int elem = 0; elem < saha_ncomps; ++elem) {
-              const int Z = charges(elem);
-
-              for (int z = 0; z < Z + 1; ++z) {
-                ionization_states(ix, node, elem, z) = 0.0; // unnecessary
-              }
-            }
-          }
-        }
+        // Ni
+        charges(0) = 28;
+        neutrons(0) = 28;
+        // Co
+        charges(1) = 27;
+        neutrons(1) = 29;
+        // Co
+        charges(2) = 26;
+        neutrons(2) = 30;
       });
 
   state->setup_composition(comps);
-  state->setup_ionization(ionization_state);
-  if (fluid_basis != nullptr) {
-    atom::solve_saha_ionization(*state, *grid, *eos, *fluid_basis);
-  }
 
   // Fill density in guard cells
   Kokkos::parallel_for(

@@ -1,60 +1,55 @@
-# Einfeldt 1-2-3 strong rarefaction
 [problem]
-problem = "sod"
-t_end = 0.15
+problem = "ni_decay"
+t_end = 52488.0 # 1/10 half-life of 56Ni
 nlim = -1
-geometry = "planar"
+geometry = "spherical"
 restart = false
 xl = 0.0
-xr = 1.0
+xr = 3.622e9
 cfl = 0.5
-nx = 2048
+nx = 16
 grid_type = "uniform"
 
 [problem.params]
-vL = -2.0
-vR = +2.0
-rhoL = 1.0
-rhoR = 1.0
-pL = 0.4
-pR = 0.4
-x_d = 0.5
+temperature = 1000.0
+rho = 1000.0
 
 [physics]
 radiation = false
 gravity = false
-composition = false
+composition = true
 ionization = false
-heating = false
+heating = true
+
+# Model can be full_trapping or swartz
+[heating.nickel]
+enabled = true
+model = "full_trapping"
 
 [bc]
 [bc.fluid]
-bc_i = "outflow"
+bc_i = "reflecting"
 bc_o = "outflow"
 
 [output]
 ncycle_out = 100
-#dt_hdf5 = 1.0e-2
-dt_init_frac = 1.25
+#dt_hdf5 = 1.0e-12 # default: 100 outputs
+dt_init_frac = 1.01
 
 [output.history]
-fn = "einfeldt.hst"
+fn = "ni_decay.hst"
 #dt = 0.001 # default: dt_hdf5 / 10
 
 [fluid]
 basis = "legendre"
-nnodes = 3
-porder = 3
+nnodes = 2
+porder = 2
 
 [fluid.limiter]
 do_limiter = true
-type = "minmod"
-m_tvb = 5.0
-b_tvd = 1.0
-tci_opt = true
-tci_val = 1.0e-1
+tci_opt = false
+tci_val = 0.1
 characteristic = false
-gamma_i = 0.998
 
 [time]
 integrator = "EX_SSPRK22"

@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "composition/compdata.hpp"
 #include "utils/error.hpp"
 
@@ -5,13 +7,16 @@ namespace athelas::atom {
 
 // NOTE: if nodes exceeds order we have a problem here.
 CompositionData::CompositionData(const int nX, const int order,
-                                 const int n_species)
-    : nX_(nX), order_(order), n_species_(n_species) {
+                                 const int n_species, const int n_stages)
+    : nX_(nX), order_(order), n_species_(n_species),
+      species_indexer_(std::make_unique<Params>()) {
 
   if (n_species <= 0) {
     THROW_ATHELAS_ERROR("CompositionData :: n_species must be > 0!");
   }
   mass_fractions_ = View3D<double>("mass_fractions", nX_, order, n_species);
+  mass_fractions_stages_ =
+      View4D<double>("mass_fractions_stage", n_stages, nX_, order, n_species);
   ye_ = View2D<double>("ye", nX, order + 2);
   number_density_ = View2D<double>("ye", nX, order + 2);
   charge_ = View1D<int>("charge", n_species);
@@ -21,6 +26,18 @@ CompositionData::CompositionData(const int nX, const int order,
 [[nodiscard]] auto CompositionData::mass_fractions() const noexcept
     -> View3D<double> {
   return mass_fractions_;
+}
+[[nodiscard]] auto CompositionData::mass_fractions() noexcept
+    -> View3D<double> {
+  return mass_fractions_;
+}
+[[nodiscard]] auto CompositionData::mass_fractions_stages() const noexcept
+    -> View4D<double> {
+  return mass_fractions_stages_;
+}
+[[nodiscard]] auto CompositionData::mass_fractions_stages() noexcept
+    -> View4D<double> {
+  return mass_fractions_stages_;
 }
 [[nodiscard]] auto CompositionData::charge() const noexcept -> View1D<int> {
   return charge_;
@@ -35,6 +52,13 @@ CompositionData::CompositionData(const int nX, const int order,
 [[nodiscard]] auto CompositionData::number_density() const noexcept
     -> View2D<double> {
   return number_density_;
+}
+[[nodiscard]] auto CompositionData::species_indexer() noexcept -> Params * {
+  return species_indexer_.get();
+}
+[[nodiscard]] auto CompositionData::species_indexer() const noexcept
+    -> Params * {
+  return species_indexer_.get();
 }
 
 // --- end CompositionData ---

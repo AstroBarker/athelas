@@ -16,7 +16,7 @@ class GridStructure {
   KOKKOS_FUNCTION
   [[nodiscard]] auto node_coordinate(int iC, int q) const -> double;
   KOKKOS_FUNCTION
-  [[nodiscard]] auto get_centers(int iC) const -> double;
+  [[nodiscard]] auto centers(int iC) const -> double;
   KOKKOS_FUNCTION
   [[nodiscard]] auto get_widths(int iC) const -> double;
   KOKKOS_FUNCTION
@@ -65,9 +65,12 @@ class GridStructure {
   KOKKOS_FUNCTION
   void compute_center_of_mass_radius(View3D<double> uPF);
 
-  [[nodiscard]] auto widths() -> View1D<double>;
+  [[nodiscard]] auto widths() const -> View1D<double>;
+  [[nodiscard]] auto mass() const -> View1D<double>;
+  [[nodiscard]] auto centers() const -> View1D<double>;
   [[nodiscard]] auto centers() -> View1D<double>;
   [[nodiscard]] auto nodal_grid() -> View2D<double>;
+  [[nodiscard]] auto nodal_grid() const -> View2D<double>;
 
   // domain
   template <Domain D>

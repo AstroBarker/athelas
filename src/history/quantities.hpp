@@ -334,4 +334,109 @@ auto total_mass(const State &state, const GridStructure &grid,
   }
   return output;
 }
+
+// TODO(astrobarker): surely there is a non-invasive way to combine
+// these total_mass_x. Would need to pass in either index or string for indexer
+inline auto total_mass_ni56(const State &state, const GridStructure &grid,
+                            const basis::ModalBasis *fluid_basis,
+                            const basis::ModalBasis * /*rad_basis*/) {
+  static constexpr int ilo = 1;
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
+
+  const auto u = state.u_cf();
+  const auto mass_fractions = state.comps()->mass_fractions();
+  const auto *const species_indexer = state.comps()->species_indexer();
+  const auto ind_x = species_indexer->get<int>("ni56");
+
+  double output = 0.0;
+  Kokkos::parallel_reduce(
+      "History :: TotalMassNi56", Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
+        double local_sum = 0.0;
+        for (int iN = 0; iN < nNodes; ++iN) {
+          const double X = grid.node_coordinate(i, iN);
+          const double x_ni =
+              fluid_basis->basis_eval(mass_fractions, i, ind_x, iN + 1);
+          local_sum += x_ni * (1.0 / fluid_basis->basis_eval(u, i, 0, iN + 1)) *
+                       grid.get_sqrt_gm(X) * grid.get_weights(iN);
+        }
+        lsum += local_sum * grid.get_widths(i);
+      },
+      output);
+
+  if (grid.do_geometry()) {
+    output *= constants::FOURPI;
+  }
+  return output;
+}
+
+inline auto total_mass_co56(const State &state, const GridStructure &grid,
+                            const basis::ModalBasis *fluid_basis,
+                            const basis::ModalBasis * /*rad_basis*/) {
+  static constexpr int ilo = 1;
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
+
+  const auto u = state.u_cf();
+  const auto mass_fractions = state.comps()->mass_fractions();
+  const auto *const species_indexer = state.comps()->species_indexer();
+  const auto ind_x = species_indexer->get<int>("co56");
+
+  double output = 0.0;
+  Kokkos::parallel_reduce(
+      "History :: TotalMassNi56", Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
+        double local_sum = 0.0;
+        for (int iN = 0; iN < nNodes; ++iN) {
+          const double X = grid.node_coordinate(i, iN);
+          const double x_co =
+              fluid_basis->basis_eval(mass_fractions, i, ind_x, iN + 1);
+          local_sum += x_co * (1.0 / fluid_basis->basis_eval(u, i, 0, iN + 1)) *
+                       grid.get_sqrt_gm(X) * grid.get_weights(iN);
+        }
+        lsum += local_sum * grid.get_widths(i);
+      },
+      output);
+
+  if (grid.do_geometry()) {
+    output *= constants::FOURPI;
+  }
+  return output;
+}
+
+inline auto total_mass_fe56(const State &state, const GridStructure &grid,
+                            const basis::ModalBasis *fluid_basis,
+                            const basis::ModalBasis * /*rad_basis*/) {
+  static constexpr int ilo = 1;
+  const auto &ihi = grid.get_ihi();
+  const auto &nNodes = grid.get_n_nodes();
+
+  const auto u = state.u_cf();
+  const auto mass_fractions = state.comps()->mass_fractions();
+  const auto *const species_indexer = state.comps()->species_indexer();
+  const auto ind_x = species_indexer->get<int>("fe56");
+
+  double output = 0.0;
+  Kokkos::parallel_reduce(
+      "History :: TotalMassNi56", Kokkos::RangePolicy<>(ilo, ihi + 1),
+      KOKKOS_LAMBDA(const int &i, double &lsum) {
+        double local_sum = 0.0;
+        for (int iN = 0; iN < nNodes; ++iN) {
+          const double X = grid.node_coordinate(i, iN);
+          const double x_fe =
+              fluid_basis->basis_eval(mass_fractions, i, ind_x, iN + 1);
+          local_sum += x_fe * (1.0 / fluid_basis->basis_eval(u, i, 0, iN + 1)) *
+                       grid.get_sqrt_gm(X) * grid.get_weights(iN);
+        }
+        lsum += local_sum * grid.get_widths(i);
+      },
+      output);
+
+  if (grid.do_geometry()) {
+    output *= constants::FOURPI;
+  }
+  return output;
+}
+
 } // namespace athelas::analysis

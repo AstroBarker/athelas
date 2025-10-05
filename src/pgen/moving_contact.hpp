@@ -50,7 +50,7 @@ void moving_contact_init(State *state, GridStructure *grid, ProblemIn *pin,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
         const int k = 0;
-        const double X1 = grid->get_centers(ix);
+        const double X1 = grid->centers(ix);
 
         if (X1 <= 0.5) {
           uCF(ix, k, q_Tau) = 1.0 / D_L;

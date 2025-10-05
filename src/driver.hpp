@@ -43,22 +43,8 @@ class Driver {
         history_(std::make_unique<HistoryOutput>(
             pin->param()->get<std::string>("output.hist_fn"),
             pin->param()->get<bool>("output.history_enabled"))) {
-    static const bool rad_enabled =
-        pin->param()->get<bool>("physics.rad_active");
-    static const bool composition_enabled =
-        pin->param()->get<bool>("physics.composition_enabled");
-    static const bool ionization_enabled =
-        pin->param()->get<bool>("physics.ionization_enabled");
-    static const int nvars_cons = (rad_enabled) ? 5 : 3;
-    static const int nvars_prim = 3; // Maybe this can be smarter
-    static const int nvars_aux = (rad_enabled) ? 5 : 3;
     static const int n_stages = ssprk_.n_stages();
-    static const int nx = pin->param()->get<int>("problem.nx");
-    static const int n_nodes = pin->param()->get<int>("fluid.nnodes");
-    static const int porder = pin->param()->get<int>("fluid.porder");
-    state_ = std::make_unique<State>(nvars_cons, nvars_prim, nvars_aux, nx,
-                                     n_nodes, porder, n_stages,
-                                     composition_enabled, ionization_enabled);
+    state_ = std::make_unique<State>(pin.get(), n_stages);
     initialize(pin.get());
   }
 
