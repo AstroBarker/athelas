@@ -37,11 +37,9 @@ class NickelHeatingPackage {
   NickelHeatingPackage(const ProblemIn *pin, basis::ModalBasis *basis,
                        bool active = true);
 
-  KOKKOS_FUNCTION
   void update_explicit(const State *const state, View3D<double> dU,
                        const GridStructure &grid, const TimeStepInfo &dt_info);
 
-  KOKKOS_FUNCTION
   template <NiHeatingModel Model>
   void ni_update(const View3D<double> ucf, atom::CompositionData *comps,
                  View3D<double> dU, const GridStructure &grid,
@@ -64,13 +62,50 @@ class NickelHeatingPackage {
     return E_LAMBDA_CO * x_co;
   }
 
-  KOKKOS_FUNCTION
+  /**
+   * @brief Nickel 56 heating deposition function.
+   * @note The function is templated on the NiHeatingModel which selects
+   * the deposition function.
+   *
+   * TODO(astrobarker): I should rename this.
+   */
   template <NiHeatingModel Model>
   [[nodiscard]]
-  auto deposition_function(const View3D<double> ucf,
-                           const atom::CompositionData *comps,
-                           const GridStructure &grid, int ix, int node) const
-      -> double;
+  KOKKOS_INLINE_FUNCTION auto deposition_function(
+      const View3D<double> ucf, const atom::CompositionData *const comps,
+      const GridStructure &grid, const int ix, const int node) const -> double {
+    double f_dep = 0.0;
+    if constexpr (Model == NiHeatingModel::FullTrapping) {
+      const auto *const species_indexer = comps->species_indexer();
+      const auto ind_ni = species_indexer->get<int>("ni56");
+      const auto ind_co = species_indexer->get<int>("co56");
+      const auto mass_fractions = comps->mass_fractions();
+      const double x_ni =
+          basis_->basis_eval(mass_fractions, ix, ind_ni, node + 1);
+      const double x_co =
+          basis_->basis_eval(mass_fractions, ix, ind_co, node + 1);
+      f_dep = eps_nickel_cobalt(x_ni, x_co);
+    } else if constexpr (Model == NiHeatingModel::Swartz) {
+      THROW_ATHELAS_ERROR("Swartz model not implemented!");
+    } else if constexpr (Model == NiHeatingModel::Jeffery) {
+      // Here we assume that the integral
+      // (1/4pi) e^(-tau) dOmega is already done during fill_derived
+      // and the results stored in int_etau_domega_
+      const double I = 1.0 - 0.5 * int_etau_domega_(ix, node);
+
+      const auto *const species_indexer = comps->species_indexer();
+      const auto ind_ni = species_indexer->get<int>("ni56");
+      const auto ind_co = species_indexer->get<int>("co56");
+      const auto mass_fractions = comps->mass_fractions();
+      const double x_ni =
+          basis_->basis_eval(mass_fractions, ix, ind_ni, node + 1);
+      const double x_co =
+          basis_->basis_eval(mass_fractions, ix, ind_co, node + 1);
+      f_dep = eps_nickel(x_ni) * (F_PE_NI_ + F_GM_NI_ * I) +
+              eps_cobalt(x_co) * (F_PE_CO_ + F_GM_CO_ * I);
+    }
+    return f_dep;
+  }
 
   KOKKOS_FORCEINLINE_FUNCTION
   static auto dtau(const double rho, const double kappa_gamma, const double dz)
@@ -78,9 +113,10 @@ class NickelHeatingPackage {
     return -rho * kappa_gamma * dz;
   }
 
-  [[nodiscard]] KOKKOS_FUNCTION auto
-  min_timestep(const State * /*state*/, const GridStructure & /*grid*/,
-               const TimeStepInfo & /*dt_info*/) const -> double;
+  [[nodiscard]] auto min_timestep(const State * /*state*/,
+                                  const GridStructure & /*grid*/,
+                                  const TimeStepInfo & /*dt_info*/) const
+      -> double;
 
   [[nodiscard]] KOKKOS_FUNCTION auto name() const noexcept -> std::string_view;
 
