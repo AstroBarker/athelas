@@ -41,7 +41,7 @@ class RadHydroPackage {
                                  const TimeStepInfo &dt_info);
   KOKKOS_FUNCTION
   auto radhydro_source(const State *const state, const View2D<double> uCRH,
-                       const GridStructure &grid, int ix, int k) const
+                       const GridStructure &grid, int i, int k) const
       -> std::tuple<double, double, double, double>;
 
   KOKKOS_FUNCTION
@@ -66,7 +66,7 @@ class RadHydroPackage {
   KOKKOS_FUNCTION
   void set_active(bool active);
 
-  [[nodiscard]] KOKKOS_FUNCTION auto get_flux_u(int stage, int ix) const
+  [[nodiscard]] KOKKOS_FUNCTION auto get_flux_u(int stage, int i) const
       -> double;
   [[nodiscard]] KOKKOS_FUNCTION auto get_fluid_basis() const
       -> const basis::ModalBasis *;
@@ -108,5 +108,5 @@ auto compute_increment_radhydro_source(
     const View2D<double> uCRH, int k, const State *const state,
     const GridStructure &grid, const basis::ModalBasis *fluid_basis,
     const basis::ModalBasis *rad_basis, const eos::EOS *eos,
-    const Opacity *opac, int ix) -> std::tuple<double, double, double, double>;
+    const Opacity *opac, int i) -> std::tuple<double, double, double, double>;
 } // namespace athelas::radiation

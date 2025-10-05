@@ -55,7 +55,7 @@ struct BoundaryConditionsData {
 
   // TODO(astrobarker) overload ()?
   [[nodiscard]]
-  KOKKOS_INLINE_FUNCTION auto get_dirichlet_value(int i) const -> double {
+  KOKKOS_INLINE_FUNCTION auto get_dirichlet_value(const int i) const -> double {
     return dirichlet_values[i];
   }
 };

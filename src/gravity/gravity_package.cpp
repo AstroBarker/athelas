@@ -9,6 +9,8 @@
 #include "basis/polynomial_basis.hpp"
 #include "geometry/grid.hpp"
 #include "gravity/gravity_package.hpp"
+#include "kokkos_abstraction.hpp"
+#include "loop_layout.hpp"
 #include "pgen/problem_in.hpp"
 #include "utils/abstractions.hpp"
 
@@ -21,7 +23,6 @@ GravityPackage::GravityPackage(const ProblemIn * /*pin*/, GravityModel model,
                                const double cfl, const bool active)
     : active_(active), model_(model), gval_(gval), basis_(basis), cfl_(cfl) {}
 
-KOKKOS_FUNCTION
 void GravityPackage::update_explicit(const State *const state,
                                      View3D<double> dU,
                                      const GridStructure &grid,
@@ -39,47 +40,41 @@ void GravityPackage::update_explicit(const State *const state,
   }
 }
 
-KOKKOS_FUNCTION
 template <GravityModel Model>
 void GravityPackage::gravity_update(const View3D<double> state,
                                     View3D<double> dU,
                                     const GridStructure &grid) const {
-  const int &nNodes = grid.get_n_nodes();
+  const int nNodes = grid.get_n_nodes();
   const int &order = basis_->get_order();
-  static constexpr int ilo = 1;
-  static const int &ihi = grid.get_ihi();
+  static const IndexRange ib(grid.domain<Domain::Interior>());
+  static const IndexRange kb(order);
 
   // This can probably be simplified.
-  Kokkos::parallel_for(
-      "Gravity :: Update",
-      Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, order}),
-      KOKKOS_CLASS_LAMBDA(const int ix, const int k) {
+  athelas::par_for(
+      DEFAULT_LOOP_PATTERN, "Gravity :: Update", DevExecSpace(), ib.s, ib.e,
+      kb.s, kb.e, KOKKOS_CLASS_LAMBDA(const int i, const int k) {
         double local_sum_v = 0.0;
         double local_sum_e = 0.0;
-        for (int iN = 0; iN < nNodes; ++iN) {
-          const double X = grid.node_coordinate(ix, iN);
+        for (int q = 0; q < nNodes; ++q) {
+          const double X = grid.node_coordinate(i, q);
           const double sqrt_gm = grid.get_sqrt_gm(X);
-          const double weight = grid.get_weights(iN);
+          const double weight = grid.get_weights(q);
           if constexpr (Model == GravityModel::Spherical) {
-            local_sum_v += weight * basis_->get_phi(ix, iN + 1, k) *
-                           grid.enclosed_mass(ix, iN) * sqrt_gm /
-                           ((X * X) * basis_->basis_eval(state, ix, 0, iN + 1));
-            local_sum_e +=
-                local_sum_v * basis_->basis_eval(state, ix, 1, iN + 1);
+            local_sum_v += weight * basis_->get_phi(i, q + 1, k) *
+                           grid.enclosed_mass(i, q) * sqrt_gm /
+                           ((X * X) * basis_->basis_eval(state, i, 0, q + 1));
+            local_sum_e += local_sum_v * basis_->basis_eval(state, i, 1, q + 1);
           } else {
-            local_sum_v += sqrt_gm * weight * basis_->get_phi(ix, iN + 1, k) *
-                           gval_ / basis_->basis_eval(state, ix, 0, iN + 1);
-            local_sum_e +=
-                local_sum_v * basis_->basis_eval(state, ix, 1, iN + 1);
+            local_sum_v += sqrt_gm * weight * basis_->get_phi(i, q + 1, k) *
+                           gval_ / basis_->basis_eval(state, i, 0, q + 1);
+            local_sum_e += local_sum_v * basis_->basis_eval(state, i, 1, q + 1);
           }
         }
 
-        dU(ix, k, 1) -=
-            (constants::G_GRAV * local_sum_v * grid.get_widths(ix)) /
-            basis_->get_mass_matrix(ix, k);
-        dU(ix, k, 2) -=
-            (constants::G_GRAV * local_sum_e * grid.get_widths(ix)) /
-            basis_->get_mass_matrix(ix, k);
+        dU(i, k, 1) -= (constants::G_GRAV * local_sum_v * grid.get_widths(i)) /
+                       basis_->get_mass_matrix(i, k);
+        dU(i, k, 2) -= (constants::G_GRAV * local_sum_e * grid.get_widths(i)) /
+                       basis_->get_mass_matrix(i, k);
       });
 }
 

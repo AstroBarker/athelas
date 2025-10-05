@@ -6,6 +6,8 @@
 #include "composition/composition.hpp"
 #include "composition/saha.hpp"
 #include "geometry/grid.hpp"
+#include "kokkos_abstraction.hpp"
+#include "loop_layout.hpp"
 #include "solvers/root_finders.hpp"
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
@@ -40,22 +42,22 @@ void solve_saha_ionization(State &state, const GridStructure &grid,
   const auto ion_data = atomic_data->ion_data();
   const auto species_offsets = atomic_data->offsets();
 
-  static constexpr int ilo = 0;
-  const auto &ihi = grid.get_ihi() + 1;
   const auto &nNodes = grid.get_n_nodes();
   assert(ionization_fractions.extent(2) <=
          static_cast<size_t>(std::numeric_limits<int>::max()));
   const auto &ncomps = static_cast<int>(ionization_fractions.extent(2));
 
-  Kokkos::parallel_for(
-      "Saha :: Solve Ionization All",
-      Kokkos::MDRangePolicy<Kokkos::Rank<3>>({ilo, 0, 0},
-                                             {ihi + 1, nNodes + 2, ncomps}),
-      KOKKOS_LAMBDA(const int ix, const int node, const int e) {
-        const double rho = 1.0 / fluid_basis.basis_eval(uCF, ix, 0, node);
-        const double temperature = uaf(ix, node, 1);
+  static const IndexRange ib(grid.domain<Domain::Interior>());
+  static const IndexRange nb(nNodes + 2);
+  static const IndexRange eb(ncomps);
+  athelas::par_for(
+      DEFAULT_LOOP_PATTERN, "Saha :: Solve ionization all", DevExecSpace(),
+      ib.s, ib.e, nb.s, nb.e, eb.s, eb.e,
+      KOKKOS_LAMBDA(const int i, const int q, const int e) {
+        const double rho = 1.0 / fluid_basis.basis_eval(uCF, i, 0, q);
+        const double temperature = uaf(i, q, 1);
 
-        const double x_e = fluid_basis.basis_eval(mass_fractions, ix, e, node);
+        const double x_e = fluid_basis.basis_eval(mass_fractions, i, e, q);
 
         const int z = e + 1;
         const double nk = element_number_density(x_e, z, rho);
@@ -64,7 +66,7 @@ void solve_saha_ionization(State &state, const GridStructure &grid,
         const auto species_atomic_data =
             species_data(ion_data, species_offsets, e);
         auto ionization_fractions_e =
-            Kokkos::subview(ionization_fractions, ix, node, e, Kokkos::ALL);
+            Kokkos::subview(ionization_fractions, i, q, e, Kokkos::ALL);
 
         saha_solve(ionization_fractions_e, z, temperature, species_atomic_data,
                    nk);

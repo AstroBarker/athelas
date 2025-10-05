@@ -23,7 +23,7 @@ auto element_number_density(double mass_frac, double atomic_mass, double rho)
 KOKKOS_FUNCTION
 auto electron_density(const View3D<double> mass_fractions,
                       const View4D<double> ion_fractions,
-                      const View1D<int> charges, int ix, int node, double rho)
+                      const View1D<int> charges, int i, int q, double rho)
     -> double;
 
 } // namespace athelas::atom

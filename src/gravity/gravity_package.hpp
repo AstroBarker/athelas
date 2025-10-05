@@ -23,12 +23,10 @@ class GravityPackage {
   GravityPackage(const ProblemIn * /*pin*/, GravityModel model, double gval,
                  basis::ModalBasis *basis, double cfl, bool active = true);
 
-  KOKKOS_FUNCTION
   void update_explicit(const State *const state, View3D<double> dU,
                        const GridStructure &grid,
                        const TimeStepInfo &dt_info) const;
 
-  KOKKOS_FUNCTION
   template <GravityModel Model>
   void gravity_update(const View3D<double> state, View3D<double> dU,
                       const GridStructure &grid) const;

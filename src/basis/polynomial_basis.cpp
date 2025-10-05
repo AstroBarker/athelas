@@ -18,6 +18,8 @@
 #include <print>
 
 #include "basis/polynomial_basis.hpp"
+#include "kokkos_abstraction.hpp"
+#include "loop_layout.hpp"
 #include "utils/abstractions.hpp"
 #include "utils/error.hpp"
 
@@ -487,12 +489,12 @@ void ModalBasis::project_nodal_to_modal(
 void ModalBasis::project_nodal_to_modal_all_cells(
     View3D<double> uCF, View3D<double> uPF, GridStructure *grid, int q,
     const std::function<double(double, int, int)> &nodal_func) const {
-  static const int ilo = 1;
-  static const int ihi = grid->get_ihi();
+  static const IndexRange ib(grid->domain<Domain::Interior>());
 
-  Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_CLASS_LAMBDA(int ix) {
-        project_nodal_to_modal(uCF, uPF, grid, q, ix, nodal_func);
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Basis :: Project modal to nodal (all)",
+      DevExecSpace(), ib.s, ib.e, KOKKOS_CLASS_LAMBDA(const int i) {
+        project_nodal_to_modal(uCF, uPF, grid, q, i, nodal_func);
       });
 }
 

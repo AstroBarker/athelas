@@ -1,6 +1,9 @@
 #include "composition/composition.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "geometry/grid.hpp"
+#include "kokkos_abstraction.hpp"
+#include "kokkos_types.hpp"
+#include "loop_layout.hpp"
 #include "utils/constants.hpp"
 
 namespace athelas::atom {
@@ -16,9 +19,9 @@ using basis::ModalBasis;
  */
 void fill_derived_comps(State *const state, const GridStructure *const grid,
                         const ModalBasis *const basis) {
-  static constexpr int ilo = 1;
-  static const auto &ihi = grid->get_ihi();
   static const auto &nnodes = grid->get_n_nodes();
+  static const IndexRange ib(grid->domain<Domain::Entire>());
+  static const IndexRange nb(nnodes + 2);
 
   auto *const comps = state->comps();
   const auto mass_fractions = comps->mass_fractions();
@@ -28,17 +31,16 @@ void fill_derived_comps(State *const state, const GridStructure *const grid,
   const size_t num_species = comps->n_species();
 
   static constexpr double inv_m_p = 1.0 / constants::m_p;
-  Kokkos::parallel_for(
-      "Composition :: fill derived",
-      Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, nnodes + 2}),
-      KOKKOS_LAMBDA(const int ix, const int node) {
+  athelas::par_for(
+      DEFAULT_LOOP_PATTERN, "Composition :: fill derived", DevExecSpace(), ib.s,
+      ib.e, nb.s, nb.e, KOKKOS_LAMBDA(const int i, const int q) {
         double n = 0.0;
         for (size_t e = 0; e < num_species; ++e) {
           const double A = species(e) + neutron_number(e);
-          const double xk = basis->basis_eval(mass_fractions, ix, e, node);
+          const double xk = basis->basis_eval(mass_fractions, i, e, q);
           n += xk / A;
         }
-        number_density(ix, node) = n * inv_m_p;
+        number_density(i, q) = n * inv_m_p;
       });
 }
 
@@ -52,9 +54,9 @@ void fill_derived_comps(State *const state, const GridStructure *const grid,
 void fill_derived_ionization(State *const state,
                              const GridStructure *const grid,
                              const ModalBasis *const basis) {
-  static constexpr int ilo = 1;
-  static const auto &ihi = grid->get_ihi();
   static const auto &nnodes = grid->get_n_nodes();
+  static const IndexRange ib(grid->domain<Domain::Entire>());
+  static const IndexRange nb(nnodes + 2);
 
   const auto *const comps = state->comps();
   const auto mass_fractions = comps->mass_fractions();
@@ -79,11 +81,10 @@ void fill_derived_ionization(State *const state,
   const auto ucf = state->u_cf();
 
   // NOTE: check index ranges inside here when saha ncomps =/= num_species
-  Kokkos::parallel_for(
-      "Ionization :: fill derived",
-      Kokkos::MDRangePolicy<Kokkos::Rank<2>>({ilo, 0}, {ihi + 1, nnodes + 2}),
-      KOKKOS_LAMBDA(const int ix, const int node) {
-        const double rho = 1.0 / basis->basis_eval(ucf, ix, 0, node);
+  athelas::par_for(
+      DEFAULT_LOOP_PATTERN, "Ionization :: fill derived", DevExecSpace(), ib.s,
+      ib.e, nb.s, nb.e, KOKKOS_LAMBDA(const int i, const int q) {
+        const double rho = 1.0 / basis->basis_eval(ucf, i, 0, q);
         // This kernel is horrible.
         // Reduce the ionization based quantities sigma1-3, e_ion_corr
         for (size_t e = 0; e < num_species; ++e) {
@@ -91,7 +92,7 @@ void fill_derived_ionization(State *const state,
           const auto species_atomic_data =
               species_data(ion_data, species_offsets, e);
           const auto ionization_fractions_e =
-              Kokkos::subview(ionization_fractions, ix, node, e, Kokkos::ALL);
+              Kokkos::subview(ionization_fractions, i, q, e, Kokkos::ALL);
           const size_t nstates = e + 1;
 
           // 1. Get lmax -- index associated with max ionization per species
@@ -145,13 +146,13 @@ void fill_derived_ionization(State *const state,
           // Start with constructing the abundance n_k
 
           const double atomic_mass = species(e) + neutron_number(e);
-          const double xk = basis->basis_eval(mass_fractions, ix, e, node);
+          const double xk = basis->basis_eval(mass_fractions, i, e, q);
           const double nk = element_number_density(xk, atomic_mass, rho);
-          sigma1(ix, node) += nk * y_r * (1 - y_r); // sigma1
-          sigma2(ix, node) += chi_r * sigma1(ix, node); // sigma2
-          sigma3(ix, node) += chi_r * sigma2(ix, node); // sigma3
-          e_ion_corr(ix, node) +=
-              number_density(ix, node) * nk * sum_ion_pot; // e_ion_corr
+          sigma1(i, q) += nk * y_r * (1 - y_r); // sigma1
+          sigma2(i, q) += chi_r * sigma1(i, q); // sigma2
+          sigma3(i, q) += chi_r * sigma2(i, q); // sigma3
+          e_ion_corr(i, q) +=
+              number_density(i, q) * nk * sum_ion_pot; // e_ion_corr
         }
       });
 }
@@ -213,21 +214,22 @@ auto element_number_density(const double mass_frac, const double atomic_mass,
 KOKKOS_FUNCTION
 auto electron_density(const View3D<double> mass_fractions,
                       const View4D<double> ion_fractions,
-                      const View1D<int> charges, int ix, int node, double rho)
-    -> double {
+                      const View1D<int> charges, const int i, const int q,
+                      const double rho) -> double {
   double n_e = 0.0;
   const size_t n_species = charges.size();
 
-  Kokkos::parallel_reduce(
-      "Paczynski::Reduce::ne", n_species,
+  athelas::par_reduce(
+      DEFAULT_FLAT_LOOP_PATTERN, "Paczynski :: Reduce :: ne", DevExecSpace(), 0,
+      n_species - 1,
       KOKKOS_LAMBDA(const int elem, double &ne_local) {
-        const double n_elem = element_number_density(
-            mass_fractions(ix, node, elem), charges(elem), rho);
+        const double n_elem = element_number_density(mass_fractions(i, q, elem),
+                                                     charges(elem), rho);
 
         // Sum charge * ionization_fraction for each charge state
         const int max_charge = charges(elem);
         for (int charge = 1; charge <= max_charge; ++charge) {
-          const double f_ion = ion_fractions(ix, node, elem, charge);
+          const double f_ion = ion_fractions(i, q, elem, charge);
           ne_local += charge * f_ion * n_elem;
         }
       },
