@@ -12,6 +12,7 @@
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
+#include "kokkos_abstraction.hpp"
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 #include "utils/constants.hpp"
@@ -33,8 +34,7 @@ void rad_advection_init(State *state, GridStructure *grid, ProblemIn *pin,
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
 
-  static const int ilo = 1;
-  static const int ihi = grid->get_ihi();
+  static const IndexRange ib(grid->domain<Domain::Interior>());
   static const int nNodes = grid->get_n_nodes();
 
   const int q_Tau = 0;
@@ -54,36 +54,38 @@ void rad_advection_init(State *state, GridStructure *grid, ProblemIn *pin,
   const double gamma = get_gamma(eos);
   const double gm1 = gamma - 1.0;
 
-  Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int ix) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: RadAdvection (1)", DevExecSpace(),
+      ib.s, ib.e, KOKKOS_LAMBDA(const int i) {
         const int k = 0;
-        const double X1 = grid->centers(ix);
+        const double X1 = grid->centers(i);
 
-        uCF(ix, k, iCR_E) =
+        uCF(i, k, iCR_E) =
             amp * std::max(std::exp(-std::pow((X1 - 0.5) / width, 2.0) / 2.0),
                            1.0e-8);
-        uCF(ix, k, iCR_F) = 1.0 * constants::c_cgs * uCF(ix, k, iCR_E);
+        uCF(i, k, iCR_F) = 1.0 * constants::c_cgs * uCF(i, k, iCR_E);
 
-        const double Trad = std::pow(uCF(ix, k, iCR_E) / constants::a, 0.25);
+        const double Trad = std::pow(uCF(i, k, iCR_E) / constants::a, 0.25);
         const double sie_fluid =
             constants::k_B * Trad / (gm1 * mu * constants::m_p);
-        uCF(ix, k, q_Tau) = 1.0 / D;
-        uCF(ix, k, q_V) = V0;
-        uCF(ix, k, q_E) =
+        uCF(i, k, q_Tau) = 1.0 / D;
+        uCF(i, k, q_V) = V0;
+        uCF(i, k, q_E) =
             sie_fluid +
             0.5 * V0 * V0; // p0 / (gamma - 1.0) / D + 0.5 * V0 * V0;
 
-        for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          uPF(ix, iNodeX, iPF_D) = D;
+        for (int iNodeX = 0; iNodeX < nNodes + 2; iNodeX++) {
+          uPF(i, iNodeX, iPF_D) = D;
         }
       });
 
   // Fill density in guard cells
-  Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int ix) {
-        for (int iN = 0; iN < nNodes; iN++) {
-          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
-          uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, nNodes - iN - 1, 0);
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: RadAdvection (ghost)", DevExecSpace(),
+      0, ib.s - 1, KOKKOS_LAMBDA(const int i) {
+        for (int iN = 0; iN < nNodes + 2; iN++) {
+          uPF(ib.s - 1 - i, iN, 0) = uPF(ib.s + i, (nNodes + 2) - iN - 1, 0);
+          uPF(ib.s + 1 + i, iN, 0) = uPF(ib.s - i, (nNodes + 2) - iN - 1, 0);
         }
       });
 }

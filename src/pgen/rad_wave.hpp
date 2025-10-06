@@ -10,6 +10,7 @@
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
+#include "kokkos_abstraction.hpp"
 #include "state/state.hpp"
 #include "utils/abstractions.hpp"
 
@@ -34,8 +35,7 @@ void rad_wave_init(State *state, GridStructure *grid, ProblemIn *pin,
   View3D<double> uCF = state->u_cf();
   View3D<double> uPF = state->u_pf();
 
-  static const int ilo = 1;
-  static const int ihi = grid->get_ihi();
+  static const IndexRange ib(grid->domain<Domain::Interior>());
   static const int nNodes = grid->get_n_nodes();
 
   constexpr static int q_Tau = 0;
@@ -57,27 +57,29 @@ void rad_wave_init(State *state, GridStructure *grid, ProblemIn *pin,
   const double gamma = get_gamma(eos);
   const double gm1 = gamma - 1.0;
 
-  Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int ix) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: RadWave (1)", DevExecSpace(), ib.s,
+      ib.e, KOKKOS_LAMBDA(const int i) {
         const int k = 0;
-        const double X1 = grid->centers(ix);
+        const double X1 = grid->centers(i);
 
-        uCF(ix, k, q_Tau) = 1.0 / rho0;
-        uCF(ix, k, q_V) = 0.0;
-        uCF(ix, k, q_E) = (P0 / gm1) / rho0;
-        uCF(ix, k, iCR_E) = epsilon;
+        uCF(i, k, q_Tau) = 1.0 / rho0;
+        uCF(i, k, q_V) = 0.0;
+        uCF(i, k, q_E) = (P0 / gm1) / rho0;
+        uCF(i, k, iCR_E) = epsilon;
 
-        for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          uPF(ix, iNodeX, iPF_D) = rho0;
+        for (int iNodeX = 0; iNodeX < nNodes + 2; iNodeX++) {
+          uPF(i, iNodeX, iPF_D) = rho0;
         }
       });
 
   // Fill density in guard cells
-  Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int ix) {
-        for (int iN = 0; iN < nNodes; iN++) {
-          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
-          uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, nNodes - iN - 1, 0);
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: RadWave (ghost)", DevExecSpace(), 0,
+      ib.s - 1, KOKKOS_LAMBDA(const int i) {
+        for (int iN = 0; iN < nNodes + 2; iN++) {
+          uPF(ib.s - 1 - i, iN, 0) = uPF(ib.s + i, (nNodes + 2) - iN - 1, 0);
+          uPF(ib.s + 1 + i, iN, 0) = uPF(ib.s - i, (nNodes + 2) - iN - 1, 0);
         }
       });
 }
