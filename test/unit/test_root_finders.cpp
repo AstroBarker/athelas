@@ -1,15 +1,15 @@
-#include <print>
-
 #include <catch2/catch_test_macros.hpp>
 
 #include "test_utils.hpp"
 
 #include "solvers/root_finders.hpp"
 
-using root_finders::AbsoluteError, root_finders::RelativeError,
-    root_finders::HybridError, root_finders::RootFinder,
-    root_finders::NewtonAlgorithm, root_finders::AANewtonAlgorithm,
-    root_finders::FixedPointAlgorithm, root_finders::AAFixedPointAlgorithm;
+using athelas::root_finders::AbsoluteError,
+    athelas::root_finders::RelativeError, athelas::root_finders::HybridError,
+    athelas::root_finders::RootFinder, athelas::root_finders::NewtonAlgorithm,
+    athelas::root_finders::AANewtonAlgorithm,
+    athelas::root_finders::FixedPointAlgorithm,
+    athelas::root_finders::AAFixedPointAlgorithm;
 
 constexpr double sqrt2 = std::numbers::sqrt2;
 constexpr double cos_fixed_point = 0.7390851332151607;

@@ -2,11 +2,15 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include "eos.hpp"
 #include "test_utils.hpp"
 
 #include "eos/eos_variant.hpp"
 
 TEST_CASE("Paczynski EOS", "[paczynski]") {
+
+  using athelas::eos::EOS;
+  using athelas::eos::Paczynski;
 
   // values taken from SNEC
   const double rho_in = 125595.39051366;
