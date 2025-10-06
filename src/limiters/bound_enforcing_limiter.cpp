@@ -199,7 +199,7 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis *basis) {
   const int order = basis->get_order();
 
   athelas::par_for(
-      DEFAULT_FLAT_LOOP_PATTERN, "BEL :: Limit rad momentum", 1,
+      DEFAULT_FLAT_LOOP_PATTERN, "BEL :: Limit rad momentum", DevExecSpace(), 1,
       U.extent(0) - 2, KOKKOS_LAMBDA(const int i) {
         double theta2 = 10000000.0;
         double nodal = 0.0;

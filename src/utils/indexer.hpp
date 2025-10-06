@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <tuple>
 #include <utility>
 
@@ -20,16 +19,6 @@ template <class... Ts>
 struct Indexer {
   KOKKOS_INLINE_FUNCTION
   Indexer() : start{}, N_{} {};
-
-  [[nodiscard]] auto get_ranges_string() const -> std::string {
-    auto end = End();
-    std::string out;
-    for (int i = 0; i < sizeof...(Ts); ++i) {
-      out +=
-          "[ " + std::to_string(start[i]) + ", " + std::to_string(end[i]) + "]";
-    }
-    return out;
-  }
 
   KOKKOS_INLINE_FUNCTION
   explicit Indexer(std::pair<Ts, Ts>... Ns)

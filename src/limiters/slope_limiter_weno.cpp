@@ -84,7 +84,7 @@ void WENO::apply_slope_limiter(View3D<double> U, const GridStructure *grid,
   athelas::par_for(
       DEFAULT_FLAT_LOOP_PATTERN, "SlopeLimiter :: WENO", DevExecSpace(), ib.s,
       ib.e, KOKKOS_CLASS_LAMBDA(const int i) {
-        limited_cell_(ix) = 0;
+        limited_cell_(i) = 0;
 
         // Do nothing we don't need to limit slopes
         if (D_(i) > tci_val_ || !tci_opt_) {

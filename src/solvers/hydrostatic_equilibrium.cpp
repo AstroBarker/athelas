@@ -2,6 +2,9 @@
 
 #include "composition/composition.hpp"
 #include "geometry/grid.hpp"
+#include "kokkos_abstraction.hpp"
+#include "kokkos_types.hpp"
+#include "loop_layout.hpp"
 #include "solvers/hydrostatic_equilibrium.hpp"
 #include "state/state.hpp"
 #include "utils/constants.hpp"
@@ -47,12 +50,12 @@ void HydrostaticEquilibrium::solve(State *state, GridStructure *grid,
   View1D<double> d_r("host radius", size);
   std::vector<double> pressure(1);
   std::vector<double> radius(1);
-  Kokkos::parallel_for(
-      "copy grid", Kokkos::RangePolicy<>(0, ihi + 1),
-      KOKKOS_LAMBDA(const int ix) {
-        for (int iN = 0; iN < nNodes; ++iN) {
-          const double r = grid->node_coordinate(ix + 1, iN);
-          d_r(ix * nNodes + iN) = r;
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Solvers :: Hydrostatic :: copy grid",
+      DevExecSpace(), 0, ihi, KOKKOS_LAMBDA(const int i) {
+        for (int q = 0; q < nNodes; ++q) {
+          const double r = grid->node_coordinate(i + 1, q);
+          d_r(i * nNodes + q) = r;
         }
       });
   auto h_r = Kokkos::create_mirror_view(d_r);
@@ -103,21 +106,21 @@ void HydrostaticEquilibrium::solve(State *state, GridStructure *grid,
 
   // refill host radius array
   for (int ix = 0; ix <= ihi; ++ix) {
-    for (int iN = 0; iN < nNodes; ++iN) {
-      h_r(ix * nNodes + iN) = grid->node_coordinate(ix, iN);
+    for (int q = 0; q < nNodes; ++q) {
+      h_r(ix * nNodes + q) = grid->node_coordinate(ix, q);
     }
   }
 
   // now we have to interpolate onto our grid
   // This is horrible but it's fine, only happens once.
   for (int ix = 0; ix <= ihi; ++ix) {
-    for (int iN = 0; iN < nNodes; ++iN) {
-      const double r = h_r(ix * nNodes + iN);
+    for (int q = 0; q < nNodes; ++q) {
+      const double r = h_r(ix * nNodes + q);
       for (size_t i = 0; i < pressure.size() - 2; ++i) {
         if (radius[i] <= r && radius[i + 1] >= r) { // search
           const double y = LINTERP(radius[i], radius[i + 1], pressure[i],
                                    pressure[i + 1], r);
-          h_uAF(ix, iN, iP_) = y;
+          h_uAF(ix, q, iP_) = y;
           break;
         }
       }
