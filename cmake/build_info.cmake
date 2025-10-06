@@ -9,8 +9,8 @@ if (NOT DEFINED post_configure_dir)
     set(post_configure_dir ${CMAKE_SOURCE_DIR}/generated)
 endif ()
 
-set(pre_configure_file ${pre_configure_dir}/build_info.hpp.in)
-set(post_configure_file ${pre_configure_dir}/build_info.hpp)
+set(pre_configure_file ${pre_configure_dir}/build_info.cpp.in)
+set(post_configure_file ${post_configure_dir}/build_info.cpp)
 
 function(CheckGitWrite git_hash)
     file(WRITE ${CMAKE_BINARY_DIR}/git-state.txt ${git_hash})
@@ -93,4 +93,3 @@ set(OPTIMIZATION ${CMAKE_BUILD_TYPE})
 set(ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
 set(OS ${CMAKE_SYSTEM_NAME})
 configure_file(${pre_configure_file} ${post_configure_file} @ONLY)
-

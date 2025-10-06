@@ -60,5 +60,4 @@ matplotlibrc
 *__pycache__
 
 # generated
-src/build_info.hpp
 src/loop_layout.hpp

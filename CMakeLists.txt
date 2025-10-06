@@ -119,7 +119,6 @@ include_directories(athelas PUBLIC
 
 # --- Source Files ---
 set( ATHELAS_SOURCES 
-  "generated/build_info.cpp"
   "src/driver.cpp"
   "src/composition/compdata.cpp"
   "src/composition/composition.cpp"
