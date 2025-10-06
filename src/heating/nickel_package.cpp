@@ -25,8 +25,6 @@ NickelHeatingPackage::NickelHeatingPackage(const ProblemIn *pin,
 
   const int nx = pin->param()->get<int>("problem.nx");
   const int nnodes = pin->param()->get<int>("fluid.nnodes");
-  // tau_gamma_ = AthelasArray3D<double>("tau_gamma", 32, nx + 2,  nnodes); //
-  // TODO(astrobarker): make runtime
   tau_gamma_ = AthelasArray3D<double>("tau_gamma", nx + 2, nnodes,
                                       2); // TODO(astrobarker): make runtime
   int_etau_domega_ =
@@ -200,7 +198,7 @@ void NickelHeatingPackage::fill_derived(State *state, const GridStructure &grid,
         const double ri2 = ri * ri;
 
         // TODO(astrobarker) Use team shared memory for tau values
-        auto *const taugamma = &tau_gamma_(0, i, q);
+        auto *const taugamma = &tau_gamma_(i, q, 0);
 
         // Inner parallel loop over angles (thread level parallelism)
         athelas::par_for_inner(
