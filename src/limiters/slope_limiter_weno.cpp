@@ -20,7 +20,6 @@
 #include "limiters/slope_limiter_utilities.hpp"
 #include "linear_algebra.hpp"
 #include "loop_layout.hpp"
-#include "utils/abstractions.hpp"
 
 namespace athelas {
 
@@ -32,7 +31,8 @@ using utilities::ratio;
  * Apply the slope limiter. We use a compact stencil WENO-Z limiter
  * H. Zhu 2020, simple, high-order compact WENO RKDG slope limiter
  **/
-void WENO::apply_slope_limiter(View3D<double> U, const GridStructure *grid,
+void WENO::apply_slope_limiter(AthelasArray3D<double> U,
+                               const GridStructure *grid,
                                const ModalBasis *basis, const EOS *eos) {
 
   // Do not apply for first order method or if we don't want to.
@@ -160,5 +160,5 @@ auto WENO::get_limited(const int i) const -> int {
   return (!do_limiter_) ? 0 : limited_cell_(i);
 }
 
-auto WENO::limited() const -> View1D<int> { return limited_cell_; }
+auto WENO::limited() const -> AthelasArray1D<int> { return limited_cell_; }
 } // namespace athelas

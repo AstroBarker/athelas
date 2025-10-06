@@ -25,7 +25,7 @@ auto saha_f(const double T, const IonLevel &ion_data) -> double {
  */
 KOKKOS_INLINE_FUNCTION
 auto ion_frac0(const double Zbar, const double temperature,
-               const View1D<const IonLevel> ion_datas, const double nh,
+               const AthelasArray1D<const IonLevel> ion_datas, const double nh,
                const int min_state, const int max_state) -> double {
 
   double denominator = 0.0;
@@ -42,8 +42,9 @@ auto ion_frac0(const double Zbar, const double temperature,
 
 KOKKOS_INLINE_FUNCTION
 auto saha_target(const double Zbar, const double T,
-                 const View1D<const IonLevel> ion_datas, const double nh,
-                 const int min_state, const int max_state) -> double {
+                 const AthelasArray1D<const IonLevel> ion_datas,
+                 const double nh, const int min_state, const int max_state)
+    -> double {
   double result = Zbar;
   double numerator = 1.0;
   double denominator = 0.0;
@@ -66,8 +67,9 @@ auto saha_target(const double Zbar, const double T,
 
 KOKKOS_INLINE_FUNCTION
 auto saha_d_target(const double Zbar, const double T,
-                   const View1D<const IonLevel> ion_datas, const double nh,
-                   const int min_state, const int max_state) -> double {
+                   const AthelasArray1D<const IonLevel> ion_datas,
+                   const double nh, const int min_state, const int max_state)
+    -> double {
 
   double product = 1.0;
   double sigma0 = 0.0;
@@ -88,9 +90,10 @@ auto saha_d_target(const double Zbar, const double T,
 }
 
 KOKKOS_INLINE_FUNCTION
-void saha_solve(View1D<double> ionization_states, const int Z,
+void saha_solve(AthelasArray1D<double> ionization_states, const int Z,
                 const double temperature,
-                const View1D<const IonLevel> ion_datas, const double nk) {
+                const AthelasArray1D<const IonLevel> ion_datas,
+                const double nk) {
 
   using root_finders::RootFinder, root_finders::AANewtonAlgorithm;
   // Set up static root finder for Saha ionization

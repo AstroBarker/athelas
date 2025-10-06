@@ -23,6 +23,21 @@ struct IndexRange {
   explicit operator std::pair<int, int>() const { return {s, e}; }
 };
 
+/**
+ * @struct TimeStepInfo
+ * @brief holds information related to a timestep
+ */
+struct TimeStepInfo {
+  double t;
+  double dt;
+  double dt_a; // dt * tableau coefficient
+  int stage;
+};
+
+enum class poly_basis { legendre, taylor };
+
+enum class GravityModel { Constant, Spherical };
+
 template <typename T>
 using Dictionary = std::unordered_map<std::string, T>;
 

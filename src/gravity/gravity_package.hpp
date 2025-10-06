@@ -7,12 +7,12 @@
 
 #pragma once
 
+#include "basic_types.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
 #include "geometry/grid.hpp"
 #include "pgen/problem_in.hpp"
 #include "state/state.hpp"
-#include "utils/abstractions.hpp"
 
 namespace athelas::gravity {
 
@@ -23,12 +23,13 @@ class GravityPackage {
   GravityPackage(const ProblemIn * /*pin*/, GravityModel model, double gval,
                  basis::ModalBasis *basis, double cfl, bool active = true);
 
-  void update_explicit(const State *const state, View3D<double> dU,
+  void update_explicit(const State *const state, AthelasArray3D<double> dU,
                        const GridStructure &grid,
                        const TimeStepInfo &dt_info) const;
 
   template <GravityModel Model>
-  void gravity_update(const View3D<double> state, View3D<double> dU,
+  void gravity_update(const AthelasArray3D<double> state,
+                      AthelasArray3D<double> dU,
                       const GridStructure &grid) const;
 
   [[nodiscard]] KOKKOS_FUNCTION auto

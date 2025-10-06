@@ -24,7 +24,7 @@ class OperatorSplitStepper {
 
  private:
   int nvars_evolved_;
-  View3D<double> dU_;
+  AthelasArray3D<double> dU_;
 
   // hold EOS ptr for convenience
   eos::EOS *eos_;

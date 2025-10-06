@@ -13,7 +13,6 @@
 #include "kokkos_abstraction.hpp"
 #include "loop_layout.hpp"
 #include "state/state.hpp"
-#include "utils/abstractions.hpp"
 
 namespace athelas {
 
@@ -27,8 +26,8 @@ void sod_init(State *state, GridStructure *grid, ProblemIn *pin,
     THROW_ATHELAS_ERROR("Sod requires ideal gas eos!");
   }
 
-  View3D<double> uCF = state->u_cf();
-  View3D<double> uPF = state->u_pf();
+  AthelasArray3D<double> uCF = state->u_cf();
+  AthelasArray3D<double> uPF = state->u_pf();
 
   static const int ilo = 1;
   static const IndexRange ib(grid->domain<Domain::Interior>());

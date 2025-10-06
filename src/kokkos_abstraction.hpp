@@ -747,4 +747,71 @@ par_reduce_inner(InnerLoopPatternTTR, team_mbr_t team_member, const int il,
       reduction);
 }
 
+namespace custom_reductions { // namespace helps with name resolution in
+                              // reduction identity
+template <class ScalarType, int N>
+struct array_type {
+  ScalarType data[N];
+
+  KOKKOS_INLINE_FUNCTION // Default constructor - Initialize to 0's
+  array_type() {
+    for (int i = 0; i < N; i++) {
+      data[i] = 0;
+    }
+  }
+  KOKKOS_INLINE_FUNCTION // Copy Constructor
+  array_type(const array_type &rhs) {
+    for (int i = 0; i < N; i++) {
+      data[i] = rhs.data[i];
+    }
+  }
+  KOKKOS_INLINE_FUNCTION // add operator
+      array_type &
+      operator+=(const array_type &src) {
+    for (int i = 0; i < N; i++) {
+      data[i] += src.data[i];
+    }
+    return *this;
+  }
+};
+using ValueType = array_type<double, 4>;
+
+struct ArgMax {
+  int index;
+  double value;
+
+  KOKKOS_INLINE_FUNCTION
+  ArgMax() : index(-1), value(-Kokkos::reduction_identity<double>::min()) {}
+
+  KOKKOS_INLINE_FUNCTION
+  ArgMax(int idx, double val) : index(idx), value(val) {}
+
+  KOKKOS_INLINE_FUNCTION
+  auto operator=(const ArgMax &other) -> ArgMax & = default;
+
+  KOKKOS_INLINE_FUNCTION
+  auto operator>(const ArgMax &rhs) const -> bool {
+    return this->value > rhs.value;
+  }
+};
+} // namespace custom_reductions
+
 } // namespace athelas
+
+namespace Kokkos { // reduction identity must be defined in Kokkos namespace
+template <>
+struct reduction_identity<athelas::custom_reductions::ValueType> {
+  KOKKOS_FORCEINLINE_FUNCTION static athelas::custom_reductions::ValueType
+  sum() {
+    return athelas::custom_reductions::ValueType();
+  }
+};
+template <>
+struct reduction_identity<athelas::custom_reductions::ArgMax> {
+  KOKKOS_FORCEINLINE_FUNCTION
+  static athelas::custom_reductions::ArgMax max() {
+    return athelas::custom_reductions::ArgMax(
+        -1, -Kokkos::reduction_identity<double>::max());
+  }
+};
+} // namespace Kokkos

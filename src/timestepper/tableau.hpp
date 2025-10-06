@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "utils/abstractions.hpp"
+#include "kokkos_types.hpp"
 
 namespace athelas {
 
@@ -56,14 +56,14 @@ struct RKTableau {
   TableauType type; // explicit or implicit
   int order;
   int num_stages;
-  HostView2D<double> a_ij;
-  HostView1D<double> b_i;
-  HostView1D<double> c_i;
+  HostArray2D<double> a_ij;
+  HostArray1D<double> b_i;
+  HostArray1D<double> c_i;
 
   // Constructor
   RKTableau(TableauType t, int num_stages_, int order_,
-            HostView2D<double> a_ij_, HostView1D<double> b_i_,
-            View1D<double> c_i_)
+            HostArray2D<double> a_ij_, HostArray1D<double> b_i_,
+            AthelasArray1D<double> c_i_)
       : type(t), order(order_), num_stages(num_stages_), a_ij(a_ij_), b_i(b_i_),
         c_i(c_i_) {}
 };
@@ -100,8 +100,8 @@ class ButcherTableau {
   int nStages;
   int tOrder;
 
-  HostView2D<double> a_ij;
-  HostView1D<double> b_i;
+  HostArray2D<double> a_ij;
+  HostArray1D<double> b_i;
 
  private:
   TableauType type_;
@@ -120,8 +120,8 @@ class ShuOsherTableau {
   int nStages;
   int tOrder;
 
-  HostView2D<double> a_ij;
-  View2D<double> b_ij;
+  HostArray2D<double> a_ij;
+  AthelasArray2D<double> b_ij;
 
  private:
   TableauType type_;

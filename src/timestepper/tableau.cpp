@@ -47,9 +47,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 1;
     constexpr static int explicit_order = 1;
     constexpr static int implicit_order = 0; // dummy
-    HostView2D<double> a_ex("a_ij_ex", stages, stages);
-    HostView1D<double> b_ex("b_i_ex", stages);
-    HostView1D<double> c_ex("c_i_ex", stages);
+    HostArray2D<double> a_ex("a_ij_ex", stages, stages);
+    HostArray1D<double> b_ex("b_i_ex", stages);
+    HostArray1D<double> c_ex("c_i_ex", stages);
 
     a_ex(0, 0) = 0.0;
     b_ex(0) = 1.0;
@@ -59,9 +59,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    HostView2D<double> a_im("a_ij_im", 1, 1);
-    HostView1D<double> b_im("b_i_im", 1);
-    HostView1D<double> c_im("c_i_im", 1);
+    HostArray2D<double> a_im("a_ij_im", 1, 1);
+    HostArray1D<double> b_im("b_i_im", 1);
+    HostArray1D<double> c_im("c_i_im", 1);
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -75,9 +75,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 2;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 0; // dummy
-    HostView2D<double> a_ex("a_ij_ex", stages, stages);
-    HostView1D<double> b_ex("b_i_ex", stages);
-    HostView1D<double> c_ex("c_i_ex", stages);
+    HostArray2D<double> a_ex("a_ij_ex", stages, stages);
+    HostArray1D<double> b_ex("b_i_ex", stages);
+    HostArray1D<double> c_ex("c_i_ex", stages);
 
     a_ex(1, 0) = 1.0;
     b_ex(0) = 0.5;
@@ -89,9 +89,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    HostView2D<double> a_im("a_ij_im", 1, 1);
-    HostView1D<double> b_im("b_i_im", 1);
-    HostView1D<double> c_im("c_i_im", 1);
+    HostArray2D<double> a_im("a_ij_im", 1, 1);
+    HostArray1D<double> b_im("b_i_im", 1);
+    HostArray1D<double> c_im("c_i_im", 1);
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -105,9 +105,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 3;
     constexpr static int explicit_order = 3;
     constexpr static int implicit_order = 0; // dummy
-    HostView2D<double> a_ex("a_ij_ex", stages, stages);
-    HostView1D<double> b_ex("b_i_ex", stages);
-    HostView1D<double> c_ex("c_i_ex", stages);
+    HostArray2D<double> a_ex("a_ij_ex", stages, stages);
+    HostArray1D<double> b_ex("b_i_ex", stages);
+    HostArray1D<double> c_ex("c_i_ex", stages);
 
     a_ex(1, 0) = 1.0;
     a_ex(2, 0) = 0.25;
@@ -123,9 +123,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    HostView2D<double> a_im("a_ij_im", 1, 1);
-    HostView1D<double> b_im("b_i_im", 1);
-    HostView1D<double> c_im("c_i_im", 1);
+    HostArray2D<double> a_im("a_ij_im", 1, 1);
+    HostArray1D<double> b_im("b_i_im", 1);
+    HostArray1D<double> c_im("c_i_im", 1);
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -140,9 +140,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 5;
     constexpr static int explicit_order = 4;
     constexpr static int implicit_order = 0; // dummy
-    HostView2D<double> a_ex("a_ij_ex", stages, stages);
-    HostView1D<double> b_ex("b_i_ex", stages);
-    HostView1D<double> c_ex("c_i_ex", stages);
+    HostArray2D<double> a_ex("a_ij_ex", stages, stages);
+    HostArray1D<double> b_ex("b_i_ex", stages);
+    HostArray1D<double> c_ex("c_i_ex", stages);
 
     a_ex(1, 0) = 0.39175222700392;
     a_ex(2, 0) = 0.21766909633821;
@@ -171,9 +171,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    HostView2D<double> a_im("a_ij_im", 1, 1);
-    HostView1D<double> b_im("b_i_im", 1);
-    HostView1D<double> c_im("c_i_im", 1);
+    HostArray2D<double> a_im("a_ij_im", 1, 1);
+    HostArray1D<double> b_im("b_i_im", 1);
+    HostArray1D<double> c_im("c_i_im", 1);
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -188,9 +188,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 5;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 0; // dummy
-    HostView2D<double> a_ex("a_ij_ex", stages, stages);
-    HostView1D<double> b_ex("b_i_ex", stages);
-    HostView1D<double> c_ex("c_i_ex", stages);
+    HostArray2D<double> a_ex("a_ij_ex", stages, stages);
+    HostArray1D<double> b_ex("b_i_ex", stages);
+    HostArray1D<double> c_ex("c_i_ex", stages);
 
     a_ex(1, 0) = 0.25;
     a_ex(2, 0) = 0.25;
@@ -219,9 +219,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    HostView2D<double> a_im("a_ij_im", 1, 1);
-    HostView1D<double> b_im("b_i_im", 1);
-    HostView1D<double> c_im("c_i_im", 1);
+    HostArray2D<double> a_im("a_ij_im", 1, 1);
+    HostArray1D<double> b_im("b_i_im", 1);
+    HostArray1D<double> c_im("c_i_im", 1);
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -236,9 +236,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 5;
     constexpr static int explicit_order = 3;
     constexpr static int implicit_order = 0; // dummy
-    HostView2D<double> a_ex("a_ij_ex", stages, stages);
-    HostView1D<double> b_ex("b_i_ex", stages);
-    HostView1D<double> c_ex("c_i_ex", stages);
+    HostArray2D<double> a_ex("a_ij_ex", stages, stages);
+    HostArray1D<double> b_ex("b_i_ex", stages);
+    HostArray1D<double> c_ex("c_i_ex", stages);
 
     a_ex(1, 0) = 0.377;
     a_ex(2, 0) = 0.377;
@@ -267,9 +267,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    HostView2D<double> a_im("a_ij_im", 1, 1);
-    HostView1D<double> b_im("b_i_im", 1);
-    HostView1D<double> c_im("c_i_im", 1);
+    HostArray2D<double> a_im("a_ij_im", 1, 1);
+    HostArray1D<double> b_im("b_i_im", 1);
+    HostArray1D<double> c_im("c_i_im", 1);
 
     auto implicit_tableau = RKTableau(TableauType::Implicit, implicit_order,
                                       stages, a_im, b_im, c_im);
@@ -283,9 +283,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 1;
     constexpr static int explicit_order = 1;
     constexpr static int implicit_order = 1;
-    HostView2D<double> a_ex("a_ij_ex", stages, stages);
-    HostView1D<double> b_ex("b_i_ex", stages);
-    HostView1D<double> c_ex("c_i_ex", stages);
+    HostArray2D<double> a_ex("a_ij_ex", stages, stages);
+    HostArray1D<double> b_ex("b_i_ex", stages);
+    HostArray1D<double> c_ex("c_i_ex", stages);
 
     a_ex(0, 0) = 0.0;
     b_ex(0) = 1.0;
@@ -295,9 +295,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
                                       stages, a_ex, b_ex, c_ex);
 
     // implicit tableau
-    HostView2D<double> a_im("a_ij_im", stages, stages);
-    HostView1D<double> b_im("b_i_im", stages);
-    HostView1D<double> c_im("c_i_im", stages);
+    HostArray2D<double> a_im("a_ij_im", stages, stages);
+    HostArray1D<double> b_im("b_i_im", stages);
+    HostArray1D<double> c_im("c_i_im", stages);
 
     a_im(0, 0) = 1.0;
     b_im(0) = 1.0;
@@ -315,9 +315,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 2;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 2;
-    HostView2D<double> a_ex("a_ij_ex", stages, stages);
-    HostView1D<double> b_ex("b_i_ex", stages);
-    HostView1D<double> c_ex("c_i_ex", stages);
+    HostArray2D<double> a_ex("a_ij_ex", stages, stages);
+    HostArray1D<double> b_ex("b_i_ex", stages);
+    HostArray1D<double> c_ex("c_i_ex", stages);
 
     a_ex(1, 0) = 1.0;
     b_ex(0) = 0.5;
@@ -329,9 +329,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    HostView2D<double> a_im("a_ij_im", stages, stages);
-    HostView1D<double> b_im("b_i_im", stages);
-    HostView1D<double> c_im("c_i_im", stages);
+    HostArray2D<double> a_im("a_ij_im", stages, stages);
+    HostArray1D<double> b_im("b_i_im", stages);
+    HostArray1D<double> c_im("c_i_im", stages);
 
     constexpr static double gam = 1.0 - (1.0 / std::numbers::sqrt2);
     a_im(0, 0) = gam;
@@ -354,9 +354,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 3;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 2;
-    HostView2D<double> a_ex("a_ij_ex", stages, stages);
-    HostView1D<double> b_ex("b_i_ex", stages);
-    HostView1D<double> c_ex("c_i_ex", stages);
+    HostArray2D<double> a_ex("a_ij_ex", stages, stages);
+    HostArray1D<double> b_ex("b_i_ex", stages);
+    HostArray1D<double> c_ex("c_i_ex", stages);
 
     constexpr static double a32 = (3.0 + 2.0 * std::numbers::sqrt2) / 6.0;
     a_ex(1, 0) = 2.0 - std::numbers::sqrt2;
@@ -373,9 +373,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    HostView2D<double> a_im("a_ij_im", stages, stages);
-    HostView1D<double> b_im("b_i_im", stages);
-    HostView1D<double> c_im("c_i_im", stages);
+    HostArray2D<double> a_im("a_ij_im", stages, stages);
+    HostArray1D<double> b_im("b_i_im", stages);
+    HostArray1D<double> c_im("c_i_im", stages);
 
     a_im(1, 0) = 1.0 - 1.0 / std::numbers::sqrt2;
     a_im(2, 0) = +1.0 / (2.0 * std::numbers::sqrt2);
@@ -401,9 +401,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
     constexpr static int stages = 3;
     constexpr static int explicit_order = 2;
     constexpr static int implicit_order = 2;
-    HostView2D<double> a_ex("a_ij_ex", stages, stages);
-    HostView1D<double> b_ex("b_i_ex", stages);
-    HostView1D<double> c_ex("c_i_ex", stages);
+    HostArray2D<double> a_ex("a_ij_ex", stages, stages);
+    HostArray1D<double> b_ex("b_i_ex", stages);
+    HostArray1D<double> c_ex("c_i_ex", stages);
 
     a_ex(1, 0) = 1.0;
     a_ex(2, 0) = 0.5;
@@ -419,9 +419,9 @@ auto create_tableau(MethodID method_id) -> RKIntegrator {
                                       stages, a_ex, b_ex, c_ex);
 
     // dummy implicit tableau
-    HostView2D<double> a_im("a_ij_im", stages, stages);
-    HostView1D<double> b_im("b_i_im", stages);
-    HostView1D<double> c_im("c_i_im", stages);
+    HostArray2D<double> a_im("a_ij_im", stages, stages);
+    HostArray1D<double> b_im("b_i_im", stages);
+    HostArray1D<double> c_im("c_i_im", stages);
 
     constexpr static double eps = 0.0;
     a_im(1, 1) = 1.0;

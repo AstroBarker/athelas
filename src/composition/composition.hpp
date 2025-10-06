@@ -21,9 +21,9 @@ auto element_number_density(double mass_frac, double atomic_mass, double rho)
 
 // Compute electron number density (derived quantity)
 KOKKOS_FUNCTION
-auto electron_density(const View3D<double> mass_fractions,
-                      const View4D<double> ion_fractions,
-                      const View1D<int> charges, int i, int q, double rho)
-    -> double;
+auto electron_density(const AthelasArray3D<double> mass_fractions,
+                      const AthelasArray4D<double> ion_fractions,
+                      const AthelasArray1D<int> charges, int i, int q,
+                      double rho) -> double;
 
 } // namespace athelas::atom

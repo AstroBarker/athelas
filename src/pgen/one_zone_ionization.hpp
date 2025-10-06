@@ -7,15 +7,12 @@
 
 #pragma once
 
-#include <cmath>
-
 #include "basis/polynomial_basis.hpp"
 #include "composition/saha.hpp"
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
 #include "kokkos_abstraction.hpp"
 #include "state/state.hpp"
-#include "utils/abstractions.hpp"
 
 namespace athelas {
 
@@ -44,8 +41,8 @@ void one_zone_ionization_init(State *state, GridStructure *grid, ProblemIn *pin,
                         "[problem.params.ncomps]!");
   }
 
-  View3D<double> uCF = state->u_cf();
-  View3D<double> uPF = state->u_pf();
+  AthelasArray3D<double> uCF = state->u_cf();
+  AthelasArray3D<double> uPF = state->u_pf();
   auto uAF = state->u_af();
 
   static const IndexRange ib(grid->domain<Domain::Interior>());

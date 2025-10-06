@@ -19,7 +19,6 @@
 #include "geometry/grid.hpp"
 #include "kokkos_abstraction.hpp"
 #include "loop_layout.hpp"
-#include "utils/abstractions.hpp"
 
 namespace athelas::bc {
 /**
@@ -39,7 +38,7 @@ namespace athelas::bc {
  * between rad and fluid bcs is needed.
  **/
 template <int N> // N = 3 for fluid, N = 2 for rad...
-void fill_ghost_zones(View3D<double> U, const GridStructure *grid,
+void fill_ghost_zones(AthelasArray3D<double> U, const GridStructure *grid,
                       const basis::ModalBasis *basis, BoundaryConditions *bcs,
                       const std::tuple<int, int> &vars) {
 
@@ -65,8 +64,8 @@ void fill_ghost_zones(View3D<double> U, const GridStructure *grid,
 // Applies boundary condition for one variable `v`
 template <int N>
 KOKKOS_INLINE_FUNCTION void
-apply_bc(const BoundaryConditionsData<N> &bc, View3D<double> U, const int v,
-         const int ghost_cell, const int interior_cell,
+apply_bc(const BoundaryConditionsData<N> &bc, AthelasArray3D<double> U,
+         const int v, const int ghost_cell, const int interior_cell,
          const basis::ModalBasis *basis) {
   const int num_modes = basis->get_order();
   switch (bc.type) {

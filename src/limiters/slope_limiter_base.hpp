@@ -14,16 +14,15 @@
 
 #pragma once
 
-#include "abstractions.hpp"
+#include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
-#include "polynomial_basis.hpp"
 
 namespace athelas {
 
 template <class SlopeLimiter>
 class SlopeLimiterBase {
  public:
-  void apply_slope_limiter(View3D<double> U, const GridStructure *grid,
+  void apply_slope_limiter(AthelasArray3D<double> U, const GridStructure *grid,
                            const basis::ModalBasis *basis, const eos::EOS *eos,
                            const std::vector<int> &vars) const {
     return static_cast<SlopeLimiter const *>(this)->apply_slope_limiter(
@@ -32,7 +31,7 @@ class SlopeLimiterBase {
   [[nodiscard]] auto get_limited(const int ix) const -> int {
     return static_cast<SlopeLimiter const *>(this)->get_limited(ix);
   }
-  [[nodiscard]] auto limited() const -> View1D<int> {
+  [[nodiscard]] auto limited() const -> AthelasArray1D<int> {
     return static_cast<SlopeLimiter const *>(this)->limited();
   }
 };

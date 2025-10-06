@@ -16,7 +16,6 @@
 
 #include <vector>
 
-#include "abstractions.hpp"
 #include "geometry/grid.hpp"
 #include "kokkos_abstraction.hpp"
 #include "kokkos_types.hpp"
@@ -294,7 +293,7 @@ void GridStructure::create_log_grid() {
  * Compute cell masses
  **/
 KOKKOS_FUNCTION
-void GridStructure::compute_mass(const View3D<double> uPF) {
+void GridStructure::compute_mass(const AthelasArray3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
   const int ilo = get_ilo();
   const int ihi = get_ihi();
@@ -328,7 +327,7 @@ void GridStructure::compute_mass(const View3D<double> uPF) {
  * it should be refactored.
  **/
 KOKKOS_FUNCTION
-void GridStructure::compute_mass_r(const View3D<double> uPF) {
+void GridStructure::compute_mass_r(const AthelasArray3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
   const int ilo = get_ilo();
   const int ihi = get_ihi();
@@ -336,8 +335,8 @@ void GridStructure::compute_mass_r(const View3D<double> uPF) {
   static const double geom_fac = (do_geometry()) ? 4.0 * constants::PI : 1.0;
 
   const int total_points = (ihi - ilo + 1) * nNodes_;
-  View1D<double> mass_contrib("mass_contrib", total_points);
-  View1D<double> cumulative_mass("cumulative_mass", total_points);
+  AthelasArray1D<double> mass_contrib("mass_contrib", total_points);
+  AthelasArray1D<double> cumulative_mass("cumulative_mass", total_points);
 
   // 1: Compute individual mass contributions in parallel
   athelas::par_for(
@@ -385,7 +384,7 @@ auto GridStructure::enclosed_mass(const int ix, const int q) const noexcept
  * Compute cell centers of masses reference coordinates
  **/
 KOKKOS_FUNCTION
-void GridStructure::compute_center_of_mass(const View3D<double> uPF) {
+void GridStructure::compute_center_of_mass(const AthelasArray3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
   const int ilo = get_ilo();
   const int ihi = get_ihi();
@@ -417,7 +416,7 @@ void GridStructure::compute_center_of_mass(const View3D<double> uPF) {
  * Update grid coordinates using interface velocities.
  **/
 KOKKOS_FUNCTION
-void GridStructure::update_grid(const View1D<double> SData) {
+void GridStructure::update_grid(const AthelasArray1D<double> SData) {
 
   const int ilo = get_ilo();
   const int ihi = get_ihi();
@@ -448,22 +447,22 @@ auto GridStructure::operator()(int i, int j) const -> double {
   return grid_(i, j);
 }
 
-[[nodiscard]] auto GridStructure::widths() const -> View1D<double> {
+[[nodiscard]] auto GridStructure::widths() const -> AthelasArray1D<double> {
   return widths_;
 }
-[[nodiscard]] auto GridStructure::mass() const -> View1D<double> {
+[[nodiscard]] auto GridStructure::mass() const -> AthelasArray1D<double> {
   return mass_;
 }
-[[nodiscard]] auto GridStructure::centers() const -> View1D<double> {
+[[nodiscard]] auto GridStructure::centers() const -> AthelasArray1D<double> {
   return centers_;
 }
-[[nodiscard]] auto GridStructure::centers() -> View1D<double> {
+[[nodiscard]] auto GridStructure::centers() -> AthelasArray1D<double> {
   return centers_;
 }
-[[nodiscard]] auto GridStructure::nodal_grid() -> View2D<double> {
+[[nodiscard]] auto GridStructure::nodal_grid() -> AthelasArray2D<double> {
   return grid_;
 }
-[[nodiscard]] auto GridStructure::nodal_grid() const -> View2D<double> {
+[[nodiscard]] auto GridStructure::nodal_grid() const -> AthelasArray2D<double> {
   return grid_;
 }
 

@@ -35,8 +35,9 @@ TimeStepper::TimeStepper(const ProblemIn *pin, GridStructure *grid, EOS *eos)
 
   if (integrator_.method == MethodType::IM ||
       integrator_.method == MethodType::IMEX) {
-    dU_s_implicit_ = View4D<double>("dU_s_implicit", nStages_ + 1, mSize_ + 1,
-                                    pin->param()->get<int>("fluid.porder"), 5);
+    dU_s_implicit_ =
+        AthelasArray4D<double>("dU_s_implicit", nStages_ + 1, mSize_ + 1,
+                               pin->param()->get<int>("fluid.porder"), 5);
   }
 }
 

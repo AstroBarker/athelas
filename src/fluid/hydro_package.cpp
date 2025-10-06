@@ -18,7 +18,6 @@
 #include "kokkos_types.hpp"
 #include "loop_layout.hpp"
 #include "pgen/problem_in.hpp"
-#include "utils/abstractions.hpp"
 
 namespace athelas::fluid {
 
@@ -35,7 +34,8 @@ HydroPackage::HydroPackage(const ProblemIn * /*pin*/, int n_stages, EOS *eos,
 } // Need long term solution for flux_u_
 
 KOKKOS_FUNCTION
-void HydroPackage::update_explicit(const State *const state, View3D<double> dU,
+void HydroPackage::update_explicit(const State *const state,
+                                   AthelasArray3D<double> dU,
                                    const GridStructure &grid,
                                    const TimeStepInfo &dt_info) const {
   const int stage = dt_info.stage;
@@ -82,7 +82,8 @@ void HydroPackage::update_explicit(const State *const state, View3D<double> dU,
 // Compute the dvbergence of the flux term for the update
 // TODO(astrobarker): dont pass in stage
 KOKKOS_FUNCTION
-void HydroPackage::fluid_divergence(const State *const state, View3D<double> dU,
+void HydroPackage::fluid_divergence(const State *const state,
+                                    AthelasArray3D<double> dU,
                                     const GridStructure &grid,
                                     const int stage) const {
   const auto u_stages = state->u_cf_stages();
@@ -183,8 +184,9 @@ void HydroPackage::fluid_divergence(const State *const state, View3D<double> dU,
 }
 
 KOKKOS_FUNCTION
-void HydroPackage::fluid_geometry(const View3D<double> ucf,
-                                  const View3D<double> uaf, View3D<double> dU,
+void HydroPackage::fluid_geometry(const AthelasArray3D<double> ucf,
+                                  const AthelasArray3D<double> uaf,
+                                  AthelasArray3D<double> dU,
                                   const GridStructure &grid) const {
   const int &nNodes = grid.get_n_nodes();
   const int &order = basis_->get_order();

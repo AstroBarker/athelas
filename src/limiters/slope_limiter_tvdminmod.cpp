@@ -14,7 +14,6 @@
 #include <algorithm> /* std::min, std::max */
 #include <cstdlib> /* abs */
 
-#include "Kokkos_Core_fwd.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "geometry/grid.hpp"
 #include "kokkos_abstraction.hpp"
@@ -33,7 +32,8 @@ using eos::EOS;
 /**
  * TVD Minmod limiter. See the Cockburn & Shu papers
  **/
-void TVDMinmod::apply_slope_limiter(View3D<double> U, const GridStructure *grid,
+void TVDMinmod::apply_slope_limiter(AthelasArray3D<double> U,
+                                    const GridStructure *grid,
                                     const ModalBasis *basis, const EOS *eos) {
 
   // Do not apply for first order method or if we don't want to.
@@ -162,5 +162,5 @@ auto TVDMinmod::get_limited(const int i) const -> int {
   return (!do_limiter_) ? 0 : limited_cell_(i);
 }
 
-auto TVDMinmod::limited() const -> View1D<int> { return limited_cell_; }
+auto TVDMinmod::limited() const -> AthelasArray1D<int> { return limited_cell_; }
 } // namespace athelas

@@ -12,11 +12,13 @@
 
 #pragma once
 
+#include "basic_types.hpp"
 #include "bc/boundary_conditions_base.hpp"
 #include "eos/eos_variant.hpp"
 #include "fluid/hydro_package.hpp"
 #include "interface/packages_base.hpp"
 #include "kokkos_abstraction.hpp"
+#include "kokkos_types.hpp"
 #include "limiters/bound_enforcing_limiter.hpp"
 #include "limiters/slope_limiter.hpp"
 #include "loop_layout.hpp"
@@ -24,7 +26,6 @@
 #include "radiation/radhydro_package.hpp"
 #include "state/state.hpp"
 #include "timestepper/tableau.hpp"
-#include "utils/abstractions.hpp"
 
 namespace athelas {
 
@@ -521,13 +522,13 @@ class TimeStepper {
   int tOrder_;
 
   // Hold stage data
-  View4D<double> dU_s_;
-  View4D<double> dU_s_implicit_;
-  View3D<double> SumVar_U_;
+  AthelasArray4D<double> dU_s_;
+  AthelasArray4D<double> dU_s_implicit_;
+  AthelasArray3D<double> SumVar_U_;
   std::vector<GridStructure> grid_s_;
 
   // stage_data_ Holds cell left interface positions
-  View2D<double> stage_data_;
+  AthelasArray2D<double> stage_data_;
 
   // Variables to pass to update step
 

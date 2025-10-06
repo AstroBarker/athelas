@@ -12,7 +12,6 @@
 #include "kokkos_abstraction.hpp"
 #include "loop_layout.hpp"
 #include "pgen/problem_in.hpp"
-#include "utils/abstractions.hpp"
 
 namespace athelas::gravity {
 
@@ -24,7 +23,7 @@ GravityPackage::GravityPackage(const ProblemIn * /*pin*/, GravityModel model,
     : active_(active), model_(model), gval_(gval), basis_(basis), cfl_(cfl) {}
 
 void GravityPackage::update_explicit(const State *const state,
-                                     View3D<double> dU,
+                                     AthelasArray3D<double> dU,
                                      const GridStructure &grid,
                                      const TimeStepInfo &dt_info) const {
   const auto u_stages = state->u_cf_stages();
@@ -41,8 +40,8 @@ void GravityPackage::update_explicit(const State *const state,
 }
 
 template <GravityModel Model>
-void GravityPackage::gravity_update(const View3D<double> state,
-                                    View3D<double> dU,
+void GravityPackage::gravity_update(const AthelasArray3D<double> state,
+                                    AthelasArray3D<double> dU,
                                     const GridStructure &grid) const {
   const int nNodes = grid.get_n_nodes();
   const int &order = basis_->get_order();

@@ -6,10 +6,12 @@
  * @brief Utilities for fluid evolution
  */
 
+#include <cassert>
+#include <tuple>
+
 #include "Kokkos_Macros.hpp"
-#include "eos/eos_variant.hpp"
-#include "geometry/grid.hpp"
-#include "utils/abstractions.hpp"
+
+#include "utils/utilities.hpp"
 
 namespace athelas::fluid {
 

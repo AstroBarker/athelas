@@ -13,7 +13,7 @@
 #include <vector>
 
 #include "io/parser.hpp"
-#include "utils/abstractions.hpp"
+#include "kokkos_types.hpp"
 
 namespace athelas::atom {
 
@@ -40,9 +40,9 @@ struct IonLevel {
  */
 class AtomicData {
  private:
-  View1D<IonLevel> ion_data_;
-  View1D<int> offsets_;
-  View1D<int> atomic_numbers_;
+  AthelasArray1D<IonLevel> ion_data_;
+  AthelasArray1D<int> offsets_;
+  AthelasArray1D<int> atomic_numbers_;
   size_t num_species_;
 
  public:
@@ -75,9 +75,10 @@ class AtomicData {
       total_levels += Z; // Z ionization levels
     }
 
-    ion_data_ = View1D<IonLevel>("ion_data", total_levels + num_species_ + 2);
-    atomic_numbers_ = View1D<int>("atomic_number", num_species_);
-    offsets_ = View1D<int>("offsets", num_species_);
+    ion_data_ =
+        AthelasArray1D<IonLevel>("ion_data", total_levels + num_species_ + 2);
+    atomic_numbers_ = AthelasArray1D<int>("atomic_number", num_species_);
+    offsets_ = AthelasArray1D<int>("offsets", num_species_);
 
     auto offs_host = Kokkos::create_mirror_view(offsets_);
     auto ion_data_host = Kokkos::create_mirror_view(ion_data_);
@@ -139,8 +140,8 @@ class AtomicData {
 };
 
 [[nodiscard]] KOKKOS_INLINE_FUNCTION auto
-species_data(const View1D<IonLevel> ion_data, const View1D<int> offsets,
-             const size_t species) {
+species_data(const AthelasArray1D<IonLevel> ion_data,
+             const AthelasArray1D<int> offsets, const size_t species) {
   const size_t num_species = offsets.size();
   const size_t offset = offsets(species);
   const size_t next_offset = (species + 1 < num_species)

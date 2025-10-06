@@ -48,7 +48,7 @@ using utilities::ratio;
  * @param U The solution array containing conserved variables
  * @param basis The modal basis used for the solution representation
  */
-void limit_density(View3D<double> U, const ModalBasis *basis) {
+void limit_density(AthelasArray3D<double> U, const ModalBasis *basis) {
   constexpr static double EPSILON = 1.0e-30; // maybe make this smarter
 
   const int order = basis->get_order();
@@ -106,7 +106,7 @@ void limit_density(View3D<double> U, const ModalBasis *basis) {
  * @param U The solution array containing conserved variables
  * @param basis The modal basis used for the solution representation
  */
-void limit_internal_energy(View3D<double> U, const ModalBasis *basis) {
+void limit_internal_energy(AthelasArray3D<double> U, const ModalBasis *basis) {
   constexpr static double EPSILON = 1.0e-10; // maybe make this smarter
 
   const int order = basis->get_order();
@@ -144,7 +144,8 @@ void limit_internal_energy(View3D<double> U, const ModalBasis *basis) {
       });
 }
 
-void apply_bound_enforcing_limiter(View3D<double> U, const ModalBasis *basis)
+void apply_bound_enforcing_limiter(AthelasArray3D<double> U,
+                                   const ModalBasis *basis)
 
 {
   limit_density(U, basis);
@@ -152,7 +153,7 @@ void apply_bound_enforcing_limiter(View3D<double> U, const ModalBasis *basis)
 }
 
 // TODO(astrobarker): much more here.
-void apply_bound_enforcing_limiter_rad(View3D<double> U,
+void apply_bound_enforcing_limiter_rad(AthelasArray3D<double> U,
                                        const ModalBasis *basis) {
   if (basis->get_order() == 1) {
     return;
@@ -161,7 +162,7 @@ void apply_bound_enforcing_limiter_rad(View3D<double> U,
   // limit_rad_momentum(U, basis);
 }
 
-void limit_rad_energy(View3D<double> U, const ModalBasis *basis) {
+void limit_rad_energy(AthelasArray3D<double> U, const ModalBasis *basis) {
   constexpr static double EPSILON = 1.0e-4; // maybe make this smarter
 
   const int order = basis->get_order();
@@ -195,7 +196,7 @@ void limit_rad_energy(View3D<double> U, const ModalBasis *basis) {
       });
 }
 
-void limit_rad_momentum(View3D<double> U, const ModalBasis *basis) {
+void limit_rad_momentum(AthelasArray3D<double> U, const ModalBasis *basis) {
   const int order = basis->get_order();
 
   athelas::par_for(
@@ -232,13 +233,13 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis *basis) {
 /* --- Utility Functions --- */
 
 // ( 1 - theta ) U_bar + theta U_q
-auto compute_theta_state(const View3D<double> U, const ModalBasis *basis,
-                         const double theta, const int q, const int ix,
-                         const int iN) -> double {
+auto compute_theta_state(const AthelasArray3D<double> U,
+                         const ModalBasis *basis, const double theta,
+                         const int q, const int ix, const int iN) -> double {
   return theta * (basis->basis_eval(U, ix, q, iN) - U(ix, 0, q)) + U(ix, 0, q);
 }
 
-auto target_func(const double theta, const View3D<double> U,
+auto target_func(const double theta, const AthelasArray3D<double> U,
                  const ModalBasis *basis, const int ix, const int iN)
     -> double {
   const double w = 1.0e-13;
@@ -249,7 +250,7 @@ auto target_func(const double theta, const View3D<double> U,
 
   return e - w;
 }
-auto target_func_deriv(const double theta, const View3D<double> U,
+auto target_func_deriv(const double theta, const AthelasArray3D<double> U,
                        const ModalBasis *basis, const int ix, const int iN)
     -> double {
   const double dE = basis->basis_eval(U, ix, 2, iN) - U(ix, 0, 2);
@@ -259,7 +260,7 @@ auto target_func_deriv(const double theta, const View3D<double> U,
 }
 
 // TODO(astrobarker) some redundancy below
-auto target_func_rad_flux(const double theta, const View3D<double> U,
+auto target_func_rad_flux(const double theta, const AthelasArray3D<double> U,
                           const ModalBasis *basis, const int ix, const int iN)
     -> double {
   const double w = 1.0e-13;
@@ -271,7 +272,8 @@ auto target_func_rad_flux(const double theta, const View3D<double> U,
   return e - w;
 }
 
-auto target_func_rad_flux_deriv(const double theta, const View3D<double> U,
+auto target_func_rad_flux_deriv(const double theta,
+                                const AthelasArray3D<double> U,
                                 const ModalBasis *basis, const int ix,
                                 const int iN) -> double {
   const double dE = basis->basis_eval(U, ix, 3, iN) - U(ix, 0, 3);
@@ -284,13 +286,14 @@ auto target_func_rad_flux_deriv(const double theta, const View3D<double> U,
   return dfdE * dE + dfdF * dF;
 }
 
-auto target_func_rad_energy_deriv(const double theta, const View3D<double> U,
+auto target_func_rad_energy_deriv(const double theta,
+                                  const AthelasArray3D<double> U,
                                   const ModalBasis *basis, const int ix,
                                   const int iN) -> double {
   return basis->basis_eval(U, ix, 3, iN) - U(ix, 0, 3);
 }
 
-auto target_func_rad_energy(const double theta, const View3D<double> U,
+auto target_func_rad_energy(const double theta, const AthelasArray3D<double> U,
                             const ModalBasis *basis, const int ix, const int iN)
     -> double {
   const double w = 1.0e-13;

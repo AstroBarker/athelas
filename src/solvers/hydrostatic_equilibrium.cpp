@@ -47,7 +47,7 @@ void HydrostaticEquilibrium::solve(State *state, GridStructure *grid,
   auto h_uAF = Kokkos::create_mirror_view(uAF);
 
   const int size = grid->get_n_elements() * nNodes + 2 * nNodes;
-  View1D<double> d_r("host radius", size);
+  AthelasArray1D<double> d_r("host radius", size);
   std::vector<double> pressure(1);
   std::vector<double> radius(1);
   athelas::par_for(

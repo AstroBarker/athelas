@@ -8,7 +8,6 @@
 #include "kokkos_types.hpp"
 #include "loop_layout.hpp"
 #include "pgen/problem_in.hpp"
-#include "utils/abstractions.hpp"
 #include "utils/utilities.hpp"
 
 namespace athelas::nickel {
@@ -26,16 +25,17 @@ NickelHeatingPackage::NickelHeatingPackage(const ProblemIn *pin,
 
   const int nx = pin->param()->get<int>("problem.nx");
   const int nnodes = pin->param()->get<int>("fluid.nnodes");
-  // tau_gamma_ = View3D<double>("tau_gamma", 32, nx + 2,  nnodes); //
+  // tau_gamma_ = AthelasArray3D<double>("tau_gamma", 32, nx + 2,  nnodes); //
   // TODO(astrobarker): make runtime
-  tau_gamma_ = View3D<double>("tau_gamma", nx + 2, nnodes,
-                              2); // TODO(astrobarker): make runtime
-  int_etau_domega_ = View2D<double>("int_etau_domega", nx + 2,
-                                    nnodes); // integration of e^-tau dOmega
+  tau_gamma_ = AthelasArray3D<double>("tau_gamma", nx + 2, nnodes,
+                                      2); // TODO(astrobarker): make runtime
+  int_etau_domega_ =
+      AthelasArray2D<double>("int_etau_domega", nx + 2,
+                             nnodes); // integration of e^-tau dOmega
 }
 
 void NickelHeatingPackage::update_explicit(const State *const state,
-                                           View3D<double> dU,
+                                           AthelasArray3D<double> dU,
                                            const GridStructure &grid,
                                            const TimeStepInfo &dt_info) {
   static const IndexRange ib(grid.domain<Domain::Interior>());
@@ -74,8 +74,9 @@ void NickelHeatingPackage::update_explicit(const State *const state,
 }
 
 template <NiHeatingModel Model>
-void NickelHeatingPackage::ni_update(const View3D<double> ucf,
-                                     CompositionData *comps, View3D<double> dU,
+void NickelHeatingPackage::ni_update(const AthelasArray3D<double> ucf,
+                                     CompositionData *comps,
+                                     AthelasArray3D<double> dU,
                                      const GridStructure &grid,
                                      const TimeStepInfo &dt_info) const {
   const int &nNodes = grid.get_n_nodes();

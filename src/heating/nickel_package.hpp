@@ -1,13 +1,14 @@
 #pragma once
 
 #include "Kokkos_Macros.hpp"
+
+#include "basic_types.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
 #include "compdata.hpp"
 #include "geometry/grid.hpp"
 #include "pgen/problem_in.hpp"
 #include "state/state.hpp"
-#include "utils/abstractions.hpp"
 #include "utils/constants.hpp"
 
 namespace athelas::nickel {
@@ -37,12 +38,12 @@ class NickelHeatingPackage {
   NickelHeatingPackage(const ProblemIn *pin, basis::ModalBasis *basis,
                        bool active = true);
 
-  void update_explicit(const State *const state, View3D<double> dU,
+  void update_explicit(const State *const state, AthelasArray3D<double> dU,
                        const GridStructure &grid, const TimeStepInfo &dt_info);
 
   template <NiHeatingModel Model>
-  void ni_update(const View3D<double> ucf, atom::CompositionData *comps,
-                 View3D<double> dU, const GridStructure &grid,
+  void ni_update(const AthelasArray3D<double> ucf, atom::CompositionData *comps,
+                 AthelasArray3D<double> dU, const GridStructure &grid,
                  const TimeStepInfo &dt_info) const;
 
   // NOTE: E_LAMBDA_NI etc are energy release per gram per second
@@ -71,9 +72,11 @@ class NickelHeatingPackage {
    */
   template <NiHeatingModel Model>
   [[nodiscard]]
-  KOKKOS_INLINE_FUNCTION auto deposition_function(
-      const View3D<double> ucf, const atom::CompositionData *const comps,
-      const GridStructure &grid, const int ix, const int node) const -> double {
+  KOKKOS_INLINE_FUNCTION auto
+  deposition_function(const AthelasArray3D<double> ucf,
+                      const atom::CompositionData *const comps,
+                      const GridStructure &grid, const int ix,
+                      const int node) const -> double {
     double f_dep = 0.0;
     if constexpr (Model == NiHeatingModel::FullTrapping) {
       const auto *const species_indexer = comps->species_indexer();
@@ -131,8 +134,8 @@ class NickelHeatingPackage {
  private:
   bool active_;
   NiHeatingModel model_;
-  View3D<double> tau_gamma_; // [nx][node][angle]
-  View2D<double> int_etau_domega_; // integration of e^-tau dOmega
+  AthelasArray3D<double> tau_gamma_; // [nx][node][angle]
+  AthelasArray2D<double> int_etau_domega_; // integration of e^-tau dOmega
 
   basis::ModalBasis *basis_;
 

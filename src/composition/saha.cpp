@@ -8,10 +8,7 @@
 #include "geometry/grid.hpp"
 #include "kokkos_abstraction.hpp"
 #include "loop_layout.hpp"
-#include "solvers/root_finders.hpp"
 #include "state/state.hpp"
-#include "utils/abstractions.hpp"
-#include "utils/constants.hpp"
 
 /**
  * @brief Functionality for saha ionization

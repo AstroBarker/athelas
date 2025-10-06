@@ -15,7 +15,6 @@
 #include "kokkos_abstraction.hpp"
 #include "solvers/hydrostatic_equilibrium.hpp"
 #include "state/state.hpp"
-#include "utils/abstractions.hpp"
 
 namespace athelas {
 
@@ -29,9 +28,9 @@ void hydrostatic_balance_init(State *state, GridStructure *grid, ProblemIn *pin,
     THROW_ATHELAS_ERROR("Hydrostatic balance requires polytropic eos!");
   }
 
-  View3D<double> uCF = state->u_cf();
-  View3D<double> uPF = state->u_pf();
-  View3D<double> uAF = state->u_af();
+  AthelasArray3D<double> uCF = state->u_cf();
+  AthelasArray3D<double> uPF = state->u_pf();
+  AthelasArray3D<double> uAF = state->u_af();
 
   static const IndexRange ib(grid->domain<Domain::Interior>());
   const int nNodes = grid->get_n_nodes();

@@ -12,7 +12,6 @@
 #include "geometry/grid.hpp"
 #include "kokkos_abstraction.hpp"
 #include "state/state.hpp"
-#include "utils/abstractions.hpp"
 
 namespace athelas {
 
@@ -32,8 +31,8 @@ void rad_wave_init(State *state, GridStructure *grid, ProblemIn *pin,
     THROW_ATHELAS_ERROR("Radiation wave requires ideal gas eos!");
   }
 
-  View3D<double> uCF = state->u_cf();
-  View3D<double> uPF = state->u_pf();
+  AthelasArray3D<double> uCF = state->u_cf();
+  AthelasArray3D<double> uPF = state->u_pf();
 
   static const IndexRange ib(grid->domain<Domain::Interior>());
   static const int nNodes = grid->get_n_nodes();

@@ -10,7 +10,6 @@
 #include "basis/polynomial_basis.hpp"
 #include "geometry/grid.hpp"
 #include "limiters/slope_limiter.hpp"
-#include "utils/abstractions.hpp"
 #include "utils/utilities.hpp"
 
 namespace athelas {
@@ -43,20 +42,22 @@ constexpr auto MINMOD_B(T a, T b, T c, T dx, T M) -> T {
 auto barth_jespersen(double U_v_L, double U_v_R, double U_c_L, double U_c_T,
                      double U_c_R, double alpha) -> double;
 
-void detect_troubled_cells(const View3D<double> U, View1D<double> D,
-                           const GridStructure *grid,
+void detect_troubled_cells(const AthelasArray3D<double> U,
+                           AthelasArray1D<double> D, const GridStructure *grid,
                            const basis::ModalBasis *basis,
                            const std::vector<int> &vars);
 
-auto cell_average(View3D<double> U, const GridStructure *grid,
+auto cell_average(AthelasArray3D<double> U, const GridStructure *grid,
                   const basis::ModalBasis *basis, int q, int ix,
                   int extrapolate) -> double;
 
-void modify_polynomial(View3D<double> U, View2D<double> modified_polynomial,
+void modify_polynomial(AthelasArray3D<double> U,
+                       AthelasArray2D<double> modified_polynomial,
                        double gamma_i, double gamma_l, double gamma_r, int ix,
                        int q);
 
-auto smoothness_indicator(View3D<double> U, View2D<double> modified_polynomial,
+auto smoothness_indicator(AthelasArray3D<double> U,
+                          AthelasArray2D<double> modified_polynomial,
                           const GridStructure *grid,
                           const basis::ModalBasis *basis, int ix, int i,
                           int iCQ) -> double;

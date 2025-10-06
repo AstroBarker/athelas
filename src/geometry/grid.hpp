@@ -1,7 +1,7 @@
 #pragma once
 
+#include "kokkos_types.hpp"
 #include "pgen/problem_in.hpp"
-#include "utils/abstractions.hpp"
 
 namespace athelas {
 
@@ -53,24 +53,24 @@ class GridStructure {
   void create_log_grid();
 
   KOKKOS_FUNCTION
-  void update_grid(View1D<double> SData);
+  void update_grid(AthelasArray1D<double> SData);
   KOKKOS_FUNCTION
-  void compute_mass(View3D<double> uPF);
+  void compute_mass(AthelasArray3D<double> uPF);
   KOKKOS_FUNCTION
-  void compute_mass_r(View3D<double> uPF);
+  void compute_mass_r(AthelasArray3D<double> uPF);
   KOKKOS_FUNCTION
   auto enclosed_mass(int ix, int iN) const noexcept -> double;
   KOKKOS_FUNCTION
-  void compute_center_of_mass(View3D<double> uPF);
+  void compute_center_of_mass(AthelasArray3D<double> uPF);
   KOKKOS_FUNCTION
-  void compute_center_of_mass_radius(View3D<double> uPF);
+  void compute_center_of_mass_radius(AthelasArray3D<double> uPF);
 
-  [[nodiscard]] auto widths() const -> View1D<double>;
-  [[nodiscard]] auto mass() const -> View1D<double>;
-  [[nodiscard]] auto centers() const -> View1D<double>;
-  [[nodiscard]] auto centers() -> View1D<double>;
-  [[nodiscard]] auto nodal_grid() -> View2D<double>;
-  [[nodiscard]] auto nodal_grid() const -> View2D<double>;
+  [[nodiscard]] auto widths() const -> AthelasArray1D<double>;
+  [[nodiscard]] auto mass() const -> AthelasArray1D<double>;
+  [[nodiscard]] auto centers() const -> AthelasArray1D<double>;
+  [[nodiscard]] auto centers() -> AthelasArray1D<double>;
+  [[nodiscard]] auto nodal_grid() -> AthelasArray2D<double>;
+  [[nodiscard]] auto nodal_grid() const -> AthelasArray2D<double>;
 
   // domain
   template <Domain D>
@@ -98,18 +98,18 @@ class GridStructure {
   Geometry geometry_;
   std::string grid_type_; // uniform or logarithmic
 
-  View1D<double> nodes_;
-  View1D<double> weights_;
+  AthelasArray1D<double> nodes_;
+  AthelasArray1D<double> weights_;
 
-  View1D<double> centers_;
-  View1D<double> widths_;
-  View1D<double> x_l_; // left interface coordinate
+  AthelasArray1D<double> centers_;
+  AthelasArray1D<double> widths_;
+  AthelasArray1D<double> x_l_; // left interface coordinate
 
-  View1D<double> mass_; // cell mass
-  View2D<double> mass_r_; // enclosed mass
-  View1D<double> center_of_mass_;
+  AthelasArray1D<double> mass_; // cell mass
+  AthelasArray2D<double> mass_r_; // enclosed mass
+  AthelasArray1D<double> center_of_mass_;
 
-  View2D<double> grid_;
+  AthelasArray2D<double> grid_;
 };
 
 } // namespace athelas

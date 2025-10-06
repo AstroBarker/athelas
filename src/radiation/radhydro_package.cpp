@@ -12,7 +12,6 @@
 #include "pgen/problem_in.hpp"
 #include "radiation/rad_utilities.hpp"
 #include "radiation/radhydro_package.hpp"
-#include "utils/abstractions.hpp"
 
 namespace athelas::radiation {
 using basis::ModalBasis;
@@ -35,7 +34,7 @@ RadHydroPackage::RadHydroPackage(const ProblemIn *pin, int n_stages, EOS *eos,
 
 KOKKOS_FUNCTION
 void RadHydroPackage::update_explicit(const State *const state,
-                                      View3D<double> dU,
+                                      AthelasArray3D<double> dU,
                                       const GridStructure &grid,
                                       const TimeStepInfo &dt_info) const {
   // TODO(astrobarker) handle separate fluid and rad orders
@@ -97,7 +96,7 @@ void RadHydroPackage::update_explicit(const State *const state,
  **/
 KOKKOS_FUNCTION
 void RadHydroPackage::update_implicit(const State *const state,
-                                      View3D<double> dU,
+                                      AthelasArray3D<double> dU,
                                       const GridStructure &grid,
                                       const TimeStepInfo &dt_info) const {
   // TODO(astrobarker) handle separate fluid and rad orders
@@ -135,7 +134,7 @@ void RadHydroPackage::update_implicit(const State *const state,
 
 KOKKOS_FUNCTION
 void RadHydroPackage::update_implicit_iterative(const State *const state,
-                                                View3D<double> dU,
+                                                AthelasArray3D<double> dU,
                                                 const GridStructure &grid,
                                                 const TimeStepInfo &dt_info) {
   // TODO(astrobarker) handle separate fluid and rad orders
@@ -186,7 +185,7 @@ void RadHydroPackage::update_implicit_iterative(const State *const state,
 // TODO(astrobarker): dont pass in stage
 KOKKOS_FUNCTION
 void RadHydroPackage::radhydro_divergence(const State *const state,
-                                          View3D<double> dU,
+                                          AthelasArray3D<double> dU,
                                           const GridStructure &grid,
                                           const int stage) const {
   const auto u_stages = state->u_cf_stages();
@@ -343,7 +342,7 @@ void RadHydroPackage::radhydro_divergence(const State *const state,
  * @note Returns tuple<S_egas, S_vgas, S_erad, S_frad>
  **/
 auto RadHydroPackage::radhydro_source(const State *const state,
-                                      const View2D<double> uCRH,
+                                      const AthelasArray2D<double> uCRH,
                                       const GridStructure &grid, const int i,
                                       const int k) const
     -> std::tuple<double, double, double, double> {
@@ -354,7 +353,7 @@ auto RadHydroPackage::radhydro_source(const State *const state,
 // This is duplicate of above but used differently, in the root finder
 // The code needs some refactoring in order to get rid of this version.
 auto compute_increment_radhydro_source(
-    const View2D<double> uCRH, const int k, const State *const state,
+    const AthelasArray2D<double> uCRH, const int k, const State *const state,
     const GridStructure &grid, const ModalBasis *fluid_basis,
     const ModalBasis *rad_basis, const EOS *eos, const Opacity *opac,
     const int i) -> std::tuple<double, double, double, double> {
@@ -428,9 +427,9 @@ auto compute_increment_radhydro_source(
  * TODO(astrobarker): get rid of duplicate code with Hydro
  */
 KOKKOS_FUNCTION
-void RadHydroPackage::radhydro_geometry(const View3D<double> ucf,
-                                        const View3D<double> uaf,
-                                        View3D<double> dU,
+void RadHydroPackage::radhydro_geometry(const AthelasArray3D<double> ucf,
+                                        const AthelasArray3D<double> uaf,
+                                        AthelasArray3D<double> dU,
                                         const GridStructure &grid) const {
   const int &nNodes = grid.get_n_nodes();
   const int &order = fluid_basis_->get_order();

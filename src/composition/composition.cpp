@@ -212,10 +212,10 @@ auto element_number_density(const double mass_frac, const double atomic_mass,
 
 // Compute electron number density
 KOKKOS_FUNCTION
-auto electron_density(const View3D<double> mass_fractions,
-                      const View4D<double> ion_fractions,
-                      const View1D<int> charges, const int i, const int q,
-                      const double rho) -> double {
+auto electron_density(const AthelasArray3D<double> mass_fractions,
+                      const AthelasArray4D<double> ion_fractions,
+                      const AthelasArray1D<int> charges, const int i,
+                      const int q, const double rho) -> double {
   double n_e = 0.0;
   const size_t n_species = charges.size();
 

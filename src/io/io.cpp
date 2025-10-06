@@ -244,9 +244,9 @@ void write_state(State *state, GridStructure &grid, SlopeLimiter *SL,
       pin->param()->get<bool>("physics.composition_enabled");
 
   // Get views
-  const View3D<double> uCF = state->u_cf();
-  const View3D<double> uPF = state->u_pf();
-  const View3D<double> uAF = state->u_af();
+  const AthelasArray3D<double> uCF = state->u_cf();
+  const AthelasArray3D<double> uPF = state->u_pf();
+  const AthelasArray3D<double> uAF = state->u_af();
 
   // Grid parameters
   const int nX = grid.get_n_elements();

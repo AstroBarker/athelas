@@ -1,4 +1,5 @@
 #include "driver.hpp"
+#include "basic_types.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
 #include "fluid/hydro_package.hpp"
@@ -14,7 +15,6 @@
 #include "radiation/radhydro_package.hpp"
 #include "state/state.hpp"
 #include "timestepper/timestepper.hpp"
-#include "utils/abstractions.hpp"
 #include "utils/error.hpp"
 
 namespace athelas {
@@ -157,13 +157,13 @@ void Driver::initialize(ProblemIn *pin) { // NOLINT
     static const bool rad_active =
         pin_->param()->get<bool>("physics.rad_active");
     fluid_basis_ = std::make_unique<ModalBasis>(
-        poly_basis::poly_basis::legendre, state_->u_pf(), &grid_,
+        poly_basis::legendre, state_->u_pf(), &grid_,
         pin->param()->get<int>("fluid.porder"),
         pin->param()->get<int>("fluid.nnodes"),
         pin->param()->get<int>("problem.nx"), true);
     if (rad_active) {
       radiation_basis_ = std::make_unique<ModalBasis>(
-          poly_basis::poly_basis::legendre, state_->u_pf(), &grid_,
+          poly_basis::legendre, state_->u_pf(), &grid_,
           pin->param()->get<int>("radiation.porder"),
           pin->param()->get<int>("radiation.nnodes"),
           pin->param()->get<int>("problem.nx"), false);

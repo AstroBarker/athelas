@@ -117,8 +117,9 @@ auto barth_jespersen(double U_v_L, double U_v_R, double U_c_L, double U_c_T,
  * Detects smoothness by comparing local cell averages to extrapolated
  * neighbor projections.
  **/
-void detect_troubled_cells(const View3D<double> U, View1D<double> D,
-                           const GridStructure *grid, const ModalBasis *basis,
+void detect_troubled_cells(const AthelasArray3D<double> U,
+                           AthelasArray1D<double> D, const GridStructure *grid,
+                           const ModalBasis *basis,
                            const std::vector<int> &vars) {
   static const IndexRange ib(grid->domain<Domain::Interior>());
   athelas::par_for(
@@ -164,7 +165,7 @@ void detect_troubled_cells(const View3D<double> U, View1D<double> D,
  * -1 : Extrapolate left, e.g.,  polynomial from ix+1 into ix
  * +1 : Extrapolate right, e.g.,  polynomial from ix-1 into ix
  **/
-auto cell_average(View3D<double> U, const GridStructure *grid,
+auto cell_average(AthelasArray3D<double> U, const GridStructure *grid,
                   const ModalBasis *basis, const int q, const int ix,
                   const int extrapolate) -> double {
   const int nNodes = grid->get_n_nodes();
@@ -190,10 +191,10 @@ auto cell_average(View3D<double> U, const GridStructure *grid,
  * H. Zhu et al 2020, simple and high-order
  * compact WENO RKDG slope limiter
  **/
-void modify_polynomial(const View3D<double> U,
-                       View2D<double> modified_polynomial, const double gamma_i,
-                       const double gamma_l, const double gamma_r, const int ix,
-                       const int q) {
+void modify_polynomial(const AthelasArray3D<double> U,
+                       AthelasArray2D<double> modified_polynomial,
+                       const double gamma_i, const double gamma_l,
+                       const double gamma_r, const int ix, const int q) {
   const double Ubar_i = U(ix, 0, q);
   const double fac = 1.0;
   const int order = U.extent(2);
@@ -222,8 +223,8 @@ void modify_polynomial(const View3D<double> U,
 }
 
 // WENO smoothness indicator beta
-auto smoothness_indicator(const View3D<double> U,
-                          const View2D<double> modified_polynomial,
+auto smoothness_indicator(const AthelasArray3D<double> U,
+                          const AthelasArray2D<double> modified_polynomial,
                           const GridStructure *grid, const ModalBasis *basis,
                           const int ix, const int i, const int /*q*/)
     -> double {
