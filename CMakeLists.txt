@@ -233,8 +233,8 @@ elseif(Kokkos_ENABLE_HPX)
   message( FATAL_ERROR "Need to add/fix/test default loop layouts for HPX backend.")
 
 else()
-  # use mdrange on host
-  set(PAR_LOOP_LAYOUT "MDRANGE_LOOP" CACHE STRING
+  # use manual1d on host
+  set(PAR_LOOP_LAYOUT "MANUAL1D_LOOP" CACHE STRING
     "Default loop layout for parallel_for wrapper")
   set(PAR_LOOP_FLAT_LAYOUT "MANUAL1D_LOOP" CACHE STRING
     "Default loop layout for parallel_for wrapper")
