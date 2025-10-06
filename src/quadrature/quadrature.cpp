@@ -11,10 +11,10 @@
 #include <cmath>
 #include <vector>
 
-#include "linear_algebra.hpp"
-#include "quadrature.hpp"
+#include "linalg/linear_algebra.hpp"
+#include "quadrature/quadrature.hpp"
 
-namespace quadrature {
+namespace athelas::quadrature {
 
 /**
  * @brief Computes the Jacobi matrix for legendre-Gauss quadrature rule
@@ -97,4 +97,4 @@ void lg_quadrature(int m, std::vector<double> &nodes,
   }
 }
 
-} // namespace quadrature
+} // namespace athelas::quadrature

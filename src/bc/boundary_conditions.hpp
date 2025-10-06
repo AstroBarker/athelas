@@ -1,26 +1,31 @@
-#pragma once
 /**
  * @file boundary_conditions.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Boundary conditions
  *
  * @details Implemented BCs
  *            - outflow
  *            - reflecting
  *            - periodic
- *            - dirichlet
+ *            - Dirichlet
+ *            - Marshak
  */
 
-#include "abstractions.hpp"
+#pragma once
+
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
-#include "grid.hpp"
+#include "geometry/grid.hpp"
+#include "kokkos_abstraction.hpp"
+#include "loop_layout.hpp"
 
-namespace bc {
+namespace athelas::bc {
 /**
  * @brief Apply Boundary Conditions to fluid fields
+ *
+ * @note Templated on number of variables, probably should change.
+ * As it stands, N = 3 for fluid and N = 2 for radiation boundaries.
  *
  * Supported Options:
  *  outflow
@@ -33,8 +38,8 @@ namespace bc {
  * between rad and fluid bcs is needed.
  **/
 template <int N> // N = 3 for fluid, N = 2 for rad...
-void fill_ghost_zones(View3D<double> U, const GridStructure *grid,
-                      const ModalBasis *basis, BoundaryConditions *bcs,
+void fill_ghost_zones(AthelasArray3D<double> U, const GridStructure *grid,
+                      const basis::ModalBasis *basis, BoundaryConditions *bcs,
                       const std::tuple<int, int> &vars) {
 
   const int nX = grid->get_n_elements();
@@ -43,30 +48,30 @@ void fill_ghost_zones(View3D<double> U, const GridStructure *grid,
 
   auto [start, stop] = vars;
 
-  Kokkos::parallel_for(
-      "Fill ghost zones", Kokkos::RangePolicy<>(start, stop + 1),
-      KOKKOS_LAMBDA(const int q) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Fill ghosts", DevExecSpace(), start, stop,
+      KOKKOS_LAMBDA(const int v) {
         const int ghost_L = 0;
         const int interior_L = (this_bc[0].type != BcType::Periodic) ? 1 : nX;
         const int ghost_R = nX + 1;
         const int interior_R = (this_bc[1].type != BcType::Periodic) ? nX : 1;
 
-        apply_bc<N>(this_bc[0], U, q, ghost_L, interior_L, basis);
-        apply_bc<N>(this_bc[1], U, q, ghost_R, interior_R, basis);
+        apply_bc<N>(this_bc[0], U, v, ghost_L, interior_L, basis);
+        apply_bc<N>(this_bc[1], U, v, ghost_R, interior_R, basis);
       });
 }
 
-// Applies boundary condition for one variable `q`
+// Applies boundary condition for one variable `v`
 template <int N>
 KOKKOS_INLINE_FUNCTION void
-apply_bc(const BoundaryConditionsData<N> &bc, View3D<double> U, const int q,
-         const int ghost_cell, const int interior_cell,
-         const ModalBasis *basis) {
+apply_bc(const BoundaryConditionsData<N> &bc, AthelasArray3D<double> U,
+         const int v, const int ghost_cell, const int interior_cell,
+         const basis::ModalBasis *basis) {
   const int num_modes = basis->get_order();
   switch (bc.type) {
   case BcType::Outflow:
     for (int k = 0; k < num_modes; k++) {
-      U(ghost_cell, k, q) = U(interior_cell, k, q);
+      U(ghost_cell, k, v) = U(interior_cell, k, v);
     }
     break;
 
@@ -77,31 +82,31 @@ apply_bc(const BoundaryConditionsData<N> &bc, View3D<double> U, const int q,
     // assert( interior_cell != ghost_cell + 1 && "Bad use of periodic BC!\n" );
     // assert( interior_cell != ghost_cell - 1 && "Bad use of periodic BC!\n" );
     for (int k = 0; k < num_modes; k++) {
-      U(ghost_cell, k, q) = U(interior_cell, k, q);
+      U(ghost_cell, k, v) = U(interior_cell, k, v);
     }
     break;
 
   case BcType::Reflecting:
     for (int k = 0; k < num_modes; k++) {
-      if (q == 1) { // Momentum (q == 1)
+      if (v == 1) { // Momentum (v == 1)
         // Reflect momentum in the cell average (k == 0) and leave higher modes
         // unchanged (k > 0)
-        U(ghost_cell, k, q) =
-            (k == 0) ? -U(interior_cell, k, q) : U(interior_cell, k, q);
+        U(ghost_cell, k, v) =
+            (k == 0) ? -U(interior_cell, k, v) : U(interior_cell, k, v);
       } else { // Non-momentum variables
         // Reflect cell averages (k == 0) and invert higher modes (k > 0)
-        U(ghost_cell, k, q) =
-            (k == 0) ? U(interior_cell, k, q) : -U(interior_cell, k, q);
+        U(ghost_cell, k, v) =
+            (k == 0) ? U(interior_cell, k, v) : -U(interior_cell, k, v);
       }
     }
     break;
 
   // TODO(astrobarker): could need extending. FIX
   case BcType::Dirichlet:
-    U(ghost_cell, 0, q) = 2.0 * bc.dirichlet_values[q] - U(interior_cell, 0, q);
-    // U(q, ghost_cell, 0) = bc.dirichlet_values[q];
+    U(ghost_cell, 0, v) = 2.0 * bc.dirichlet_values[v] - U(interior_cell, 0, v);
+    // U(v, ghost_cell, 0) = bc.dirichlet_values[v];
     for (int k = 1; k < num_modes; k++) {
-      U(ghost_cell, k, q) = 0.0; // slopes++ set to 0
+      U(ghost_cell, k, v) = 0.0; // slopes++ set to 0
     }
     break;
 
@@ -110,15 +115,15 @@ apply_bc(const BoundaryConditionsData<N> &bc, View3D<double> U, const int q,
     // Marshak uses dirichlet_values
     const double Einc = bc.dirichlet_values[0]; // aT^4
     for (int k = 0; k < 1; k++) {
-      if (q == 3) {
+      if (v == 3) {
         if (k == 0) {
-          U(ghost_cell, k, q) = (k == 0) ? Einc : 0;
+          U(ghost_cell, k, v) = (k == 0) ? Einc : 0;
         }
-      } else if (q == 4) {
+      } else if (v == 4) {
         constexpr static double c = constants::c_cgs;
         const double E0 = U(interior_cell, k, 3);
         const double F0 = U(interior_cell, k, 4);
-        U(ghost_cell, k, q) =
+        U(ghost_cell, k, v) =
             (k == 0) ? 0.5 * c * Einc - 0.5 * (c * E0 + 2.0 * F0) : 0.0;
       }
     }
@@ -132,4 +137,4 @@ apply_bc(const BoundaryConditionsData<N> &bc, View3D<double> U, const int q,
     break;
   }
 }
-} // namespace bc
+} // namespace athelas::bc

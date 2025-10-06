@@ -11,11 +11,19 @@
 #include <cstdlib> /* abs */
 #include <limits>
 
-#include "slope_limiter.hpp"
-#include "slope_limiter_utilities.hpp"
-#include "utilities.hpp"
+#include "geometry/grid.hpp"
+#include "kokkos_abstraction.hpp"
+#include "kokkos_types.hpp"
+#include "limiters/slope_limiter.hpp"
+#include "limiters/slope_limiter_utilities.hpp"
+#include "loop_layout.hpp"
+#include "polynomial_basis.hpp"
+#include "utils/utilities.hpp"
 
-namespace limiter_utilities {
+namespace athelas {
+
+using basis::ModalBasis;
+using eos::EOS;
 
 auto initialize_slope_limiter(const std::string field,
                               const GridStructure *grid, const ProblemIn *pin,
@@ -109,34 +117,34 @@ auto barth_jespersen(double U_v_L, double U_v_R, double U_c_L, double U_c_T,
  * Detects smoothness by comparing local cell averages to extrapolated
  * neighbor projections.
  **/
-void detect_troubled_cells(const View3D<double> U, View1D<double> D,
-                           const GridStructure *grid, const ModalBasis *basis,
+void detect_troubled_cells(const AthelasArray3D<double> U,
+                           AthelasArray1D<double> D, const GridStructure *grid,
+                           const ModalBasis *basis,
                            const std::vector<int> &vars) {
-  const int ilo = 1;
-  const int ihi = grid->get_ihi();
-  Kokkos::parallel_for(
-      "SlopeLimiter :: TCI :: Zero", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int ix) { D(ix) = 0.0; });
+  static const IndexRange ib(grid->domain<Domain::Interior>());
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "SlopeLimiter :: TCI :: Zero", DevExecSpace(),
+      ib.s, ib.e, KOKKOS_LAMBDA(const int i) { D(i) = 0.0; });
 
   // Cell averages by extrapolating L and R neighbors into current cell
 
-  Kokkos::parallel_for(
-      "SlopeLimiter :: TCI", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_LAMBDA(const int ix) {
-        for (int iC : vars) {
-          if (iC == 1 || iC == 4) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "SlopeLimiter :: TCI", DevExecSpace(), ib.s,
+      ib.e, KOKKOS_LAMBDA(const int i) {
+        for (int v : vars) {
+          if (v == 1 || v == 4) {
             continue; /* skip momenta */
           }
-          const double cell_avg = U(ix, 0, iC);
+          const double cell_avg = U(i, 0, v);
 
           // Extrapolate neighboring poly representations into current cell
           // and compute the new cell averages
           const double cell_avg_L_T =
-              cell_average(U, grid, basis, iC, ix + 1, -1); // from right
+              cell_average(U, grid, basis, v, i + 1, -1); // from right
           const double cell_avg_R_T =
-              cell_average(U, grid, basis, iC, ix - 1, +1); // from left
-          const double cell_avg_L = U(ix - 1, 0, iC); // native left
-          const double cell_avg_R = U(ix + 1, 0, iC); // native right
+              cell_average(U, grid, basis, v, i - 1, +1); // from left
+          const double cell_avg_L = U(i - 1, 0, v); // native left
+          const double cell_avg_R = U(i + 1, 0, v); // native right
 
           const double result = (std::abs(cell_avg - cell_avg_L_T) +
                                  std::abs(cell_avg - cell_avg_R_T));
@@ -144,9 +152,9 @@ void detect_troubled_cells(const View3D<double> U, View1D<double> D,
           const double denominator = std::max(
               {std::abs(cell_avg_L), std::abs(cell_avg_R), cell_avg, 1.0e-10});
 
-          D(ix) = std::max(D(ix), result / denominator);
-        } // loop iC;
-      }); // par_for ix
+          D(i) = std::max(D(i), result / denominator);
+        } // loop v;
+      }); // par_for i
 }
 
 /**
@@ -157,7 +165,7 @@ void detect_troubled_cells(const View3D<double> U, View1D<double> D,
  * -1 : Extrapolate left, e.g.,  polynomial from ix+1 into ix
  * +1 : Extrapolate right, e.g.,  polynomial from ix-1 into ix
  **/
-auto cell_average(View3D<double> U, const GridStructure *grid,
+auto cell_average(AthelasArray3D<double> U, const GridStructure *grid,
                   const ModalBasis *basis, const int q, const int ix,
                   const int extrapolate) -> double {
   const int nNodes = grid->get_n_nodes();
@@ -183,10 +191,10 @@ auto cell_average(View3D<double> U, const GridStructure *grid,
  * H. Zhu et al 2020, simple and high-order
  * compact WENO RKDG slope limiter
  **/
-void modify_polynomial(const View3D<double> U,
-                       View2D<double> modified_polynomial, const double gamma_i,
-                       const double gamma_l, const double gamma_r, const int ix,
-                       const int q) {
+void modify_polynomial(const AthelasArray3D<double> U,
+                       AthelasArray2D<double> modified_polynomial,
+                       const double gamma_i, const double gamma_l,
+                       const double gamma_r, const int ix, const int q) {
   const double Ubar_i = U(ix, 0, q);
   const double fac = 1.0;
   const int order = U.extent(2);
@@ -215,8 +223,8 @@ void modify_polynomial(const View3D<double> U,
 }
 
 // WENO smoothness indicator beta
-auto smoothness_indicator(const View3D<double> U,
-                          const View2D<double> modified_polynomial,
+auto smoothness_indicator(const AthelasArray3D<double> U,
+                          const AthelasArray2D<double> modified_polynomial,
                           const GridStructure *grid, const ModalBasis *basis,
                           const int ix, const int i, const int /*q*/)
     -> double {
@@ -251,4 +259,4 @@ auto weno_tau(const double beta_l, const double beta_i, const double beta_r,
                   weno_r);
 }
 
-} // namespace limiter_utilities
+} // namespace athelas

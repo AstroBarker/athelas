@@ -1,6 +1,11 @@
 #include "state/state.hpp"
+#include "compdata.hpp"
 #include "utils/error.hpp"
 
+namespace athelas {
+
+using atom::CompositionData;
+using atom::IonizationState;
 State::State(const ProblemIn *const pin, const int nstages)
     : params_(std::make_unique<Params>()) {
   static const bool rad_enabled = pin->param()->get<bool>("physics.rad_active");
@@ -20,10 +25,10 @@ State::State(const ProblemIn *const pin, const int nstages)
   static const int n_nodes = pin->param()->get<int>("fluid.nnodes");
   static const int porder = pin->param()->get<int>("fluid.porder");
 
-  uCF_ = View3D<double>("uCF", nx + 2, porder, nvars_cons);
-  uCF_s_ = View4D<double>("uCF_s", nstages, nx + 2, porder, nvars_cons);
-  uPF_ = View3D<double>("uPF", nx + 2, n_nodes + 2, nvars_prim);
-  uAF_ = View3D<double>("uAF", nx + 2, n_nodes + 2, nvars_aux);
+  uCF_ = AthelasArray3D<double>("uCF", nx + 2, porder, nvars_cons);
+  uCF_s_ = AthelasArray4D<double>("uCF_s", nstages, nx + 2, porder, nvars_cons);
+  uPF_ = AthelasArray3D<double>("uPF", nx + 2, n_nodes + 2, nvars_prim);
+  uAF_ = AthelasArray3D<double>("uAF", nx + 2, n_nodes + 2, nvars_aux);
 
   params_->add("nvars_cons", nvars_cons);
   params_->add("nvars_prim", nvars_prim);
@@ -100,7 +105,11 @@ auto State::p_order() const noexcept -> int {
 }
 
 // view accessors
-auto State::u_cf() const noexcept -> View3D<double> { return uCF_; }
-auto State::u_cf_stages() const noexcept -> View4D<double> { return uCF_s_; }
-auto State::u_pf() const noexcept -> View3D<double> { return uPF_; }
-auto State::u_af() const noexcept -> View3D<double> { return uAF_; }
+auto State::u_cf() const noexcept -> AthelasArray3D<double> { return uCF_; }
+auto State::u_cf_stages() const noexcept -> AthelasArray4D<double> {
+  return uCF_s_;
+}
+auto State::u_pf() const noexcept -> AthelasArray3D<double> { return uPF_; }
+auto State::u_af() const noexcept -> AthelasArray3D<double> { return uAF_; }
+
+} // namespace athelas

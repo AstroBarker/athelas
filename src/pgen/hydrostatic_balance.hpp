@@ -1,37 +1,38 @@
-#pragma once
 /**
  * @file hydrostatic_balance.hpp
  * --------------
  *
- * @author Brandon L. Barker
- * @brief Shu Osher shock tube
+ * @brief Hydrostatic balance test.
  */
+
+#pragma once
 
 #include <cmath>
 
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
+#include "kokkos_abstraction.hpp"
 #include "solvers/hydrostatic_equilibrium.hpp"
 #include "state/state.hpp"
-#include "utils/abstractions.hpp"
+
+namespace athelas {
 
 /**
  * @brief Initialize Shu Osher hydro test
  **/
 void hydrostatic_balance_init(State *state, GridStructure *grid, ProblemIn *pin,
-                              const EOS *eos,
-                              ModalBasis *fluid_basis = nullptr) {
+                              const eos::EOS *eos,
+                              basis::ModalBasis *fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "polytropic") {
     THROW_ATHELAS_ERROR("Hydrostatic balance requires polytropic eos!");
   }
 
-  View3D<double> uCF = state->u_cf();
-  View3D<double> uPF = state->u_pf();
-  View3D<double> uAF = state->u_af();
+  AthelasArray3D<double> uCF = state->u_cf();
+  AthelasArray3D<double> uPF = state->u_pf();
+  AthelasArray3D<double> uAF = state->u_af();
 
-  const int ilo = 1;
-  const int ihi = grid->get_ihi();
+  static const IndexRange ib(grid->domain<Domain::Interior>());
   const int nNodes = grid->get_n_nodes();
 
   constexpr static int q_Tau = 0;
@@ -61,10 +62,11 @@ void hydrostatic_balance_init(State *state, GridStructure *grid, ProblemIn *pin,
     solver.solve(state, grid, pin);
 
     // Phase 1: Initialize nodal values (always done)
-    Kokkos::parallel_for(
-        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
-          for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-            uPF(ix, iNodeX, iPF_D) = rho_from_p(uAF(ix, iNodeX, 0));
+    athelas::par_for(
+        DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: HydrostaticBalance (1)",
+        DevExecSpace(), ib.s, ib.e, KOKKOS_LAMBDA(const int i) {
+          for (int iNodeX = 0; iNodeX < nNodes + 2; iNodeX++) {
+            uPF(i, iNodeX, iPF_D) = rho_from_p(uAF(i, iNodeX, 0));
           }
         });
   }
@@ -85,24 +87,28 @@ void hydrostatic_balance_init(State *state, GridStructure *grid, ProblemIn *pin,
       return (uAF(ix, iN, 0) / gm1) / rho;
     };
 
-    Kokkos::parallel_for(
-        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
+    athelas::par_for(
+        DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: HydrostaticBalance (2)",
+        DevExecSpace(), ib.s, ib.e, KOKKOS_LAMBDA(const int i) {
           // Project each conserved variable
-          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, q_Tau, ix,
+          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, q_Tau, i,
                                               tau_func);
-          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, q_V, ix,
+          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, q_V, i,
                                               velocity_func);
-          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, q_E, ix,
+          fluid_basis->project_nodal_to_modal(uCF, uPF, grid, q_E, i,
                                               energy_func);
         });
   }
 
   // Fill density in guard cells
-  Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int ix) {
-        for (int iN = 0; iN < nNodes; iN++) {
-          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
-          uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, nNodes - iN - 1, 0);
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: HydrostaticBalance (ghost)",
+      DevExecSpace(), 0, ib.s - 1, KOKKOS_LAMBDA(const int i) {
+        for (int iN = 0; iN < nNodes + 2; iN++) {
+          uPF(ib.s - 1 - i, iN, 0) = uPF(ib.s + i, (nNodes + 2) - iN - 1, 0);
+          uPF(ib.s + 1 + i, iN, 0) = uPF(ib.s - i, (nNodes + 2) - iN - 1, 0);
         }
       });
 }
+
+} // namespace athelas

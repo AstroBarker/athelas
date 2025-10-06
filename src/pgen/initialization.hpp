@@ -1,4 +1,3 @@
-#pragma once
 /**
  * @file initialization.hpp
  * --------------
@@ -8,6 +7,8 @@
  *
  * @details Calls specific problem pgen functions.
  */
+
+#pragma once
 
 #include <string>
 
@@ -34,12 +35,14 @@
 #include "state/state.hpp"
 #include "utils/error.hpp"
 
+namespace athelas {
+
 /**
  * Initialize the conserved Fields for various problems.
  **/
-void initialize_fields(State *state, GridStructure *grid, const EOS *eos,
-                       ProblemIn *pin, ModalBasis *fluid_basis = nullptr,
-                       ModalBasis *radiation_basis = nullptr) {
+void initialize_fields(State *state, GridStructure *grid, const eos::EOS *eos,
+                       ProblemIn *pin, basis::ModalBasis *fluid_basis = nullptr,
+                       basis::ModalBasis *radiation_basis = nullptr) {
 
   const auto problem_name = pin->param()->get<std::string>("problem.problem");
 
@@ -87,3 +90,5 @@ void initialize_fields(State *state, GridStructure *grid, const EOS *eos,
   auto uCF = Kokkos::subview(u_s, 0, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
   uCF = state->u_cf();
 }
+
+} // namespace athelas

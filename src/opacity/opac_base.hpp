@@ -1,9 +1,7 @@
-#pragma once
 /**
  * @file opac_base.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Base class for opacity models.
  *
  * @details Defines the OpacBase template class.
@@ -15,6 +13,10 @@
  *          The interface methods take density, temperature, and composition
  *          parameters to compute the appropriate mean opacity values.
  */
+
+#pragma once
+
+namespace athelas {
 
 template <class OPAC>
 class OpacBase {
@@ -33,3 +35,5 @@ class OpacBase {
                                                            lambda);
   }
 };
+
+} // namespace athelas

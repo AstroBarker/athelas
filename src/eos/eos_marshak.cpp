@@ -1,7 +1,9 @@
 #include <cmath>
 
-#include "constants.hpp"
-#include "eos.hpp"
+#include "eos/eos.hpp"
+#include "utils/constants.hpp"
+
+namespace athelas::eos {
 
 [[nodiscard]] auto Marshak::pressure_from_conserved(
     const double tau, const double V, const double EmT,
@@ -36,3 +38,5 @@ Marshak::get_gamma(const double /*tau*/, const double /*V*/,
 [[nodiscard]] auto Marshak::get_gamma() const noexcept -> double {
   return gamma_;
 }
+
+} // namespace athelas::eos

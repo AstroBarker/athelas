@@ -12,9 +12,10 @@
 #include "pgen/problem_in.hpp"
 #include "timestepper/timestepper.hpp"
 
+namespace athelas {
+
 using atom::AtomicData;
 using bc::BoundaryConditions;
-using limiter_utilities::initialize_slope_limiter;
 
 /**
  * @class Driver
@@ -32,7 +33,7 @@ class Driver {
             bc::make_boundary_conditions(pin.get()))),
         time_(0.0), dt_(pin_->param()->get<double>("output.initial_dt")),
         t_end_(pin->param()->get<double>("problem.tf")),
-        eos_(std::make_unique<EOS>(initialize_eos(pin.get()))),
+        eos_(std::make_unique<eos::EOS>(eos::initialize_eos(pin.get()))),
         opac_(std::make_unique<Opacity>(initialize_opacity(pin.get()))),
         grid_(pin.get()), sl_hydro_(initialize_slope_limiter(
                               "fluid", &grid_, pin.get(), {0, 1, 2}, 3)),
@@ -69,7 +70,7 @@ class Driver {
 
   // core bits
   // TODO(astrobarker): keep eos_, opac_ in packages.
-  std::unique_ptr<EOS> eos_;
+  std::unique_ptr<eos::EOS> eos_;
   std::unique_ptr<Opacity> opac_;
   GridStructure grid_;
 
@@ -84,11 +85,13 @@ class Driver {
   std::unique_ptr<HistoryOutput> history_;
 
   // bases
-  std::unique_ptr<ModalBasis> fluid_basis_; // init in constr body
-  std::unique_ptr<ModalBasis> radiation_basis_; // init in constr body
+  std::unique_ptr<basis::ModalBasis> fluid_basis_; // init in constr body
+  std::unique_ptr<basis::ModalBasis> radiation_basis_; // init in constr body
 
   std::unique_ptr<State> state_;
 }; // class Driver
+
+} // namespace athelas
 
 namespace {
 

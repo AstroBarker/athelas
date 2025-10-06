@@ -1,4 +1,3 @@
-#pragma once
 /**
  * @file packages_base.hpp
  * --------------
@@ -6,15 +5,19 @@
  * @brief Implement package manager
  */
 
+#pragma once
+
 #include <algorithm>
 #include <limits>
 #include <string_view>
 #include <vector>
 
-#include "abstractions.hpp"
+#include "basic_types.hpp"
 #include "concepts/packages.hpp"
 #include "geometry/grid.hpp"
 #include "state/state.hpp"
+
+namespace athelas {
 
 // Package wrapper that erases types while maintaining performance
 // TODO(astrobarker) move to a CRTP pattern
@@ -36,7 +39,7 @@ class PackageWrapper {
   }
 
   // Explicit update
-  void update_explicit(const State *const state, View3D<double> dU,
+  void update_explicit(const State *const state, AthelasArray3D<double> dU,
                        const GridStructure &grid, const TimeStepInfo &dt_info) {
     if (package_->has_explicit()) {
       package_->update_explicit(state, dU, grid, dt_info);
@@ -44,7 +47,7 @@ class PackageWrapper {
   }
 
   // Implicit update
-  void update_implicit(const State *const state, View3D<double> dU,
+  void update_implicit(const State *const state, AthelasArray3D<double> dU,
                        const GridStructure &grid, const TimeStepInfo &dt_info) {
     if (package_->has_implicit()) {
       package_->update_implicit(state, dU, grid, dt_info);
@@ -56,7 +59,8 @@ class PackageWrapper {
    * Solves:
    * u^i = R^i + dt a_ii S(u^i)
    **/
-  void update_implicit_iterative(const State *const state, View3D<double> dU,
+  void update_implicit_iterative(const State *const state,
+                                 AthelasArray3D<double> dU,
                                  const GridStructure &grid,
                                  const TimeStepInfo &dt_info) {
     if (package_->has_implicit()) {
@@ -96,13 +100,14 @@ class PackageWrapper {
  private:
   struct PackageConcept {
     virtual ~PackageConcept() = default;
-    virtual void update_explicit(const State *const, View3D<double>,
+    virtual void update_explicit(const State *const, AthelasArray3D<double>,
                                  const GridStructure &,
                                  const TimeStepInfo &) = 0;
-    virtual void update_implicit(const State *const, View3D<double>,
+    virtual void update_implicit(const State *const, AthelasArray3D<double>,
                                  const GridStructure &,
                                  const TimeStepInfo &) = 0;
-    virtual void update_implicit_iterative(const State *const, View3D<double>,
+    virtual void update_implicit_iterative(const State *const,
+                                           AthelasArray3D<double>,
                                            const GridStructure &,
                                            const TimeStepInfo &) = 0;
     [[nodiscard]] virtual auto min_timestep(const State *const state,
@@ -126,7 +131,7 @@ class PackageWrapper {
     // Get original package
     auto get_package() -> T & { return package_; }
 
-    void update_explicit(const State *const state, View3D<double> dU,
+    void update_explicit(const State *const state, AthelasArray3D<double> dU,
                          const GridStructure &grid,
                          const TimeStepInfo &dt_info) override {
       if constexpr (has_explicit_update_v<T>) {
@@ -134,7 +139,7 @@ class PackageWrapper {
       }
     }
 
-    void update_implicit(const State *const state, View3D<double> dU,
+    void update_implicit(const State *const state, AthelasArray3D<double> dU,
                          const GridStructure &grid,
                          const TimeStepInfo &dt_info) override {
       if constexpr (has_implicit_update_v<T>) {
@@ -142,7 +147,8 @@ class PackageWrapper {
       }
     }
 
-    void update_implicit_iterative(const State *const state, View3D<double> dU,
+    void update_implicit_iterative(const State *const state,
+                                   AthelasArray3D<double> dU,
                                    const GridStructure &grid,
                                    const TimeStepInfo &dt_info) override {
       if constexpr (has_implicit_update_v<T>) {
@@ -203,7 +209,7 @@ class PackageManager {
     all_packages_.push_back(std::move(wrapper));
   }
 
-  void update_explicit(const State *const state, View3D<double> dU,
+  void update_explicit(const State *const state, AthelasArray3D<double> dU,
                        const GridStructure &grid, const TimeStepInfo &dt_info) {
     for (auto *pkg : explicit_packages_) {
       if (pkg->is_active()) {
@@ -212,7 +218,7 @@ class PackageManager {
     }
   }
 
-  void update_implicit(const State *const state, View3D<double> dU,
+  void update_implicit(const State *const state, AthelasArray3D<double> dU,
                        const GridStructure &grid, const TimeStepInfo &dt_info) {
     for (auto *pkg : implicit_packages_) {
       if (pkg->is_active()) {
@@ -221,7 +227,8 @@ class PackageManager {
     }
   }
 
-  void update_implicit_iterative(const State *const state, View3D<double> dU,
+  void update_implicit_iterative(const State *const state,
+                                 AthelasArray3D<double> dU,
                                  const GridStructure &grid,
                                  const TimeStepInfo &dt_info) {
     for (auto *pkg : implicit_packages_) {
@@ -299,3 +306,5 @@ class PackageManager {
   std::vector<PackageWrapper *> implicit_packages_;
   std::vector<PackageWrapper *> imex_packages_;
 };
+
+} // namespace athelas

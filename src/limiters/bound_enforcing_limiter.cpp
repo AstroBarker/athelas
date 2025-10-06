@@ -25,12 +25,16 @@
 #include <cstdlib> /* abs */
 
 #include "basis/polynomial_basis.hpp"
+#include "kokkos_abstraction.hpp"
+#include "kokkos_types.hpp"
 #include "limiters/bound_enforcing_limiter.hpp"
+#include "loop_layout.hpp"
 #include "solvers/root_finders.hpp"
 #include "utils/utilities.hpp"
 
-namespace bel {
+namespace athelas::bel {
 
+using basis::ModalBasis;
 using utilities::ratio;
 
 /**
@@ -44,7 +48,7 @@ using utilities::ratio;
  * @param U The solution array containing conserved variables
  * @param basis The modal basis used for the solution representation
  */
-void limit_density(View3D<double> U, const ModalBasis *basis) {
+void limit_density(AthelasArray3D<double> U, const ModalBasis *basis) {
   constexpr static double EPSILON = 1.0e-30; // maybe make this smarter
 
   const int order = basis->get_order();
@@ -53,16 +57,16 @@ void limit_density(View3D<double> U, const ModalBasis *basis) {
     return;
   }
 
-  Kokkos::parallel_for(
-      "BEL::Limit Density", Kokkos::RangePolicy<>(1, U.extent(0) - 1),
-      KOKKOS_LAMBDA(const int ix) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "BEL :: Limit density", DevExecSpace(), 1,
+      U.extent(0) - 2, KOKKOS_LAMBDA(const int i) {
         double theta1 = 100000.0; // big
         double nodal = 0.0;
         double frac = 0.0;
-        const double avg = U(ix, 0, 0);
+        const double avg = U(i, 0, 0);
 
-        for (int iN = 0; iN <= order; iN++) {
-          nodal = basis->basis_eval(U, ix, 0, iN);
+        for (int q = 0; q <= order; ++q) {
+          nodal = basis->basis_eval(U, i, 0, q);
           if (std::isnan(nodal)) {
             theta1 = 0.0;
             break;
@@ -72,7 +76,7 @@ void limit_density(View3D<double> U, const ModalBasis *basis) {
         }
 
         for (int k = 1; k < order; k++) {
-          U(ix, k, 0) *= theta1;
+          U(i, k, 0) *= theta1;
         }
       });
 }
@@ -102,7 +106,7 @@ void limit_density(View3D<double> U, const ModalBasis *basis) {
  * @param U The solution array containing conserved variables
  * @param basis The modal basis used for the solution representation
  */
-void limit_internal_energy(View3D<double> U, const ModalBasis *basis) {
+void limit_internal_energy(AthelasArray3D<double> U, const ModalBasis *basis) {
   constexpr static double EPSILON = 1.0e-10; // maybe make this smarter
 
   const int order = basis->get_order();
@@ -111,36 +115,37 @@ void limit_internal_energy(View3D<double> U, const ModalBasis *basis) {
     return;
   }
 
-  Kokkos::parallel_for(
-      "BEL::Limit Internal Energy", Kokkos::RangePolicy<>(1, U.extent(0) - 2),
-      KOKKOS_LAMBDA(const int ix) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "BEL :: Limit internal energy", DevExecSpace(),
+      1, U.extent(0) - 2, KOKKOS_LAMBDA(const int i) {
         double theta2 = 10000000.0;
         double nodal = 0.0;
         double temp = 0.0;
 
-        for (int iN = 0; iN <= order + 1; iN++) {
-          nodal = utilities::compute_internal_energy(U, basis, ix, iN);
+        for (int q = 0; q <= order + 1; ++q) {
+          nodal = utilities::compute_internal_energy(U, basis, i, q);
 
           if (nodal > EPSILON) {
             temp = 1.0;
           } else {
             const double theta_guess = 0.9;
-            // temp = bisection(U, target_func, basis, ix, iN);
+            // temp = bisection(U, target_func, basis, i, q);
             temp = root_finders::newton_aa(target_func, target_func_deriv,
-                                           theta_guess, U, basis, ix, iN);
+                                           theta_guess, U, basis, i, q);
           }
           theta2 = std::min(theta2, temp);
         }
 
         for (int k = 1; k < order; k++) {
-          U(ix, k, 0) *= theta2;
-          U(ix, k, 1) *= theta2;
-          U(ix, k, 2) *= theta2;
+          U(i, k, 0) *= theta2;
+          U(i, k, 1) *= theta2;
+          U(i, k, 2) *= theta2;
         }
       });
 }
 
-void apply_bound_enforcing_limiter(View3D<double> U, const ModalBasis *basis)
+void apply_bound_enforcing_limiter(AthelasArray3D<double> U,
+                                   const ModalBasis *basis)
 
 {
   limit_density(U, basis);
@@ -148,7 +153,7 @@ void apply_bound_enforcing_limiter(View3D<double> U, const ModalBasis *basis)
 }
 
 // TODO(astrobarker): much more here.
-void apply_bound_enforcing_limiter_rad(View3D<double> U,
+void apply_bound_enforcing_limiter_rad(AthelasArray3D<double> U,
                                        const ModalBasis *basis) {
   if (basis->get_order() == 1) {
     return;
@@ -157,62 +162,62 @@ void apply_bound_enforcing_limiter_rad(View3D<double> U,
   // limit_rad_momentum(U, basis);
 }
 
-void limit_rad_energy(View3D<double> U, const ModalBasis *basis) {
+void limit_rad_energy(AthelasArray3D<double> U, const ModalBasis *basis) {
   constexpr static double EPSILON = 1.0e-4; // maybe make this smarter
 
   const int order = basis->get_order();
 
-  Kokkos::parallel_for(
-      "BEL::Limit Rad Energy", Kokkos::RangePolicy<>(1, U.extent(0) - 1),
-      KOKKOS_LAMBDA(const int ix) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "BEL :: Limit rad energy", DevExecSpace(), 1,
+      U.extent(0) - 2, KOKKOS_LAMBDA(const int i) {
         double theta2 = 10000000.0;
         double nodal = 0.0;
         double temp = 0.0;
 
-        for (int iN = 0; iN <= order + 1; iN++) {
-          nodal = basis->basis_eval(U, ix, 3, iN);
+        for (int q = 0; q <= order + 1; ++q) {
+          nodal = basis->basis_eval(U, i, 3, q);
 
-          if (nodal > EPSILON + 0 * std::abs(U(ix, 0, 4)) / constants::c_cgs) {
+          if (nodal > EPSILON + 0 * std::abs(U(i, 0, 4)) / constants::c_cgs) {
             temp = 1.0;
           } else {
             const double theta_guess = 0.9;
             // temp = bisection(U, target_func_rad_energy, basis, ix, iN);
             temp = root_finders::newton_aa(target_func_rad_energy,
                                            target_func_rad_energy_deriv,
-                                           theta_guess, U, basis, ix, iN);
+                                           theta_guess, U, basis, i, q);
           }
           theta2 = std::abs(std::min(theta2, temp));
         }
 
         for (int k = 1; k < order; k++) {
-          U(ix, k, 3) *= theta2;
-          U(ix, k, 4) *= theta2;
+          U(i, k, 3) *= theta2;
+          U(i, k, 4) *= theta2;
         }
       });
 }
 
-void limit_rad_momentum(View3D<double> U, const ModalBasis *basis) {
+void limit_rad_momentum(AthelasArray3D<double> U, const ModalBasis *basis) {
   const int order = basis->get_order();
 
-  Kokkos::parallel_for(
-      "BEL::Limit Rad Momentum", Kokkos::RangePolicy<>(1, U.extent(2) - 1),
-      KOKKOS_LAMBDA(const int ix) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "BEL :: Limit rad momentum", DevExecSpace(), 1,
+      U.extent(0) - 2, KOKKOS_LAMBDA(const int i) {
         double theta2 = 10000000.0;
         double nodal = 0.0;
         double temp = 0.0;
 
         constexpr static double c = constants::c_cgs;
 
-        for (int iN = 0; iN <= order + 1; iN++) {
-          nodal = basis->basis_eval(U, ix, 4, iN);
+        for (int q = 0; q <= order + 1; ++q) {
+          nodal = basis->basis_eval(U, i, 4, q);
 
-          if (std::abs(nodal) <= c * U(ix, 0, 3)) {
+          if (std::abs(nodal) <= c * U(i, 0, 3)) {
             temp = 1.0;
           } else {
             const double theta_guess = 0.9;
             temp = root_finders::newton_aa(target_func_rad_flux,
                                            target_func_rad_flux_deriv,
-                                           theta_guess, U, basis, ix, iN) -
+                                           theta_guess, U, basis, i, q) -
                    1.0e-3;
             // temp = bisection(U, target_func_rad_flux, basis, ix, iN);
           }
@@ -220,7 +225,7 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis *basis) {
         }
 
         for (int k = 1; k < order; k++) {
-          U(ix, k, 4) *= theta2;
+          U(i, k, 4) *= theta2;
         }
       });
 }
@@ -228,13 +233,13 @@ void limit_rad_momentum(View3D<double> U, const ModalBasis *basis) {
 /* --- Utility Functions --- */
 
 // ( 1 - theta ) U_bar + theta U_q
-auto compute_theta_state(const View3D<double> U, const ModalBasis *basis,
-                         const double theta, const int q, const int ix,
-                         const int iN) -> double {
+auto compute_theta_state(const AthelasArray3D<double> U,
+                         const ModalBasis *basis, const double theta,
+                         const int q, const int ix, const int iN) -> double {
   return theta * (basis->basis_eval(U, ix, q, iN) - U(ix, 0, q)) + U(ix, 0, q);
 }
 
-auto target_func(const double theta, const View3D<double> U,
+auto target_func(const double theta, const AthelasArray3D<double> U,
                  const ModalBasis *basis, const int ix, const int iN)
     -> double {
   const double w = 1.0e-13;
@@ -245,7 +250,7 @@ auto target_func(const double theta, const View3D<double> U,
 
   return e - w;
 }
-auto target_func_deriv(const double theta, const View3D<double> U,
+auto target_func_deriv(const double theta, const AthelasArray3D<double> U,
                        const ModalBasis *basis, const int ix, const int iN)
     -> double {
   const double dE = basis->basis_eval(U, ix, 2, iN) - U(ix, 0, 2);
@@ -255,7 +260,7 @@ auto target_func_deriv(const double theta, const View3D<double> U,
 }
 
 // TODO(astrobarker) some redundancy below
-auto target_func_rad_flux(const double theta, const View3D<double> U,
+auto target_func_rad_flux(const double theta, const AthelasArray3D<double> U,
                           const ModalBasis *basis, const int ix, const int iN)
     -> double {
   const double w = 1.0e-13;
@@ -267,7 +272,8 @@ auto target_func_rad_flux(const double theta, const View3D<double> U,
   return e - w;
 }
 
-auto target_func_rad_flux_deriv(const double theta, const View3D<double> U,
+auto target_func_rad_flux_deriv(const double theta,
+                                const AthelasArray3D<double> U,
                                 const ModalBasis *basis, const int ix,
                                 const int iN) -> double {
   const double dE = basis->basis_eval(U, ix, 3, iN) - U(ix, 0, 3);
@@ -280,13 +286,14 @@ auto target_func_rad_flux_deriv(const double theta, const View3D<double> U,
   return dfdE * dE + dfdF * dF;
 }
 
-auto target_func_rad_energy_deriv(const double theta, const View3D<double> U,
+auto target_func_rad_energy_deriv(const double theta,
+                                  const AthelasArray3D<double> U,
                                   const ModalBasis *basis, const int ix,
                                   const int iN) -> double {
   return basis->basis_eval(U, ix, 3, iN) - U(ix, 0, 3);
 }
 
-auto target_func_rad_energy(const double theta, const View3D<double> U,
+auto target_func_rad_energy(const double theta, const AthelasArray3D<double> U,
                             const ModalBasis *basis, const int ix, const int iN)
     -> double {
   const double w = 1.0e-13;
@@ -297,4 +304,4 @@ auto target_func_rad_energy(const double theta, const View3D<double> U,
   return e - w;
 }
 
-} // namespace bel
+} // namespace athelas::bel

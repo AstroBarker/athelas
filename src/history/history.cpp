@@ -13,9 +13,13 @@
 #include <vector>
 
 #include "geometry/grid.hpp"
-#include "history.hpp"
+#include "history/history.hpp"
 #include "polynomial_basis.hpp"
 #include "state/state.hpp"
+
+namespace athelas {
+
+using basis::ModalBasis;
 
 using QuantityFunction =
     std::function<double(const State &, const GridStructure &,
@@ -62,5 +66,8 @@ void HistoryOutput::write(const State &state, const GridStructure &grid,
     file_ << std::format(" {:.15e}", value);
   }
 
+  // We don't necessarily want to force a flush.
   // file_.flush();
 }
+
+} // namespace athelas

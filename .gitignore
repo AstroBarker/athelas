@@ -58,3 +58,6 @@ matplotlibrc
 
 # garbage
 *__pycache__
+
+# generated
+src/loop_layout.hpp

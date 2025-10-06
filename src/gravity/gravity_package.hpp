@@ -1,4 +1,3 @@
-#pragma once
 /**
  * @file gravity_package.hpp
  * --------------
@@ -6,30 +5,31 @@
  * @brief Gravitational source package
  **/
 
+#pragma once
+
+#include "basic_types.hpp"
 #include "basis/polynomial_basis.hpp"
 #include "bc/boundary_conditions_base.hpp"
 #include "geometry/grid.hpp"
 #include "pgen/problem_in.hpp"
 #include "state/state.hpp"
-#include "utils/abstractions.hpp"
 
-namespace gravity {
+namespace athelas::gravity {
 
 using bc::BoundaryConditions;
 
 class GravityPackage {
  public:
   GravityPackage(const ProblemIn * /*pin*/, GravityModel model, double gval,
-                 ModalBasis *basis, double cfl, bool active = true);
+                 basis::ModalBasis *basis, double cfl, bool active = true);
 
-  KOKKOS_FUNCTION
-  void update_explicit(const State *const state, View3D<double> dU,
+  void update_explicit(const State *const state, AthelasArray3D<double> dU,
                        const GridStructure &grid,
                        const TimeStepInfo &dt_info) const;
 
-  KOKKOS_FUNCTION
   template <GravityModel Model>
-  void gravity_update(const View3D<double> state, View3D<double> dU,
+  void gravity_update(const AthelasArray3D<double> state,
+                      AthelasArray3D<double> dU,
                       const GridStructure &grid) const;
 
   [[nodiscard]] KOKKOS_FUNCTION auto
@@ -52,9 +52,9 @@ class GravityPackage {
 
   double gval_; // constant gravity
 
-  ModalBasis *basis_;
+  basis::ModalBasis *basis_;
 
   double cfl_;
 };
 
-} // namespace gravity
+} // namespace athelas::gravity

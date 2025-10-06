@@ -10,18 +10,20 @@
  *          - weights
  *
  *          For a loop over real zones, loop from ilo to ihi (inclusive).
- *          ilo = nGhost_
- *          ihi = nElements_ - nGhost_ + 1
+ *          ilo = 1 (one ghost cell)
+ *          ihi = nElements_
  */
 
-#include <limits>
 #include <vector>
 
 #include "geometry/grid.hpp"
+#include "kokkos_abstraction.hpp"
+#include "kokkos_types.hpp"
+#include "loop_layout.hpp"
 #include "quadrature/quadrature.hpp"
 #include "utils/utilities.hpp"
 
-using namespace geometry;
+namespace athelas {
 
 GridStructure::GridStructure(const ProblemIn *pin)
     : nElements_(pin->param()->get<int>("problem.nx")),
@@ -39,16 +41,17 @@ GridStructure::GridStructure(const ProblemIn *pin)
   std::vector<double> tmp_nodes(nNodes_);
   std::vector<double> tmp_weights(nNodes_);
 
-  for (int iN = 0; iN < nNodes_; iN++) {
-    tmp_nodes[iN] = 0.0;
-    tmp_weights[iN] = 0.0;
+  for (int q = 0; q < nNodes_; q++) {
+    tmp_nodes[q] = 0.0;
+    tmp_weights[q] = 0.0;
   }
 
   quadrature::lg_quadrature(nNodes_, tmp_nodes, tmp_weights);
 
-  for (int iN = 0; iN < nNodes_; iN++) {
-    nodes_(iN) = tmp_nodes[iN];
-    weights_(iN) = tmp_weights[iN];
+  // TODO(astrobarker): use host copies for this.
+  for (int q = 0; q < nNodes_; q++) {
+    nodes_(q) = tmp_nodes[q];
+    weights_(q) = tmp_weights[q];
   }
 
   create_grid(pin);
@@ -68,9 +71,9 @@ auto shape_function(const int interface, const double eta) -> double {
 
 // Give physical grid coordinate from a node.
 KOKKOS_FUNCTION
-auto GridStructure::node_coordinate(int iC, int iN) const -> double {
-  return x_l_(iC) * shape_function(0, nodes_(iN)) +
-         x_l_(iC + 1) * shape_function(1, nodes_(iN));
+auto GridStructure::node_coordinate(const int iC, const int q) const -> double {
+  return x_l_(iC) * shape_function(0, nodes_(q)) +
+         x_l_(iC + 1) * shape_function(1, nodes_(q));
 }
 
 // Return cell center
@@ -110,7 +113,7 @@ auto GridStructure::get_x_r() const noexcept -> double { return xR_; }
 // Accessor for SqrtGm
 KOKKOS_FUNCTION
 auto GridStructure::get_sqrt_gm(const double X) const -> double {
-  if (geometry_ == geometry::Spherical) [[likely]] {
+  if (geometry_ == Geometry::Spherical) [[likely]] {
     return X * X;
   }
   return 1.0;
@@ -143,7 +146,7 @@ auto GridStructure::get_ihi() const noexcept -> int { return nElements_; }
 // Return true if in spherical symmetry
 KOKKOS_FUNCTION
 auto GridStructure::do_geometry() const noexcept -> bool {
-  return geometry_ == geometry::Spherical;
+  return geometry_ == Geometry::Spherical;
 }
 
 // grid creation logic
@@ -219,11 +222,11 @@ void GridStructure::create_uniform_grid() {
   Kokkos::deep_copy(centers_, centers_h);
   Kokkos::deep_copy(x_l_, x_l_h);
 
-  Kokkos::parallel_for(
-      "Grid :: create_grid", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_CLASS_LAMBDA(const int ix) {
-        for (int iN = 0; iN < nNodes_; iN++) {
-          grid_(ix, iN) = node_coordinate(ix, iN);
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Grid :: Create uniform grid", DevExecSpace(),
+      ilo, ihi, KOKKOS_CLASS_LAMBDA(const int i) {
+        for (int q = 0; q < nNodes_; q++) {
+          grid_(i, q) = node_coordinate(i, q);
         }
       });
 }
@@ -277,11 +280,11 @@ void GridStructure::create_log_grid() {
   Kokkos::deep_copy(centers_, centers_h);
   Kokkos::deep_copy(x_l_, x_l_h);
 
-  Kokkos::parallel_for(
-      "Grid :: create_log_grid", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_CLASS_LAMBDA(const int ix) {
-        for (int iN = 0; iN < nNodes_; iN++) {
-          grid_(ix, iN) = node_coordinate(ix, iN);
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Grid :: Create log grid", DevExecSpace(), ilo,
+      ihi, KOKKOS_CLASS_LAMBDA(const int i) {
+        for (int q = 0; q < nNodes_; q++) {
+          grid_(i, q) = node_coordinate(i, q);
         }
       });
 }
@@ -290,29 +293,29 @@ void GridStructure::create_log_grid() {
  * Compute cell masses
  **/
 KOKKOS_FUNCTION
-void GridStructure::compute_mass(const View3D<double> uPF) {
+void GridStructure::compute_mass(const AthelasArray3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
   const int ilo = get_ilo();
   const int ihi = get_ihi();
 
-  Kokkos::parallel_for(
-      "Grid :: compute_mass", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_CLASS_LAMBDA(const int ix) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Grid :: Compute mass", DevExecSpace(), ilo,
+      ihi, KOKKOS_CLASS_LAMBDA(const int i) {
         double mass = 0.0;
-        for (int iN = 0; iN < nNodes_; iN++) {
-          const double X = node_coordinate(ix, iN);
-          mass += weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
+        for (int q = 0; q < nNodes_; q++) {
+          const double X = node_coordinate(i, q);
+          mass += weights_(q) * get_sqrt_gm(X) * uPF(i, q, 0);
         }
-        mass *= widths_(ix);
-        mass_(ix) = mass;
+        mass *= widths_(i);
+        mass_(i) = mass;
       });
 
   // Guard cells
-  Kokkos::parallel_for(
-      "Grid :: compute_mass (ghost cells)", Kokkos::RangePolicy<>(0, ilo),
-      KOKKOS_CLASS_LAMBDA(const int ix) {
-        mass_(ilo - 1 - ix) = mass_(ilo + ix);
-        mass_(ihi + 1 + ix) = mass_(ihi - ix);
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Grid :: Compute mass (ghosts)",
+      DevExecSpace(), 0, ilo - 1, KOKKOS_CLASS_LAMBDA(const int i) {
+        mass_(ilo - 1 - i) = mass_(ilo + i);
+        mass_(ihi + 1 + i) = mass_(ihi - i);
       });
 }
 
@@ -324,7 +327,7 @@ void GridStructure::compute_mass(const View3D<double> uPF) {
  * it should be refactored.
  **/
 KOKKOS_FUNCTION
-void GridStructure::compute_mass_r(const View3D<double> uPF) {
+void GridStructure::compute_mass_r(const AthelasArray3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
   const int ilo = get_ilo();
   const int ihi = get_ihi();
@@ -332,22 +335,23 @@ void GridStructure::compute_mass_r(const View3D<double> uPF) {
   static const double geom_fac = (do_geometry()) ? 4.0 * constants::PI : 1.0;
 
   const int total_points = (ihi - ilo + 1) * nNodes_;
-  View1D<double> mass_contrib("mass_contrib", total_points);
-  View1D<double> cumulative_mass("cumulative_mass", total_points);
+  AthelasArray1D<double> mass_contrib("mass_contrib", total_points);
+  AthelasArray1D<double> cumulative_mass("cumulative_mass", total_points);
 
   // 1: Compute individual mass contributions in parallel
-  Kokkos::parallel_for(
-      "compute_mass_contributions", Kokkos::RangePolicy<>(0, total_points),
-      KOKKOS_CLASS_LAMBDA(const int idx) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Grid :: compute mass contributions",
+      DevExecSpace(), 0, total_points - 1, KOKKOS_CLASS_LAMBDA(const int idx) {
         const int ix = ilo + idx / nNodes_;
-        const int iN = idx % nNodes_;
-        const double X = node_coordinate(ix, iN);
-        mass_contrib(idx) = weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
+        const int q = idx % nNodes_;
+        const double X = node_coordinate(ix, q);
+        mass_contrib(idx) = weights_(q) * get_sqrt_gm(X) * uPF(ix, q, 0);
       });
 
   // 2: Perform parallel inclusive scan (cumulative sum)
-  Kokkos::parallel_scan(
-      "compute_enclosed_mass", Kokkos::RangePolicy<>(0, total_points),
+  athelas::par_scan(
+      DEFAULT_FLAT_LOOP_PATTERN, "Grid :: enclosed mass", DevExecSpace(), 0,
+      total_points - 1,
       KOKKOS_LAMBDA(const int idx, double &partial_sum, const bool is_final) {
         partial_sum += mass_contrib(idx);
         if (is_final) {
@@ -356,12 +360,12 @@ void GridStructure::compute_mass_r(const View3D<double> uPF) {
       });
 
   // 3: sort into mass_r_
-  Kokkos::parallel_for(
-      "store_enclosed_mass", Kokkos::RangePolicy<>(0, total_points),
-      KOKKOS_CLASS_LAMBDA(const int idx) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Grid :: store enclosed mass", DevExecSpace(),
+      0, total_points - 1, KOKKOS_CLASS_LAMBDA(const int idx) {
         const int ix = ilo + idx / nNodes_;
-        const int iN = idx % nNodes_;
-        mass_r_(ix, iN) = cumulative_mass(idx) * widths_(ix) * geom_fac;
+        const int q = idx % nNodes_;
+        mass_r_(ix, q) = cumulative_mass(idx) * widths_(ix) * geom_fac;
       });
 
   // Get total mass
@@ -371,40 +375,40 @@ void GridStructure::compute_mass_r(const View3D<double> uPF) {
 }
 
 KOKKOS_FUNCTION
-auto GridStructure::enclosed_mass(const int ix, const int iN) const noexcept
+auto GridStructure::enclosed_mass(const int ix, const int q) const noexcept
     -> double {
-  return mass_r_(ix, iN);
+  return mass_r_(ix, q);
 }
 
 /**
  * Compute cell centers of masses reference coordinates
  **/
 KOKKOS_FUNCTION
-void GridStructure::compute_center_of_mass(const View3D<double> uPF) {
+void GridStructure::compute_center_of_mass(const AthelasArray3D<double> uPF) {
   const int nNodes_ = get_n_nodes();
   const int ilo = get_ilo();
   const int ihi = get_ihi();
 
-  Kokkos::parallel_for(
-      "Grid :: compute_center_of_mass", Kokkos::RangePolicy<>(ilo, ihi + 1),
-      KOKKOS_CLASS_LAMBDA(const int ix) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Grid :: center of mass", DevExecSpace(), ilo,
+      ihi, KOKKOS_CLASS_LAMBDA(const int i) {
         double com = 0.0;
 
-        for (int iN = 0; iN < nNodes_; iN++) {
-          const double X = node_coordinate(ix, iN);
-          com += nodes_(iN) * weights_(iN) * get_sqrt_gm(X) * uPF(ix, iN, 0);
+        for (int q = 0; q < nNodes_; q++) {
+          const double X = node_coordinate(i, q);
+          com += nodes_(q) * weights_(q) * get_sqrt_gm(X) * uPF(i, q, 0);
         }
 
-        com *= widths_(ix);
-        center_of_mass_(ix) = com / mass_(ix);
+        com *= widths_(i);
+        center_of_mass_(i) = com / mass_(i);
       });
 
   // Guard cells
-  Kokkos::parallel_for(
-      "Grid :: compute_center_of_mass (ghost cells)",
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_CLASS_LAMBDA(const int ix) {
-        center_of_mass_(ilo - 1 - ix) = center_of_mass_(ilo + ix);
-        center_of_mass_(ihi + 1 + ix) = center_of_mass_(ihi - ix);
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Grid :: center of mass (ghosts))",
+      DevExecSpace(), 0, ilo - 1, KOKKOS_CLASS_LAMBDA(const int i) {
+        center_of_mass_(ilo - 1 - i) = center_of_mass_(ilo + i);
+        center_of_mass_(ihi + 1 + i) = center_of_mass_(ihi - i);
       });
 }
 
@@ -412,24 +416,24 @@ void GridStructure::compute_center_of_mass(const View3D<double> uPF) {
  * Update grid coordinates using interface velocities.
  **/
 KOKKOS_FUNCTION
-void GridStructure::update_grid(const View1D<double> SData) {
+void GridStructure::update_grid(const AthelasArray1D<double> SData) {
 
   const int ilo = get_ilo();
   const int ihi = get_ihi();
 
-  Kokkos::parallel_for(
-      "Grid Update 1", Kokkos::RangePolicy<>(ilo, ihi + 2),
-      KOKKOS_CLASS_LAMBDA(int ix) {
-        x_l_(ix) = SData(ix);
-        widths_(ix) = SData(ix + 1) - SData(ix);
-        centers_(ix) = 0.5 * (SData(ix + 1) + SData(ix));
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Grid :: Update (1)", DevExecSpace(), ilo,
+      ihi + 1, KOKKOS_CLASS_LAMBDA(const int i) {
+        x_l_(i) = SData(i);
+        widths_(i) = SData(i + 1) - SData(i);
+        centers_(i) = 0.5 * (SData(i + 1) + SData(i));
       });
 
-  Kokkos::parallel_for(
-      "Grid Update 2", Kokkos::RangePolicy<>(ilo, ihi + 2),
-      KOKKOS_CLASS_LAMBDA(int ix) {
-        for (int iN = 0; iN < nNodes_; iN++) {
-          grid_(ix, iN) = node_coordinate(ix, iN);
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Grid :: Update (2)", DevExecSpace(), ilo,
+      ihi + 1, KOKKOS_CLASS_LAMBDA(const int i) {
+        for (int q = 0; q < nNodes_; q++) {
+          grid_(i, q) = node_coordinate(i, q);
         }
       });
 }
@@ -443,21 +447,23 @@ auto GridStructure::operator()(int i, int j) const -> double {
   return grid_(i, j);
 }
 
-[[nodiscard]] auto GridStructure::widths() const -> View1D<double> {
+[[nodiscard]] auto GridStructure::widths() const -> AthelasArray1D<double> {
   return widths_;
 }
-[[nodiscard]] auto GridStructure::mass() const -> View1D<double> {
+[[nodiscard]] auto GridStructure::mass() const -> AthelasArray1D<double> {
   return mass_;
 }
-[[nodiscard]] auto GridStructure::centers() const -> View1D<double> {
+[[nodiscard]] auto GridStructure::centers() const -> AthelasArray1D<double> {
   return centers_;
 }
-[[nodiscard]] auto GridStructure::centers() -> View1D<double> {
+[[nodiscard]] auto GridStructure::centers() -> AthelasArray1D<double> {
   return centers_;
 }
-[[nodiscard]] auto GridStructure::nodal_grid() -> View2D<double> {
+[[nodiscard]] auto GridStructure::nodal_grid() -> AthelasArray2D<double> {
   return grid_;
 }
-[[nodiscard]] auto GridStructure::nodal_grid() const -> View2D<double> {
+[[nodiscard]] auto GridStructure::nodal_grid() const -> AthelasArray2D<double> {
   return grid_;
 }
+
+} // namespace athelas

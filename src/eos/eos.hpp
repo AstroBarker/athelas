@@ -25,6 +25,8 @@
 #include "solvers/root_finders.hpp"
 #include "utils/error.hpp"
 
+namespace athelas::eos {
+
 using root_finders::RootFinder, root_finders::NewtonAlgorithm,
     root_finders::RelativeError, root_finders::HybridError,
     root_finders::ToleranceConfig, root_finders::AANewtonAlgorithm;
@@ -189,3 +191,5 @@ class Stellar : public EosBase<Stellar> {
  private:
   double gamma_{};
 };
+
+} // namespace athelas::eos

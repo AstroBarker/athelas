@@ -119,7 +119,6 @@ include_directories(athelas PUBLIC
 
 # --- Source Files ---
 set( ATHELAS_SOURCES 
-  "generated/build_info.cpp"
   "src/driver.cpp"
   "src/composition/compdata.cpp"
   "src/composition/composition.cpp"
@@ -131,13 +130,11 @@ set( ATHELAS_SOURCES
   "src/eos/eos_marshak.cpp"
   "src/eos/eos_paczynski.cpp"
   "src/eos/eos_polytropic.cpp"
-  "src/fluid/fluid_utilities.cpp"
   "src/fluid/hydro_package.cpp"
   "src/heating/nickel_package.cpp"
   "src/history/history.cpp"
   "src/interface/params.cpp"
   "src/radiation/radhydro_package.cpp"
-  "src/radiation/rad_utilities.cpp"
   "src/geometry/grid.cpp"
   "src/gravity/gravity_package.cpp"
   "src/io/io.cpp"
@@ -153,8 +150,7 @@ set( ATHELAS_SOURCES
   "src/solvers/hydrostatic_equilibrium.cpp"
   "src/state/state.cpp"
   "src/timestepper/tableau.cpp"
-  "src/timestepper/timestepper.cpp"
-  "src/utils/riemann.cpp" )
+  "src/timestepper/timestepper.cpp" )
 
 add_library(libathelas ${ATHELAS_SOURCES})
 set_target_properties(libathelas
@@ -213,6 +209,93 @@ if (NOT TARGET Kokkos::kokkos)
   endif()
 endif()
 
+# The following lines determine the default loop pattern by setting the
+# default defines to the appropriate "tags" in the config.hpp file.
+# See `kokkos_abstraction.hpp` for available tags and what they translate to.
+if (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP)
+  set(PAR_LOOP_LAYOUT "MANUAL1D_LOOP" CACHE STRING
+    "Default loop layout for parallel_for wrapper")
+
+  set(PAR_LOOP_FLAT_LAYOUT "MANUAL1D_LOOP" CACHE STRING
+    "Default loop layout for 1d parallel_for wrapper")
+
+  set(PAR_LOOP_LAYOUT_VALUES "MANUAL1D_LOOP;MDRANGE_LOOP;TPTTR_LOOP;TPTTRTVR_LOOP"
+    CACHE STRING "Possible loop layout options.")
+
+  set(PAR_LOOP_INNER_LAYOUT "TVR_INNER_LOOP" CACHE STRING
+    "Default loop layout for par_for_inner wrapper")
+
+  set(PAR_LOOP_INNER_LAYOUT_VALUES "TVR_INNER_LOOP"
+    CACHE STRING "Possible inner loop layout options.")
+
+elseif(Kokkos_ENABLE_HPX)
+  message( FATAL_ERROR "Need to add/fix/test default loop layouts for HPX backend.")
+
+else()
+  # use manual1d on host
+  set(PAR_LOOP_LAYOUT "MANUAL1D_LOOP" CACHE STRING
+    "Default loop layout for parallel_for wrapper")
+  set(PAR_LOOP_FLAT_LAYOUT "MANUAL1D_LOOP" CACHE STRING
+    "Default loop layout for parallel_for wrapper")
+  set(PAR_LOOP_LAYOUT_VALUES "SIMDFOR_LOOP;MANUAL1D_LOOP;MDRANGE_LOOP;TPTTR_LOOP;TPTVR_LOOP;TPTTRTVR_LOOP"
+    CACHE STRING "Possible loop layout options.")
+
+  set(PAR_LOOP_INNER_LAYOUT "SIMDFOR_INNER_LOOP" CACHE STRING
+    "Default loop layout for par_for_inner wrapper")
+
+  set(PAR_LOOP_INNER_LAYOUT_VALUES "SIMDFOR_INNER_LOOP;TVR_INNER_LOOP"
+    CACHE STRING "Possible inner loop layout options.")
+
+endif()
+
+set_property(CACHE PAR_LOOP_LAYOUT PROPERTY STRINGS ${PAR_LOOP_LAYOUT_VALUES})
+
+set_property(CACHE PAR_LOOP_FLAT_LAYOUT PROPERTY STRINGS ${PAR_LOOP_FLAT_LAYOUT_VALUES})
+
+set_property(CACHE PAR_LOOP_INNER_LAYOUT PROPERTY STRINGS ${PAR_LOOP_INNER_LAYOUT_VALUES})
+
+message(STATUS "PAR_LOOP_LAYOUT='${PAR_LOOP_LAYOUT}' (default par_for wrapper layout)")
+
+message(STATUS "PAR_LOOP_FLAT_LAYOUT='${PAR_LOOP_FLAT_LAYOUT}' (default 1d par_for wrapper layout)")
+
+message(STATUS "PAR_LOOP_INNER_LAYOUT='${PAR_LOOP_INNER_LAYOUT}' (default par_for_inner wrapper layout)")
+
+if (${PAR_LOOP_LAYOUT} STREQUAL "MANUAL1D_LOOP")
+  set(PAR_LOOP_LAYOUT_TAG loop_pattern_flatrange_tag)
+elseif (${PAR_LOOP_LAYOUT} STREQUAL "SIMDFOR_LOOP")
+  set(PAR_LOOP_LAYOUT_TAG loop_pattern_simdfor_tag)
+elseif (${PAR_LOOP_LAYOUT} STREQUAL "MDRANGE_LOOP")
+  set(PAR_LOOP_LAYOUT_TAG loop_pattern_mdrange_tag)
+elseif (${PAR_LOOP_LAYOUT} STREQUAL "TP_TTR_LOOP")
+  set(PAR_LOOP_LAYOUT_TAG loop_pattern_tpttr_tag)
+elseif (${PAR_LOOP_LAYOUT} STREQUAL "TP_TVR_LOOP")
+  set(PAR_LOOP_LAYOUT_TAG loop_pattern_tptvr_tag)
+elseif (${PAR_LOOP_LAYOUT} STREQUAL "TPTTRTVR_LOOP")
+  set(PAR_LOOP_LAYOUT_TAG loop_pattern_tpttrtvr_tag)
+else()
+  set(PAR_LOOP_LAYOUT_TAG loop_pattern_undefined_tag)
+endif()
+
+if (${PAR_LOOP_FLAT_LAYOUT} STREQUAL "MANUAL1D_LOOP")
+  set(PAR_LOOP_FLAT_LAYOUT_TAG loop_pattern_flatrange_tag)
+elseif (${PAR_LOOP_FLAT_LAYOUT} STREQUAL "SIMDFOR_LOOP")
+  set(PAR_LOOP_FLAT_LAYOUT_TAG loop_pattern_simdfor_tag)
+endif()
+
+if (${PAR_LOOP_INNER_LAYOUT} STREQUAL "TVR_INNER_LOOP")
+  set(PAR_LOOP_INNER_LAYOUT_TAG "InnerLoopPatternTVR()")
+elseif (${PAR_LOOP_INNER_LAYOUT} STREQUAL "SIMDFOR_INNER_LOOP")
+  set(PAR_LOOP_INNER_LAYOUT_TAG inner_loop_pattern_simdfor_tag)
+else()
+  set(PAR_LOOP_INNER_LAYOUT_TAG loop_pattern_undefined_tag)
+endif()
+
+configure_file(
+  ${CMAKE_SOURCE_DIR}/src/loop_layout.hpp.in
+  ${CMAKE_SOURCE_DIR}/src/loop_layout.hpp
+  @ONLY
+)
+
 # Eigen
 add_subdirectory(external/eigen)
 
@@ -234,7 +317,7 @@ target_compile_options(libathelas PRIVATE
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(libathelas PRIVATE -stdlib=libstdc++)
     target_link_options(libathelas PRIVATE -stdlib=libstdc++)
-    
+
     # Add specific Clang flags for Kokkos
     target_compile_options(libathelas PRIVATE -fopenmp=libomp)
 endif()

@@ -1,35 +1,37 @@
-#pragma once
 /**
  * @file smooth_flow.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Smooth flow test
  */
+
+#pragma once
 
 #include <cmath>
 
 #include "basis/polynomial_basis.hpp"
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
+#include "kokkos_abstraction.hpp"
 #include "state/state.hpp"
-#include "utils/abstractions.hpp"
 #include "utils/constants.hpp"
+
+namespace athelas {
 
 /**
  * @brief Initialize smooth flow test problem
  **/
 void smooth_flow_init(State *state, GridStructure *grid, ProblemIn *pin,
-                      const EOS * /*eos*/, ModalBasis *fluid_basis = nullptr) {
+                      const eos::EOS * /*eos*/,
+                      basis::ModalBasis *fluid_basis = nullptr) {
   if (pin->param()->get<std::string>("eos.type") != "ideal") {
     THROW_ATHELAS_ERROR("Smooth flow requires ideal gas eos!");
   }
 
-  View3D<double> uCF = state->u_cf();
-  View3D<double> uPF = state->u_pf();
+  AthelasArray3D<double> uCF = state->u_cf();
+  AthelasArray3D<double> uPF = state->u_pf();
 
-  static const int ilo = 1;
-  static const int ihi = grid->get_ihi();
+  static const IndexRange ib(grid->domain<Domain::Interior>());
   static const int nNodes = grid->get_n_nodes();
 
   constexpr static int q_Tau = 0;
@@ -42,11 +44,12 @@ void smooth_flow_init(State *state, GridStructure *grid, ProblemIn *pin,
       pin->param()->get<double>("problem.params.amp", 0.9999999999999999);
 
   // Phase 1: Initialize nodal values (always done)
-  Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
-        for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
-          const double x = grid->node_coordinate(ix, iNodeX);
-          uPF(ix, iNodeX, iPF_D) = (1.0 + amp * sin(constants::PI * x));
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: SmoothFlow (1)", DevExecSpace(), ib.s,
+      ib.e, KOKKOS_LAMBDA(const int i) {
+        for (int iNodeX = 0; iNodeX < nNodes + 2; iNodeX++) {
+          const double x = grid->node_coordinate(i, iNodeX);
+          uPF(i, iNodeX, iPF_D) = (1.0 + amp * sin(constants::PI * x));
         }
       });
 
@@ -75,24 +78,28 @@ void smooth_flow_init(State *state, GridStructure *grid, ProblemIn *pin,
                                                   energy_func);
   } else {
     // Fallback: set cell averages only (k=0)
-    Kokkos::parallel_for(
-        Kokkos::RangePolicy<>(ilo, ihi + 1), KOKKOS_LAMBDA(int ix) {
+    athelas::par_for(
+        DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: SmoothFlow (2)", DevExecSpace(),
+        ib.s, ib.e, KOKKOS_LAMBDA(const int i) {
           const int k = 0;
-          const double X1 = grid->centers(ix);
+          const double X1 = grid->centers(i);
 
           const double D = (1.0 + (amp * sin(constants::PI * X1)));
-          uCF(ix, k, q_Tau) = 1.0 / D;
-          uCF(ix, k, q_V) = 0.0;
-          uCF(ix, k, q_E) = (D * D * D / 2.0) * uCF(ix, k, q_Tau);
+          uCF(i, k, q_Tau) = 1.0 / D;
+          uCF(i, k, q_V) = 0.0;
+          uCF(i, k, q_E) = (D * D * D / 2.0) * uCF(i, k, q_Tau);
         });
   }
 
   // Fill density in guard cells
-  Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int ix) {
-        for (int iN = 0; iN < nNodes; iN++) {
-          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
-          uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, nNodes - iN - 1, 0);
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: SmoothFlow (ghost)", DevExecSpace(),
+      0, ib.s - 1, KOKKOS_LAMBDA(const int i) {
+        for (int iN = 0; iN < nNodes + 2; iN++) {
+          uPF(ib.s - 1 - i, iN, 0) = uPF(ib.s + i, (nNodes + 2) - iN - 1, 0);
+          uPF(ib.s + 1 + i, iN, 0) = uPF(ib.s - i, (nNodes + 2) - iN - 1, 0);
         }
       });
 }
+
+} // namespace athelas

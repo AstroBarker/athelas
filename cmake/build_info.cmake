@@ -93,4 +93,3 @@ set(OPTIMIZATION ${CMAKE_BUILD_TYPE})
 set(ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
 set(OS ${CMAKE_SYSTEM_NAME})
 configure_file(${pre_configure_file} ${post_configure_file} @ONLY)
-

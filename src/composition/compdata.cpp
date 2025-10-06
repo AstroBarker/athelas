@@ -3,6 +3,8 @@
 #include "composition/compdata.hpp"
 #include "utils/error.hpp"
 
+namespace athelas::atom {
+
 // NOTE: if nodes exceeds order we have a problem here.
 CompositionData::CompositionData(const int nX, const int order,
                                  const int n_species, const int n_stages)
@@ -12,43 +14,46 @@ CompositionData::CompositionData(const int nX, const int order,
   if (n_species <= 0) {
     THROW_ATHELAS_ERROR("CompositionData :: n_species must be > 0!");
   }
-  mass_fractions_ = View3D<double>("mass_fractions", nX_, order, n_species);
-  mass_fractions_stages_ =
-      View4D<double>("mass_fractions_stage", n_stages, nX_, order, n_species);
-  ye_ = View2D<double>("ye", nX, order + 2);
-  number_density_ = View2D<double>("ye", nX, order + 2);
-  charge_ = View1D<int>("charge", n_species);
-  neutron_number_ = View1D<int>("neutron_number", n_species);
+  mass_fractions_ =
+      AthelasArray3D<double>("mass_fractions", nX_, order, n_species);
+  mass_fractions_stages_ = AthelasArray4D<double>(
+      "mass_fractions_stage", n_stages, nX_, order, n_species);
+  ye_ = AthelasArray2D<double>("ye", nX, order + 2);
+  number_density_ = AthelasArray2D<double>("ye", nX, order + 2);
+  charge_ = AthelasArray1D<int>("charge", n_species);
+  neutron_number_ = AthelasArray1D<int>("neutron_number", n_species);
 }
 
 [[nodiscard]] auto CompositionData::mass_fractions() const noexcept
-    -> View3D<double> {
+    -> AthelasArray3D<double> {
   return mass_fractions_;
 }
 [[nodiscard]] auto CompositionData::mass_fractions() noexcept
-    -> View3D<double> {
+    -> AthelasArray3D<double> {
   return mass_fractions_;
 }
 [[nodiscard]] auto CompositionData::mass_fractions_stages() const noexcept
-    -> View4D<double> {
+    -> AthelasArray4D<double> {
   return mass_fractions_stages_;
 }
 [[nodiscard]] auto CompositionData::mass_fractions_stages() noexcept
-    -> View4D<double> {
+    -> AthelasArray4D<double> {
   return mass_fractions_stages_;
 }
-[[nodiscard]] auto CompositionData::charge() const noexcept -> View1D<int> {
+[[nodiscard]] auto CompositionData::charge() const noexcept
+    -> AthelasArray1D<int> {
   return charge_;
 }
 [[nodiscard]] auto CompositionData::neutron_number() const noexcept
-    -> View1D<int> {
+    -> AthelasArray1D<int> {
   return neutron_number_;
 }
-[[nodiscard]] auto CompositionData::ye() const noexcept -> View2D<double> {
+[[nodiscard]] auto CompositionData::ye() const noexcept
+    -> AthelasArray2D<double> {
   return ye_;
 }
 [[nodiscard]] auto CompositionData::number_density() const noexcept
-    -> View2D<double> {
+    -> AthelasArray2D<double> {
   return number_density_;
 }
 [[nodiscard]] auto CompositionData::species_indexer() noexcept -> Params * {
@@ -61,13 +66,15 @@ CompositionData::CompositionData(const int nX, const int order,
 
 // --- end CompositionData ---
 
-// NOTE: Something awful here: need an estimate of the max number of ionization
-// states
-//  when constructing the comps object
-//  We allocate in general more data than necessary
-//
-//  TODO(astrobarker): flatten last two dimensions to reduce memory footprint.
-//  See atom.hpp
+/**
+ * @brief IonizationState constructor
+ * @note: Something awful here: need an estimate of the max number of
+ * ionization states when constructing the comps object
+ * We allocate in general more data than necessary
+ *
+ * TODO(astrobarker): flatten last two dimensions to reduce memory footprint.
+ * See atom.hpp
+ */
 IonizationState::IonizationState(const int nX, const int nNodes,
                                  const int n_species, const int n_states,
                                  const std::string &fn_ionization,
@@ -87,7 +94,7 @@ IonizationState::IonizationState(const int nX, const int nNodes,
 }
 
 [[nodiscard]] auto IonizationState::ionization_fractions() const noexcept
-    -> View4D<double> {
+    -> AthelasArray4D<double> {
   return ionization_fractions_;
 }
 
@@ -96,23 +103,29 @@ IonizationState::IonizationState(const int nX, const int nNodes,
   return atomic_data_.get();
 }
 
-[[nodiscard]] auto IonizationState::ybar() const noexcept -> View2D<double> {
+[[nodiscard]] auto IonizationState::ybar() const noexcept
+    -> AthelasArray2D<double> {
   return ybar_;
 }
 
 [[nodiscard]] auto IonizationState::e_ion_corr() const noexcept
-    -> View2D<double> {
+    -> AthelasArray2D<double> {
   return e_ion_corr_;
 }
 
-[[nodiscard]] auto IonizationState::sigma1() const noexcept -> View2D<double> {
+[[nodiscard]] auto IonizationState::sigma1() const noexcept
+    -> AthelasArray2D<double> {
   return sigma1_;
 }
 
-[[nodiscard]] auto IonizationState::sigma2() const noexcept -> View2D<double> {
+[[nodiscard]] auto IonizationState::sigma2() const noexcept
+    -> AthelasArray2D<double> {
   return sigma2_;
 }
 
-[[nodiscard]] auto IonizationState::sigma3() const noexcept -> View2D<double> {
+[[nodiscard]] auto IonizationState::sigma3() const noexcept
+    -> AthelasArray2D<double> {
   return sigma3_;
 }
+
+} // namespace athelas::atom

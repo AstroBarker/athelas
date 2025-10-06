@@ -1,4 +1,3 @@
-#pragma once
 /**
  * @file utilities.hpp
  * --------------
@@ -12,13 +11,18 @@
  *          - to_lower
  */
 
+#pragma once
+
 #include <algorithm>
 #include <cctype>
 
 #include "Kokkos_Macros.hpp"
-#include "polynomial_basis.hpp"
 
-namespace utilities {
+#include "basis/polynomial_basis.hpp"
+#include "kokkos_types.hpp"
+
+namespace athelas::utilities {
+using basis::ModalBasis;
 
 /**
  * @brief simple linear interpolation to x
@@ -35,8 +39,8 @@ constexpr auto LINTERP(T x0, T x1, T y0, T y1, T x) noexcept -> T {
   return std::fma(y1 - y0, t, y0);
 }
 KOKKOS_INLINE_FUNCTION
-auto find_closest_cell(const View1D<double> r_view, const double target_r,
-                       int num_cells) -> int {
+auto find_closest_cell(const AthelasArray1D<double> r_view,
+                       const double target_r, int num_cells) -> int {
   int left = 0;
   int right = num_cells - 1;
 
@@ -136,4 +140,4 @@ KOKKOS_INLINE_FUNCTION auto to_lower(T data) -> T {
   return data;
 }
 
-} // namespace utilities
+} // namespace athelas::utilities

@@ -1,31 +1,20 @@
 #pragma once
-/**
- * @file grid.hpp
- * --------------
- *
- * @author Brandon L. Barker
- * @brief Class for holding the spatial grid.
- *
- * @details This class GridStructure holds key pieces of the grid:
- *          - nx
- *          - nnodes
- *          - weights
- *
- *          For a loop over real zones, loop from ilo to ihi (inclusive).
- *          ilo = nGhost
- *          ihi = nElements - nGhost + 1
- */
 
-#include "geometry/geometry.hpp"
+#include "kokkos_types.hpp"
 #include "pgen/problem_in.hpp"
-#include "utils/abstractions.hpp"
+
+namespace athelas {
+
+enum class Geometry { Planar, Spherical };
+
+enum class Domain { Interior, Entire };
 
 class GridStructure {
  public:
   explicit GridStructure(const ProblemIn *pin);
   GridStructure() = default;
   KOKKOS_FUNCTION
-  [[nodiscard]] auto node_coordinate(int iC, int iN) const -> double;
+  [[nodiscard]] auto node_coordinate(int iC, int q) const -> double;
   KOKKOS_FUNCTION
   [[nodiscard]] auto centers(int iC) const -> double;
   KOKKOS_FUNCTION
@@ -64,24 +53,34 @@ class GridStructure {
   void create_log_grid();
 
   KOKKOS_FUNCTION
-  void update_grid(View1D<double> SData);
+  void update_grid(AthelasArray1D<double> SData);
   KOKKOS_FUNCTION
-  void compute_mass(View3D<double> uPF);
+  void compute_mass(AthelasArray3D<double> uPF);
   KOKKOS_FUNCTION
-  void compute_mass_r(View3D<double> uPF);
+  void compute_mass_r(AthelasArray3D<double> uPF);
   KOKKOS_FUNCTION
   auto enclosed_mass(int ix, int iN) const noexcept -> double;
   KOKKOS_FUNCTION
-  void compute_center_of_mass(View3D<double> uPF);
+  void compute_center_of_mass(AthelasArray3D<double> uPF);
   KOKKOS_FUNCTION
-  void compute_center_of_mass_radius(View3D<double> uPF);
+  void compute_center_of_mass_radius(AthelasArray3D<double> uPF);
 
-  [[nodiscard]] auto widths() const -> View1D<double>;
-  [[nodiscard]] auto mass() const -> View1D<double>;
-  [[nodiscard]] auto centers() const -> View1D<double>;
-  [[nodiscard]] auto centers() -> View1D<double>;
-  [[nodiscard]] auto nodal_grid() -> View2D<double>;
-  [[nodiscard]] auto nodal_grid() const -> View2D<double>;
+  [[nodiscard]] auto widths() const -> AthelasArray1D<double>;
+  [[nodiscard]] auto mass() const -> AthelasArray1D<double>;
+  [[nodiscard]] auto centers() const -> AthelasArray1D<double>;
+  [[nodiscard]] auto centers() -> AthelasArray1D<double>;
+  [[nodiscard]] auto nodal_grid() -> AthelasArray2D<double>;
+  [[nodiscard]] auto nodal_grid() const -> AthelasArray2D<double>;
+
+  // domain
+  template <Domain D>
+  [[nodiscard]] auto domain() const noexcept -> std::pair<int, int> {
+    if constexpr (D == Domain::Interior) {
+      return {1, nElements_};
+    } else if constexpr (D == Domain::Entire) {
+      return {0, nElements_ + 1};
+    }
+  }
 
   KOKKOS_FUNCTION
   auto operator()(int i, int j) -> double &;
@@ -96,19 +95,21 @@ class GridStructure {
   double xL_;
   double xR_;
 
-  geometry::Geometry geometry_;
+  Geometry geometry_;
   std::string grid_type_; // uniform or logarithmic
 
-  View1D<double> nodes_{};
-  View1D<double> weights_{};
+  AthelasArray1D<double> nodes_;
+  AthelasArray1D<double> weights_;
 
-  View1D<double> centers_{};
-  View1D<double> widths_{};
-  View1D<double> x_l_{}; // left interface coordinate
+  AthelasArray1D<double> centers_;
+  AthelasArray1D<double> widths_;
+  AthelasArray1D<double> x_l_; // left interface coordinate
 
-  View1D<double> mass_{}; // cell mass
-  View2D<double> mass_r_{}; // enclosed mass
-  View1D<double> center_of_mass_{};
+  AthelasArray1D<double> mass_; // cell mass
+  AthelasArray2D<double> mass_r_; // enclosed mass
+  AthelasArray1D<double> center_of_mass_;
 
-  View2D<double> grid_{};
+  AthelasArray2D<double> grid_;
 };
+
+} // namespace athelas

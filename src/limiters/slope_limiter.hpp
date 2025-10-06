@@ -1,9 +1,7 @@
-#pragma once
 /**
  * @file slope_limiter.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Specific slope limiter classes that implement the
  *        SlopeLimiterBase interface
  *
@@ -21,11 +19,14 @@
  * TODO(astrobarker): clean up nvars / vars business
  */
 
+#pragma once
+
 #include <variant>
 
-#include "abstractions.hpp"
 #include "eos/eos_variant.hpp"
-#include "slope_limiter_base.hpp"
+#include "limiters/slope_limiter_base.hpp"
+
+namespace athelas {
 
 class WENO : public SlopeLimiterBase<WENO> {
  public:
@@ -49,10 +50,10 @@ class WENO : public SlopeLimiterBase<WENO> {
         D_("TCI", grid->get_n_elements() + 2),
         limited_cell_("LimitedCell", grid->get_n_elements() + 2) {}
 
-  void apply_slope_limiter(View3D<double> U, const GridStructure *grid,
-                           const ModalBasis *basis, const EOS *eos);
+  void apply_slope_limiter(AthelasArray3D<double> U, const GridStructure *grid,
+                           const basis::ModalBasis *basis, const eos::EOS *eos);
   [[nodiscard]] auto get_limited(int ix) const -> int;
-  [[nodiscard]] auto limited() const -> View1D<int>;
+  [[nodiscard]] auto limited() const -> AthelasArray1D<int>;
 
  private:
   bool do_limiter_{};
@@ -67,23 +68,23 @@ class WENO : public SlopeLimiterBase<WENO> {
   double tci_val_{};
   std::vector<int> vars_;
 
-  View3D<double> modified_polynomial_{};
+  AthelasArray3D<double> modified_polynomial_{};
 
-  View3D<double> R_{};
-  View3D<double> R_inv_{};
+  AthelasArray3D<double> R_{};
+  AthelasArray3D<double> R_inv_{};
 
   // --- Slope limiter quantities ---
 
-  View2D<double> U_c_T_{};
+  AthelasArray2D<double> U_c_T_{};
 
   // characteristic forms
-  View2D<double> w_c_T_{};
+  AthelasArray2D<double> w_c_T_{};
 
   // matrix mult scratch scape
-  View2D<double> mult_{};
+  AthelasArray2D<double> mult_{};
 
-  View1D<double> D_{};
-  View1D<int> limited_cell_{};
+  AthelasArray1D<double> D_{};
+  AthelasArray1D<int> limited_cell_{};
 };
 
 class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
@@ -103,10 +104,10 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
         mult_("Mult", grid->get_n_elements() + 2, nvars),
         D_("TCI", grid->get_n_elements() + 2),
         limited_cell_("LimitedCell", grid->get_n_elements() + 2) {}
-  void apply_slope_limiter(View3D<double> U, const GridStructure *grid,
-                           const ModalBasis *basis, const EOS *eos);
+  void apply_slope_limiter(AthelasArray3D<double> U, const GridStructure *grid,
+                           const basis::ModalBasis *basis, const eos::EOS *eos);
   [[nodiscard]] auto get_limited(int ix) const -> int;
-  [[nodiscard]] auto limited() const -> View1D<int>;
+  [[nodiscard]] auto limited() const -> AthelasArray1D<int>;
 
  private:
   bool do_limiter_{};
@@ -119,44 +120,43 @@ class TVDMinmod : public SlopeLimiterBase<TVDMinmod> {
   double tci_val_{};
   std::vector<int> vars_;
 
-  View3D<double> R_{};
-  View3D<double> R_inv_{};
+  AthelasArray3D<double> R_{};
+  AthelasArray3D<double> R_inv_{};
 
   // --- Slope limiter quantities ---
 
-  View2D<double> U_c_T_{};
+  AthelasArray2D<double> U_c_T_{};
 
   // characteristic forms
-  View2D<double> w_c_T_{};
+  AthelasArray2D<double> w_c_T_{};
 
   // matrix mult scratch scape
-  View2D<double> mult_{};
+  AthelasArray2D<double> mult_{};
 
-  View1D<double> D_{};
-  View1D<int> limited_cell_{};
+  AthelasArray1D<double> D_{};
+  AthelasArray1D<int> limited_cell_{};
 };
 
 // A default no-op limiter used when limiting is disabled.
 class Unlimited : public SlopeLimiterBase<Unlimited> {
  public:
   Unlimited() = default;
-  void apply_slope_limiter(View3D<double> U, const GridStructure *grid,
-                           const ModalBasis *basis, const EOS *eos);
+  void apply_slope_limiter(AthelasArray3D<double> U, const GridStructure *grid,
+                           const basis::ModalBasis *basis, const eos::EOS *eos);
   [[nodiscard]] auto get_limited(int ix) const -> int;
-  [[nodiscard]] auto limited() const -> View1D<int>;
+  [[nodiscard]] auto limited() const -> AthelasArray1D<int>;
 
  private:
-  View1D<int> limited_cell_;
+  AthelasArray1D<int> limited_cell_;
 };
 
 using SlopeLimiter = std::variant<WENO, TVDMinmod, Unlimited>;
 
 // std::visit functions
-KOKKOS_INLINE_FUNCTION void apply_slope_limiter(SlopeLimiter *limiter,
-                                                View3D<double> U,
-                                                const GridStructure *grid,
-                                                const ModalBasis *basis,
-                                                const EOS *eos) {
+inline void apply_slope_limiter(SlopeLimiter *limiter, AthelasArray3D<double> U,
+                                const GridStructure *grid,
+                                const basis::ModalBasis *basis,
+                                const eos::EOS *eos) {
   std::visit(
       [&U, &grid, &basis, &eos](auto &limiter) {
         limiter.apply_slope_limiter(U, grid, basis, eos);
@@ -168,6 +168,9 @@ KOKKOS_INLINE_FUNCTION auto get_limited(SlopeLimiter *limiter, const int ix)
   return std::visit([&ix](auto &limiter) { return limiter.get_limited(ix); },
                     *limiter);
 }
-KOKKOS_INLINE_FUNCTION auto limited(SlopeLimiter *limiter) -> View1D<int> {
+KOKKOS_INLINE_FUNCTION auto limited(SlopeLimiter *limiter)
+    -> AthelasArray1D<int> {
   return std::visit([](auto &limiter) { return limiter.limited(); }, *limiter);
 }
+
+} // namespace athelas

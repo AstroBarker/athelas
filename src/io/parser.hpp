@@ -9,6 +9,8 @@
 #include <string_view>
 #include <vector>
 
+namespace athelas::io {
+
 /**
  * @class Parser
  * @brief A modern C++23 CSV parser with robust parsing capabilities and
@@ -299,7 +301,6 @@ auto get_column_by_name(const Parser::ParseResult &data,
   return get_column_by_index<T>(data, column_index);
 }
 
-// Modern C++23 approach using ranges and views
 template <typename T = std::string>
 auto get_column_view_by_index(const Parser::ParseResult &data,
                               size_t column_index) {
@@ -346,3 +347,5 @@ auto get_columns_by_indices(const Parser::ParseResult &data, size_t first_index,
       first_index, static_cast<size_t>(other_indices)...};
   return get_columns_by_indices<Types...>(data, indices);
 }
+
+} // namespace athelas::io

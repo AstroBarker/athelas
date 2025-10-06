@@ -2,7 +2,6 @@
  * @file boundary_conditions.cpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Boundary conditions
  *
  * @details Implemented BCs
@@ -10,6 +9,7 @@
  *            - reflecting
  *            - periodic
  *            - Dirichlet
+ *            - Marshak
  */
 
 #include <string>
@@ -17,9 +17,9 @@
 #include "boundary_conditions_base.hpp"
 #include "utils/error.hpp"
 
-namespace bc {
+namespace athelas::bc {
 
-BcType parse_bc_type(const std::string &name) {
+auto parse_bc_type(const std::string &name) -> BcType {
   if (name == "outflow") {
     return BcType::Outflow;
   }
@@ -95,4 +95,4 @@ auto make_boundary_conditions(const ProblemIn *pin) -> BoundaryConditions {
 
   return my_bc;
 }
-} // namespace bc
+} // namespace athelas::bc

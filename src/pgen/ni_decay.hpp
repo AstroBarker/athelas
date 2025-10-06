@@ -1,19 +1,19 @@
 #pragma once
 
-#include <cmath>
-
 #include "basis/polynomial_basis.hpp"
-#include "composition/saha.hpp"
 #include "eos/eos_variant.hpp"
 #include "geometry/grid.hpp"
+#include "kokkos_abstraction.hpp"
 #include "state/state.hpp"
-#include "utils/abstractions.hpp"
+
+namespace athelas {
 
 /**
  * Initialize ni_decay test
  **/
 void ni_decay_init(State *state, GridStructure *grid, ProblemIn *pin,
-                   const EOS *eos, ModalBasis *fluid_basis = nullptr) {
+                   const eos::EOS *eos,
+                   basis::ModalBasis *fluid_basis = nullptr) {
   const bool composition_active =
       pin->param()->get<bool>("physics.composition_enabled");
   const bool ni_decay_active =
@@ -29,12 +29,11 @@ void ni_decay_init(State *state, GridStructure *grid, ProblemIn *pin,
     THROW_ATHELAS_ERROR("Ni decay requires ideal gas eos!");
   }
 
-  View3D<double> uCF = state->u_cf();
-  View3D<double> uPF = state->u_pf();
+  AthelasArray3D<double> uCF = state->u_cf();
+  AthelasArray3D<double> uPF = state->u_pf();
   auto uAF = state->u_af();
 
-  static const int ilo = 1;
-  static const int ihi = grid->get_ihi();
+  static const IndexRange ib(grid->domain<Domain::Interior>());
   static const int nNodes = grid->get_n_nodes();
   static const int order = nNodes;
 
@@ -60,9 +59,10 @@ void ni_decay_init(State *state, GridStructure *grid, ProblemIn *pin,
   const double gm1 = gamma - 1.0;
   const double sie = constants::k_B * temperature / (gm1 * mu * constants::m_p);
 
-  std::shared_ptr<CompositionData> comps = std::make_shared<CompositionData>(
-      grid->get_n_elements() + 2, order, ncomps,
-      state->params()->get<int>("n_stages"));
+  std::shared_ptr<atom::CompositionData> comps =
+      std::make_shared<atom::CompositionData>(
+          grid->get_n_elements() + 2, order, ncomps,
+          state->params()->get<int>("n_stages"));
   auto mass_fractions = comps->mass_fractions();
   auto charges = comps->charge();
   auto neutrons = comps->neutron_number();
@@ -71,24 +71,25 @@ void ni_decay_init(State *state, GridStructure *grid, ProblemIn *pin,
   species_indexer->add("ni56", 0);
   species_indexer->add("co56", 1);
   species_indexer->add("fe56", 2);
-  Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ihi + 2), KOKKOS_LAMBDA(int ix) {
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: NiDecay (1)", DevExecSpace(), ib.s,
+      ib.e, KOKKOS_LAMBDA(const int i) {
         const int k = 0;
 
-        uCF(ix, k, q_Tau) = tau;
-        uCF(ix, k, q_V) = vel;
-        uCF(ix, k, q_E) = sie;
+        uCF(i, k, q_Tau) = tau;
+        uCF(i, k, q_V) = vel;
+        uCF(i, k, q_E) = sie;
 
         for (int iNodeX = 0; iNodeX < nNodes + 2; iNodeX++) {
-          uPF(ix, iNodeX, iPF_D) = rho;
-          uAF(ix, iNodeX, 1) = temperature;
-          ye(ix, iNodeX) = 0.5;
+          uPF(i, iNodeX, iPF_D) = rho;
+          uAF(i, iNodeX, 1) = temperature;
+          ye(i, iNodeX) = 0.5;
         }
 
         // set up comps
         // For this problem we set up a contiguous list of species
         // form Z = 1 to ncomps. Mass fractions are uniform with no slopes.
-        mass_fractions(ix, k, 0) = 1.0; // Pure Ni
+        mass_fractions(i, k, 0) = 1.0; // Pure Ni
 
         // Ni
         charges(0) = 28;
@@ -104,11 +105,14 @@ void ni_decay_init(State *state, GridStructure *grid, ProblemIn *pin,
   state->setup_composition(comps);
 
   // Fill density in guard cells
-  Kokkos::parallel_for(
-      Kokkos::RangePolicy<>(0, ilo), KOKKOS_LAMBDA(int ix) {
-        for (int iN = 0; iN < nNodes; iN++) {
-          uPF(ilo - 1 - ix, iN, 0) = uPF(ilo + ix, nNodes - iN - 1, 0);
-          uPF(ilo + 1 + ix, iN, 0) = uPF(ilo - ix, nNodes - iN - 1, 0);
+  athelas::par_for(
+      DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: NiDecay (ghost)", DevExecSpace(), 0,
+      ib.s - 1, KOKKOS_LAMBDA(const int i) {
+        for (int iN = 0; iN < nNodes + 2; iN++) {
+          uPF(ib.s - 1 - i, iN, 0) = uPF(ib.s + i, (nNodes + 2) - iN - 1, 0);
+          uPF(ib.s + 1 + i, iN, 0) = uPF(ib.s - i, (nNodes + 2) - iN - 1, 0);
         }
       });
 }
+
+} // namespace athelas

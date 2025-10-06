@@ -1,6 +1,6 @@
+#include <cfenv>
 #include <csignal>
 #include <expected>
-#include <fenv.h>
 #include <print>
 #include <string>
 
@@ -8,7 +8,11 @@
 
 #include "driver.hpp"
 #include "main.hpp"
+#include "problem_in.hpp"
 #include "utils/error.hpp"
+
+using athelas::Driver, athelas::AthelasExitCodes, athelas::ProblemIn,
+    athelas::segfault_handler;
 
 namespace {
 auto parse_input_file(std::span<char *> args)

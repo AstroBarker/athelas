@@ -11,6 +11,8 @@
 
 #include "io/parser.hpp"
 
+using athelas::io::Parser;
+
 /**
  * Test for near machine precision
  **/

@@ -1,4 +1,3 @@
-#pragma once
 /**
  * @file constants.hpp
  * --------------
@@ -9,10 +8,12 @@
  * TODO(astrobarker): implement different unit systems
  */
 
+#pragma once
+
 #include <cmath>
 #include <numbers>
 
-namespace constants {
+namespace athelas::constants {
 
 static constexpr double PI = std::numbers::pi;
 static constexpr double FOURPI = 4.0 * std::numbers::pi;
@@ -34,4 +35,4 @@ static constexpr double amu_to_g = 1.66053906660e-24;
 static constexpr double seconds_to_days = 86400.0;
 
 static const double k_saha = std::pow(2. * 3. * m_e * k_B / (h * h), 1.5);
-} // namespace constants
+} // namespace athelas::constants

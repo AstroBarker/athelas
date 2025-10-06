@@ -1,11 +1,11 @@
-#pragma once
 /**
  * @file error.hpp
  * --------------
  *
- * @author Brandon L. Barker
  * @brief Error handling
  */
+
+#pragma once
 
 #include "Kokkos_Core.hpp"
 
@@ -19,7 +19,9 @@
 #include <unistd.h>
 #include <utility>
 
-#include "constants.hpp"
+#include "utils/constants.hpp"
+
+namespace athelas {
 
 enum AthelasExitCodes {
   SUCCESS = 0,
@@ -150,3 +152,5 @@ void check_state(T state, const int ihi, const bool do_rad) {
     }
   }
 }
+
+} // namespace athelas
