@@ -182,7 +182,7 @@ auto ModalBasis::inner_product(const int m, const int n, const int ix,
   double result = 0.0;
   for (int iN = 0; iN < nNodes_; iN++) {
     // include rho in integrand if necessary
-    const double rho = density_weight_ ? uPF(ix, iN, 0) : 1.0;
+    const double rho = density_weight_ ? uPF(ix, iN + 1, 0) : 1.0;
     const double eta_q = grid->get_nodes(iN);
     const double X = grid->node_coordinate(ix, iN);
     result += func_(n, eta_q, eta_c) * phi_(ix, iN + 1, m) *
@@ -206,7 +206,7 @@ auto ModalBasis::inner_product(const int n, const int ix,
   double result = 0.0;
   for (int iN = 0; iN < nNodes_; iN++) {
     // include rho in integrand if necessary
-    const double rho = density_weight_ ? uPF(ix, iN, 0) : 1.0;
+    const double rho = density_weight_ ? uPF(ix, iN + 1, 0) : 1.0;
     const double X = grid->node_coordinate(ix, iN);
     result += phi_(ix, iN + 1, n) * phi_(ix, iN + 1, n) *
               grid->get_weights(iN) * rho * grid->get_widths(ix) *
@@ -323,7 +323,7 @@ void ModalBasis::check_orthogonality(const AthelasArray3D<double> uPF,
         double result = 0.0;
         for (int i_eta = 1; i_eta <= nNodes_; i_eta++) // loop over quadratures
         {
-          const double rho = density_weight_ ? uPF(0, ix, i_eta - 1) : 1.0;
+          const double rho = density_weight_ ? uPF(ix, i_eta, 0) : 1.0;
           const double X = grid->node_coordinate(ix, i_eta - 1);
           // Not using an inner_product function because their API is odd..
           result += phi_(ix, i_eta, k1) * phi_(ix, i_eta, k2) * rho *
@@ -363,7 +363,7 @@ void ModalBasis::compute_mass_matrix(const AthelasArray3D<double> uPF,
       double result = 0.0;
       for (int iN = 0; iN < nNodes_; iN++) {
         // include rho in integrand if necessary
-        const double rho = density_weight_ ? uPF(ix, iN, 0) : 1.0;
+        const double rho = density_weight_ ? uPF(ix, iN + 1, 0) : 1.0;
         const double X = grid->node_coordinate(ix, iN);
         result += phi_(ix, iN + 1, k) * phi_(ix, iN + 1, k) *
                   grid->get_weights(iN) * grid->get_widths(ix) *
@@ -467,7 +467,7 @@ void ModalBasis::project_nodal_to_modal(
     for (int iN = 0; iN < nNodes_; iN++) {
       const double X = grid->node_coordinate(ix, iN);
       const double nodal_val = nodal_func(X, ix, iN);
-      const double rho = density_weight_ ? uPF(ix, iN, 0) : 1.0;
+      const double rho = density_weight_ ? uPF(ix, iN + 1, 0) : 1.0;
 
       numerator += nodal_val * phi_(ix, iN + 1, k) * grid->get_weights(iN) *
                    grid->get_widths(ix) * grid->get_sqrt_gm(X) * rho;

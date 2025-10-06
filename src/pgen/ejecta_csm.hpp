@@ -53,12 +53,13 @@ void ejecta_csm_init(State *state, GridStructure *grid, ProblemIn *pin,
   athelas::par_for(
       DEFAULT_FLAT_LOOP_PATTERN, "Pgen :: EjectaCSM (1)", DevExecSpace(), ib.s,
       ib.e, KOKKOS_LAMBDA(const int i) {
-        for (int iNodeX = 0; iNodeX < nNodes + 2; iNodeX++) {
+        for (int iNodeX = 0; iNodeX < nNodes; iNodeX++) {
           const double x = grid->node_coordinate(i, iNodeX);
           if (x <= rstar) {
-            uPF(i, iNodeX, iPF_D) = 1.0 / (constants::FOURPI * rstar3 / 3.0);
+            uPF(i, iNodeX + 1, iPF_D) =
+                1.0 / (constants::FOURPI * rstar3 / 3.0);
           } else {
-            uPF(i, iNodeX, iPF_D) = 1.0;
+            uPF(i, iNodeX + 1, iPF_D) = 1.0;
           }
         }
       });
